@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -20,11 +20,11 @@ import {
   MagnifyingGlassIcon,
   XMarkIcon,
   ArrowUturnRightIcon,
-  PencilIcon,
   ChevronRightIcon,
-  CodeBracketIcon,
   CalendarIcon,
   ComputerDesktopIcon,
+  ChevronDownIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -138,6 +138,17 @@ interface SoftwareResponse {
   total: number
 }
 
+// Tree node interface for hierarchy visualization
+interface TreeNode {
+  id: string
+  partno: string
+  name: string
+  qpa: number
+  list_id: number | null
+  children: TreeNode[]
+  isRoot?: boolean
+}
+
 // Software type badge colors
 const swTypeColors: Record<string, { bg: string; text: string }> = {
   FIRMWARE: { bg: 'bg-purple-100', text: 'text-purple-800' },
@@ -210,6 +221,9 @@ export default function ConfigurationDetailPage() {
   const [addSuccess, setAddSuccess] = useState(false)
   const [partSearchQuery, setPartSearchQuery] = useState('')
   const [selectedPart, setSelectedPart] = useState<Part | null>(null)
+
+  // Hierarchy view state
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
 
   // Form setup for adding BOM item
   const {
@@ -668,6 +682,198 @@ export default function ConfigurationDetailPage() {
     )
   }
 
+  // Build hierarchical tree structure from BOM items
+  const buildHierarchyTree = useCallback((): TreeNode | null => {
+    if (!bomData || !configuration) return null
+
+    // Create root node from configuration
+    const rootNode: TreeNode = {
+      id: 'root',
+      partno: configuration.partno || configuration.cfg_name,
+      name: configuration.cfg_name,
+      qpa: 1,
+      list_id: null,
+      children: [],
+      isRoot: true,
+    }
+
+    if (!bomData.bom_items || bomData.bom_items.length === 0) {
+      return rootNode
+    }
+
+    // Create a map of part numbers to tree nodes
+    const nodeMap = new Map<string, TreeNode>()
+
+    // First pass: create all nodes
+    bomData.bom_items.forEach((item) => {
+      const node: TreeNode = {
+        id: `bom-${item.list_id}`,
+        partno: item.partno_c,
+        name: item.part_name_c,
+        qpa: item.qpa,
+        list_id: item.list_id,
+        children: [],
+      }
+      nodeMap.set(item.partno_c, node)
+    })
+
+    // Second pass: build hierarchy
+    bomData.bom_items.forEach((item) => {
+      const node = nodeMap.get(item.partno_c)
+      if (!node) return
+
+      if (item.nha_partno_c) {
+        // This item has a parent within the BOM
+        const parentNode = nodeMap.get(item.nha_partno_c)
+        if (parentNode) {
+          parentNode.children.push(node)
+        } else {
+          // Parent not found, attach to root
+          rootNode.children.push(node)
+        }
+      } else {
+        // No parent, attach directly to root
+        rootNode.children.push(node)
+      }
+    })
+
+    // Sort children by sort_order at each level
+    const sortChildren = (node: TreeNode) => {
+      node.children.sort((a, b) => {
+        const itemA = bomData.bom_items.find(i => i.list_id === a.list_id)
+        const itemB = bomData.bom_items.find(i => i.list_id === b.list_id)
+        return (itemA?.sort_order || 0) - (itemB?.sort_order || 0)
+      })
+      node.children.forEach(sortChildren)
+    }
+    sortChildren(rootNode)
+
+    return rootNode
+  }, [bomData, configuration])
+
+  // Toggle node expansion
+  const toggleNode = (nodeId: string) => {
+    setExpandedNodes(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId)
+      } else {
+        newSet.add(nodeId)
+      }
+      return newSet
+    })
+  }
+
+  // Expand all nodes
+  const expandAll = () => {
+    if (!bomData) return
+    const allIds = new Set<string>(['root'])
+    bomData.bom_items.forEach(item => {
+      allIds.add(`bom-${item.list_id}`)
+    })
+    setExpandedNodes(allIds)
+  }
+
+  // Collapse all nodes
+  const collapseAll = () => {
+    setExpandedNodes(new Set())
+  }
+
+  // Recursive tree node component
+  const TreeNodeComponent = ({ node, level = 0 }: { node: TreeNode; level?: number }) => {
+    const hasChildren = node.children.length > 0
+    const isExpanded = expandedNodes.has(node.id)
+    const isRoot = node.isRoot
+
+    return (
+      <div className={level > 0 ? 'ml-6' : ''}>
+        <div
+          className={`flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
+            isRoot ? 'bg-primary-50 border border-primary-200' : 'bg-white border border-gray-200'
+          }`}
+          onClick={() => hasChildren && toggleNode(node.id)}
+        >
+          {/* Expand/Collapse Button */}
+          <button
+            type="button"
+            className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded ${
+              hasChildren ? 'hover:bg-gray-200' : 'opacity-0'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (hasChildren) toggleNode(node.id)
+            }}
+            disabled={!hasChildren}
+          >
+            {hasChildren && (
+              <ChevronRightIcon
+                className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+              />
+            )}
+          </button>
+
+          {/* Icon */}
+          <div className={`flex-shrink-0 p-1.5 rounded ${isRoot ? 'bg-primary-100' : 'bg-gray-100'}`}>
+            {isRoot ? (
+              <CircleStackIcon className="h-5 w-5 text-primary-600" />
+            ) : hasChildren ? (
+              <CubeIcon className="h-5 w-5 text-blue-600" />
+            ) : (
+              <Cog6ToothIcon className="h-5 w-5 text-green-600" />
+            )}
+          </div>
+
+          {/* Part Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-medium text-gray-900 truncate">
+                {node.partno}
+              </span>
+              {hasChildren && !isRoot && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200">
+                  NHA
+                </span>
+              )}
+              {!isRoot && node.qpa > 1 && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  x{node.qpa}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 truncate">{node.name}</p>
+          </div>
+
+          {/* Part Detail Link (for BOM items only) */}
+          {node.list_id && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                // Could navigate to part detail page if it exists
+                // For now, we'll just show a tooltip
+              }}
+              className="flex-shrink-0 text-xs text-primary-600 hover:text-primary-800 hover:underline"
+              title="View part details"
+            >
+              Details
+            </button>
+          )}
+        </div>
+
+        {/* Children */}
+        {hasChildren && isExpanded && (
+          <div className="mt-1 border-l-2 border-gray-200 ml-3">
+            {node.children.map((child) => (
+              <TreeNodeComponent key={child.id} node={child} level={level + 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -867,6 +1073,22 @@ export default function ConfigurationDetailPage() {
             <div className="flex items-center justify-center gap-2">
               <ComputerDesktopIcon className="h-5 w-5" />
               Software ({softwareData?.total || 0})
+            </div>
+          </Tab>
+          <Tab
+            className={({ selected }) =>
+              classNames(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                'ring-white ring-opacity-60 ring-offset-2 ring-offset-primary-400 focus:outline-none focus:ring-2',
+                selected
+                  ? 'bg-white text-primary-700 shadow'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-800'
+              )
+            }
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Squares2X2Icon className="h-5 w-5" />
+              Hierarchy
             </div>
           </Tab>
         </Tab.List>
@@ -1248,6 +1470,133 @@ export default function ConfigurationDetailPage() {
               )}
             </div>
           </Tab.Panel>
+
+          {/* Hierarchy Tab */}
+          <Tab.Panel className="rounded-xl bg-white p-6 shadow">
+            <div className="space-y-6">
+              {/* Hierarchy Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Component Hierarchy</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Visual tree view of configuration components and their relationships
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={expandAll}
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  >
+                    <ChevronDownIcon className="h-4 w-4 mr-1" />
+                    Expand All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={collapseAll}
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  >
+                    <ChevronRightIcon className="h-4 w-4 mr-1" />
+                    Collapse All
+                  </button>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-wrap gap-4 text-sm bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-primary-100">
+                    <CircleStackIcon className="h-4 w-4 text-primary-600" />
+                  </div>
+                  <span className="text-gray-600">Root Configuration</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-gray-100">
+                    <CubeIcon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <span className="text-gray-600">Assembly (NHA)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded bg-gray-100">
+                    <Cog6ToothIcon className="h-4 w-4 text-green-600" />
+                  </div>
+                  <span className="text-gray-600">Component</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                    NHA
+                  </span>
+                  <span className="text-gray-600">Next Higher Assembly</span>
+                </div>
+              </div>
+
+              {/* Tree Visualization */}
+              {bomLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <svg className="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span className="ml-2 text-sm text-gray-500">Loading hierarchy...</span>
+                </div>
+              ) : bomError ? (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <p className="text-sm text-red-800">{bomError}</p>
+                </div>
+              ) : (
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  {(() => {
+                    const tree = buildHierarchyTree()
+                    if (!tree) {
+                      return (
+                        <div className="text-center py-8">
+                          <Squares2X2Icon className="mx-auto h-12 w-12 text-gray-400" />
+                          <p className="mt-2 text-sm text-gray-500">No hierarchy data available</p>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div className="space-y-2">
+                        <TreeNodeComponent node={tree} />
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+
+              {/* Hierarchy Summary */}
+              {bomData && bomData.bom_items && bomData.bom_items.length > 0 && (
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Total Parts:</span>
+                      <span className="ml-2 font-medium text-gray-900">{bomData.total}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">NHA Assemblies:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {bomData.bom_items.filter(item =>
+                          bomData.bom_items.some(other => other.nha_partno_c === item.partno_c)
+                        ).length}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">SRA Parts:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {bomData.bom_items.filter(item => item.is_sra).length}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Top-Level Parts:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {bomData.bom_items.filter(item => !item.nha_partno_c).length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
 
@@ -1585,6 +1934,295 @@ export default function ConfigurationDetailPage() {
                       </form>
                     </>
                   )}
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Add Software Modal */}
+      <Transition appear show={isAddSoftwareModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeAddSoftwareModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center justify-between">
+                    <span className="flex items-center">
+                      <ComputerDesktopIcon className="h-5 w-5 mr-2 text-primary-600" />
+                      Add Software to Configuration
+                    </span>
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-gray-500"
+                      onClick={closeAddSoftwareModal}
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </Dialog.Title>
+
+                  {/* Error message */}
+                  {addSoftwareError && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
+                      <p className="text-sm text-red-700">{addSoftwareError}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-4 space-y-4">
+                    {/* Software Search */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Search for Software Version
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          value={softwareSearchQuery}
+                          onChange={(e) => setSoftwareSearchQuery(e.target.value)}
+                          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          placeholder="Type to search by number, title, or revision..."
+                        />
+                      </div>
+                      {/* Search Results */}
+                      {softwareSearchQuery && filteredSoftware.length > 0 && (
+                        <div className="mt-1 max-h-48 overflow-y-auto border border-gray-200 rounded-md bg-white shadow-sm">
+                          {filteredSoftware.slice(0, 8).map((sw) => (
+                            <button
+                              key={sw.sw_id}
+                              type="button"
+                              onClick={() => selectSoftwareItem(sw)}
+                              className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none border-b last:border-b-0"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="font-mono font-medium">{sw.sw_number}</span>
+                                  <span className="text-gray-500 ml-2">v{sw.revision}</span>
+                                </div>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${swTypeColors[sw.sw_type]?.bg || 'bg-gray-100'} ${swTypeColors[sw.sw_type]?.text || 'text-gray-800'}`}>
+                                  {sw.sw_type}
+                                </span>
+                              </div>
+                              <p className="text-gray-600 text-xs mt-0.5">{sw.sw_title}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {softwareSearchQuery && filteredSoftware.length === 0 && (
+                        <p className="mt-1 text-sm text-gray-500">No matching software found in this program.</p>
+                      )}
+                    </div>
+
+                    {/* Selected Software Info */}
+                    {selectedSoftware && (
+                      <div className="bg-primary-50 border border-primary-200 rounded-md p-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-primary-900">
+                              {selectedSoftware.sw_number}
+                            </p>
+                            <p className="text-sm text-primary-800 mt-0.5">{selectedSoftware.sw_title}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${swTypeColors[selectedSoftware.sw_type]?.bg || 'bg-gray-100'} ${swTypeColors[selectedSoftware.sw_type]?.text || 'text-gray-800'}`}>
+                                {selectedSoftware.sw_type}
+                              </span>
+                              <span className="text-xs text-primary-700">
+                                Revision: {selectedSoftware.revision}
+                              </span>
+                              {selectedSoftware.cpin_flag && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                  CPIN
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSoftware(null)}
+                            className="text-primary-400 hover:text-primary-500"
+                          >
+                            <XMarkIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Effective Date */}
+                    <div>
+                      <label htmlFor="sw_eff_date" className="block text-sm font-medium text-gray-700">
+                        Effective Date <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative mt-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <CalendarIcon className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="date"
+                          id="sw_eff_date"
+                          value={softwareEffDate}
+                          onChange={(e) => setSoftwareEffDate(e.target.value)}
+                          className="block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Date when this software version becomes effective for this configuration
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Form Actions */}
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={closeAddSoftwareModal}
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddSoftware}
+                      disabled={!selectedSoftware || !softwareEffDate || addingSoftware}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {addingSoftware ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Adding...
+                        </>
+                      ) : (
+                        'Add Software'
+                      )}
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Delete Software Confirmation Modal */}
+      <Transition appear show={isDeleteSoftwareModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeDeleteSoftwareModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                      <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div>
+                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                        Remove Software
+                      </Dialog.Title>
+                      <p className="mt-1 text-sm text-gray-500">
+                        This will remove the software association from this configuration.
+                      </p>
+                    </div>
+                  </div>
+
+                  {softwareToDelete && (
+                    <div className="mt-4 bg-gray-50 rounded-md p-4">
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Software Number:</span> {softwareToDelete.sw_number}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Title:</span> {softwareToDelete.sw_title}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Revision:</span> {softwareToDelete.revision}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Effective Date:</span> {formatDate(softwareToDelete.eff_date)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Delete Error */}
+                  {deleteSoftwareError && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
+                      <p className="text-sm text-red-700">{deleteSoftwareError}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={closeDeleteSoftwareModal}
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteSoftwareConfirm}
+                      disabled={deletingSoftware}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {deletingSoftware ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Removing...
+                        </>
+                      ) : (
+                        <>
+                          <TrashIcon className="h-4 w-4 mr-1" />
+                          Remove Software
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>
