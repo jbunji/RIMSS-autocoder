@@ -11,6 +11,9 @@ import {
   CubeIcon,
   TrashIcon,
   ExclamationTriangleIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ChevronUpDownIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -132,6 +135,12 @@ export default function AssetsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
+  // Sorting
+  type SortColumn = 'serno' | 'partno' | 'part_name' | 'status_cd' | 'location' | 'eti_hours' | 'next_pmi_date'
+  type SortOrder = 'asc' | 'desc'
+  const [sortBy, setSortBy] = useState<SortColumn>('serno')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+
   // Form setup
   const {
     register,
@@ -173,6 +182,8 @@ export default function AssetsPage() {
       params.append('limit', '25')
       if (statusFilter) params.append('status', statusFilter)
       if (debouncedSearch) params.append('search', debouncedSearch)
+      params.append('sort_by', sortBy)
+      params.append('sort_order', sortOrder)
 
       const response = await fetch(`http://localhost:3001/api/assets?${params.toString()}`, {
         headers: {
@@ -196,7 +207,7 @@ export default function AssetsPage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, statusFilter, debouncedSearch])
+  }, [token, currentProgramId, statusFilter, debouncedSearch, sortBy, sortOrder])
 
   // Fetch reference data for form
   const fetchReferenceData = useCallback(async () => {
@@ -344,6 +355,49 @@ export default function AssetsPage() {
       month: 'short',
       day: 'numeric',
     })
+  }
+
+  // Handle column sorting
+  const handleSort = (column: SortColumn) => {
+    if (sortBy === column) {
+      // Toggle order if same column
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New column, start with ascending
+      setSortBy(column)
+      setSortOrder('asc')
+    }
+  }
+
+  // Sortable column header component
+  const SortableHeader = ({
+    column,
+    label
+  }: {
+    column: SortColumn
+    label: string
+  }) => {
+    const isActive = sortBy === column
+    return (
+      <button
+        type="button"
+        onClick={() => handleSort(column)}
+        className="group inline-flex items-center gap-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
+      >
+        {label}
+        <span className="flex-none">
+          {isActive ? (
+            sortOrder === 'asc' ? (
+              <ChevronUpIcon className="h-4 w-4 text-primary-500" />
+            ) : (
+              <ChevronDownIcon className="h-4 w-4 text-primary-500" />
+            )
+          ) : (
+            <ChevronUpDownIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-500" />
+          )}
+        </span>
+      </button>
+    )
   }
 
   // Get status badge
@@ -501,26 +555,26 @@ export default function AssetsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Serial Number
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <SortableHeader column="serno" label="Serial Number" />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Part Number
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <SortableHeader column="partno" label="Part Number" />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <SortableHeader column="part_name" label="Name" />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <SortableHeader column="status_cd" label="Status" />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Location
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <SortableHeader column="location" label="Location" />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ETI Hours
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <SortableHeader column="eti_hours" label="ETI Hours" />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Next PMI
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <SortableHeader column="next_pmi_date" label="Next PMI" />
                     </th>
                     <th scope="col" className="relative px-6 py-3">
                       <span className="sr-only">Actions</span>

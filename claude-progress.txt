@@ -2945,3 +2945,123 @@ The search functionality was already implemented in both backend and frontend:
 - Frontend server running on port 5173
 - Search matches against serial number, part number, AND asset name
 - 300ms debounce prevents excessive API calls while typing
+
+---
+
+## Testing Session: 2026-01-19 12:58
+
+[Testing] Feature #7 'User cannot log in with invalid credentials' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to login page - Navigated to /login
+2. ✅ Enter invalid username - Entered 'invalid_user_12345'
+3. ✅ Enter any password - Entered 'wrongpassword123'
+4. ✅ Click login button - Clicked 'Sign In'
+5. ✅ Verify error message displays - 'Invalid username or password' shown
+6. ✅ Verify user remains on login page - URL stayed at /login
+7. ✅ Verify no session is created - localStorage.token and localStorage.user both null
+
+**Additional Testing:**
+- Tested valid username with wrong password (admin + wrongpassword) - same error behavior
+- Server returns 401 Unauthorized (expected)
+
+**Screenshots:**
+- .playwright-mcp/feature7_invalid_login_error.png
+- .playwright-mcp/feature7_valid_user_wrong_password.png
+
+**Console errors:** None (401 is expected behavior for invalid login)
+
+[Testing] Session complete - verified feature #7 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 13:00
+
+[Testing] Feature #23 'Dashboard shows open maintenance jobs widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - Successfully at /dashboard
+3. ✅ Verify open jobs widget displays - Widget visible with color-coded counts (1 Critical, 2 Urgent, 1 Routine)
+4. ✅ Verify count reflects real open jobs - 4 total jobs:
+   - MX-2024-001: Camera System X (Critical, 6 days open)
+   - MX-2024-002: Radar Unit 01 (Urgent, 11 days open)
+   - MX-2024-004: Communication System (Urgent, 2 days open, TCTO)
+   - MX-2024-003: Sensor Unit B (Routine, 3 days open, PMI)
+5. ✅ Click on job to navigate to maintenance detail - Navigated to /maintenance/1
+
+**Screenshots:**
+- .playwright-mcp/feature23_regression_open_jobs_widget.png
+- .playwright-mcp/feature23_regression_maintenance_detail.png
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #23 (no regression found)
+
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #40)
+
+### Completed This Session:
+- Feature #40: Asset column filtering works - VERIFIED AND PASSING
+
+**Feature Description:** Assets table has column-level filters
+
+**Implementation Status:** ALREADY IMPLEMENTED - No code changes needed
+
+The filtering functionality was already implemented in both backend and frontend:
+
+**Backend (backend/src/index.ts lines 1997-2001):**
+- GET /api/assets endpoint accepts 'status' query parameter
+- Filters assets by status_cd field
+- Combined with program filtering and search functionality
+
+**Frontend (frontend/src/pages/AssetsPage.tsx lines 480-498):**
+- Status dropdown with all 5 status options:
+  - All Statuses (default)
+  - FMC - Full Mission Capable
+  - PMC - Partial Mission Capable
+  - NMCM - Not Mission Capable (Maintenance)
+  - NMCS - Not Mission Capable (Supply)
+  - CNDM - Cannot Determine Mission
+- statusFilter state variable controls selection
+- Filter is passed to backend API via query parameter
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - Navigated to /assets with 10 total assets
+3. ✅ Apply filter on status column - Used Status dropdown
+4. ✅ Select FMC status - Selected 'FMC - Full Mission Capable'
+5. ✅ Verify only FMC assets display - Table showed 5 assets (CRIIS-001, CRIIS-002, CRIIS-004, CRIIS-007, CRIIS-010)
+6. ✅ Clear filter - Selected 'All Statuses'
+7. ✅ Verify all assets display - All 10 assets displayed again
+
+**Additional Verification:**
+- Tested NMCM filter - correctly showed only 1 asset (CRIIS-005 with BA badge)
+- Filter count updates in header (e.g., '5 total assets' for FMC, '1 total asset' for NMCM)
+- No console errors detected
+- Filter changes are instant and responsive
+
+**Screenshots:**
+- .playwright-mcp/feature40_assets_all_statuses.png - Initial state with all 10 assets
+- .playwright-mcp/feature40_assets_fmc_filtered.png - Filtered to FMC only (5 assets)
+- .playwright-mcp/feature40_assets_filter_cleared.png - After clearing filter (10 assets)
+- .playwright-mcp/feature40_assets_nmcm_filtered.png - Filtered to NMCM only (1 asset)
+
+### Current Status:
+- Feature #40 marked as PASSING
+- Features Passing: 38/374 (10.2%)
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- No code changes required - feature was already fully implemented
+- Filtering works correctly with all 5 status codes
+
