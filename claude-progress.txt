@@ -628,3 +628,57 @@ displays correctly regardless of authentication state.
 
 [Testing] Session complete - fixed regression in feature #8
 
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #12)
+
+### Completed This Session:
+- Feature #12: Admin can edit existing user - VERIFIED AND PASSING
+
+**Implementation:**
+- Added PUT /api/users/:id endpoint to backend for updating users
+- Added edit modal with pre-filled form data in UsersPage.tsx
+- Created editUserSchema with optional password validation (password only required if changing)
+- Connected edit button (PencilIcon) to open modal with user data pre-populated
+- Form correctly handles program assignments with checkbox toggles
+- Success message displays after save
+
+**Testing Steps Verified:**
+1. ✅ Log in as admin - admin/admin123
+2. ✅ Navigate to Admin > Users - /admin/users
+3. ✅ Click edit on existing user - Clicked edit on depot_mgr (Jane Depot)
+4. ✅ Modify user details - Changed last name to 'DepotEdited', added ACTS program
+5. ✅ Save changes - Clicked 'Save Changes' button
+6. ✅ Verify changes persist - Refreshed page, changes still visible
+7. ✅ Verify success message displays - 'User "depot_mgr" updated successfully!'
+
+**Screenshots:**
+- feature12_edit_modal_open.png - Edit modal with pre-filled user data
+- feature12_edit_user_success.png - Success message after save
+- feature12_edit_user_persisted.png - Changes persisted after refresh
+
+**Technical Details:**
+- Backend PUT endpoint validates all fields similar to POST
+- Password is optional when editing (leave blank to keep current)
+- Username/email duplicate checks exclude current user being edited
+- Programs properly serialized/deserialized to/from the form
+- No console errors during the edit flow
+
+**Commit:** 911cb52 - Implement Feature #12: Admin can edit existing user
+
+### Current Status:
+- Features Passing: 10+ (confirmed Feature #12 now passing)
+- Total Features: 372
+- Completion: ~2.7%
+
+### What Was Built:
+- backend/src/index.ts - Added PUT /api/users/:id endpoint
+- frontend/src/pages/admin/UsersPage.tsx - Added edit modal, edit form, and handlers
+
+### Notes:
+- Frontend server running on port 5173
+- Backend server running on port 3001
+- Other agents may have added more features (saw Feature11 TestUser in users list)
+
