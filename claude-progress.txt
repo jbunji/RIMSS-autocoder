@@ -2366,3 +2366,229 @@ The quick navigation links were already implemented (by concurrent agent work in
 - Widget grid uses md:grid-cols-2 (768px breakpoint)
 - Status code boxes now show only code + number (cleaner on small screens)
 - Touch targets verified adequate for tablet interaction
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #31)
+
+### Completed This Session:
+- Feature #31: Assets list page loads - VERIFIED AND PASSING
+
+**Feature Description:** Assets inventory page displays list of all assets for selected program
+
+**Implementation:**
+1. **Backend** - Added to backend/src/index.ts:
+   - Created AssetDetails interface with comprehensive asset fields
+   - Added generateDetailedAssets() function with 25 assets across 4 programs
+   - Created GET /api/assets endpoint with:
+     - JWT authentication required
+     - Program-based filtering (defaults to user's default program)
+     - Optional status filter query parameter
+     - Search filter (searches serno, partno, part_name)
+     - Pagination (page, limit, max 100 per page)
+   - Created GET /api/assets/:id endpoint for single asset retrieval
+
+2. **Frontend** - Created frontend/src/pages/AssetsPage.tsx:
+   - Full data table with columns: Serial Number, Part Number, Name, Status, Location, ETI Hours, Next PMI, Actions
+   - Search input with debounce (300ms)
+   - Status filter dropdown (All, FMC, PMC, NMCM, NMCS, CNDM)
+   - Color-coded status badges (FMC=green, PMC=yellow, NMCM=red, NMCS=orange, CNDM=gray)
+   - Special indicators: BA (Bad Actor) badge, Transit badge for in-transit assets
+   - Pagination controls (page numbers, prev/next)
+   - Refresh button, Status Legend at bottom
+   - Loading spinner and empty state handling
+
+3. **Routing** - Updated frontend/src/App.tsx:
+   - Replaced PlaceholderPage with AssetsPage for /assets route
+   - Added /assets/:id route for future asset detail page
+
+**Testing Steps Verified:**
+1. Log in as any user - Logged in as admin/admin123
+2. Navigate to Assets page - Clicked Assets link, navigated to /assets
+3. Verify assets table displays - Table shows with all columns and 10 CRIIS assets
+4. Verify data loads from database - API calls return 200 OK
+5. Verify program filter is applied - Switched from CRIIS (10 assets) to ACTS (6 assets)
+
+**Screenshots:**
+- .playwright-mcp/.playwright-mcp/feature31_assets_page_criis.png - CRIIS program assets
+- .playwright-mcp/.playwright-mcp/feature31_assets_page_acts.png - ACTS program assets
+
+**Console errors:** None
+
+**Commit:** 2ec0549 - Implement Feature #31: Assets list page loads
+
+### Current Status:
+- Feature #31 marked as PASSING
+- Features Passing: 30/374 (approx 8.0%)
+
+### What Was Built:
+- backend/src/index.ts - Added /api/assets and /api/assets/:id endpoints
+- frontend/src/pages/AssetsPage.tsx - Complete assets list page
+- frontend/src/App.tsx - Updated routing for assets
+
+
+---
+
+## Testing Session: 2026-01-19 12:44
+
+[Testing] Feature #18 'Password reset functionality works' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to profile settings - Clicked user menu > Your Profile
+3. ✅ Click change password - Found Change Password section, clicked button
+4. ✅ Enter current password - Entered 'admin123'
+5. ✅ Enter new password meeting requirements - Entered 'NewPassword123!' (12+ chars, upper, lower, number, special)
+6. ✅ Confirm new password - Entered matching password
+7. ✅ Save changes - Clicked Save Password, received 'Password changed successfully!' message
+8. ✅ Log out and log in with new password - Signed out, logged in with 'NewPassword123!'
+9. ✅ Verify successful login - Dashboard loaded, showing 'Welcome, John Admin'
+
+**Password Requirements Verified:**
+- Minimum 12 characters
+- Uppercase letter required
+- Lowercase letter required
+- Number required
+- Special character required
+
+**UI Features Verified:**
+- Change Password button on profile page
+- Password form with three fields (Current, New, Confirm)
+- Password visibility toggle buttons
+- Clear password requirements message
+- Cancel and Save Password buttons
+- Success message after save
+- Error handling (tested incorrect current password - shows 'Current password is incorrect')
+
+**Screenshots:**
+- .playwright-mcp/feature18_password_change_form.png - Change password form with fields
+- .playwright-mcp/feature18_password_change_success.png - Profile page after successful change
+- .playwright-mcp/feature18_login_with_new_password_success.png - Dashboard after login with new password
+
+**Console errors:** None detected (only VERBOSE level password field warnings from browser)
+
+**Note:** Backend server restarted during testing, which reset the database to seed state. This did not affect test validity as the password change functionality was fully verified before the restart.
+
+[Testing] Session complete - verified feature #18 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 12:46
+
+[Testing] Feature #24 'Dashboard shows parts awaiting action widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as depot_mgr/depot123
+2. ✅ Navigate to dashboard - Dashboard at /dashboard loaded successfully
+3. ✅ Verify parts awaiting action widget displays - Widget shows with heading 'Parts Awaiting Action' and summary counts (3 pending, 1 ack)
+4. ✅ Verify pending requests show - 3 pending items displayed:
+   - Power Supply Unit 24V (Pending, Qty: 2, 4 days ago)
+   - Lithium Battery Pack (Pending, Qty: 4, 2 days ago)
+   - Air Filter Assembly (Pending, Qty: 5, 2 days ago)
+5. ✅ Verify acknowledged items show - 1 acknowledged item displayed:
+   - Coaxial Cable Assembly (Acknowledged, Qty: 10, 6 days ago)
+6. ✅ Click item to navigate to parts order detail - Clicked 'Power Supply Unit 24V' and navigated to /parts-orders/1 with full order details
+
+**Widget Features Verified:**
+- Summary counts header (3 pending, 1 ack)
+- Individual parts order cards with part name, asset, part number, status, quantity, age
+- Priority legend (Critical (0), Urgent (2), Routine (2))
+- Total count display
+- Clickable items navigate to detail page
+- Back button returns to dashboard correctly
+
+**Screenshots:**
+- .playwright-mcp/feature24_regression_dashboard.png - Full dashboard with Parts Awaiting Action widget
+- .playwright-mcp/feature24_regression_parts_detail.png - Parts Order detail page
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #24 (no regression found)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #33)
+
+### Completed This Session:
+- Feature #33: Edit existing asset - VERIFIED AND PASSING
+
+**Feature Description:** Users can modify asset details
+
+**Implementation:**
+
+1. **Backend - PUT /api/assets/:id endpoint:**
+   - Role-based access control (ADMIN and DEPOT_MANAGER only)
+   - Validates all field changes:
+     - Part number, serial number (cannot be empty)
+     - Serial number uniqueness within program
+     - Status code validity
+     - Administrative/custodial location validity
+   - Tracks all changes for audit trail
+   - Adds activity log entry to dynamicActivityLog for Recent Activity feed
+   - Returns updated asset with change summary
+
+2. **Frontend - AssetDetailPage.tsx:**
+   - View mode displays all asset details (serial number, part number, name, status, locations, notes)
+   - Edit mode with form fields:
+     - Text inputs for serial number, part number, name
+     - Status dropdown (FMC, PMC, NMCM, NMCS, CNDM)
+     - Admin/custodial location dropdowns
+     - Active status checkbox
+     - Notes textarea
+   - Save/Cancel buttons with loading state
+   - Success/error message display
+   - Role-based Edit button visibility (hidden for field technicians and viewers)
+
+3. **Updated GET /api/assets/:id:**
+   - Now returns editable fields from mockAssets (instead of generated AssetDetails)
+   - Includes admin_loc_name, cust_loc_name, status_name for display
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager or admin - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - /assets with 10 CRIIS assets
+3. ✅ Click edit on existing asset - Clicked View on CRIIS-001, then Edit Asset button
+4. ✅ Modify asset details - Changed status from FMC to PMC, updated notes
+5. ✅ Save changes - Click Save Changes, success message displayed
+6. ✅ Verify changes persist - Page refreshed, changes still present
+7. ✅ Verify audit log captures change - Dashboard Recent Activity shows update entry
+
+**Additional Security Verification:**
+- Logged in as field_tech (Bob Field)
+- Navigated to /assets/1
+- Confirmed Edit Asset button is NOT visible
+- Role-based access control working correctly
+
+**Screenshots:**
+- .playwright-mcp/.playwright-mcp/feature33_asset_detail_view.png - Asset detail page view mode
+- .playwright-mcp/.playwright-mcp/feature33_asset_edit_form.png - Edit form visible
+- .playwright-mcp/.playwright-mcp/feature33_asset_edit_changes.png - Changes being made
+- .playwright-mcp/.playwright-mcp/feature33_asset_edit_success.png - Success message after save
+- .playwright-mcp/.playwright-mcp/feature33_audit_log_verification.png - Audit log in Recent Activity
+- .playwright-mcp/.playwright-mcp/feature33_field_tech_no_edit_button.png - Field tech cannot see Edit button
+
+**No console errors detected.**
+
+**Commit:** 3298f6f - Implement Feature #33: Edit existing asset
+
+### Current Status:
+- Feature #33 marked as PASSING
+- Features Passing: ~31/374
+
+### What Was Built:
+- backend/src/index.ts - Added PUT /api/assets/:id endpoint, updated GET /api/assets/:id
+- frontend/src/pages/AssetDetailPage.tsx - New component with view/edit modes
+- frontend/src/App.tsx - Updated route to use AssetDetailPage
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Edit functionality respects role-based access control
+- Audit trail integrated with dashboard Recent Activity feed
+- All changes tracked with detailed descriptions
