@@ -457,6 +457,141 @@ const mockAssets: Asset[] = [
   { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', name: 'Special Unit 004', pgm_id: 4, status_cd: 'FMC', admin_loc: 'HQ', cust_loc: 'STORAGE-B', notes: '', active: true, created_date: '2024-03-01' },
 ]
 
+// Asset History interface for detailed audit trail
+interface AssetHistoryChange {
+  field: string
+  field_label: string
+  old_value: string | null
+  new_value: string | null
+}
+
+interface AssetHistoryEntry {
+  history_id: number
+  asset_id: number
+  timestamp: string
+  user_id: number
+  username: string
+  user_full_name: string
+  action_type: 'create' | 'update' | 'delete'
+  changes: AssetHistoryChange[]
+  description: string
+}
+
+// Asset history storage - stores all history events for assets
+const assetHistory: AssetHistoryEntry[] = []
+
+// Helper function to add asset history entry
+function addAssetHistory(
+  assetId: number,
+  user: { user_id: number; username: string; first_name: string; last_name: string },
+  actionType: 'create' | 'update' | 'delete',
+  changes: AssetHistoryChange[],
+  description: string
+): AssetHistoryEntry {
+  const entry: AssetHistoryEntry = {
+    history_id: assetHistory.length + 1,
+    asset_id: assetId,
+    timestamp: new Date().toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    action_type: actionType,
+    changes,
+    description,
+  }
+  assetHistory.push(entry)
+  return entry
+}
+
+// Initialize history for existing assets (simulate creation events)
+function initializeAssetHistory(): void {
+  mockAssets.forEach(asset => {
+    const createdDate = new Date(asset.created_date)
+    createdDate.setHours(9, 0, 0, 0) // Set to 9 AM
+
+    const entry: AssetHistoryEntry = {
+      history_id: assetHistory.length + 1,
+      asset_id: asset.asset_id,
+      timestamp: createdDate.toISOString(),
+      user_id: 1, // Admin created all initial assets
+      username: 'admin',
+      user_full_name: 'John Admin',
+      action_type: 'create',
+      changes: [
+        { field: 'serno', field_label: 'Serial Number', old_value: null, new_value: asset.serno },
+        { field: 'partno', field_label: 'Part Number', old_value: null, new_value: asset.partno },
+        { field: 'name', field_label: 'Name', old_value: null, new_value: asset.name },
+        { field: 'status_cd', field_label: 'Status', old_value: null, new_value: asset.status_cd },
+        { field: 'admin_loc', field_label: 'Admin Location', old_value: null, new_value: asset.admin_loc },
+        { field: 'cust_loc', field_label: 'Custodial Location', old_value: null, new_value: asset.cust_loc },
+      ],
+      description: `Asset ${asset.serno} created`,
+    }
+    assetHistory.push(entry)
+  })
+
+  // Add some sample edit history for a few assets to make it more realistic
+  const sampleEdits: { asset_id: number; changes: AssetHistoryChange[]; description: string; daysAgo: number }[] = [
+    {
+      asset_id: 1,
+      changes: [
+        { field: 'status_cd', field_label: 'Status', old_value: 'PMC', new_value: 'FMC' },
+        { field: 'notes', field_label: 'Notes', old_value: 'Awaiting calibration', new_value: 'Primary sensor unit' },
+      ],
+      description: 'Status updated from PMC to FMC after calibration',
+      daysAgo: 30,
+    },
+    {
+      asset_id: 3,
+      changes: [
+        { field: 'cust_loc', field_label: 'Custodial Location', old_value: 'STORAGE-A', new_value: 'AIRCRAFT-1' },
+      ],
+      description: 'Asset transferred to Aircraft 1',
+      daysAgo: 15,
+    },
+    {
+      asset_id: 5,
+      changes: [
+        { field: 'status_cd', field_label: 'Status', old_value: 'FMC', new_value: 'NMCM' },
+        { field: 'notes', field_label: 'Notes', old_value: '', new_value: 'Intermittent power failure' },
+      ],
+      description: 'Asset marked NMCM due to intermittent power failure',
+      daysAgo: 7,
+    },
+    {
+      asset_id: 6,
+      changes: [
+        { field: 'status_cd', field_label: 'Status', old_value: 'NMCM', new_value: 'NMCS' },
+        { field: 'notes', field_label: 'Notes', old_value: 'Awaiting parts', new_value: 'Awaiting power supply module' },
+      ],
+      description: 'Status changed to NMCS - awaiting power supply module',
+      daysAgo: 5,
+    },
+  ]
+
+  sampleEdits.forEach(edit => {
+    const editDate = new Date()
+    editDate.setDate(editDate.getDate() - edit.daysAgo)
+    editDate.setHours(14, 30, 0, 0)
+
+    const entry: AssetHistoryEntry = {
+      history_id: assetHistory.length + 1,
+      asset_id: edit.asset_id,
+      timestamp: editDate.toISOString(),
+      user_id: 2,
+      username: 'depot_mgr',
+      user_full_name: 'Jane Depot',
+      action_type: 'update',
+      changes: edit.changes,
+      description: edit.description,
+    }
+    assetHistory.push(entry)
+  })
+}
+
+// Initialize asset history on server start
+initializeAssetHistory()
+
 // Authentication middleware helper
 function authenticateRequest(req: express.Request, res: express.Response): { userId: number } | null {
   const authHeader = req.headers.authorization
@@ -1906,6 +2041,16 @@ interface AssetDetails {
   next_pmi_date: string | null;
   eti_hours: number | null;
   remarks: string | null;
+  // Additional fields for asset detail view
+  uii: string | null;  // Unique Item Identifier
+  mfg_date: string | null;  // Manufacturing date
+  acceptance_date: string | null;  // Acceptance date
+  admin_loc: string;  // Administrative location code
+  admin_loc_name: string;  // Administrative location name
+  cust_loc: string;  // Custodial location code
+  cust_loc_name: string;  // Custodial location name
+  // NHA/SRA hierarchy fields
+  nha_asset_id: number | null;  // Next Higher Assembly - parent asset ID
 }
 
 // Generate detailed asset data - initialize once and make mutable
@@ -1922,39 +2067,53 @@ function initializeDetailedAssets(): AssetDetails[] {
     return date.toISOString().split('T')[0];
   };
 
+  // Helper to generate UII (Unique Item Identifier)
+  const generateUII = (assetId: number, partno: string): string => {
+    return `W91WSL${assetId.toString().padStart(6, '0')}${partno.slice(0, 10)}`;
+  };
+
   return [
     // CRIIS program assets (pgm_id: 1)
-    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null },
-    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null },
-    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update' },
-    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null },
-    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001' },
-    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002' },
-    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null },
-    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending' },
-    { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(90), next_pmi_date: null, eti_hours: null, remarks: 'En route from vendor repair' },
-    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null },
+    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null, uii: generateUII(1, 'PN-SENSOR-A'), mfg_date: '2020-03-15', acceptance_date: '2020-06-01', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 4 },
+    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null, uii: generateUII(2, 'PN-SENSOR-A'), mfg_date: '2020-05-22', acceptance_date: '2020-08-10', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: 4 },
+    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update', uii: generateUII(3, 'PN-SENSOR-B'), mfg_date: '2019-11-08', acceptance_date: '2020-01-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: 7 },
+    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null, uii: generateUII(4, 'PN-CAMERA-X'), mfg_date: '2021-07-12', acceptance_date: '2021-10-01', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'FLIGHT-LINE', cust_loc_name: 'Flight Line', nha_asset_id: null },
+    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001', uii: generateUII(5, 'PN-CAMERA-X'), mfg_date: '2019-02-28', acceptance_date: '2019-05-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null },
+    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002', uii: generateUII(6, 'PN-RADAR-01'), mfg_date: '2020-09-05', acceptance_date: '2020-12-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'STORAGE-A', cust_loc_name: 'Storage Area A', nha_asset_id: null },
+    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null, uii: generateUII(7, 'PN-RADAR-01'), mfg_date: '2019-06-20', acceptance_date: '2019-09-10', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: null },
+    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending', uii: generateUII(8, 'PN-COMM-SYS'), mfg_date: '2021-01-18', acceptance_date: '2021-04-05', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'COMM-CENTER', cust_loc_name: 'Communications Center', nha_asset_id: null },
+    { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(90), next_pmi_date: null, eti_hours: null, remarks: 'En route from vendor repair', uii: generateUII(9, 'PN-COMM-SYS'), mfg_date: '2018-11-30', acceptance_date: '2019-02-20', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'IN-TRANSIT', cust_loc_name: 'In Transit', nha_asset_id: null },
+    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null, uii: generateUII(10, 'PN-NAV-UNIT'), mfg_date: '2020-08-14', acceptance_date: '2020-11-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: null },
 
     // ACTS program assets (pgm_id: 2)
-    { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(18), next_pmi_date: addDays(90), eti_hours: 750, remarks: null },
-    { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(25), next_pmi_date: addDays(65), eti_hours: 920, remarks: null },
-    { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', part_name: 'Targeting System B', pgm_id: 2, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(3), next_pmi_date: null, eti_hours: 2800, remarks: 'Optical alignment issue - MX-2024-005' },
-    { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(12), next_pmi_date: addDays(28), eti_hours: 1500, remarks: 'Range limited to 5km' },
-    { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(7), next_pmi_date: null, eti_hours: 3100, remarks: 'Awaiting laser diode - MX-2024-006' },
-    { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', part_name: 'Optical Sight Unit', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(40), next_pmi_date: addDays(50), eti_hours: 680, remarks: null },
+    // Targeting System A (ACTS-001) is a parent assembly (NHA) with child SRAs (Laser Designator and Optical Sight Unit)
+    { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(18), next_pmi_date: addDays(90), eti_hours: 750, remarks: null, uii: generateUII(11, 'PN-TARGET-A'), mfg_date: '2021-02-10', acceptance_date: '2021-05-20', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null },
+    { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(25), next_pmi_date: addDays(65), eti_hours: 920, remarks: null, uii: generateUII(12, 'PN-TARGET-A'), mfg_date: '2021-04-05', acceptance_date: '2021-07-15', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'RANGE-A', cust_loc_name: 'Range Area A', nha_asset_id: null },
+    { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', part_name: 'Targeting System B', pgm_id: 2, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(3), next_pmi_date: null, eti_hours: 2800, remarks: 'Optical alignment issue - MX-2024-005', uii: generateUII(13, 'PN-TARGET-B'), mfg_date: '2019-08-22', acceptance_date: '2019-11-10', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: null },
+    // Laser Designator is a child SRA of Targeting System A (ACTS-001)
+    { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(12), next_pmi_date: addDays(28), eti_hours: 1500, remarks: 'Range limited to 5km', uii: generateUII(14, 'PN-LASER-SYS'), mfg_date: '2020-06-18', acceptance_date: '2020-09-25', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'RANGE-B', cust_loc_name: 'Range Area B', nha_asset_id: 11 },
+    { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(7), next_pmi_date: null, eti_hours: 3100, remarks: 'Awaiting laser diode - MX-2024-006', uii: generateUII(15, 'PN-LASER-SYS'), mfg_date: '2019-03-12', acceptance_date: '2019-06-01', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'STORAGE-B', cust_loc_name: 'Storage Area B', nha_asset_id: null },
+    // Optical Sight Unit is a child SRA of Targeting System A (ACTS-001)
+    { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', part_name: 'Optical Sight Unit', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(40), next_pmi_date: addDays(50), eti_hours: 680, remarks: null, uii: generateUII(16, 'PN-OPTICS-01'), mfg_date: '2021-09-08', acceptance_date: '2021-12-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: 11 },
 
     // ARDS program assets (pgm_id: 3)
-    { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(22), next_pmi_date: addDays(68), eti_hours: 1400, remarks: null },
-    { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Echo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(35), next_pmi_date: addDays(55), eti_hours: 1650, remarks: null },
-    { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(8), next_pmi_date: addDays(22), eti_hours: 2200, remarks: 'IR channel degraded' },
-    { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: null, eti_hours: 2900, remarks: 'Lens recalibration - MX-2024-007' },
-    { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', part_name: 'Data Link System', pgm_id: 3, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(100), next_pmi_date: null, eti_hours: null, remarks: 'Returning from depot repair' },
+    // Data Processor (ARDS-001) is a parent assembly with Reconnaissance Camera and Data Link System as children
+    { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(22), next_pmi_date: addDays(68), eti_hours: 1400, remarks: null, uii: generateUII(17, 'PN-DATA-SYS'), mfg_date: '2020-04-25', acceptance_date: '2020-07-30', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'SERVER-ROOM', cust_loc_name: 'Server Room', nha_asset_id: null },
+    { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Echo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(35), next_pmi_date: addDays(55), eti_hours: 1650, remarks: null, uii: generateUII(18, 'PN-DATA-SYS'), mfg_date: '2020-06-10', acceptance_date: '2020-09-15', admin_loc: 'FIELD-E', admin_loc_name: 'Field Site Echo', cust_loc: 'DATA-CENTER', cust_loc_name: 'Data Center', nha_asset_id: null },
+    // Reconnaissance Camera is a child SRA of Data Processor (ARDS-001)
+    { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(8), next_pmi_date: addDays(22), eti_hours: 2200, remarks: 'IR channel degraded', uii: generateUII(19, 'PN-RECON-CAM'), mfg_date: '2019-10-14', acceptance_date: '2020-01-20', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 17 },
+    { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: null, eti_hours: 2900, remarks: 'Lens recalibration - MX-2024-007', uii: generateUII(20, 'PN-RECON-CAM'), mfg_date: '2019-05-08', acceptance_date: '2019-08-15', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: null },
+    // Data Link System is a child SRA of Data Processor (ARDS-001)
+    { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', part_name: 'Data Link System', pgm_id: 3, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(100), next_pmi_date: null, eti_hours: null, remarks: 'Returning from depot repair', uii: generateUII(21, 'PN-LINK-SYS'), mfg_date: '2018-08-20', acceptance_date: '2018-11-30', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'IN-TRANSIT', cust_loc_name: 'In Transit', nha_asset_id: 17 },
 
     // Program 236 assets (pgm_id: 4)
-    { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(14), next_pmi_date: addDays(76), eti_hours: 560, remarks: null },
-    { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(4), next_pmi_date: null, eti_hours: 1200, remarks: 'Awaiting classified component - MX-2024-010' },
-    { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', part_name: 'Special System Beta', pgm_id: 4, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(28), next_pmi_date: addDays(32), eti_hours: 890, remarks: 'Mode 3 limited' },
-    { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(50), next_pmi_date: addDays(40), eti_hours: 340, remarks: null },
+    // Special System Alpha (236-001) is a parent assembly with Special System Beta and Gamma as children
+    { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(14), next_pmi_date: addDays(76), eti_hours: 560, remarks: null, uii: generateUII(22, 'PN-SPEC-001'), mfg_date: '2022-01-12', acceptance_date: '2022-04-01', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-A', cust_loc_name: 'Vault A', nha_asset_id: null },
+    { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(4), next_pmi_date: null, eti_hours: 1200, remarks: 'Awaiting classified component - MX-2024-010', uii: generateUII(23, 'PN-SPEC-001'), mfg_date: '2021-11-05', acceptance_date: '2022-02-15', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-B', cust_loc_name: 'Vault B', nha_asset_id: null },
+    // Special System Beta is a child SRA of Special System Alpha (236-001)
+    { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', part_name: 'Special System Beta', pgm_id: 4, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(28), next_pmi_date: addDays(32), eti_hours: 890, remarks: 'Mode 3 limited', uii: generateUII(24, 'PN-SPEC-002'), mfg_date: '2021-06-22', acceptance_date: '2021-09-30', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-A', cust_loc_name: 'Vault A', nha_asset_id: 22 },
+    // Special System Gamma is a child SRA of Special System Alpha (236-001)
+    { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(50), next_pmi_date: addDays(40), eti_hours: 340, remarks: null, uii: generateUII(25, 'PN-SPEC-003'), mfg_date: '2022-03-18', acceptance_date: '2022-06-25', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-C', cust_loc_name: 'Vault C', nha_asset_id: 22 },
   ];
 }
 
@@ -2134,6 +2293,120 @@ app.get('/api/assets/:id', (req, res) => {
   });
 });
 
+// GET /api/assets/:id/hierarchy - Get asset NHA/SRA hierarchy (requires authentication)
+app.get('/api/assets/:id/hierarchy', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+
+  // Get the asset from detailedAssets
+  const asset = detailedAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
+
+  // Get parent asset (NHA - Next Higher Assembly)
+  let nha: { asset_id: number; serno: string; partno: string; part_name: string; status_cd: string; status_name: string } | null = null;
+  if (asset.nha_asset_id) {
+    const parentAsset = detailedAssets.find(a => a.asset_id === asset.nha_asset_id);
+    if (parentAsset) {
+      nha = {
+        asset_id: parentAsset.asset_id,
+        serno: parentAsset.serno,
+        partno: parentAsset.partno,
+        part_name: parentAsset.part_name,
+        status_cd: parentAsset.status_cd,
+        status_name: parentAsset.status_name,
+      };
+    }
+  }
+
+  // Get child assets (SRA - Shop Replaceable Assemblies)
+  const sra = detailedAssets
+    .filter(a => a.nha_asset_id === assetId)
+    .map(child => ({
+      asset_id: child.asset_id,
+      serno: child.serno,
+      partno: child.partno,
+      part_name: child.part_name,
+      status_cd: child.status_cd,
+      status_name: child.status_name,
+    }));
+
+  console.log(`[ASSETS] Hierarchy request by ${user.username} for asset ${assetId}: NHA=${nha?.serno || 'none'}, SRA count=${sra.length}`);
+
+  res.json({
+    asset: {
+      asset_id: asset.asset_id,
+      serno: asset.serno,
+      partno: asset.partno,
+      part_name: asset.part_name,
+      status_cd: asset.status_cd,
+      status_name: asset.status_name,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    },
+    nha,
+    sra,
+    has_nha: nha !== null,
+    has_sra: sra.length > 0,
+  });
+});
+
+// GET /api/assets/:id/history - Get asset change history (requires authentication)
+app.get('/api/assets/:id/history', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = mockAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get history entries for this asset, sorted by timestamp descending (most recent first)
+  const history = assetHistory
+    .filter(h => h.asset_id === assetId)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  console.log(`[ASSETS] History request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${history.length} entries`);
+
+  res.json({
+    asset_id: assetId,
+    serno: asset.serno,
+    history,
+    total: history.length,
+  });
+});
+
 // PUT /api/assets/:id - Update an existing asset (requires authentication and depot_manager/admin role)
 app.put('/api/assets/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -2168,7 +2441,7 @@ app.put('/api/assets/:id', (req, res) => {
 
   // Track changes for audit log
   const changes: string[] = [];
-  const oldAsset = { ...asset };
+  const historyChanges: AssetHistoryChange[] = [];
 
   // Validate and apply changes
   if (partno !== undefined && partno !== asset.partno) {
@@ -2176,6 +2449,7 @@ app.put('/api/assets/:id', (req, res) => {
       return res.status(400).json({ error: 'Part number cannot be empty' });
     }
     changes.push(`Part Number: ${asset.partno} → ${partno}`);
+    historyChanges.push({ field: 'partno', field_label: 'Part Number', old_value: asset.partno, new_value: partno });
     asset.partno = partno;
   }
 
@@ -2189,11 +2463,13 @@ app.put('/api/assets/:id', (req, res) => {
       return res.status(400).json({ error: 'An asset with this serial number already exists in this program' });
     }
     changes.push(`Serial Number: ${asset.serno} → ${serno}`);
+    historyChanges.push({ field: 'serno', field_label: 'Serial Number', old_value: asset.serno, new_value: serno });
     asset.serno = serno;
   }
 
   if (name !== undefined && name !== asset.name) {
     changes.push(`Name: ${asset.name} → ${name}`);
+    historyChanges.push({ field: 'name', field_label: 'Name', old_value: asset.name, new_value: name || `${asset.partno} - ${asset.serno}` });
     asset.name = name || `${asset.partno} - ${asset.serno}`;
   }
 
@@ -2212,6 +2488,7 @@ app.put('/api/assets/:id', (req, res) => {
     const oldStatus = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
     const newStatus = assetStatusCodes.find(s => s.status_cd === status_cd);
     changes.push(`Status: ${oldStatus?.status_name || asset.status_cd} → ${newStatus?.status_name || status_cd}`);
+    historyChanges.push({ field: 'status_cd', field_label: 'Status', old_value: oldStatus?.status_name || asset.status_cd, new_value: newStatus?.status_name || status_cd });
     asset.status_cd = status_cd;
   }
 
@@ -2223,6 +2500,7 @@ app.put('/api/assets/:id', (req, res) => {
     const oldLoc = adminLocations.find(l => l.loc_cd === asset.admin_loc);
     const newLoc = adminLocations.find(l => l.loc_cd === admin_loc);
     changes.push(`Admin Location: ${oldLoc?.loc_name || asset.admin_loc} → ${newLoc?.loc_name || admin_loc}`);
+    historyChanges.push({ field: 'admin_loc', field_label: 'Admin Location', old_value: oldLoc?.loc_name || asset.admin_loc, new_value: newLoc?.loc_name || admin_loc });
     asset.admin_loc = admin_loc;
   }
 
@@ -2234,22 +2512,34 @@ app.put('/api/assets/:id', (req, res) => {
     const oldLoc = custodialLocations.find(l => l.loc_cd === asset.cust_loc);
     const newLoc = custodialLocations.find(l => l.loc_cd === cust_loc);
     changes.push(`Custodial Location: ${oldLoc?.loc_name || asset.cust_loc} → ${newLoc?.loc_name || cust_loc}`);
+    historyChanges.push({ field: 'cust_loc', field_label: 'Custodial Location', old_value: oldLoc?.loc_name || asset.cust_loc, new_value: newLoc?.loc_name || cust_loc });
     asset.cust_loc = cust_loc;
   }
 
   if (notes !== undefined && notes !== asset.notes) {
     changes.push(`Notes: "${asset.notes || '(empty)'}" → "${notes || '(empty)'}"`);
+    historyChanges.push({ field: 'notes', field_label: 'Notes', old_value: asset.notes || '(empty)', new_value: notes || '(empty)' });
     asset.notes = notes;
   }
 
   if (active !== undefined && active !== asset.active) {
     changes.push(`Active: ${asset.active ? 'Yes' : 'No'} → ${active ? 'Yes' : 'No'}`);
+    historyChanges.push({ field: 'active', field_label: 'Active', old_value: asset.active ? 'Yes' : 'No', new_value: active ? 'Yes' : 'No' });
     asset.active = active;
   }
 
   if (changes.length === 0) {
     return res.status(400).json({ error: 'No changes provided' });
   }
+
+  // Add to asset history
+  addAssetHistory(
+    assetId,
+    user,
+    'update',
+    historyChanges,
+    `Updated asset ${asset.serno}: ${changes.join('; ')}`
+  );
 
   // Get program and location info for response
   const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
@@ -2396,6 +2686,27 @@ app.post('/api/assets', (req, res) => {
     remarks: notes || null,
   };
   detailedAssets.push(newDetailedAsset);
+
+  // Add creation to asset history
+  const createChanges: AssetHistoryChange[] = [
+    { field: 'serno', field_label: 'Serial Number', old_value: null, new_value: serno },
+    { field: 'partno', field_label: 'Part Number', old_value: null, new_value: partno },
+    { field: 'name', field_label: 'Name', old_value: null, new_value: name || `${partno} - ${serno}` },
+    { field: 'status_cd', field_label: 'Status', old_value: null, new_value: statusInfo?.status_name || status_cd },
+    { field: 'admin_loc', field_label: 'Admin Location', old_value: null, new_value: adminLocInfo?.loc_name || admin_loc },
+    { field: 'cust_loc', field_label: 'Custodial Location', old_value: null, new_value: custLocInfo?.loc_name || cust_loc },
+  ];
+  if (notes) {
+    createChanges.push({ field: 'notes', field_label: 'Notes', old_value: null, new_value: notes });
+  }
+
+  addAssetHistory(
+    newAssetId,
+    user,
+    'create',
+    createChanges,
+    `Asset ${serno} created`
+  );
 
   console.log(`[ASSETS] New asset created by ${user.username}: ${serno} (ID: ${newAssetId}, Program: ${program?.pgm_cd})`);
 
