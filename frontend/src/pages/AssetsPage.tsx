@@ -19,6 +19,7 @@ import {
 import { useAuthStore } from '../stores/authStore'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 
 // Reference data interfaces
 interface Location {
@@ -112,7 +113,7 @@ export default function AssetsPage() {
 
   // State
   const [assets, setAssets] = useState<Asset[]>([])
-  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 25, total: 0, total_pages: 1 })
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, total_pages: 1 })
   const [program, setProgram] = useState<ProgramInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -182,7 +183,7 @@ export default function AssetsPage() {
       const params = new URLSearchParams()
       if (currentProgramId) params.append('program_id', currentProgramId.toString())
       params.append('page', page.toString())
-      params.append('limit', '25')
+      params.append('limit', '10')
       if (statusFilter) params.append('status', statusFilter)
       if (debouncedSearch) params.append('search', debouncedSearch)
       params.append('sort_by', sortBy)
@@ -523,6 +524,104 @@ export default function AssetsPage() {
     doc.save(filename)
   }
 
+  // Export assets to Excel with CUI markings
+  const exportToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = [`RIMSS Asset Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total Assets: ${pagination.total}`]
+    const filterRow = statusFilter || debouncedSearch
+      ? [`Filters: ${[statusFilter ? `Status: ${statusFilter}` : '', debouncedSearch ? `Search: "${debouncedSearch}"` : ''].filter(Boolean).join(', ')}`]
+      : []
+
+    // Table header row
+    const headerRow = ['Serial Number', 'Part Number', 'Name', 'Status', 'Status Name', 'Location', 'Location Type', 'ETI Hours', 'Next PMI Date', 'Bad Actor', 'In Transit', 'Remarks']
+
+    // Data rows
+    const dataRows = assets.map(asset => [
+      asset.serno,
+      asset.partno,
+      asset.part_name,
+      asset.status_cd,
+      asset.status_name,
+      asset.location,
+      asset.loc_type,
+      asset.eti_hours !== null ? asset.eti_hours : '',
+      asset.next_pmi_date ? formatDate(asset.next_pmi_date) : '',
+      asset.bad_actor ? 'Yes' : 'No',
+      asset.in_transit ? 'Yes' : 'No',
+      asset.remarks || ''
+    ])
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 18 },  // Serial Number
+      { wch: 15 },  // Part Number
+      { wch: 25 },  // Name
+      { wch: 8 },   // Status
+      { wch: 30 },  // Status Name
+      { wch: 20 },  // Location
+      { wch: 12 },  // Location Type
+      { wch: 12 },  // ETI Hours
+      { wch: 14 },  // Next PMI Date
+      { wch: 10 },  // Bad Actor
+      { wch: 10 },  // In Transit
+      { wch: 40 },  // Remarks
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total assets
+      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
+    ]
+
+    // Add filter merge if applicable
+    if (filterRow.length) {
+      ws['!merges']!.push({ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } })
+    }
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Assets')
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_Assets_${getZuluDateForFilename()}.xlsx`
+
+    // Write the file and trigger download
+    XLSX.writeFile(wb, filename)
+  }
+
   // Handle column sorting
   const handleSort = (column: SortColumn) => {
     if (sortBy === column) {
@@ -600,6 +699,18 @@ export default function AssetsPage() {
           >
             <DocumentArrowDownIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
             Export PDF
+          </button>
+          <button
+            type="button"
+            onClick={exportToExcel}
+            disabled={assets.length === 0}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export to Excel with CUI markings"
+          >
+            <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Export Excel
           </button>
           {canCreateAsset && (
             <button
