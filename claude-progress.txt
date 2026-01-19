@@ -4818,3 +4818,121 @@ This is expected UX behavior - hiding pagination when unnecessary.
 ### Commits:
 - 6e5a1a8: Update ConfigurationDetailPage with NHA hierarchy display (Feature #58)
 
+
+---
+
+## Testing Session: 2026-01-19 14:03
+
+[Testing] Feature #1 'Application loads without errors' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to the application URL - Successfully loaded http://localhost:5173/login
+2. ✅ Verify no console errors appear - Zero JavaScript errors in console
+3. ✅ Verify login page renders with username and password fields - Both fields present with proper labels
+4. ✅ Verify CUI banner displays in header - Yellow "CUI - Controlled Unclassified Information" banner at top
+5. ✅ Verify CUI marking displays in footer - Yellow "CUI - Controlled Unclassified Information" banner at bottom
+
+**Additional Observations:**
+- Page title correct: "RIMSS - Remote Independent Maintenance Status System"
+- RIMSS heading and taglines display correctly
+- Sign In button properly styled
+- "Forgot your password?" link present
+- Security warning text displayed
+
+**Screenshots:**
+- .playwright-mcp/feature1_login_page_verification.png - Login page with all required elements
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #1 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 14:03
+
+[Testing] Feature #19 'Password complexity requirements enforced' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to password change form - Accessed via Profile > Change Password button
+2. ✅ Enter password without uppercase ('nouppercase123!') - Error: 'Password must contain at least one uppercase letter'
+3. ✅ Verify error message - Error displayed correctly
+4. ✅ Enter password without lowercase ('NOLOWERCASE123!') - Error: 'Password must contain at least one lowercase letter'
+5. ✅ Verify error message - Error displayed correctly
+6. ✅ Enter password without number ('NoNumbersHere!') - Error: 'Password must contain at least one number'
+7. ✅ Verify error message - Error displayed correctly
+8. ✅ Enter password without special character ('NoSpecialChar123') - Error: 'Password must contain at least one special character'
+9. ✅ Verify error message - Error displayed correctly
+10. ✅ Enter password under 12 characters ('Short1!') - Error: 'Password must be at least 12 characters'
+11. ✅ Verify error message - Error displayed correctly
+12. ✅ Enter valid complex password ('ValidPass123!') - 13 chars, has upper+lower+number+special
+13. ✅ Verify acceptance - Success message: 'Password changed successfully!'
+
+**Password Requirements Summary:**
+- Minimum 12 characters ✅
+- At least one uppercase letter ✅
+- At least one lowercase letter ✅
+- At least one number ✅
+- At least one special character ✅
+
+**Screenshots:**
+- .playwright-mcp/feature19_password_changed_success.png - Success after valid password
+
+**Console errors:** None related to feature (only Vite HMR reconnect during brief server interruption)
+
+[Testing] Session complete - verified feature #19 (no regression found)
+
+
+## Session: 2026-01-19 (Agent working on Feature #59)
+
+### Completed This Session:
+- Feature #59: Software version associations per configuration - VERIFIED AND PASSING
+
+**Description:** Configurations can have associated software versions
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added Software interface for software catalog items
+- Added ConfigurationSoftware interface for configuration-software associations
+- Added initializeSoftware() function with 10 mock software items
+- Added initializeConfigSoftware() function with initial associations
+- Added GET /api/software endpoint - Lists all software for a program
+- Added GET /api/configurations/:id/software endpoint - Gets software associations for a config
+- Added POST /api/configurations/:id/software endpoint - Adds software to a configuration
+- Added DELETE /api/configurations/:id/software/:swAssocId endpoint - Removes software association
+
+**Frontend (frontend/src/pages/ConfigurationDetailPage.tsx):**
+- Added icon imports: CodeBracketIcon, CalendarIcon, ComputerDesktopIcon
+- Added interfaces: ConfigurationSoftware, Software, SoftwareResponse
+- Added swTypeColors for software type badge styling (FIRMWARE, APPLICATION, DSP, etc.)
+- Added state variables for software data, loading, errors, and modals
+- Added fetchSoftware() and fetchAvailableSoftware() callback functions
+- Added Software tab to Tab.List with "(count)" display
+- Added Software Tab.Panel with:
+  - Table showing software associations (number, title, type, revision, effective date, CPIN)
+  - "Add Software" button (visible only for ADMIN/DEPOT_MANAGER)
+  - Summary stats (total versions, CPIN-tracked count)
+- Added "Add Software" modal with:
+  - Search field filtering by number, title, or revision
+  - Software selection with details display
+  - Effective date picker with default to today
+  - Form validation
+- Added "Remove Software" confirmation modal with details display
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager - Logged in as depot_mgr/depot123
+2. ✅ Navigate to configuration detail - Navigated to /configurations/1
+3. ✅ Click Software tab - Tab showed "(1)" with existing SW-CAM-CTRL-001
+4. ✅ Click Add Software button - Modal opened with search field and date picker
+5. ✅ Search for software version - Typed "CAM", found SW-CAM-CTRL-002 (Legacy)
+6. ✅ Select software - Selected SW-CAM-CTRL-002, details displayed
+7. ✅ Set effective date - Used default date (2026-01-19)
+8. ✅ Save changes - Clicked "Add Software", request succeeded
+9. ✅ Verify software association displays - Tab updated to "(2)", new row appeared in table
+
+**Commit:** 1bdf266 - Add Software tab with version associations to Configuration detail (Feature #59)
