@@ -36,6 +36,8 @@ interface Repair {
   narrative: string
   tag_no: string | null
   doc_no: string | null
+  micap: boolean // Mission Capable impacting flag
+  micap_login: string | null // User who flagged as MICAP
   created_by_name: string
   created_at: string
 }
@@ -114,6 +116,7 @@ interface EditRepairFormData {
   when_disc: string
   tag_no: string
   doc_no: string
+  micap: boolean
 }
 
 // Priority colors
@@ -202,7 +205,6 @@ export default function MaintenanceDetailPage() {
   const [closeRepairLoading, setCloseRepairLoading] = useState(false)
   const [closeRepairError, setCloseRepairError] = useState<string | null>(null)
   const [closeRepairSuccess, setCloseRepairSuccess] = useState<string | null>(null)
-  const [closingRepairId, setClosingRepairId] = useState<number | null>(null)
 
   // Attachments state
   const [attachments, setAttachments] = useState<Attachment[]>([])
@@ -225,6 +227,7 @@ export default function MaintenanceDetailPage() {
     how_mal: '',
     when_disc: '',
     narrative: '',
+    micap: false,
   })
   const [addRepairLoading, setAddRepairLoading] = useState(false)
   const [addRepairError, setAddRepairError] = useState<string | null>(null)
@@ -273,6 +276,7 @@ export default function MaintenanceDetailPage() {
     when_disc: '',
     tag_no: '',
     doc_no: '',
+    micap: false,
   })
   const [editRepairLoading, setEditRepairLoading] = useState(false)
   const [editRepairError, setEditRepairError] = useState<string | null>(null)
@@ -683,6 +687,7 @@ export default function MaintenanceDetailPage() {
       how_mal: '',
       when_disc: '',
       narrative: '',
+      micap: false,
     })
     setAddRepairError(null)
     setAddRepairSuccess(null)
@@ -732,6 +737,7 @@ export default function MaintenanceDetailPage() {
           how_mal: addRepairForm.how_mal || null,
           when_disc: addRepairForm.when_disc || null,
           narrative: addRepairForm.narrative.trim(),
+          micap: addRepairForm.micap,
         }),
       })
 
@@ -767,6 +773,7 @@ export default function MaintenanceDetailPage() {
       when_disc: repair.when_disc || '',
       tag_no: repair.tag_no || '',
       doc_no: repair.doc_no || '',
+      micap: repair.micap || false,
     })
     setEditRepairError(null)
     setEditRepairSuccess(null)
@@ -818,6 +825,7 @@ export default function MaintenanceDetailPage() {
           when_disc: editRepairForm.when_disc || null,
           tag_no: editRepairForm.tag_no || null,
           doc_no: editRepairForm.doc_no || null,
+          micap: editRepairForm.micap,
         }),
       })
 
@@ -1359,7 +1367,9 @@ export default function MaintenanceDetailPage() {
                   <div
                     key={repair.repair_id}
                     className={`border rounded-lg p-4 ${
-                      repair.shop_status === 'open'
+                      repair.micap && repair.shop_status === 'open'
+                        ? 'border-red-300 bg-red-50'
+                        : repair.shop_status === 'open'
                         ? 'border-yellow-200 bg-yellow-50'
                         : 'border-green-200 bg-green-50'
                     }`}
@@ -1382,6 +1392,15 @@ export default function MaintenanceDetailPage() {
                           <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                             {repair.type_maint}
                           </span>
+                          {repair.micap && (
+                            <span
+                              className="px-2 py-0.5 text-xs font-bold rounded-full bg-red-600 text-white flex items-center"
+                              title={`MICAP flagged by ${repair.micap_login || 'unknown'}`}
+                            >
+                              <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
+                              MICAP
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-700 mb-2">{repair.narrative}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-gray-500">
@@ -1394,22 +1413,35 @@ export default function MaintenanceDetailPage() {
                           <span>By: {repair.created_by_name}</span>
                         </div>
                       </div>
-                      {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                      {event.status === 'open' && (
                         <div className="flex flex-col gap-2 ml-4">
-                          <button
-                            onClick={() => openEditRepairModal(repair)}
-                            className="px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-100 rounded-lg hover:bg-primary-200 transition-colors flex items-center"
-                          >
-                            <PencilSquareIcon className="h-4 w-4 mr-1" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => openCloseRepairModal(repair)}
-                            className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors flex items-center"
-                          >
-                            <CheckCircleIcon className="h-4 w-4 mr-1" />
-                            Close Repair
-                          </button>
+                          {canEdit && repair.shop_status === 'open' && (
+                            <>
+                              <button
+                                onClick={() => openEditRepairModal(repair)}
+                                className="px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-100 rounded-lg hover:bg-primary-200 transition-colors flex items-center"
+                              >
+                                <PencilSquareIcon className="h-4 w-4 mr-1" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => openCloseRepairModal(repair)}
+                                className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors flex items-center"
+                              >
+                                <CheckCircleIcon className="h-4 w-4 mr-1" />
+                                Close Repair
+                              </button>
+                            </>
+                          )}
+                          {canDeleteRepairs && (
+                            <button
+                              onClick={() => openDeleteRepairModal(repair)}
+                              className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors flex items-center"
+                            >
+                              <TrashIcon className="h-4 w-4 mr-1" />
+                              Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -2206,6 +2238,44 @@ export default function MaintenanceDetailPage() {
                   placeholder="Describe the repair work performed..."
                 />
               </div>
+
+              {/* MICAP Flag */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mr-2" />
+                    <div>
+                      <label htmlFor="edit_repair_micap" className="block text-sm font-medium text-red-800">
+                        MICAP - Mission Capable Impacting
+                      </label>
+                      <p className="text-xs text-red-600 mt-0.5">
+                        Flag this repair if it impacts mission capability
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="edit_repair_micap"
+                    role="switch"
+                    aria-checked={editRepairForm.micap}
+                    onClick={() => setEditRepairForm(prev => ({ ...prev, micap: !prev.micap }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                      editRepairForm.micap ? 'bg-red-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        editRepairForm.micap ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {editRepairForm.micap && editingRepair?.micap_login && (
+                  <p className="text-xs text-red-600 mt-2">
+                    Originally flagged by: {editingRepair.micap_login}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Modal Footer */}
@@ -2369,6 +2439,39 @@ export default function MaintenanceDetailPage() {
                   placeholder="Describe the repair work being performed..."
                 />
               </div>
+
+              {/* MICAP Flag */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-600 mr-2" />
+                    <div>
+                      <label htmlFor="add_repair_micap" className="block text-sm font-medium text-red-800">
+                        MICAP - Mission Capable Impacting
+                      </label>
+                      <p className="text-xs text-red-600 mt-0.5">
+                        Flag this repair if it impacts mission capability
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="add_repair_micap"
+                    role="switch"
+                    aria-checked={addRepairForm.micap}
+                    onClick={() => setAddRepairForm(prev => ({ ...prev, micap: !prev.micap }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                      addRepairForm.micap ? 'bg-red-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        addRepairForm.micap ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Modal Footer */}
@@ -2529,6 +2632,133 @@ export default function MaintenanceDetailPage() {
                   <>
                     <CheckCircleIcon className="h-4 w-4 mr-2" />
                     Close Repair
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Delete Repair Modal */}
+      <Dialog open={isDeleteRepairModalOpen} onClose={closeDeleteRepairModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <TrashIcon className="h-5 w-5 mr-2 text-red-500" />
+                Delete Repair #{deletingRepair?.repair_seq}
+              </Dialog.Title>
+              <button
+                onClick={closeDeleteRepairModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Success Message */}
+              {deleteRepairSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{deleteRepairSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {deleteRepairError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <p className="text-red-700 text-sm">{deleteRepairError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Warning message */}
+              {!deleteRepairSuccess && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-700 text-sm font-medium">
+                        Are you sure you want to delete this repair?
+                      </p>
+                      <p className="text-red-600 text-sm mt-1">
+                        This action cannot be undone. All associated labor records will also be removed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Repair Info (read-only) */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Repair Details</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500">Repair #:</span>{' '}
+                    <span className="text-gray-900 font-medium">{deletingRepair?.repair_seq}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Type:</span>{' '}
+                    <span className="text-gray-900">{deletingRepair?.type_maint}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Start Date:</span>{' '}
+                    <span className="text-gray-900">
+                      {deletingRepair?.start_date ? new Date(deletingRepair.start_date).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Status:</span>{' '}
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                      deletingRepair?.shop_status === 'open'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {deletingRepair?.shop_status?.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                {deletingRepair?.narrative && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <span className="text-gray-500 text-sm">Narrative:</span>
+                    <p className="text-gray-900 text-sm mt-1">{deletingRepair.narrative}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeDeleteRepairModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={deleteRepairLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteRepair}
+                disabled={deleteRepairLoading || !!deleteRepairSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {deleteRepairLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <TrashIcon className="h-4 w-4 mr-2" />
+                    Delete Repair
                   </>
                 )}
               </button>

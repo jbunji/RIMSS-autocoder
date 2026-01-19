@@ -1800,6 +1800,8 @@ interface Repair {
   narrative: string;
   tag_no: string | null;
   doc_no: string | null;
+  micap: boolean; // Mission Capable impacting flag
+  micap_login: string | null; // User who flagged as MICAP
   created_by_name: string;
   created_at: string;
 }
@@ -1833,6 +1835,8 @@ function initializeRepairs(): void {
       narrative: 'Replaced faulty power supply connector. Tested - intermittent fault no longer present.',
       tag_no: 'TAG-001',
       doc_no: 'DOC-2024-001',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-5),
     },
@@ -1850,6 +1854,8 @@ function initializeRepairs(): void {
       narrative: 'Additional power fault found. Investigating main circuit board.',
       tag_no: 'TAG-002',
       doc_no: null,
+      micap: false,
+      micap_login: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-3),
     },
@@ -1868,6 +1874,8 @@ function initializeRepairs(): void {
       narrative: 'Power supply module failed. Awaiting replacement part PN-PSU-001.',
       tag_no: 'TAG-003',
       doc_no: 'DOC-2024-002',
+      micap: true, // This repair is flagged as MICAP
+      micap_login: 'jane_depot',
       created_by_name: 'Jane Depot',
       created_at: addDays(-10),
     },
@@ -1886,6 +1894,8 @@ function initializeRepairs(): void {
       narrative: '90-day calibration in progress. Sensor alignment adjustments underway.',
       tag_no: 'TAG-004',
       doc_no: 'DOC-2024-003',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-2),
     },
@@ -1904,6 +1914,8 @@ function initializeRepairs(): void {
       narrative: 'Applying software update per TCTO 2024-15. Download and install in progress.',
       tag_no: 'TAG-005',
       doc_no: 'DOC-2024-004',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-1),
     },
@@ -1922,6 +1934,8 @@ function initializeRepairs(): void {
       narrative: 'Optical sensor cleaning and realignment in progress.',
       tag_no: 'TAG-006',
       doc_no: 'DOC-2024-005',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-3),
     },
@@ -1940,6 +1954,8 @@ function initializeRepairs(): void {
       narrative: 'Full system inspection underway. Checking all targeting subsystems.',
       tag_no: 'TAG-007',
       doc_no: 'DOC-2024-006',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-5),
     },
@@ -1958,6 +1974,8 @@ function initializeRepairs(): void {
       narrative: 'Thermal paste reapplication and cooling fan inspection.',
       tag_no: 'TAG-008',
       doc_no: 'DOC-2024-007',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-7),
     },
@@ -1976,6 +1994,8 @@ function initializeRepairs(): void {
       narrative: '30-day inspection completed. All systems nominal.',
       tag_no: 'TAG-009',
       doc_no: 'DOC-2024-008',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-15),
     },
@@ -1993,6 +2013,8 @@ function initializeRepairs(): void {
       narrative: 'Lubrication and cable inspection completed.',
       tag_no: 'TAG-010',
       doc_no: 'DOC-2024-009',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-14),
     },
@@ -2011,6 +2033,8 @@ function initializeRepairs(): void {
       narrative: 'Annual calibration completed successfully. All targets within spec.',
       tag_no: 'TAG-011',
       doc_no: 'DOC-2024-010',
+      micap: false,
+      micap_login: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-20),
     },
@@ -2029,6 +2053,8 @@ function initializeRepairs(): void {
       narrative: 'Classified component replacement required. Awaiting secure delivery.',
       tag_no: 'TAG-012',
       doc_no: 'DOC-2024-011',
+      micap: false,
+      micap_login: null,
       created_by_name: 'John Admin',
       created_at: addDays(-4),
     },
@@ -2612,7 +2638,7 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     return res.status(400).json({ error: 'Cannot add repairs to a closed maintenance event' });
   }
 
-  const { start_date, type_maint, how_mal, when_disc, narrative, tag_no, doc_no } = req.body;
+  const { start_date, type_maint, how_mal, when_disc, narrative, tag_no, doc_no, micap } = req.body;
 
   // Validate required fields
   if (!type_maint || !narrative) {
@@ -2640,6 +2666,8 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     narrative,
     tag_no: tag_no || null,
     doc_no: doc_no || null,
+    micap: micap === true, // MICAP flag
+    micap_login: micap === true ? user.username : null, // Track who set MICAP
     created_by_name: `${user.first_name} ${user.last_name}`,
     created_at: new Date().toISOString().split('T')[0],
   };
@@ -2691,7 +2719,7 @@ app.put('/api/repairs/:id', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this repair' });
   }
 
-  const { type_maint, how_mal, when_disc, narrative, tag_no, doc_no, shop_status, stop_date } = req.body;
+  const { type_maint, how_mal, when_disc, narrative, tag_no, doc_no, shop_status, stop_date, micap } = req.body;
 
   // Update fields
   if (type_maint !== undefined) {
@@ -2711,6 +2739,21 @@ app.put('/api/repairs/:id', (req, res) => {
   }
   if (doc_no !== undefined) {
     repairs[repairIndex].doc_no = doc_no || null;
+  }
+
+  // Handle MICAP flag toggle
+  if (micap !== undefined) {
+    const previousMicap = repairs[repairIndex].micap;
+    repairs[repairIndex].micap = micap === true;
+    // Track who set the MICAP flag (only update if changing to true)
+    if (micap === true && !previousMicap) {
+      repairs[repairIndex].micap_login = user.username;
+    }
+    // Clear micap_login when turning off MICAP
+    if (micap === false) {
+      repairs[repairIndex].micap_login = null;
+    }
+    console.log(`[REPAIRS] MICAP flag ${micap ? 'enabled' : 'disabled'} on repair ${repairId} by ${user.username}`);
   }
 
   // Handle status change to closed
@@ -2746,6 +2789,66 @@ app.put('/api/repairs/:id', (req, res) => {
   res.json({
     message: 'Repair updated successfully',
     repair: repairs[repairIndex],
+  });
+});
+
+// Delete a repair
+app.delete('/api/repairs/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN and DEPOT_MANAGER can delete repairs
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. Only administrators and depot managers can delete repairs.' });
+  }
+
+  const repairId = parseInt(req.params.id, 10);
+  const repairIndex = repairs.findIndex(r => r.repair_id === repairId);
+
+  if (repairIndex === -1) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  const repair = repairs[repairIndex];
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // Cannot delete repairs from closed events
+  if (event.status === 'closed') {
+    return res.status(400).json({ error: 'Cannot delete repairs from a closed maintenance event' });
+  }
+
+  // Store repair info for response before deletion
+  const deletedRepairInfo = {
+    repair_id: repair.repair_id,
+    repair_seq: repair.repair_seq,
+    event_id: repair.event_id,
+    job_no: event.job_no,
+  };
+
+  // Remove the repair
+  repairs.splice(repairIndex, 1);
+
+  console.log(`[REPAIRS] Deleted repair ${repair.repair_id} (seq ${repair.repair_seq}) from event ${event.job_no} by ${user.username}`);
+
+  res.json({
+    message: 'Repair deleted successfully',
+    repair: deletedRepairInfo,
   });
 });
 
