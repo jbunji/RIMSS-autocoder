@@ -1,5 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { Dialog } from '@headlessui/react'
+import {
+  PencilSquareIcon,
+  XMarkIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
+  CalendarIcon,
+  MapPinIcon,
+  WrenchScrewdriverIcon,
+  PrinterIcon,
+} from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
 interface MaintenanceEvent {
@@ -15,6 +26,14 @@ interface MaintenanceEvent {
   priority: 'Routine' | 'Urgent' | 'Critical'
   status: 'open' | 'closed'
   pgm_id: number
+  location: string
+  etic?: string | null
+}
+
+interface EditFormData {
+  discrepancy: string
+  etic: string
+  priority: 'Routine' | 'Urgent' | 'Critical'
   location: string
 }
 
@@ -61,46 +80,136 @@ function getEventTypeBadgeClass(eventType: MaintenanceEvent['event_type']): stri
 export default function MaintenanceDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { token } = useAuthStore()
+  const { token, user } = useAuthStore()
   const [event, setEvent] = useState<MaintenanceEvent | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchEvent = async () => {
-      if (!token || !id) return
+  // Edit modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editForm, setEditForm] = useState<EditFormData>({
+    discrepancy: '',
+    etic: '',
+    priority: 'Routine',
+    location: '',
+  })
+  const [editLoading, setEditLoading] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+  const [editSuccess, setEditSuccess] = useState<string | null>(null)
 
-      setLoading(true)
-      setError(null)
+  // Check if user can edit (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
+  const canEdit = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
 
-      try {
-        const response = await fetch(`http://localhost:3001/api/events/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+  const fetchEvent = useCallback(async () => {
+    if (!token || !id) return
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Maintenance event not found')
-          }
-          if (response.status === 403) {
-            throw new Error('Access denied to this maintenance event')
-          }
-          throw new Error('Failed to fetch maintenance event')
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/events/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Maintenance event not found')
         }
-
-        const data = await response.json()
-        setEvent(data.event)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-      } finally {
-        setLoading(false)
+        if (response.status === 403) {
+          throw new Error('Access denied to this maintenance event')
+        }
+        throw new Error('Failed to fetch maintenance event')
       }
+
+      const data = await response.json()
+      setEvent(data.event)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }, [token, id])
+
+  useEffect(() => {
+    fetchEvent()
+  }, [fetchEvent])
+
+  // Open edit modal
+  const openEditModal = () => {
+    if (!event) return
+    setEditForm({
+      discrepancy: event.discrepancy,
+      etic: event.etic || '',
+      priority: event.priority,
+      location: event.location,
+    })
+    setEditError(null)
+    setEditSuccess(null)
+    setIsEditModalOpen(true)
+  }
+
+  // Close edit modal
+  const closeEditModal = () => {
+    setIsEditModalOpen(false)
+    setEditError(null)
+    setEditSuccess(null)
+  }
+
+  // Handle form field changes
+  const handleFormChange = (field: keyof EditFormData, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }))
+    setEditError(null)
+  }
+
+  // Submit edit form
+  const handleSubmitEdit = async () => {
+    if (!token || !event) return
+
+    // Validate form
+    if (!editForm.discrepancy.trim()) {
+      setEditError('Discrepancy description is required')
+      return
     }
 
-    fetchEvent()
-  }, [token, id])
+    setEditLoading(true)
+    setEditError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/events/${event.event_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          discrepancy: editForm.discrepancy.trim(),
+          etic: editForm.etic || null,
+          priority: editForm.priority,
+          location: editForm.location,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update maintenance event')
+      }
+
+      const data = await response.json()
+      setEditSuccess('Maintenance event updated successfully!')
+      setEvent(data.event)
+
+      // Close modal after a short delay to show success message
+      setTimeout(() => {
+        closeEditModal()
+      }, 1500)
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setEditLoading(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -119,10 +228,10 @@ export default function MaintenanceDetailPage() {
           <h2 className="text-lg font-semibold text-red-800 mb-2">Error</h2>
           <p className="text-red-600">{error}</p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/maintenance')}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
-            Return to Dashboard
+            Return to Maintenance
           </button>
         </div>
       </div>
@@ -135,10 +244,10 @@ export default function MaintenanceDetailPage() {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <p className="text-gray-600">No maintenance event found</p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/maintenance')}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Return to Dashboard
+            Return to Maintenance
           </button>
         </div>
       </div>
@@ -150,19 +259,34 @@ export default function MaintenanceDetailPage() {
       {/* Header with back button */}
       <div className="mb-6">
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/maintenance')}
           className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
         >
-          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Dashboard
+          <ArrowLeftIcon className="w-5 h-5 mr-1" />
+          Back to Maintenance
         </button>
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Maintenance Event Details</h1>
-          <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusBadgeClass(event.status)}`}>
-            {event.status.toUpperCase()}
-          </span>
+          <div className="flex items-center">
+            <WrenchScrewdriverIcon className="h-8 w-8 text-primary-600 mr-3" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Maintenance Event Details</h1>
+              <p className="text-sm text-gray-500">Job #{event.job_no}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {canEdit && event.status === 'open' && (
+              <button
+                onClick={openEditModal}
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              >
+                <PencilSquareIcon className="h-5 w-5 mr-2" />
+                Edit Event
+              </button>
+            )}
+            <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusBadgeClass(event.status)}`}>
+              {event.status.toUpperCase()}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -195,9 +319,27 @@ export default function MaintenanceDetailPage() {
                 </p>
               </div>
               <div>
-                <label className="text-sm text-gray-500">Location</label>
+                <label className="text-sm text-gray-500 flex items-center">
+                  <MapPinIcon className="h-4 w-4 mr-1" />
+                  Location
+                </label>
                 <p className="text-gray-900">{event.location}</p>
               </div>
+              {event.etic && (
+                <div>
+                  <label className="text-sm text-gray-500 flex items-center">
+                    <CalendarIcon className="h-4 w-4 mr-1" />
+                    ETIC (Est. Time In Commission)
+                  </label>
+                  <p className="text-gray-900">
+                    {new Date(event.etic).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -213,9 +355,7 @@ export default function MaintenanceDetailPage() {
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <CalendarIcon className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Job Started</p>
@@ -232,9 +372,7 @@ export default function MaintenanceDetailPage() {
               {event.stop_job && (
                 <div className="flex items-start">
                   <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <CheckCircleIcon className="w-4 h-4 text-green-600" />
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-medium text-gray-900">Job Completed</p>
@@ -252,9 +390,7 @@ export default function MaintenanceDetailPage() {
               {!event.stop_job && (
                 <div className="flex items-start">
                   <div className="flex-shrink-0 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <WrenchScrewdriverIcon className="w-4 h-4 text-yellow-600" />
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-medium text-gray-900">In Progress</p>
@@ -291,16 +427,27 @@ export default function MaintenanceDetailPage() {
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Quick Actions</h2>
             <div className="space-y-2">
+              {canEdit && event.status === 'open' && (
+                <button
+                  onClick={openEditModal}
+                  className="w-full px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium flex items-center justify-center"
+                >
+                  <PencilSquareIcon className="h-4 w-4 mr-2" />
+                  Edit Event
+                </button>
+              )}
               <button
-                onClick={() => navigate('/dashboard')}
-                className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                onClick={() => navigate('/maintenance')}
+                className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center justify-center"
               >
-                Return to Dashboard
+                <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                Return to Maintenance
               </button>
               <button
                 onClick={() => window.print()}
-                className="w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                className="w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium flex items-center justify-center"
               >
+                <PrinterIcon className="h-4 w-4 mr-2" />
                 Print Details
               </button>
             </div>
@@ -313,6 +460,149 @@ export default function MaintenanceDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onClose={closeEditModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Edit Maintenance Event
+              </Dialog.Title>
+              <button
+                onClick={closeEditModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* Success Message */}
+              {editSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{editSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {editError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{editError}</p>
+                </div>
+              )}
+
+              {/* Job Number (read-only) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Job Number
+                </label>
+                <p className="text-lg font-mono font-semibold text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  {event.job_no}
+                </p>
+              </div>
+
+              {/* Discrepancy Description */}
+              <div>
+                <label htmlFor="edit_discrepancy" className="block text-sm font-medium text-gray-700 mb-1">
+                  Discrepancy Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="edit_discrepancy"
+                  value={editForm.discrepancy}
+                  onChange={(e) => handleFormChange('discrepancy', e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Describe the maintenance issue or discrepancy..."
+                />
+              </div>
+
+              {/* ETIC */}
+              <div>
+                <label htmlFor="edit_etic" className="block text-sm font-medium text-gray-700 mb-1">
+                  ETIC (Estimated Time In Commission)
+                </label>
+                <input
+                  type="date"
+                  id="edit_etic"
+                  value={editForm.etic}
+                  onChange={(e) => handleFormChange('etic', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Estimated date when the asset will be back in service
+                </p>
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label htmlFor="edit_priority" className="block text-sm font-medium text-gray-700 mb-1">
+                  Priority
+                </label>
+                <select
+                  id="edit_priority"
+                  value={editForm.priority}
+                  onChange={(e) => handleFormChange('priority', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="Routine">Routine</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label htmlFor="edit_location" className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  id="edit_location"
+                  value={editForm.location}
+                  onChange={(e) => handleFormChange('location', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter location..."
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeEditModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={editLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitEdit}
+                disabled={editLoading || !!editSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {editLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleIcon className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   )
 }

@@ -1527,6 +1527,259 @@ function initializeMaintenanceEvents(): void {
 // Initialize maintenance events on server start
 initializeMaintenanceEvents();
 
+// Repair interface for maintenance event repairs
+interface Repair {
+  repair_id: number;
+  event_id: number;
+  repair_seq: number;
+  asset_id: number;
+  start_date: string;
+  stop_date: string | null;
+  type_maint: string; // 'Corrective' | 'Preventive' | 'Modification' | 'Inspection'
+  how_mal: string | null; // How Malfunctioned code
+  when_disc: string | null; // When Discovered code
+  shop_status: 'open' | 'closed';
+  narrative: string;
+  tag_no: string | null;
+  doc_no: string | null;
+  created_by_name: string;
+  created_at: string;
+}
+
+// Persistent storage for repairs
+let repairs: Repair[] = [];
+let repairNextId = 20; // Start after mock data IDs
+
+// Initialize repairs with mock data
+function initializeRepairs(): void {
+  const today = new Date();
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  repairs = [
+    // Repairs for Event 1 (MX-2024-001 - Power failure) - 2 repairs, 1 open
+    {
+      repair_id: 1,
+      event_id: 1,
+      repair_seq: 1,
+      asset_id: 5,
+      start_date: addDays(-5),
+      stop_date: addDays(-4),
+      type_maint: 'Corrective',
+      how_mal: 'PWR',
+      when_disc: 'BIT',
+      shop_status: 'closed',
+      narrative: 'Replaced faulty power supply connector. Tested - intermittent fault no longer present.',
+      tag_no: 'TAG-001',
+      doc_no: 'DOC-2024-001',
+      created_by_name: 'Bob Field',
+      created_at: addDays(-5),
+    },
+    {
+      repair_id: 2,
+      event_id: 1,
+      repair_seq: 2,
+      asset_id: 5,
+      start_date: addDays(-3),
+      stop_date: null,
+      type_maint: 'Corrective',
+      how_mal: 'PWR',
+      when_disc: 'OPS',
+      shop_status: 'open',
+      narrative: 'Additional power fault found. Investigating main circuit board.',
+      tag_no: 'TAG-002',
+      doc_no: null,
+      created_by_name: 'Bob Field',
+      created_at: addDays(-3),
+    },
+    // Repairs for Event 2 (MX-2024-002 - Radar) - 1 open repair
+    {
+      repair_id: 3,
+      event_id: 2,
+      repair_seq: 1,
+      asset_id: 6,
+      start_date: addDays(-10),
+      stop_date: null,
+      type_maint: 'Corrective',
+      how_mal: 'FAIL',
+      when_disc: 'OPS',
+      shop_status: 'open',
+      narrative: 'Power supply module failed. Awaiting replacement part PN-PSU-001.',
+      tag_no: 'TAG-003',
+      doc_no: 'DOC-2024-002',
+      created_by_name: 'Jane Depot',
+      created_at: addDays(-10),
+    },
+    // Repairs for Event 3 (MX-2024-003 - PMI) - 1 open repair
+    {
+      repair_id: 4,
+      event_id: 3,
+      repair_seq: 1,
+      asset_id: 3,
+      start_date: addDays(-2),
+      stop_date: null,
+      type_maint: 'Preventive',
+      how_mal: null,
+      when_disc: 'PMI',
+      shop_status: 'open',
+      narrative: '90-day calibration in progress. Sensor alignment adjustments underway.',
+      tag_no: 'TAG-004',
+      doc_no: 'DOC-2024-003',
+      created_by_name: 'Bob Field',
+      created_at: addDays(-2),
+    },
+    // Repairs for Event 4 (MX-2024-004 - TCTO) - 1 open repair
+    {
+      repair_id: 5,
+      event_id: 4,
+      repair_seq: 1,
+      asset_id: 8,
+      start_date: addDays(-1),
+      stop_date: null,
+      type_maint: 'Modification',
+      how_mal: null,
+      when_disc: 'TCTO',
+      shop_status: 'open',
+      narrative: 'Applying software update per TCTO 2024-15. Download and install in progress.',
+      tag_no: 'TAG-005',
+      doc_no: 'DOC-2024-004',
+      created_by_name: 'Bob Field',
+      created_at: addDays(-1),
+    },
+    // Repairs for Event 5 (ACTS) - 1 open repair
+    {
+      repair_id: 6,
+      event_id: 5,
+      repair_seq: 1,
+      asset_id: 13,
+      start_date: addDays(-3),
+      stop_date: null,
+      type_maint: 'Corrective',
+      how_mal: 'OPTIC',
+      when_disc: 'BIT',
+      shop_status: 'open',
+      narrative: 'Optical sensor cleaning and realignment in progress.',
+      tag_no: 'TAG-006',
+      doc_no: 'DOC-2024-005',
+      created_by_name: 'Jane Depot',
+      created_at: addDays(-3),
+    },
+    // Repairs for Event 6 (ACTS) - 1 open repair
+    {
+      repair_id: 7,
+      event_id: 6,
+      repair_seq: 1,
+      asset_id: 14,
+      start_date: addDays(-5),
+      stop_date: null,
+      type_maint: 'Inspection',
+      how_mal: null,
+      when_disc: 'PMI',
+      shop_status: 'open',
+      narrative: 'Full system inspection underway. Checking all targeting subsystems.',
+      tag_no: 'TAG-007',
+      doc_no: 'DOC-2024-006',
+      created_by_name: 'Jane Depot',
+      created_at: addDays(-5),
+    },
+    // Repairs for Event 7 (ARDS) - 1 open repair
+    {
+      repair_id: 8,
+      event_id: 7,
+      repair_seq: 1,
+      asset_id: 17,
+      start_date: addDays(-7),
+      stop_date: null,
+      type_maint: 'Corrective',
+      how_mal: 'OVHT',
+      when_disc: 'OPS',
+      shop_status: 'open',
+      narrative: 'Thermal paste reapplication and cooling fan inspection.',
+      tag_no: 'TAG-008',
+      doc_no: 'DOC-2024-007',
+      created_by_name: 'Bob Field',
+      created_at: addDays(-7),
+    },
+    // Repairs for Event 8 (closed) - all closed
+    {
+      repair_id: 9,
+      event_id: 8,
+      repair_seq: 1,
+      asset_id: 1,
+      start_date: addDays(-15),
+      stop_date: addDays(-13),
+      type_maint: 'Preventive',
+      how_mal: null,
+      when_disc: 'PMI',
+      shop_status: 'closed',
+      narrative: '30-day inspection completed. All systems nominal.',
+      tag_no: 'TAG-009',
+      doc_no: 'DOC-2024-008',
+      created_by_name: 'Bob Field',
+      created_at: addDays(-15),
+    },
+    {
+      repair_id: 10,
+      event_id: 8,
+      repair_seq: 2,
+      asset_id: 1,
+      start_date: addDays(-14),
+      stop_date: addDays(-12),
+      type_maint: 'Preventive',
+      how_mal: null,
+      when_disc: 'PMI',
+      shop_status: 'closed',
+      narrative: 'Lubrication and cable inspection completed.',
+      tag_no: 'TAG-010',
+      doc_no: 'DOC-2024-009',
+      created_by_name: 'Bob Field',
+      created_at: addDays(-14),
+    },
+    // Repairs for Event 9 (closed) - all closed
+    {
+      repair_id: 11,
+      event_id: 9,
+      repair_seq: 1,
+      asset_id: 11,
+      start_date: addDays(-20),
+      stop_date: addDays(-18),
+      type_maint: 'Preventive',
+      how_mal: null,
+      when_disc: 'PMI',
+      shop_status: 'closed',
+      narrative: 'Annual calibration completed successfully. All targets within spec.',
+      tag_no: 'TAG-011',
+      doc_no: 'DOC-2024-010',
+      created_by_name: 'Jane Depot',
+      created_at: addDays(-20),
+    },
+    // Repairs for Event 10 (236 program) - 1 open repair
+    {
+      repair_id: 12,
+      event_id: 10,
+      repair_seq: 1,
+      asset_id: 23,
+      start_date: addDays(-4),
+      stop_date: null,
+      type_maint: 'Corrective',
+      how_mal: 'COMP',
+      when_disc: 'BIT',
+      shop_status: 'open',
+      narrative: 'Classified component replacement required. Awaiting secure delivery.',
+      tag_no: 'TAG-012',
+      doc_no: 'DOC-2024-011',
+      created_by_name: 'John Admin',
+      created_at: addDays(-4),
+    },
+  ];
+}
+
+// Initialize repairs on server start
+initializeRepairs();
+
 // Helper function to generate job number
 function generateJobNumber(): string {
   const year = new Date().getFullYear();
@@ -1875,6 +2128,364 @@ app.put('/api/events/:id', (req, res) => {
   res.json({
     message: 'Maintenance event updated successfully',
     event: maintenanceEvents[eventIndex],
+  });
+});
+
+// Get repairs for a maintenance event
+app.get('/api/events/:eventId/repairs', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const eventId = parseInt(req.params.eventId, 10);
+  const event = maintenanceEvents.find(e => e.event_id === eventId);
+
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  // Get repairs for this event
+  const eventRepairs = repairs.filter(r => r.event_id === eventId);
+
+  // Calculate summary
+  const summary = {
+    total: eventRepairs.length,
+    open: eventRepairs.filter(r => r.shop_status === 'open').length,
+    closed: eventRepairs.filter(r => r.shop_status === 'closed').length,
+  };
+
+  console.log(`[REPAIRS] Fetched ${eventRepairs.length} repairs for event ${event.job_no} by ${user.username}`);
+
+  res.json({
+    repairs: eventRepairs,
+    summary,
+  });
+});
+
+// Get single repair by ID
+app.get('/api/repairs/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const repairId = parseInt(req.params.id, 10);
+  const repair = repairs.find(r => r.repair_id === repairId);
+
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  // Get associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  res.json({ repair });
+});
+
+// Create a new repair for an event
+app.post('/api/events/:eventId/repairs', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can create repairs
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to create repairs.' });
+  }
+
+  const eventId = parseInt(req.params.eventId, 10);
+  const event = maintenanceEvents.find(e => e.event_id === eventId);
+
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  // Cannot add repairs to closed events
+  if (event.status === 'closed') {
+    return res.status(400).json({ error: 'Cannot add repairs to a closed maintenance event' });
+  }
+
+  const { type_maint, how_mal, when_disc, narrative, tag_no, doc_no } = req.body;
+
+  // Validate required fields
+  if (!type_maint || !narrative) {
+    return res.status(400).json({ error: 'Maintenance type and narrative are required' });
+  }
+
+  // Calculate next repair sequence for this event
+  const eventRepairs = repairs.filter(r => r.event_id === eventId);
+  const nextSeq = eventRepairs.length > 0 ? Math.max(...eventRepairs.map(r => r.repair_seq)) + 1 : 1;
+
+  const newRepair: Repair = {
+    repair_id: repairNextId++,
+    event_id: eventId,
+    repair_seq: nextSeq,
+    asset_id: event.asset_id,
+    start_date: new Date().toISOString().split('T')[0],
+    stop_date: null,
+    type_maint,
+    how_mal: how_mal || null,
+    when_disc: when_disc || null,
+    shop_status: 'open',
+    narrative,
+    tag_no: tag_no || null,
+    doc_no: doc_no || null,
+    created_by_name: `${user.first_name} ${user.last_name}`,
+    created_at: new Date().toISOString().split('T')[0],
+  };
+
+  repairs.push(newRepair);
+
+  console.log(`[REPAIRS] Created repair ${newRepair.repair_id} for event ${event.job_no} by ${user.username}`);
+
+  res.status(201).json({
+    message: 'Repair created successfully',
+    repair: newRepair,
+  });
+});
+
+// Update a repair
+app.put('/api/repairs/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to update repairs.' });
+  }
+
+  const repairId = parseInt(req.params.id, 10);
+  const repairIndex = repairs.findIndex(r => r.repair_id === repairId);
+
+  if (repairIndex === -1) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  const repair = repairs[repairIndex];
+
+  // Get associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  const { type_maint, how_mal, when_disc, narrative, tag_no, doc_no, shop_status, stop_date } = req.body;
+
+  // Update fields
+  if (type_maint !== undefined) {
+    repairs[repairIndex].type_maint = type_maint;
+  }
+  if (how_mal !== undefined) {
+    repairs[repairIndex].how_mal = how_mal || null;
+  }
+  if (when_disc !== undefined) {
+    repairs[repairIndex].when_disc = when_disc || null;
+  }
+  if (narrative !== undefined) {
+    repairs[repairIndex].narrative = narrative;
+  }
+  if (tag_no !== undefined) {
+    repairs[repairIndex].tag_no = tag_no || null;
+  }
+  if (doc_no !== undefined) {
+    repairs[repairIndex].doc_no = doc_no || null;
+  }
+
+  // Handle status change to closed
+  if (shop_status !== undefined && ['open', 'closed'].includes(shop_status)) {
+    repairs[repairIndex].shop_status = shop_status;
+    if (shop_status === 'closed' && !repairs[repairIndex].stop_date) {
+      repairs[repairIndex].stop_date = new Date().toISOString().split('T')[0];
+    }
+    if (shop_status === 'open') {
+      repairs[repairIndex].stop_date = null;
+    }
+  }
+
+  // Allow explicit stop_date setting
+  if (stop_date !== undefined) {
+    repairs[repairIndex].stop_date = stop_date || null;
+  }
+
+  console.log(`[REPAIRS] Updated repair ${repairId} by ${user.username}`);
+
+  res.json({
+    message: 'Repair updated successfully',
+    repair: repairs[repairIndex],
+  });
+});
+
+// Close a maintenance event with validation
+app.post('/api/events/:id/close', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to close maintenance events.' });
+  }
+
+  const eventId = parseInt(req.params.id, 10);
+  const eventIndex = maintenanceEvents.findIndex(e => e.event_id === eventId);
+
+  if (eventIndex === -1) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  const event = maintenanceEvents[eventIndex];
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  // Check if event is already closed
+  if (event.status === 'closed') {
+    return res.status(400).json({ error: 'This maintenance event is already closed' });
+  }
+
+  // Check if all repairs are closed
+  const eventRepairs = repairs.filter(r => r.event_id === eventId);
+  const openRepairs = eventRepairs.filter(r => r.shop_status === 'open');
+
+  if (openRepairs.length > 0) {
+    return res.status(400).json({
+      error: `Cannot close event: ${openRepairs.length} repair(s) are still open. All repairs must be closed before closing the maintenance event.`,
+      open_repairs: openRepairs.map(r => ({
+        repair_id: r.repair_id,
+        repair_seq: r.repair_seq,
+        narrative: r.narrative.substring(0, 50) + (r.narrative.length > 50 ? '...' : ''),
+      })),
+    });
+  }
+
+  // Get stop_job from request or default to today
+  const { stop_job } = req.body;
+  const closingDate = stop_job || new Date().toISOString().split('T')[0];
+
+  // Close the event
+  maintenanceEvents[eventIndex].status = 'closed';
+  maintenanceEvents[eventIndex].stop_job = closingDate;
+
+  console.log(`[EVENTS] Closed maintenance event ${event.job_no} by ${user.username}`);
+
+  res.json({
+    message: 'Maintenance event closed successfully',
+    event: maintenanceEvents[eventIndex],
+  });
+});
+
+// Delete a maintenance event (ADMIN only)
+app.delete('/api/events/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN can delete events
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied. Only administrators can delete maintenance events.' });
+  }
+
+  const eventId = parseInt(req.params.id, 10);
+  const eventIndex = maintenanceEvents.findIndex(e => e.event_id === eventId);
+
+  if (eventIndex === -1) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  const event = maintenanceEvents[eventIndex];
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  // Check for related repairs
+  const eventRepairs = repairs.filter(r => r.event_id === eventId);
+
+  if (eventRepairs.length > 0) {
+    // Cascade delete: remove all repairs associated with this event
+    const repairIds = eventRepairs.map(r => r.repair_id);
+    for (const repairId of repairIds) {
+      const repairIndex = repairs.findIndex(r => r.repair_id === repairId);
+      if (repairIndex !== -1) {
+        repairs.splice(repairIndex, 1);
+      }
+    }
+    console.log(`[EVENTS] Cascade deleted ${eventRepairs.length} repairs for event ${event.job_no}`);
+  }
+
+  // Remove the event
+  const deletedEvent = maintenanceEvents.splice(eventIndex, 1)[0];
+
+  console.log(`[EVENTS] Deleted maintenance event ${event.job_no} by ${user.username}`);
+
+  res.json({
+    message: 'Maintenance event deleted successfully',
+    event: {
+      event_id: deletedEvent.event_id,
+      job_no: deletedEvent.job_no,
+      asset_sn: deletedEvent.asset_sn,
+      asset_name: deletedEvent.asset_name,
+    },
+    repairs_deleted: eventRepairs.length,
   });
 });
 
