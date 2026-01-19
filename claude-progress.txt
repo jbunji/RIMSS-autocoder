@@ -1475,3 +1475,101 @@ displays correctly regardless of authentication state.
 - Mission capability rate calculated as (FMC + PMC) / Total * 100
 - Other agents may have added PMI data (seen in backend file)
 
+
+---
+
+## Testing Session: 2026-01-19 12:26
+
+[Testing] Feature #6 'User can log in with valid credentials' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Navigate to login page - Navigated to http://localhost:5173/login
+2. ✅ Enter valid username - Entered 'admin'
+3. ✅ Enter valid password - Entered 'admin123'
+4. ✅ Click login button - Clicked 'Sign In' button
+5. ✅ Verify redirect to dashboard - Page URL changed to /dashboard
+6. ✅ Verify user session is established - Dashboard shows 'Welcome, John Admin' and 'You are logged in as ADMIN'
+7. ✅ Verify JWT token is stored - Console log shows TokenRefreshManager scheduling refresh, confirming token active
+
+**Screenshots:**
+- .playwright-mcp/feature6_login_success.png - Dashboard after successful login
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #6 (no regression found)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #22)
+
+### Completed This Session:
+- Feature #22: Dashboard shows PMI due soon alerts widget - VERIFIED AND PASSING
+
+**Feature Description:** Dashboard displays PMI alerts with color-coded due dates
+
+**Implementation:**
+1. **Backend** - Added PMI endpoints to backend/src/index.ts:
+   - `GET /api/pmi/due-soon` - Returns all PMI items sorted by urgency with color-coded status
+   - `GET /api/pmi/:id` - Returns individual PMI record details
+   - PMI data includes: pmi_id, asset_id, asset_sn, asset_name, pmi_type, wuc_cd, next_due_date, days_until_due
+   - Summary counts: overdue, red (0-7 days), yellow (8-30 days), green (30+ days)
+
+2. **Frontend** - Created PMIDetailPage.tsx:
+   - Full PMI details display with asset information
+   - Color-coded status badge (OVERDUE, DUE SOON, UPCOMING, SCHEDULED)
+   - Color-coded due date display
+   - Navigation back to dashboard and to maintenance
+   - Color legend for due date meanings
+
+3. **Dashboard Widget** - Updated DashboardPage.tsx:
+   - PMI Due Soon widget with summary counts (red/yellow/green dots)
+   - List of PMI items sorted by urgency
+   - Color-coded items with left border
+   - Clickable items navigate to detail page
+   - Color legend in footer
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - admin/admin123
+2. ✅ Navigate to dashboard - /dashboard
+3. ✅ Verify PMI alerts widget displays - "PMI Due Soon" heading visible with items
+4. ✅ Verify red items are due within 7 days:
+   - ECU Assembly A: "3 days overdue" (RED)
+   - Sensor Unit B: "Due in 2 days" (RED)
+   - Power Supply C: "Due in 6 days" (RED)
+5. ✅ Verify yellow items are due 8-30 days:
+   - Display Module D: "Due in 11 days" (YELLOW)
+   - Communication Radio E: "Due in 20 days" (YELLOW)
+6. ✅ Verify green items are due after 30 days:
+   - Camera Assembly G: "Due in 44 days" (GREEN)
+   - Processing Unit I: "Due in 119 days" (GREEN)
+7. ✅ Click on PMI item to navigate to detail - Clicked on items, navigated to /pmi/:id
+
+**Screenshots:**
+- .playwright-mcp/feature22_pmi_widget_dashboard.png - Dashboard with PMI widget
+- .playwright-mcp/feature22_pmi_detail_page.png - PMI detail for Sensor Unit B (red - due soon)
+- .playwright-mcp/feature22_pmi_detail_overdue.png - PMI detail for ECU Assembly A (red - overdue)
+- .playwright-mcp/feature22_pmi_detail_green.png - PMI detail for Camera Assembly G (green - scheduled)
+
+**No console errors detected.**
+
+**Commit:** 46edb95 - Implement Feature #22: Dashboard shows PMI due soon alerts widget
+
+### Current Status:
+- Feature #22 marked as PASSING
+- Features Passing: 20+/374 (~5.3%)
+
+### What Was Built:
+- backend/src/index.ts - Added PMI endpoints (GET /api/pmi/due-soon, GET /api/pmi/:id)
+- frontend/src/pages/PMIDetailPage.tsx - New PMI detail page component
+- frontend/src/pages/DashboardPage.tsx - Updated with PMI Due Soon widget
+- frontend/src/App.tsx - Added /pmi/:id route
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- PMI data is dynamically generated based on current date
+- Color coding follows spec: Red (#DC2626) for 0-7 days, Yellow (#F59E0B) for 8-30 days, Green (#10B981) for 30+ days
+- Other agents also working in parallel (noticed MaintenanceDetailPage added by another agent)
