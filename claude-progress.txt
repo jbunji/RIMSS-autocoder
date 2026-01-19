@@ -3195,3 +3195,232 @@ The sorting functionality was already partially implemented by a previous sessio
 - Sorting works correctly with all columns
 - Sort persists across page changes
 
+
+---
+
+## Testing Session: 2026-01-19 13:05
+
+[Testing] Feature #10 'JWT token refresh works correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Wait for token to approach expiration - Used localStorage override to set 5 second refresh interval for accelerated testing
+3. ✅ Verify refresh token request is made - Console logs showed multiple '[TokenRefreshManager] Initiating token refresh...'
+4. ✅ Verify new access token is received - Console logs showed '[TokenRefreshManager] Token refreshed successfully' after each refresh
+5. ✅ Verify session continues without interruption - Successfully navigated to Assets page after multiple token refreshes, all 10 assets displayed correctly
+
+**Test Details:**
+- Set localStorage override: 'rimss-token-refresh-override' = '5000' (5 seconds)
+- Observed multiple successful token refresh cycles (6+ refreshes during test)
+- After each refresh, token was scheduled for next refresh in 5s
+- Session remained active throughout all refreshes
+- API calls continued working normally (Assets page loaded with 10 assets)
+- No console errors detected
+- Removed localStorage override after test - refresh interval returned to normal 1500s (25 min)
+
+**TokenRefreshManager Component Verification:**
+- Component at frontend/src/components/TokenRefreshManager.tsx
+- Schedules token refresh 5 minutes before 30-minute expiration (25 min default interval)
+- Supports localStorage override for testing (rimss-token-refresh-override)
+- POST /api/auth/refresh endpoint returns new token successfully
+- Token is stored in authStore and used for subsequent requests
+
+**Screenshots:**
+- .playwright-mcp/feature10_jwt_regression_verified.png - Assets page working after multiple token refreshes
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #10 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 13:05
+
+[Testing] Feature #36 'Asset status transitions validate correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_mgr/depot123)
+2. ✅ Valid transition FMC → NMCM - Allowed with success message
+3. ✅ Invalid transition CNDM → FMC - Blocked with detailed error message
+4. ✅ Valid transition CNDM → NMCM - Allowed with success message
+5. ✅ Error message explains valid paths - Shows NMCM/NMCS as alternatives
+
+**Screenshots:**
+- .playwright-mcp/feature36_regression_error_message.png - Invalid transition blocked
+- .playwright-mcp/feature36_regression_valid_transition_success.png - Valid transition success
+
+**Console errors:** Only expected 400 Bad Request for invalid transition (correct behavior)
+
+[Testing] Session complete - verified feature #36 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 13:13
+
+[Testing] Feature #23 'Dashboard shows open maintenance jobs widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - Dashboard loaded at /dashboard
+3. ✅ Verify open jobs widget displays - 'Open Maintenance Jobs' widget visible with heading
+4. ✅ Verify count reflects real open jobs - Shows 4 jobs: 1 Critical, 2 Urgent, 1 Routine
+5. ✅ Click on job to navigate to maintenance detail - Clicked MX-2024-001, navigated to /maintenance/1
+
+**Screenshots:**
+- .playwright-mcp/feature23_regression_dashboard_open_jobs.png - Dashboard overview
+- .playwright-mcp/feature23_regression_open_maintenance_jobs_widget.png - Open jobs widget detail
+- .playwright-mcp/feature23_regression_maintenance_detail.png - Maintenance detail page after navigation
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #23 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 13:16
+
+[Testing] Feature #13 'Admin can delete user' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin - Logged in as admin/admin123 (John Admin)
+2. ✅ Navigate to Admin > Users - Navigated to /admin/users
+3. ✅ Click delete on existing user - Clicked delete button for Sam Viewer
+4. ✅ Verify confirmation dialog appears - Dialog showed user details (Sam Viewer, viewer@example.mil, Role: Viewer) with Cancel/Delete User buttons
+5. ✅ Confirm deletion - Clicked 'Delete User' button
+6. ✅ Verify user removed from list - Sam Viewer no longer in user table (reduced from 4 to 3 users)
+7. ✅ Verify success message displays - Green notification: 'User "viewer" deleted successfully!'
+
+**Screenshots:**
+- .playwright-mcp/feature13_regression_delete_confirmation_dialog.png - Confirmation dialog with user details
+- .playwright-mcp/feature13_regression_delete_success.png - Success state with user removed
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #13 (no regression found)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #41)
+
+### Completed This Session:
+- Feature #41: Asset detail view displays all fields - VERIFIED AND PASSING
+
+**Feature Description:** Asset detail page shows complete asset information
+
+**Implementation:**
+Backend (backend/src/index.ts):
+- Updated PUT /api/assets/:id to accept and sync bad_actor field
+- Syncs changes between assets and detailedAssets arrays
+- Returns bad_actor status in response
+
+Frontend (frontend/src/pages/AssetDetailPage.tsx):
+- Asset Identification section: Serial Number, Part Number, Name, UII
+- Manufacturing and Status section: Manufacturing Date, Acceptance Date, ETI Hours, Last Maintenance, Next PMI Due, Bad Actor flag
+- Status and Location section: Status with color-coded badge, Active Status, Administrative Location, Custodial Location
+- Remarks / Notes section: Displays asset remarks
+- Bad Actor editing capability in edit mode
+
+**Testing Steps Verified:**
+1. Log in as any user - Logged in as admin/admin123
+2. Navigate to Assets page - 10 assets displayed
+3. Click on asset row to view details - Clicked View on CRIIS-001
+4. Verify serial number displays - CRIIS-001
+5. Verify part number displays - PN-SENSOR-A
+6. Verify status displays with color coding - FMC (Full Mission Capable) with green badge
+7. Verify administrative location displays - Depot Alpha
+8. Verify custodial location displays - Maintenance Bay 1
+9. Verify ETI hours displays - 1,250 hrs
+10. Verify UII displays if present - W91WSL000001PN-SENSOR-
+11. Verify manufacturing date displays - March 14, 2020
+12. Verify acceptance date displays - May 31, 2020
+13. Verify remarks display - No remarks or notes (for CRIIS-001)
+
+**Additional Verification (Asset with Remarks - CRIIS-005):**
+- Serial number: CRIIS-005
+- Part number: PN-CAMERA-X
+- Status: NMCM (Not Mission Capable Maintenance) with yellow badge
+- ETI Hours: 3,200 hrs
+- Remarks: Intermittent power failure - MX-2024-001
+- Bad Actor: Warning indicator displayed
+
+**Screenshots:**
+- .playwright-mcp/feature-41-asset-detail-view.png - Full asset detail page for CRIIS-005
+
+**No console errors detected.**
+
+**Commits:**
+- 8cc30f7 - Implement Feature #41: Asset detail view displays all fields
+- fc4a0b4 - Add Bad Actor flag editing in asset detail view
+
+### Current Status:
+- Feature #41 marked as PASSING
+
+### What Was Built/Modified:
+- backend/src/index.ts - Added bad_actor sync in PUT /api/assets/:id
+- frontend/src/pages/AssetDetailPage.tsx - Added Bad Actor editing checkbox
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #44)
+
+### Completed This Session:
+- Feature #44: Bad actor flagging works - VERIFIED AND PASSING
+
+**Implementation:**
+- Extended PUT /api/assets/:id to accept bad_actor field
+- Added bad_actor toggle checkbox in AssetDetailPage.tsx edit form
+- Synced bad_actor changes to detailedAssets for consistency
+- Track bad_actor changes in asset history audit log
+- Include bad_actor in API response
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager (depot_mgr)
+2. ✅ Navigate to Assets page
+3. ✅ Click View on CRIIS-003 (an asset without bad actor flag)
+4. ✅ Click Edit Asset button
+5. ✅ Toggle bad actor checkbox ON
+6. ✅ Click Save Changes
+7. ✅ Verify success message shows 'Bad Actor: No → Yes'
+8. ✅ Verify bad actor indicator displays (⚠️ Bad Actor badge)
+9. ✅ Navigate back to Assets list
+10. ✅ Verify BA badge appears next to CRIIS-003 serial number
+
+**Screenshots:**
+- feature44_bad_actor_toggle_on.png - Edit form with bad actor checkbox checked
+- feature44_bad_actor_saved_success.png - Success message after save
+- feature44_bad_actor_indicator_displayed.png - Bad actor badge displayed in detail view
+- feature44_bad_actor_in_assets_list.png - BA badge in assets list
+
+### Current Status:
+- Feature #44 marked as PASSING
+- 42/374 features complete (11.2%)
+
+### Files Modified:
+- backend/src/index.ts - Added bad_actor field handling in PUT endpoint
+- frontend/src/pages/AssetDetailPage.tsx - Added bad_actor toggle in edit form
+
+### Notes:
+- The bad_actor flag allows depot managers to flag assets with chronic failures
+- Flag is displayed in both asset detail view and asset list (BA badge)
+- Changes to bad_actor are tracked in asset history
+- Backend uses in-memory storage, so changes reset on server restart
+
+### Next Steps:
+- Continue with remaining features in backlog
+
