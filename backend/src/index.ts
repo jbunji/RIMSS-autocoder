@@ -3504,6 +3504,51 @@ function initializeConfigurations(): ConfigurationSet[] {
 // Mutable array of configurations
 const configurations: ConfigurationSet[] = initializeConfigurations();
 
+// Initialize BOM (Bill of Materials) mock data
+function initializeBOMItems(): BOMItem[] {
+  return [
+    // Config 1: Camera System X Configuration (cfg_set_id: 1, partno: PN-CAMERA-X)
+    { list_id: 1, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-SENSOR-A', part_name_c: 'Sensor Unit Alpha', sort_order: 1, qpa: 1, active: true },
+    { list_id: 2, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-MOUNT-KIT', part_name_c: 'Universal Mounting Kit', sort_order: 2, qpa: 2, active: true },
+    { list_id: 3, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-CABLE-CAM', part_name_c: 'Camera Cable Assembly', sort_order: 3, qpa: 3, active: true },
+
+    // Config 2: Radar Unit Configuration (cfg_set_id: 2, partno: PN-RADAR-01)
+    { list_id: 4, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-ANTENNA-RADAR', part_name_c: 'Radar Antenna Assembly', sort_order: 1, qpa: 1, active: true },
+    { list_id: 5, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-PSU-RADAR', part_name_c: 'Radar Power Supply Unit', sort_order: 2, qpa: 1, active: true },
+    { list_id: 6, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-WAVEGUIDE', part_name_c: 'Waveguide Assembly', sort_order: 3, qpa: 2, active: true },
+    { list_id: 7, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-CONTROL-PCB', part_name_c: 'Radar Control Board', sort_order: 4, qpa: 1, active: true },
+
+    // Config 3: Communication System Config (cfg_set_id: 3, partno: PN-COMM-SYS)
+    { list_id: 8, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-RADIO-TX', part_name_c: 'Radio Transmitter Module', sort_order: 1, qpa: 1, active: true },
+    { list_id: 9, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-RADIO-RX', part_name_c: 'Radio Receiver Module', sort_order: 2, qpa: 1, active: true },
+    { list_id: 10, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-ENCRYPT-MOD', part_name_c: 'Encryption Module', sort_order: 3, qpa: 1, active: true },
+    { list_id: 11, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-ANTENNA-COMM', part_name_c: 'Communication Antenna', sort_order: 4, qpa: 2, active: true },
+    { list_id: 12, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-CABLE-COAX', part_name_c: 'Coaxial Cable Assembly', sort_order: 5, qpa: 4, active: true },
+
+    // Config 4: Navigation Unit Standard (cfg_set_id: 4, partno: PN-NAV-UNIT)
+    { list_id: 13, cfg_set_id: 4, partno_p: 'PN-NAV-UNIT', partno_c: 'PN-GPS-RECV', part_name_c: 'GPS Receiver Module', sort_order: 1, qpa: 1, active: true },
+    { list_id: 14, cfg_set_id: 4, partno_p: 'PN-NAV-UNIT', partno_c: 'PN-INERTIAL-MOD', part_name_c: 'Inertial Navigation Module', sort_order: 2, qpa: 1, active: true },
+
+    // Config 5: Targeting System A Config (cfg_set_id: 5, partno: PN-TARGET-A)
+    { list_id: 15, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-LASER-DES', part_name_c: 'Laser Designator Unit', sort_order: 1, qpa: 1, active: true },
+    { list_id: 16, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-OPTICAL-SIGHT', part_name_c: 'Optical Sight Assembly', sort_order: 2, qpa: 1, active: true },
+    { list_id: 17, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-SERVO-MOUNT', part_name_c: 'Servo Mount System', sort_order: 3, qpa: 1, active: true },
+    { list_id: 18, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-CONTROL-UNIT', part_name_c: 'Targeting Control Unit', sort_order: 4, qpa: 1, active: true },
+
+    // Config 6: Targeting System B Config (cfg_set_id: 6, partno: PN-TARGET-B)
+    { list_id: 19, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-THERMAL-CAM', part_name_c: 'Thermal Imaging Camera', sort_order: 1, qpa: 1, active: true },
+    { list_id: 20, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-IMAGE-PROC', part_name_c: 'Image Processing Unit', sort_order: 2, qpa: 1, active: true },
+    { list_id: 21, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-COOLING-SYS', part_name_c: 'Thermal Cooling System', sort_order: 3, qpa: 1, active: true },
+
+    // Config 7: Laser Designator Config (cfg_set_id: 7, partno: PN-LASER-SYS)
+    { list_id: 22, cfg_set_id: 7, partno_p: 'PN-LASER-SYS', partno_c: 'PN-LASER-DIODE', part_name_c: 'High-Power Laser Diode', sort_order: 1, qpa: 1, active: true },
+    { list_id: 23, cfg_set_id: 7, partno_p: 'PN-LASER-SYS', partno_c: 'PN-OPTICS-ASM', part_name_c: 'Beam Optics Assembly', sort_order: 2, qpa: 1, active: true },
+  ];
+}
+
+// Mutable array of BOM items
+let bomItems: BOMItem[] = initializeBOMItems();
+
 // GET /api/configurations - List all configurations for a program (requires authentication)
 app.get('/api/configurations', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -3662,6 +3707,48 @@ app.get('/api/configurations/:id', (req, res) => {
       ...config,
       program_cd: program?.pgm_cd || 'UNKNOWN',
       program_name: program?.pgm_name || 'Unknown Program',
+    },
+  });
+});
+
+// GET /api/configurations/:id/bom - Get BOM (Bill of Materials) for a configuration (requires authentication)
+app.get('/api/configurations/:id/bom', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const config = configurations.find(c => c.cfg_set_id === configId);
+
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this configuration's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Get BOM items for this configuration, sorted by sort_order
+  const configBomItems = bomItems
+    .filter(bom => bom.cfg_set_id === configId && bom.active)
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+  console.log(`[CONFIGS] BOM request for config ${config.cfg_name} by ${user.username} - ${configBomItems.length} items`);
+
+  res.json({
+    bom: {
+      parent_part: {
+        partno: config.partno || 'N/A',
+        name: config.part_name || config.cfg_name,
+      },
+      items: configBomItems,
+      total_items: configBomItems.length,
     },
   });
 });
@@ -3949,6 +4036,193 @@ app.delete('/api/configurations/:id', (req, res) => {
       cfg_name: deletedConfig.cfg_name,
       cfg_type: deletedConfig.cfg_type,
     },
+  });
+});
+
+// GET /api/configurations/:id/bom - Get BOM items for a configuration
+app.get('/api/configurations/:id/bom', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  if (isNaN(configId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID' });
+  }
+
+  // Find the configuration
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Get BOM items for this configuration
+  const configBomItems = bomItems.filter(item => item.cfg_set_id === configId);
+
+  // Sort by sort_order
+  configBomItems.sort((a, b) => a.sort_order - b.sort_order);
+
+  res.json({
+    bom_items: configBomItems,
+    total: configBomItems.length,
+    configuration: {
+      cfg_set_id: config.cfg_set_id,
+      cfg_name: config.cfg_name,
+      partno: config.partno,
+    },
+  });
+});
+
+// POST /api/configurations/:id/bom - Add a part to configuration BOM
+app.post('/api/configurations/:id/bom', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can add BOM items
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to modify BOM' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  if (isNaN(configId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID' });
+  }
+
+  // Find the configuration
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Validate request body
+  const { partno_c, part_name_c, qpa, sort_order } = req.body;
+
+  if (!partno_c || typeof partno_c !== 'string' || partno_c.trim() === '') {
+    return res.status(400).json({ error: 'Child part number is required' });
+  }
+
+  if (!part_name_c || typeof part_name_c !== 'string' || part_name_c.trim() === '') {
+    return res.status(400).json({ error: 'Child part name is required' });
+  }
+
+  const qpaValue = parseInt(qpa, 10);
+  if (isNaN(qpaValue) || qpaValue < 1) {
+    return res.status(400).json({ error: 'Quantity per assembly must be at least 1' });
+  }
+
+  const sortOrderValue = parseInt(sort_order, 10) || (bomItems.filter(b => b.cfg_set_id === configId).length + 1);
+
+  // Check for duplicate part in this configuration
+  const existingItem = bomItems.find(
+    item => item.cfg_set_id === configId && item.partno_c === partno_c.trim()
+  );
+  if (existingItem) {
+    return res.status(400).json({ error: 'This part is already in the BOM for this configuration' });
+  }
+
+  // Generate new list_id
+  const newListId = Math.max(...bomItems.map(b => b.list_id), 0) + 1;
+
+  // Create new BOM item
+  const newBomItem: BOMItem = {
+    list_id: newListId,
+    cfg_set_id: configId,
+    partno_p: config.partno || config.cfg_name,
+    partno_c: partno_c.trim(),
+    part_name_c: part_name_c.trim(),
+    sort_order: sortOrderValue,
+    qpa: qpaValue,
+    active: true,
+  };
+
+  // Add to bomItems array
+  bomItems.push(newBomItem);
+
+  // Update configuration bom_item_count
+  config.bom_item_count = bomItems.filter(b => b.cfg_set_id === configId).length;
+
+  console.log(`[BOM] Added part "${partno_c}" to config "${config.cfg_name}" (ID: ${configId}) by ${user.username}`);
+
+  res.status(201).json({
+    message: 'Part added to BOM successfully',
+    bom_item: newBomItem,
+    bom_item_count: config.bom_item_count,
+  });
+});
+
+// DELETE /api/configurations/:id/bom/:itemId - Remove a part from configuration BOM
+app.delete('/api/configurations/:id/bom/:itemId', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can remove BOM items
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to modify BOM' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const itemId = parseInt(req.params.itemId, 10);
+
+  if (isNaN(configId) || isNaN(itemId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID or item ID' });
+  }
+
+  // Find the configuration
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Find the BOM item
+  const itemIndex = bomItems.findIndex(item => item.list_id === itemId && item.cfg_set_id === configId);
+  if (itemIndex === -1) {
+    return res.status(404).json({ error: 'BOM item not found' });
+  }
+
+  // Remove the item
+  const removedItem = bomItems.splice(itemIndex, 1)[0];
+
+  // Update configuration bom_item_count
+  config.bom_item_count = bomItems.filter(b => b.cfg_set_id === configId).length;
+
+  console.log(`[BOM] Removed part "${removedItem.partno_c}" from config "${config.cfg_name}" (ID: ${configId}) by ${user.username}`);
+
+  res.json({
+    message: 'Part removed from BOM successfully',
+    removed_item: removedItem,
+    bom_item_count: config.bom_item_count,
   });
 });
 
