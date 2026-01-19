@@ -853,6 +853,22 @@ export default function ConfigurationDetailPage() {
               BOM ({bomData?.total || configuration.bom_item_count})
             </div>
           </Tab>
+          <Tab
+            className={({ selected }) =>
+              classNames(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                'ring-white ring-opacity-60 ring-offset-2 ring-offset-primary-400 focus:outline-none focus:ring-2',
+                selected
+                  ? 'bg-white text-primary-700 shadow'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-800'
+              )
+            }
+          >
+            <div className="flex items-center justify-center gap-2">
+              <ComputerDesktopIcon className="h-5 w-5" />
+              Software ({softwareData?.total || 0})
+            </div>
+          </Tab>
         </Tab.List>
         <Tab.Panels className="mt-4">
           {/* Overview Tab */}
@@ -1084,6 +1100,148 @@ export default function ConfigurationDetailPage() {
                     <span className="text-gray-500">Total quantity (all parts):</span>
                     <span className="font-medium text-gray-900">
                       {bomData.bom_items.reduce((sum, item) => sum + item.qpa, 0)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Tab.Panel>
+
+          {/* Software Tab */}
+          <Tab.Panel className="rounded-xl bg-white p-6 shadow">
+            <div className="space-y-6">
+              {/* Software Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Associated Software</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Software versions associated with this configuration
+                  </p>
+                </div>
+                {canEditBom && (
+                  <button
+                    type="button"
+                    onClick={openAddSoftwareModal}
+                    className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                  >
+                    <PlusIcon className="mr-1.5 h-5 w-5" />
+                    Add Software
+                  </button>
+                )}
+              </div>
+
+              {/* Software List */}
+              {softwareLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <svg className="animate-spin h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span className="ml-2 text-sm text-gray-500">Loading software...</span>
+                </div>
+              ) : softwareError ? (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <p className="text-sm text-red-800">{softwareError}</p>
+                </div>
+              ) : softwareData && softwareData.software && softwareData.software.length > 0 ? (
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
+                          Software Number
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Title
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Type
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Revision
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Effective Date
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
+                          CPIN
+                        </th>
+                        {canEditBom && (
+                          <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                            <span className="sr-only">Actions</span>
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {softwareData.software.map((sw) => (
+                        <tr key={sw.cfg_sw_id} className="hover:bg-gray-50">
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                            <span className="font-mono font-medium text-gray-900">{sw.sw_number}</span>
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-900">
+                            <div>
+                              <p className="font-medium">{sw.sw_title}</p>
+                              {sw.sw_desc && (
+                                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-xs">{sw.sw_desc}</p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${swTypeColors[sw.sw_type]?.bg || 'bg-gray-100'} ${swTypeColors[sw.sw_type]?.text || 'text-gray-800'}`}>
+                              {sw.sw_type}
+                            </span>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                            <span className="font-mono">{sw.revision}</span>
+                            <p className="text-xs text-gray-500">{formatDate(sw.revision_date)}</p>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {formatDate(sw.eff_date)}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                            {sw.cpin_flag ? (
+                              <CheckCircleIcon className="h-5 w-5 text-green-500 mx-auto" />
+                            ) : (
+                              <XCircleIcon className="h-5 w-5 text-gray-300 mx-auto" />
+                            )}
+                          </td>
+                          {canEditBom && (
+                            <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                              <button
+                                onClick={() => openDeleteSoftwareModal(sw)}
+                                className="text-red-600 hover:text-red-900 inline-flex items-center"
+                                title="Remove software"
+                              >
+                                <TrashIcon className="h-4 w-4 mr-1" />
+                                Remove
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <ComputerDesktopIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">No software associated with this configuration</p>
+                  <p className="text-xs text-gray-400">Click "Add Software" to associate software versions</p>
+                </div>
+              )}
+
+              {/* Software Summary */}
+              {softwareData && softwareData.software && softwareData.software.length > 0 && (
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Total software versions:</span>
+                    <span className="font-medium text-gray-900">{softwareData.total}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm mt-1">
+                    <span className="text-gray-500">CPIN-tracked:</span>
+                    <span className="font-medium text-gray-900">
+                      {softwareData.software.filter(sw => sw.cpin_flag).length}
                     </span>
                   </div>
                 </div>
