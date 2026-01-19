@@ -31,7 +31,7 @@ const navigation = [
 
 // Admin-only navigation items
 const adminNavigation = [
-  { name: 'Admin', href: '/admin', icon: UsersIcon },
+  { name: 'Users', href: '/admin/users', icon: UsersIcon },
 ]
 
 interface SidebarProps {
