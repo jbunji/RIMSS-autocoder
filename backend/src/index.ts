@@ -2612,7 +2612,7 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     return res.status(400).json({ error: 'Cannot add repairs to a closed maintenance event' });
   }
 
-  const { type_maint, how_mal, when_disc, narrative, tag_no, doc_no } = req.body;
+  const { start_date, type_maint, how_mal, when_disc, narrative, tag_no, doc_no } = req.body;
 
   // Validate required fields
   if (!type_maint || !narrative) {
@@ -2623,12 +2623,15 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
   const eventRepairs = repairs.filter(r => r.event_id === eventId);
   const nextSeq = eventRepairs.length > 0 ? Math.max(...eventRepairs.map(r => r.repair_seq)) + 1 : 1;
 
+  // Use provided start_date or default to today
+  const repairStartDate = start_date || new Date().toISOString().split('T')[0];
+
   const newRepair: Repair = {
     repair_id: repairNextId++,
     event_id: eventId,
     repair_seq: nextSeq,
     asset_id: event.asset_id,
-    start_date: new Date().toISOString().split('T')[0],
+    start_date: repairStartDate,
     stop_date: null,
     type_maint,
     how_mal: how_mal || null,
@@ -2721,9 +2724,21 @@ app.put('/api/repairs/:id', (req, res) => {
     }
   }
 
-  // Allow explicit stop_date setting
+  // Allow explicit stop_date setting with validation
   if (stop_date !== undefined) {
+    if (stop_date) {
+      // Validate stop_date >= start_date
+      const startDate = new Date(repairs[repairIndex].start_date);
+      const endDate = new Date(stop_date);
+      if (endDate < startDate) {
+        return res.status(400).json({ error: 'Stop date cannot be before the start date' });
+      }
+    }
     repairs[repairIndex].stop_date = stop_date || null;
+    // Automatically set shop_status to closed when stop_date is set
+    if (stop_date) {
+      repairs[repairIndex].shop_status = 'closed';
+    }
   }
 
   console.log(`[REPAIRS] Updated repair ${repairId} by ${user.username}`);

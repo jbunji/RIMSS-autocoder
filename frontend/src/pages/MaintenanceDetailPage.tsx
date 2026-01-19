@@ -16,6 +16,7 @@ import {
   ArrowDownTrayIcon,
   DocumentIcon,
   PhotoIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -104,6 +105,16 @@ interface EditFormData {
   pqdr: boolean
 }
 
+// Edit Repair form data interface
+interface EditRepairFormData {
+  narrative: string
+  type_maint: string
+  how_mal: string
+  when_disc: string
+  tag_no: string
+  doc_no: string
+}
+
 // Priority colors
 function getPriorityBadgeClass(priority: MaintenanceEvent['priority']): string {
   switch (priority) {
@@ -183,7 +194,13 @@ export default function MaintenanceDetailPage() {
   const [closeEventError, setCloseEventError] = useState<string | null>(null)
   const [closeEventSuccess, setCloseEventSuccess] = useState<string | null>(null)
 
-  // Close repair state
+  // Close repair modal state
+  const [isCloseRepairModalOpen, setIsCloseRepairModalOpen] = useState(false)
+  const [closingRepair, setClosingRepair] = useState<Repair | null>(null)
+  const [closeRepairDate, setCloseRepairDate] = useState(new Date().toISOString().split('T')[0])
+  const [closeRepairLoading, setCloseRepairLoading] = useState(false)
+  const [closeRepairError, setCloseRepairError] = useState<string | null>(null)
+  const [closeRepairSuccess, setCloseRepairSuccess] = useState<string | null>(null)
   const [closingRepairId, setClosingRepairId] = useState<number | null>(null)
 
   // Attachments state
@@ -198,6 +215,67 @@ export default function MaintenanceDetailPage() {
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [deletingAttachmentId, setDeletingAttachmentId] = useState<number | null>(null)
+
+  // Add Repair modal state
+  const [isAddRepairModalOpen, setIsAddRepairModalOpen] = useState(false)
+  const [addRepairForm, setAddRepairForm] = useState({
+    start_date: new Date().toISOString().split('T')[0],
+    type_maint: '',
+    how_mal: '',
+    when_disc: '',
+    narrative: '',
+  })
+  const [addRepairLoading, setAddRepairLoading] = useState(false)
+  const [addRepairError, setAddRepairError] = useState<string | null>(null)
+  const [addRepairSuccess, setAddRepairSuccess] = useState<string | null>(null)
+
+  // Maintenance code options
+  const typeMaintOptions = [
+    { value: 'Corrective', label: 'Corrective' },
+    { value: 'Preventive', label: 'Preventive' },
+    { value: 'Modification', label: 'Modification' },
+    { value: 'Inspection', label: 'Inspection' },
+  ]
+
+  const howMalOptions = [
+    { value: '', label: 'None / Not Applicable' },
+    { value: 'PWR', label: 'PWR - Power Failure' },
+    { value: 'FAIL', label: 'FAIL - Component Failure' },
+    { value: 'OPTIC', label: 'OPTIC - Optical Issue' },
+    { value: 'OVHT', label: 'OVHT - Overheat' },
+    { value: 'COMP', label: 'COMP - Component Issue' },
+    { value: 'ELEC', label: 'ELEC - Electrical' },
+    { value: 'MECH', label: 'MECH - Mechanical' },
+    { value: 'SOFT', label: 'SOFT - Software' },
+    { value: 'OTHR', label: 'OTHR - Other' },
+  ]
+
+  const whenDiscOptions = [
+    { value: '', label: 'None / Not Applicable' },
+    { value: 'BIT', label: 'BIT - Built-In Test' },
+    { value: 'OPS', label: 'OPS - Operations' },
+    { value: 'PMI', label: 'PMI - Periodic Maintenance' },
+    { value: 'TCTO', label: 'TCTO - Time Compliance' },
+    { value: 'PRE', label: 'PRE - Pre-Flight' },
+    { value: 'POST', label: 'POST - Post-Flight' },
+    { value: 'INSP', label: 'INSP - Inspection' },
+    { value: 'OTHR', label: 'OTHR - Other' },
+  ]
+
+  // Edit Repair modal state
+  const [isEditRepairModalOpen, setIsEditRepairModalOpen] = useState(false)
+  const [editingRepair, setEditingRepair] = useState<Repair | null>(null)
+  const [editRepairForm, setEditRepairForm] = useState<EditRepairFormData>({
+    narrative: '',
+    type_maint: '',
+    how_mal: '',
+    when_disc: '',
+    tag_no: '',
+    doc_no: '',
+  })
+  const [editRepairLoading, setEditRepairLoading] = useState(false)
+  const [editRepairError, setEditRepairError] = useState<string | null>(null)
+  const [editRepairSuccess, setEditRepairSuccess] = useState<string | null>(null)
 
   // Check if user can edit (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
   const canEdit = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
@@ -518,20 +596,49 @@ export default function MaintenanceDetailPage() {
     }
   }, [event, fetchRepairs, fetchLinkedSortie, fetchAttachments])
 
-  // Close a repair
-  const handleCloseRepair = async (repairId: number) => {
-    if (!token) return
+  // Open close repair modal
+  const openCloseRepairModal = (repair: Repair) => {
+    setClosingRepair(repair)
+    setCloseRepairDate(new Date().toISOString().split('T')[0])
+    setCloseRepairError(null)
+    setCloseRepairSuccess(null)
+    setIsCloseRepairModalOpen(true)
+  }
 
-    setClosingRepairId(repairId)
+  // Close the close repair modal
+  const closeCloseRepairModal = () => {
+    setIsCloseRepairModalOpen(false)
+    setClosingRepair(null)
+    setCloseRepairError(null)
+    setCloseRepairSuccess(null)
+  }
+
+  // Handle close repair submission with stop date
+  const handleCloseRepair = async () => {
+    if (!token || !closingRepair) return
+
+    // Client-side validation: stop_date >= start_date
+    // Compare date strings directly to avoid timezone issues
+    // Both dates are in YYYY-MM-DD format, so string comparison works correctly
+    const startDateStr = closingRepair.start_date.split('T')[0] // Extract YYYY-MM-DD part
+    const stopDateStr = closeRepairDate // Already in YYYY-MM-DD format from input
+    if (stopDateStr < startDateStr) {
+      setCloseRepairError(`Stop date cannot be before the start date (${new Date(closingRepair.start_date).toLocaleDateString()})`)
+      return
+    }
+
+    setCloseRepairLoading(true)
+    setCloseRepairError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}`, {
+      const response = await fetch(`http://localhost:3001/api/repairs/${closingRepair.repair_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          stop_date: closeRepairDate,
           shop_status: 'closed',
         }),
       })
@@ -541,12 +648,186 @@ export default function MaintenanceDetailPage() {
         throw new Error(errorData.error || 'Failed to close repair')
       }
 
+      setCloseRepairSuccess('Repair closed successfully!')
+
       // Refresh repairs
       await fetchRepairs()
+
+      // Close modal after a short delay to show success message
+      setTimeout(() => {
+        closeCloseRepairModal()
+      }, 1500)
     } catch (err) {
-      console.error('Error closing repair:', err)
+      setCloseRepairError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
-      setClosingRepairId(null)
+      setCloseRepairLoading(false)
+    }
+  }
+
+  // Open add repair modal
+  const openAddRepairModal = () => {
+    setAddRepairForm({
+      start_date: new Date().toISOString().split('T')[0],
+      type_maint: '',
+      how_mal: '',
+      when_disc: '',
+      narrative: '',
+    })
+    setAddRepairError(null)
+    setAddRepairSuccess(null)
+    setIsAddRepairModalOpen(true)
+  }
+
+  // Close add repair modal
+  const closeAddRepairModal = () => {
+    setIsAddRepairModalOpen(false)
+    setAddRepairError(null)
+    setAddRepairSuccess(null)
+  }
+
+  // Handle add repair form changes
+  const handleAddRepairFormChange = (field: string, value: string) => {
+    setAddRepairForm(prev => ({ ...prev, [field]: value }))
+    setAddRepairError(null)
+  }
+
+  // Submit new repair
+  const handleAddRepair = async () => {
+    if (!token || !event) return
+
+    // Validate required fields
+    if (!addRepairForm.type_maint) {
+      setAddRepairError('Type of Maintenance is required')
+      return
+    }
+    if (!addRepairForm.narrative.trim()) {
+      setAddRepairError('Narrative description is required')
+      return
+    }
+
+    setAddRepairLoading(true)
+    setAddRepairError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/events/${event.event_id}/repairs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          start_date: addRepairForm.start_date,
+          type_maint: addRepairForm.type_maint,
+          how_mal: addRepairForm.how_mal || null,
+          when_disc: addRepairForm.when_disc || null,
+          narrative: addRepairForm.narrative.trim(),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create repair')
+      }
+
+      const data = await response.json()
+      setAddRepairSuccess(`Repair #${data.repair.repair_seq} created successfully!`)
+
+      // Refresh repairs list
+      await fetchRepairs()
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        closeAddRepairModal()
+      }, 1500)
+    } catch (err) {
+      setAddRepairError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setAddRepairLoading(false)
+    }
+  }
+
+  // Open edit repair modal
+  const openEditRepairModal = (repair: Repair) => {
+    setEditingRepair(repair)
+    setEditRepairForm({
+      narrative: repair.narrative,
+      type_maint: repair.type_maint,
+      how_mal: repair.how_mal || '',
+      when_disc: repair.when_disc || '',
+      tag_no: repair.tag_no || '',
+      doc_no: repair.doc_no || '',
+    })
+    setEditRepairError(null)
+    setEditRepairSuccess(null)
+    setIsEditRepairModalOpen(true)
+  }
+
+  // Close edit repair modal
+  const closeEditRepairModal = () => {
+    setIsEditRepairModalOpen(false)
+    setEditingRepair(null)
+    setEditRepairError(null)
+    setEditRepairSuccess(null)
+  }
+
+  // Handle edit repair form field changes
+  const handleEditRepairFormChange = (field: keyof EditRepairFormData, value: string) => {
+    setEditRepairForm(prev => ({ ...prev, [field]: value }))
+    setEditRepairError(null)
+  }
+
+  // Submit edit repair form
+  const handleSubmitEditRepair = async () => {
+    if (!token || !editingRepair) return
+
+    // Validate form
+    if (!editRepairForm.narrative.trim()) {
+      setEditRepairError('Narrative is required')
+      return
+    }
+    if (!editRepairForm.type_maint) {
+      setEditRepairError('Maintenance type is required')
+      return
+    }
+
+    setEditRepairLoading(true)
+    setEditRepairError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/repairs/${editingRepair.repair_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          narrative: editRepairForm.narrative.trim(),
+          type_maint: editRepairForm.type_maint,
+          how_mal: editRepairForm.how_mal || null,
+          when_disc: editRepairForm.when_disc || null,
+          tag_no: editRepairForm.tag_no || null,
+          doc_no: editRepairForm.doc_no || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update repair')
+      }
+
+      setEditRepairSuccess('Repair updated successfully!')
+
+      // Refresh repairs
+      await fetchRepairs()
+
+      // Close modal after a short delay to show success message
+      setTimeout(() => {
+        closeEditRepairModal()
+      }, 1500)
+    } catch (err) {
+      setEditRepairError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setEditRepairLoading(false)
     }
   }
 
@@ -981,6 +1262,15 @@ export default function MaintenanceDetailPage() {
                   ({repairsSummary.total} total, {repairsSummary.open} open, {repairsSummary.closed} closed)
                 </span>
               </h2>
+              {canEdit && event.status === 'open' && (
+                <button
+                  onClick={openAddRepairModal}
+                  className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center"
+                >
+                  <PlusIcon className="h-4 w-4 mr-1" />
+                  Add Repair
+                </button>
+              )}
             </div>
 
             {repairsLoading ? (
@@ -991,6 +1281,14 @@ export default function MaintenanceDetailPage() {
               <div className="text-center py-8 text-gray-500">
                 <WrenchScrewdriverIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
                 <p>No repairs recorded for this event</p>
+                {canEdit && event.status === 'open' && (
+                  <button
+                    onClick={openAddRepairModal}
+                    className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    Add your first repair
+                  </button>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -1034,23 +1332,22 @@ export default function MaintenanceDetailPage() {
                         </div>
                       </div>
                       {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
-                        <button
-                          onClick={() => handleCloseRepair(repair.repair_id)}
-                          disabled={closingRepairId === repair.repair_id}
-                          className="ml-4 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                        >
-                          {closingRepairId === repair.repair_id ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-700 border-t-transparent mr-1" />
-                              Closing...
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircleIcon className="h-4 w-4 mr-1" />
-                              Close Repair
-                            </>
-                          )}
-                        </button>
+                        <div className="flex flex-col gap-2 ml-4">
+                          <button
+                            onClick={() => openEditRepairModal(repair)}
+                            className="px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-100 rounded-lg hover:bg-primary-200 transition-colors flex items-center"
+                          >
+                            <PencilSquareIcon className="h-4 w-4 mr-1" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => openCloseRepairModal(repair)}
+                            className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors flex items-center"
+                          >
+                            <CheckCircleIcon className="h-4 w-4 mr-1" />
+                            Close Repair
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1704,6 +2001,471 @@ export default function MaintenanceDetailPage() {
                   <>
                     <ArrowDownTrayIcon className="h-4 w-4 mr-2 rotate-180" />
                     Upload
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Edit Repair Modal */}
+      <Dialog open={isEditRepairModalOpen} onClose={closeEditRepairModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <WrenchScrewdriverIcon className="h-5 w-5 mr-2 text-primary-500" />
+                Edit Repair #{editingRepair?.repair_seq}
+              </Dialog.Title>
+              <button
+                onClick={closeEditRepairModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* Success Message */}
+              {editRepairSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{editRepairSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {editRepairError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{editRepairError}</p>
+                </div>
+              )}
+
+              {/* Type of Maintenance */}
+              <div>
+                <label htmlFor="edit_repair_type_maint" className="block text-sm font-medium text-gray-700 mb-1">
+                  Type of Maintenance <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="edit_repair_type_maint"
+                  value={editRepairForm.type_maint}
+                  onChange={(e) => handleEditRepairFormChange('type_maint', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Select type...</option>
+                  {typeMaintOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* How Malfunctioned */}
+              <div>
+                <label htmlFor="edit_repair_how_mal" className="block text-sm font-medium text-gray-700 mb-1">
+                  How Malfunctioned Code
+                </label>
+                <select
+                  id="edit_repair_how_mal"
+                  value={editRepairForm.how_mal}
+                  onChange={(e) => handleEditRepairFormChange('how_mal', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {howMalOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* When Discovered */}
+              <div>
+                <label htmlFor="edit_repair_when_disc" className="block text-sm font-medium text-gray-700 mb-1">
+                  When Discovered Code
+                </label>
+                <select
+                  id="edit_repair_when_disc"
+                  value={editRepairForm.when_disc}
+                  onChange={(e) => handleEditRepairFormChange('when_disc', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {whenDiscOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tag Number */}
+              <div>
+                <label htmlFor="edit_repair_tag_no" className="block text-sm font-medium text-gray-700 mb-1">
+                  Tag Number
+                </label>
+                <input
+                  type="text"
+                  id="edit_repair_tag_no"
+                  value={editRepairForm.tag_no}
+                  onChange={(e) => handleEditRepairFormChange('tag_no', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter tag number (optional)"
+                />
+              </div>
+
+              {/* Document Number */}
+              <div>
+                <label htmlFor="edit_repair_doc_no" className="block text-sm font-medium text-gray-700 mb-1">
+                  Document Number
+                </label>
+                <input
+                  type="text"
+                  id="edit_repair_doc_no"
+                  value={editRepairForm.doc_no}
+                  onChange={(e) => handleEditRepairFormChange('doc_no', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter document number (optional)"
+                />
+              </div>
+
+              {/* Narrative */}
+              <div>
+                <label htmlFor="edit_repair_narrative" className="block text-sm font-medium text-gray-700 mb-1">
+                  Narrative <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="edit_repair_narrative"
+                  value={editRepairForm.narrative}
+                  onChange={(e) => handleEditRepairFormChange('narrative', e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Describe the repair work performed..."
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeEditRepairModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={editRepairLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitEditRepair}
+                disabled={editRepairLoading || !!editRepairSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {editRepairLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleIcon className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Add Repair Modal */}
+      <Dialog open={isAddRepairModalOpen} onClose={closeAddRepairModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <WrenchScrewdriverIcon className="h-5 w-5 mr-2 text-primary-600" />
+                Add Repair
+              </Dialog.Title>
+              <button
+                onClick={closeAddRepairModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* Success Message */}
+              {addRepairSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{addRepairSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {addRepairError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{addRepairError}</p>
+                </div>
+              )}
+
+              {/* Start Date */}
+              <div>
+                <label htmlFor="repair_start_date" className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="repair_start_date"
+                  value={addRepairForm.start_date}
+                  onChange={(e) => handleAddRepairFormChange('start_date', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+
+              {/* Type of Maintenance */}
+              <div>
+                <label htmlFor="repair_type_maint" className="block text-sm font-medium text-gray-700 mb-1">
+                  Type of Maintenance <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="repair_type_maint"
+                  value={addRepairForm.type_maint}
+                  onChange={(e) => handleAddRepairFormChange('type_maint', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="">Select type of maintenance...</option>
+                  {typeMaintOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* How Malfunction Code */}
+              <div>
+                <label htmlFor="repair_how_mal" className="block text-sm font-medium text-gray-700 mb-1">
+                  How Malfunction Code
+                </label>
+                <select
+                  id="repair_how_mal"
+                  value={addRepairForm.how_mal}
+                  onChange={(e) => handleAddRepairFormChange('how_mal', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {howMalOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Code indicating how the malfunction manifested
+                </p>
+              </div>
+
+              {/* When Discovered Code */}
+              <div>
+                <label htmlFor="repair_when_disc" className="block text-sm font-medium text-gray-700 mb-1">
+                  When Discovered Code
+                </label>
+                <select
+                  id="repair_when_disc"
+                  value={addRepairForm.when_disc}
+                  onChange={(e) => handleAddRepairFormChange('when_disc', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {whenDiscOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Code indicating when the issue was discovered
+                </p>
+              </div>
+
+              {/* Narrative Description */}
+              <div>
+                <label htmlFor="repair_narrative" className="block text-sm font-medium text-gray-700 mb-1">
+                  Narrative Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="repair_narrative"
+                  value={addRepairForm.narrative}
+                  onChange={(e) => handleAddRepairFormChange('narrative', e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Describe the repair work being performed..."
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeAddRepairModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={addRepairLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddRepair}
+                disabled={addRepairLoading || !!addRepairSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {addRepairLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Repair
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Close Repair Modal */}
+      <Dialog open={isCloseRepairModalOpen} onClose={closeCloseRepairModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <CheckCircleIcon className="h-5 w-5 mr-2 text-green-500" />
+                Close Repair #{closingRepair?.repair_seq}
+              </Dialog.Title>
+              <button
+                onClick={closeCloseRepairModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Success Message */}
+              {closeRepairSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{closeRepairSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {closeRepairError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <p className="text-red-700 text-sm">{closeRepairError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Confirmation text */}
+              {!closeRepairSuccess && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-blue-700 text-sm">
+                    You are about to close <strong>Repair #{closingRepair?.repair_seq}</strong> for this maintenance event.
+                    Please enter the completion date.
+                  </p>
+                </div>
+              )}
+
+              {/* Repair Info (read-only) */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Repair Details</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500">Repair #:</span>{' '}
+                    <span className="text-gray-900 font-medium">{closingRepair?.repair_seq}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Type:</span>{' '}
+                    <span className="text-gray-900">{closingRepair?.type_maint}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Start Date:</span>{' '}
+                    <span className="text-gray-900">
+                      {closingRepair?.start_date ? new Date(closingRepair.start_date).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Status:</span>{' '}
+                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                      {closingRepair?.shop_status?.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                {closingRepair?.narrative && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <span className="text-gray-500 text-sm">Narrative:</span>
+                    <p className="text-gray-900 text-sm mt-1">{closingRepair.narrative}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Stop Date Input */}
+              <div>
+                <label htmlFor="close_repair_date" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stop Date (Completion Date) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="close_repair_date"
+                  value={closeRepairDate}
+                  onChange={(e) => setCloseRepairDate(e.target.value)}
+                  min={closingRepair?.start_date}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  disabled={closeRepairLoading || !!closeRepairSuccess}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be on or after the start date ({closingRepair?.start_date ? new Date(closingRepair.start_date).toLocaleDateString() : 'N/A'})
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeCloseRepairModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={closeRepairLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCloseRepair}
+                disabled={closeRepairLoading || !!closeRepairSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {closeRepairLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Closing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleIcon className="h-4 w-4 mr-2" />
+                    Close Repair
                   </>
                 )}
               </button>
