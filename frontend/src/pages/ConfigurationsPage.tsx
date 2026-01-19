@@ -17,8 +17,12 @@ import {
   PlusIcon,
   TrashIcon,
   ExclamationTriangleIcon,
+  DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 
 // Part interface for dropdown
 interface Part {
@@ -268,6 +272,260 @@ export default function ConfigurationsPage() {
     })
   }
 
+  // Get current ZULU (UTC) timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  // Export configurations to PDF with CUI markings
+  const exportToPdf = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+
+      // Timestamp on footer
+      doc.text(`Generated: ${zuluTimestamp}`, 15, pageHeight - 5, { align: 'left' })
+    }
+
+    // Add title section after header
+    const addTitle = () => {
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(30, 64, 175) // Primary blue
+      doc.text('RIMSS Configuration Report', pageWidth / 2, 20, { align: 'center' })
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(55, 65, 81) // Gray
+      const programText = program ? `Program: ${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'
+      doc.text(programText, pageWidth / 2, 27, { align: 'center' })
+
+      doc.setFontSize(9)
+      doc.text(`Report generated: ${zuluTimestamp}`, pageWidth / 2, 33, { align: 'center' })
+      doc.text(`Total Configurations: ${pagination.total}`, pageWidth / 2, 38, { align: 'center' })
+
+      // Add filter info if applied
+      if (typeFilter || debouncedSearch) {
+        const filters: string[] = []
+        if (typeFilter) filters.push(`Type: ${typeFilter}`)
+        if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
+        doc.setFontSize(8)
+        doc.setTextColor(107, 114, 128)
+        doc.text(`Filters: ${filters.join(', ')}`, pageWidth / 2, 43, { align: 'center' })
+      }
+    }
+
+    // Prepare table data
+    const tableData = configurations.map(config => [
+      config.cfg_name,
+      config.cfg_type,
+      config.partno || '-',
+      config.part_name || '-',
+      config.bom_item_count.toString(),
+      config.asset_count.toString(),
+      config.active ? 'Yes' : 'No',
+      formatDate(config.ins_date)
+    ])
+
+    // Add header to first page
+    addCuiHeader()
+    addTitle()
+
+    // Generate table with autoTable
+    autoTable(doc, {
+      startY: typeFilter || debouncedSearch ? 48 : 43,
+      head: [['Configuration Name', 'Type', 'Part Number', 'Part Name', 'BOM Items', 'Assets', 'Active', 'Created']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [30, 64, 175], // Primary blue
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [55, 65, 81]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251] // Light gray
+      },
+      margin: { top: 15, bottom: 15, left: 10, right: 10 },
+      didDrawPage: () => {
+        // Add CUI header on each page
+        addCuiHeader()
+      },
+      // Style specific columns
+      columnStyles: {
+        0: { cellWidth: 60 }, // Configuration Name
+        1: { cellWidth: 25 }, // Type
+        2: { cellWidth: 35 }, // Part Number
+        3: { cellWidth: 45 }, // Part Name
+        4: { cellWidth: 20 }, // BOM Items
+        5: { cellWidth: 20 }, // Assets
+        6: { cellWidth: 15 }, // Active
+        7: { cellWidth: 30 }, // Created
+      }
+    })
+
+    // Get total pages and add footers
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addCuiFooter(i, totalPages)
+    }
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_Configurations_${getZuluDateForFilename()}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  // Export configurations to Excel with CUI markings
+  const exportToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = [`RIMSS Configuration Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total Configurations: ${pagination.total}`]
+    const filterRow = typeFilter || debouncedSearch
+      ? [`Filters: ${[typeFilter ? `Type: ${typeFilter}` : '', debouncedSearch ? `Search: "${debouncedSearch}"` : ''].filter(Boolean).join(', ')}`]
+      : []
+
+    // Table header row
+    const headerRow = ['Configuration Name', 'Type', 'Part Number', 'Part Name', 'Description', 'BOM Items', 'Assets', 'Active', 'Created', 'Created By']
+
+    // Data rows
+    const dataRows = configurations.map(config => [
+      config.cfg_name,
+      config.cfg_type,
+      config.partno || '',
+      config.part_name || '',
+      config.description || '',
+      config.bom_item_count,
+      config.asset_count,
+      config.active ? 'Yes' : 'No',
+      config.ins_date ? formatDate(config.ins_date) : '',
+      config.ins_by
+    ])
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 35 },  // Configuration Name
+      { wch: 12 },  // Type
+      { wch: 18 },  // Part Number
+      { wch: 25 },  // Part Name
+      { wch: 40 },  // Description
+      { wch: 12 },  // BOM Items
+      { wch: 10 },  // Assets
+      { wch: 8 },   // Active
+      { wch: 14 },  // Created
+      { wch: 15 },  // Created By
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total configurations
+      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
+    ]
+
+    // Add filter merge if applicable
+    if (filterRow.length) {
+      ws['!merges']!.push({ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } })
+    }
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Configurations')
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_Configurations_${getZuluDateForFilename()}.xlsx`
+
+    // Write the file and trigger download
+    XLSX.writeFile(wb, filename)
+  }
+
   // Handle column sorting
   const handleSort = (column: SortColumn) => {
     if (sortBy === column) {
@@ -513,6 +771,26 @@ export default function ConfigurationsPage() {
           <span className="text-sm text-gray-500">
             {pagination.total} configuration{pagination.total !== 1 ? 's' : ''}
           </span>
+          <button
+            type="button"
+            onClick={exportToPdf}
+            disabled={configurations.length === 0}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export to PDF with CUI markings"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4 mr-2 text-red-600" />
+            Export PDF
+          </button>
+          <button
+            type="button"
+            onClick={exportToExcel}
+            disabled={configurations.length === 0}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export to Excel with CUI markings"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4 mr-2 text-green-600" />
+            Export Excel
+          </button>
           {canEditConfig && (
             <button
               type="button"
