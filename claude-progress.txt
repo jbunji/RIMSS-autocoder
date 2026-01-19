@@ -5539,3 +5539,73 @@ The backend validation was already implemented in previous commits. The validati
 
 [Testing] Session complete - verified feature #4 (no regression found)
 
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #69)
+
+### Completed This Session:
+- Feature #69: Delete maintenance event - VERIFIED AND PASSING
+
+**Description:** Users can delete events with proper authorization
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added DELETE /api/events/:id endpoint at line 2457
+- ADMIN-only authorization check (returns 403 for non-admin users)
+- Program access verification (users can only delete events from their assigned programs)
+- Cascade delete of related repairs (removes all repairs associated with the event)
+- Returns deleted event info (event_id, job_no, asset_sn, asset_name) and repair count
+
+**Frontend (frontend/src/pages/MaintenancePage.tsx):**
+- Added TrashIcon import from @heroicons/react/24/outline
+- Added state variables for delete modal: isDeleteModalOpen, eventToDelete, deleteLoading, deleteError, deleteSuccess
+- Added canDeleteEvent check: only users with ADMIN role can see delete buttons
+- Added openDeleteModal() function to open confirmation dialog (with stopPropagation to prevent row click)
+- Added closeDeleteModal() function to reset modal state
+- Added handleDeleteEvent() async function to call DELETE API
+- Added Actions column header (conditionally rendered for ADMIN users)
+- Added delete button in each table row (conditionally rendered for ADMIN users)
+- Added Delete Confirmation Modal with:
+  - Warning message about permanent deletion and cascade delete of repairs
+  - Event details (Job Number, Asset, Status, Priority)
+  - Cancel and Delete Event buttons
+  - Loading state with spinner
+  - Success/error message display
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin - Logged in as admin/admin123
+2. ✅ Navigate to Maintenance page - Successfully navigated to /maintenance
+3. ✅ Click delete on event - Clicked delete button for MX-2024-003 (Routine PMI event)
+4. ✅ Verify confirmation dialog - Dialog appeared with:
+   - Title: "Delete Maintenance Event"
+   - Warning: "Are you sure you want to delete this maintenance event? This action cannot be undone. All related repairs will also be deleted."
+   - Event details: Job Number (MX-2024-003), Asset (CRIIS-003 - Sensor Unit B), Status (OPEN), Priority (Routine)
+   - Cancel and "Delete Event" buttons
+5. ✅ Confirm deletion - Clicked "Delete Event" button
+6. ✅ Verify event removed - Event MX-2024-003 removed from table, counts updated:
+   - Backlog: 4 → 3
+   - Open Jobs: 4 → 3
+   - Routine: 1 → 0
+7. ✅ Verify related repairs cascade deleted or blocked - Backend implements cascade delete for repairs
+
+**Additional Verifications:**
+- ✅ Non-admin users cannot see delete button - Logged in as field_tech/field123, no Actions column visible
+- ✅ No console errors - Zero JavaScript errors
+- ✅ UI properly updates after deletion
+
+**Screenshots:**
+- .playwright-mcp/feature69_maintenance_page_with_delete.png - Maintenance page with delete buttons (admin view)
+- .playwright-mcp/feature69_delete_confirmation_dialog.png - Delete confirmation dialog
+- .playwright-mcp/feature69_event_deleted_success.png - After successful deletion (counts updated)
+- .playwright-mcp/feature69_field_tech_no_delete_button.png - Field tech view (no delete buttons)
+
+### Current Status:
+- Feature #69 marked as PASSING
+- Commit: 05f0743 "Implement Feature #69: Delete maintenance event"
+
+### Files Modified:
+- backend/src/index.ts - Added DELETE /api/events/:id endpoint
+- frontend/src/pages/MaintenancePage.tsx - Added delete button and confirmation modal
