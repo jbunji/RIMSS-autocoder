@@ -2804,3 +2804,48 @@ Fixed by:
 - Validation is case-insensitive (uses toLowerCase() for comparison)
 - Uniqueness is enforced within the same program (pgm_id)
 
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #37)
+
+### Completed This Session:
+- Feature #37: Asset search by serial number - VERIFIED AND PASSING
+
+**Feature Description:** Users can search assets by serial number
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - /assets with 11 CRIIS assets displayed
+3. ✅ Enter serial number in search box - Searched for "CRIIS-005"
+4. ✅ Verify matching assets display - Only CRIIS-005 showed (1 total asset)
+5. ✅ Verify non-matching assets hidden - 10 other assets were hidden
+6. ✅ Clear search - Cleared the search box
+7. ✅ Verify all assets display again - All 11 assets displayed
+
+**Additional Testing:**
+- Tested partial serial number search ("CRIIS-00") - correctly filtered to 9 matching assets (CRIIS-001 through CRIIS-009)
+- Search is case-insensitive (uses toLowerCase() on both search query and asset fields)
+- Search also matches part number and part name (not just serial number)
+- Debounce implemented (300ms delay) for better UX
+
+**Implementation Details:**
+- Frontend (AssetsPage.tsx): Search input with debounce, passes search query to API
+- Backend (index.ts line 1954-1961): Filters assets by serno, partno, or part_name containing search query
+
+**Screenshots:**
+- .playwright-mcp/feature37_search_criis005_filtered.png - Filtered results showing 1 asset
+- .playwright-mcp/feature37_partial_search_results.png - Partial search with multiple results
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #37 marked as PASSING
+- Features Passing: ~35/374
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Search functionality was already implemented - this session verified it works correctly
+- No code changes required - feature already working as expected
+
