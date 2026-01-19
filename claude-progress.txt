@@ -3865,3 +3865,72 @@ Frontend (frontend/src/pages/AssetDetailPage.tsx):
 - Frontend correctly reflects user's program access in dropdowns and data displays
 - No code changes required - feature was already implemented
 
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #48)
+
+### Completed This Session:
+- Feature #48: Asset export to Excel includes CUI markings - VERIFIED AND PASSING
+
+**Feature Description:** Excel export of asset data includes proper CUI markings
+
+**Implementation:**
+
+**Frontend (frontend/src/pages/AssetsPage.tsx):**
+- Added xlsx library import for Excel file generation
+- Added 'Export Excel' button next to the existing 'Export PDF' button
+- Implemented exportToExcel() function with:
+  - CUI header row: 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+  - Report metadata rows: program name, timestamp, total assets, filters
+  - Column headers with 12 fields: Serial Number, Part Number, Name, Status, Status Name, Location, Location Type, ETI Hours, Next PMI Date, Bad Actor, In Transit, Remarks
+  - Data rows from currently displayed assets
+  - CUI footer row: 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+  - Cell merging for header/footer rows
+  - Column width configurations for readability
+
+**Dependencies Added (frontend/package.json):**
+- xlsx@0.18.5 - SheetJS library for Excel file generation
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - Navigated to /assets with 10 total assets
+3. ✅ Click Export Excel button - Button visible and clickable
+4. ✅ Verify Excel file downloads - File downloaded successfully
+5. ✅ Open file - Verified file contents programmatically with Node.js
+6. ✅ Verify CUI header row - Row 1: 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+7. ✅ Verify filename starts with 'CUI_' - Filename: CUI_Assets_20260119.xlsx
+
+**Excel File Content Verification:**
+- Sheet name: Assets
+- Total rows: 14 (header + metadata + data headers + 5 data rows + footer)
+- Row 1: CUI header
+- Rows 3-5: Report metadata (title, timestamp, total count)
+- Row 7: Column headers
+- Rows 8-12: Asset data
+- Row 14: CUI footer
+
+**Screenshots:**
+- .playwright-mcp/feature48_assets_page_with_export_buttons.png - Assets page with Export Excel button
+- .playwright-mcp/feature48_excel_export_verified.png - Page after export
+
+**Console errors:** Only Vite HMR connection errors (development only, not affecting functionality)
+
+**Commit:** 0d9b958 - Implement Feature #48: Asset export to Excel includes CUI markings
+
+### Current Status:
+- Feature #48 marked as PASSING
+
+### Files Modified:
+- frontend/package.json - Added xlsx dependency
+- frontend/pnpm-lock.yaml - Updated lock file
+- frontend/src/pages/AssetsPage.tsx - Added Excel export functionality
+
+### Notes:
+- Excel export includes comprehensive asset data with all relevant fields
+- CUI markings appear at top and bottom of the spreadsheet
+- Filename follows CUI_ prefix convention with ZULU date
+- Export uses same asset data as the visible/filtered table (paginated)
+- Works alongside existing PDF export functionality
+
