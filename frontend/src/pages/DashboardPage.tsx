@@ -276,6 +276,9 @@ function getActivityActionStyle(actionType: ActivityLogEntry['action_type']): { 
   }
 }
 
+// Auto-refresh interval in milliseconds (60 seconds)
+const AUTO_REFRESH_INTERVAL = 60000
+
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { user, currentProgramId, token } = useAuthStore()
@@ -294,6 +297,24 @@ export default function DashboardPage() {
   const [maintenanceError, setMaintenanceError] = useState<string | null>(null)
   const [partsError, setPartsError] = useState<string | null>(null)
   const [activityError, setActivityError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [refreshCount, setRefreshCount] = useState(0) // Used to trigger re-fetches
+
+  // Manual refresh function - triggers all data to refresh
+  const handleManualRefresh = () => {
+    setIsRefreshing(true)
+    setRefreshCount(prev => prev + 1)
+  }
+
+  // Auto-refresh interval
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setRefreshCount(prev => prev + 1)
+    }, AUTO_REFRESH_INTERVAL)
+
+    return () => clearInterval(intervalId)
+  }, [])
 
   // Fetch asset status
   useEffect(() => {
@@ -328,7 +349,7 @@ export default function DashboardPage() {
     }
 
     fetchAssetStatus()
-  }, [token, currentProgramId])
+  }, [token, currentProgramId, refreshCount])
 
   // Fetch PMI data
   useEffect(() => {
@@ -363,7 +384,7 @@ export default function DashboardPage() {
     }
 
     fetchPMIData()
-  }, [token, currentProgramId])
+  }, [token, currentProgramId, refreshCount])
 
   // Fetch maintenance jobs data
   useEffect(() => {
@@ -398,7 +419,7 @@ export default function DashboardPage() {
     }
 
     fetchMaintenanceData()
-  }, [token, currentProgramId])
+  }, [token, currentProgramId, refreshCount])
 
   // Fetch parts awaiting action data
   useEffect(() => {
@@ -433,7 +454,7 @@ export default function DashboardPage() {
     }
 
     fetchPartsData()
-  }, [token, currentProgramId])
+  }, [token, currentProgramId, refreshCount])
 
   // Fetch recent activity data
   useEffect(() => {
@@ -464,7 +485,16 @@ export default function DashboardPage() {
     }
 
     fetchActivityData()
-  }, [token])
+  }, [token, refreshCount])
+
+  // Track when all data has finished loading to update lastUpdated and clear refreshing state
+  useEffect(() => {
+    const allLoaded = !loading && !pmiLoading && !maintenanceLoading && !partsLoading && !activityLoading
+    if (allLoaded) {
+      setLastUpdated(new Date())
+      setIsRefreshing(false)
+    }
+  }, [loading, pmiLoading, maintenanceLoading, partsLoading, activityLoading])
 
   // Handle PMI item click
   const handlePMIClick = (pmiId: number) => {
@@ -481,9 +511,56 @@ export default function DashboardPage() {
     navigate(`/parts-orders/${orderId}`)
   }
 
+  // Format last updated time for display
+  const formatLastUpdated = (date: Date | null): string => {
+    if (!date) return 'Never'
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffSecs = Math.floor(diffMs / 1000)
+    const diffMins = Math.floor(diffSecs / 60)
+
+    if (diffSecs < 5) return 'Just now'
+    if (diffSecs < 60) return `${diffSecs}s ago`
+    if (diffMins < 60) return `${diffMins}m ago`
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  }
+
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <div className="flex items-center space-x-4">
+          {/* Last updated timestamp */}
+          {lastUpdated && (
+            <span className="text-sm text-gray-500">
+              Last updated: {formatLastUpdated(lastUpdated)}
+            </span>
+          )}
+
+          {/* Manual refresh button */}
+          <button
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Refresh dashboard data"
+          >
+            <svg
+              className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+      </div>
 
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
