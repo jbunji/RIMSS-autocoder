@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuthStore } from '../stores/authStore'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -6,19 +8,42 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuthStore()
+
+  // Get the redirect path from location state, or default to dashboard
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
     try {
-      // TODO: Implement actual login API call
-      console.log('Login attempt:', { username })
-      // For now, just simulate a delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setError('Login functionality not yet implemented')
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Login failed')
+        return
+      }
+
+      // Store user and token in auth store
+      login(data.user, data.token)
+
+      // Redirect to original destination or dashboard
+      navigate(from, { replace: true })
     } catch (err) {
-      setError('An error occurred during login')
+      console.error('Login error:', err)
+      setError('An error occurred during login. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -131,8 +156,8 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* CUI Banner Footer */}
-      <footer className="bg-cui-bg text-cui-text text-center text-sm py-1 font-medium">
+      {/* CUI Banner Footer - Fixed at bottom */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-cui-bg text-cui-text text-center text-sm py-1 font-medium z-50">
         CUI - Controlled Unclassified Information
       </footer>
     </div>
