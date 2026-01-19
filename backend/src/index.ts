@@ -1345,10 +1345,19 @@ interface MaintenanceEvent {
   status: 'open' | 'closed';
   pgm_id: number;
   location: string;
+  etic?: string | null; // Estimated Time In Commission
+  created_by_id?: number;
+  created_by_name?: string;
+  created_at?: string;
 }
 
-// Generate mock maintenance events
-function generateMockMaintenanceEvents(): MaintenanceEvent[] {
+// Persistent storage for maintenance events (initialized with mock data)
+let maintenanceEvents: MaintenanceEvent[] = [];
+let maintenanceEventNextId = 11; // Start after mock data IDs
+let maintenanceJobNextSeq = 11; // Start after mock job numbers (MX-2024-010)
+
+// Initialize maintenance events on startup
+function initializeMaintenanceEvents(): void {
   const today = new Date();
   const addDays = (days: number): string => {
     const date = new Date(today);
@@ -1356,7 +1365,7 @@ function generateMockMaintenanceEvents(): MaintenanceEvent[] {
     return date.toISOString().split('T')[0];
   };
 
-  return [
+  maintenanceEvents = [
     // Open events - CRIIS program
     {
       event_id: 1,
@@ -1515,6 +1524,16 @@ function generateMockMaintenanceEvents(): MaintenanceEvent[] {
   ];
 }
 
+// Initialize maintenance events on server start
+initializeMaintenanceEvents();
+
+// Helper function to generate job number
+function generateJobNumber(): string {
+  const year = new Date().getFullYear();
+  const seq = String(maintenanceJobNextSeq++).padStart(3, '0');
+  return `MX-${year}-${seq}`;
+}
+
 // Dashboard: Get open maintenance jobs (requires authentication)
 app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -1531,8 +1550,8 @@ app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
-  // Generate maintenance events
-  const allEvents = generateMockMaintenanceEvents();
+  // Use persistent maintenance events array
+  const allEvents = maintenanceEvents;
 
   // Filter by user's accessible programs and open status
   let filteredEvents = allEvents.filter(
@@ -1564,6 +1583,97 @@ app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
   });
 });
 
+// List all maintenance events (requires authentication)
+app.get('/api/events', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get query parameters
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+  const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
+  const searchQuery = req.query.search as string | undefined;
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
+
+  // Use persistent maintenance events array
+  const allEvents = maintenanceEvents;
+
+  // Filter by user's accessible programs
+  let filteredEvents = allEvents.filter(event => userProgramIds.includes(event.pgm_id));
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredEvents = filteredEvents.filter(event => event.pgm_id === programIdFilter);
+  }
+
+  // Apply status filter if specified
+  if (statusFilter === 'open' || statusFilter === 'closed') {
+    filteredEvents = filteredEvents.filter(event => event.status === statusFilter);
+  }
+
+  // Apply search filter if specified
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    filteredEvents = filteredEvents.filter(event =>
+      event.job_no.toLowerCase().includes(query) ||
+      event.asset_sn.toLowerCase().includes(query) ||
+      event.asset_name.toLowerCase().includes(query) ||
+      event.discrepancy.toLowerCase().includes(query) ||
+      event.location.toLowerCase().includes(query)
+    );
+  }
+
+  // Sort by priority (Critical first, then Urgent, then Routine), then by start date (newest first)
+  const priorityOrder: Record<string, number> = { Critical: 0, Urgent: 1, Routine: 2 };
+  filteredEvents.sort((a, b) => {
+    const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+    if (priorityDiff !== 0) return priorityDiff;
+    return new Date(b.start_job).getTime() - new Date(a.start_job).getTime();
+  });
+
+  // Calculate pagination
+  const total = filteredEvents.length;
+  const totalPages = Math.ceil(total / limit);
+  const offset = (page - 1) * limit;
+  const paginatedEvents = filteredEvents.slice(offset, offset + limit);
+
+  // Calculate summary counts
+  const summary = {
+    open: filteredEvents.filter(e => e.status === 'open').length,
+    closed: filteredEvents.filter(e => e.status === 'closed').length,
+    critical: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Critical').length,
+    urgent: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Urgent').length,
+    routine: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Routine').length,
+    total: filteredEvents.length,
+  };
+
+  // Get program info
+  const currentProgramId = programIdFilter || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id;
+  const programInfo = user.programs.find(p => p.pgm_id === currentProgramId);
+
+  console.log(`[EVENTS] List request by ${user.username} - Total: ${total}, Open: ${summary.open}, Closed: ${summary.closed}`);
+
+  res.json({
+    events: paginatedEvents,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: totalPages,
+    },
+    summary,
+    program: programInfo,
+  });
+});
+
 // Get single maintenance event by ID
 app.get('/api/events/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -1575,8 +1685,7 @@ app.get('/api/events/:id', (req, res) => {
   }
 
   const eventId = parseInt(req.params.id, 10);
-  const allEvents = generateMockMaintenanceEvents();
-  const event = allEvents.find(e => e.event_id === eventId);
+  const event = maintenanceEvents.find(e => e.event_id === eventId);
 
   if (!event) {
     return res.status(404).json({ error: 'Maintenance event not found' });
@@ -1589,6 +1698,96 @@ app.get('/api/events/:id', (req, res) => {
   }
 
   res.json({ event });
+});
+
+// Create new maintenance event (requires authentication)
+// Roles: ADMIN, DEPOT_MANAGER, FIELD_TECHNICIAN can create events
+app.post('/api/events', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can create events
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to create maintenance events.' });
+  }
+
+  // Extract and validate request body
+  const {
+    asset_id,
+    discrepancy,
+    event_type,
+    priority,
+    start_job,
+    etic,
+    location,
+  } = req.body;
+
+  // Validate required fields
+  if (!asset_id) {
+    return res.status(400).json({ error: 'Asset is required' });
+  }
+  if (!discrepancy || discrepancy.trim() === '') {
+    return res.status(400).json({ error: 'Discrepancy description is required' });
+  }
+  if (!event_type || !['Standard', 'PMI', 'TCTO', 'BIT/PC'].includes(event_type)) {
+    return res.status(400).json({ error: 'Valid event type is required (Standard, PMI, TCTO, BIT/PC)' });
+  }
+  if (!start_job) {
+    return res.status(400).json({ error: 'Date in is required' });
+  }
+
+  // Find the asset
+  const asset = mockAssets.find(a => a.asset_id === parseInt(asset_id, 10));
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check user has access to the asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this asset\'s program' });
+  }
+
+  // Generate new event ID and job number
+  const newEventId = maintenanceEventNextId++;
+  const newJobNo = generateJobNumber();
+
+  // Create the new maintenance event
+  const newEvent: MaintenanceEvent = {
+    event_id: newEventId,
+    asset_id: asset.asset_id,
+    asset_sn: asset.serno,
+    asset_name: asset.name,
+    job_no: newJobNo,
+    discrepancy: discrepancy.trim(),
+    start_job: start_job,
+    stop_job: null,
+    event_type: event_type,
+    priority: priority || 'Routine',
+    status: 'open',
+    pgm_id: asset.pgm_id,
+    location: location || asset.admin_loc || 'Unknown',
+    etic: etic || null,
+    created_by_id: user.user_id,
+    created_by_name: `${user.first_name} ${user.last_name}`,
+    created_at: new Date().toISOString(),
+  };
+
+  // Add to the persistent array
+  maintenanceEvents.push(newEvent);
+
+  console.log(`[EVENTS] Created maintenance event ${newJobNo} by ${user.username} for asset ${asset.serno}`);
+
+  res.status(201).json({
+    message: 'Maintenance event created successfully',
+    event: newEvent,
+  });
 });
 
 // Get single PMI by ID
@@ -4582,6 +4781,15 @@ app.post('/api/configurations/:id/bom', (req, res) => {
   // Validate NHA parent if provided
   let validatedNhaPartno: string | null = null;
   if (nha_partno_c && typeof nha_partno_c === 'string' && nha_partno_c.trim() !== '') {
+    // VALIDATION 1: Check configuration type compatibility
+    // COMPONENT type configurations should not have complex NHA hierarchies
+    if (config.cfg_type === 'COMPONENT') {
+      return res.status(400).json({
+        error: 'Incompatible part type: COMPONENT configurations cannot have NHA parent relationships. Only ASSEMBLY and SYSTEM configurations support hierarchical BOM structures.',
+        validation_type: 'incompatible_type'
+      });
+    }
+
     // Check if the NHA parent exists in this configuration's BOM
     const nhaParent = bomItems.find(
       item => item.cfg_set_id === configId && item.partno_c === nha_partno_c.trim()
@@ -4589,6 +4797,76 @@ app.post('/api/configurations/:id/bom', (req, res) => {
     if (!nhaParent) {
       return res.status(400).json({ error: 'NHA parent part not found in this configuration\'s BOM' });
     }
+
+    // VALIDATION 2: Circular reference detection
+    // Check if the proposed parent (nha_partno_c) is already a child of the new part (partno_c)
+    // This would create a circular reference: A -> B -> A
+    const checkCircularReference = (childPartno: string, potentialParentPartno: string, visited: Set<string> = new Set()): boolean => {
+      // If we've already visited this part, we have a cycle
+      if (visited.has(childPartno)) {
+        return true;
+      }
+      visited.add(childPartno);
+
+      // Find all parts that have this childPartno as their NHA parent
+      const childrenOfChild = bomItems.filter(
+        item => item.cfg_set_id === configId && item.nha_partno_c === childPartno
+      );
+
+      for (const child of childrenOfChild) {
+        // If any of childPartno's children is the potentialParent, we have a circular reference
+        if (child.partno_c === potentialParentPartno) {
+          return true;
+        }
+        // Recursively check deeper levels
+        if (checkCircularReference(child.partno_c, potentialParentPartno, visited)) {
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    // Check if the new part (partno_c) has any existing children that include the proposed parent
+    // This handles the case where we're adding a new part with a parent, and the new part
+    // would already have children that reference the parent (creating A -> B -> A)
+    // Also check if the proposed parent has the new part as an ancestor
+    const existingChildrenOfNewPart = bomItems.filter(
+      item => item.cfg_set_id === configId && item.nha_partno_c === partno_c.trim()
+    );
+
+    // Check if nha_partno_c appears anywhere in the descendants of partno_c
+    if (existingChildrenOfNewPart.length > 0) {
+      // New part already exists and has children - check for circular ref
+      if (checkCircularReference(partno_c.trim(), nha_partno_c.trim())) {
+        return res.status(400).json({
+          error: `Circular reference detected: Cannot set "${nha_partno_c.trim()}" as parent of "${partno_c.trim()}" because it would create a circular dependency in the assembly hierarchy.`,
+          validation_type: 'circular_reference'
+        });
+      }
+    }
+
+    // Also check the reverse - if the proposed parent already has this part as an ancestor
+    const checkAncestors = (partno: string, targetAncestor: string, visited: Set<string> = new Set()): boolean => {
+      if (visited.has(partno)) return false;
+      visited.add(partno);
+
+      const item = bomItems.find(b => b.cfg_set_id === configId && b.partno_c === partno);
+      if (!item || !item.nha_partno_c) return false;
+
+      if (item.nha_partno_c === targetAncestor) return true;
+
+      return checkAncestors(item.nha_partno_c, targetAncestor, visited);
+    };
+
+    // Check if nha_partno_c already has partno_c as an ancestor (would mean partno_c -> ... -> nha_partno_c -> partno_c)
+    if (checkAncestors(nha_partno_c.trim(), partno_c.trim())) {
+      return res.status(400).json({
+        error: `Circular reference detected: "${partno_c.trim()}" is already an ancestor of "${nha_partno_c.trim()}" in the assembly hierarchy. Setting this parent relationship would create a circular dependency.`,
+        validation_type: 'circular_reference'
+      });
+    }
+
     validatedNhaPartno = nha_partno_c.trim();
   }
 
