@@ -1,5 +1,50 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #57)
+
+### Completed This Session:
+- Feature #57: Remove part from configuration BOM - VERIFIED AND PASSING
+
+**Description:** Users can remove parts from BOM
+
+**Implementation:**
+
+**Frontend (frontend/src/pages/ConfigurationDetailPage.tsx):**
+- Added Dialog and Transition imports from @headlessui/react for confirmation modal
+- Added TrashIcon and ExclamationTriangleIcon for UI elements
+- Added canEditBom check - only ADMIN and DEPOT_MANAGER can see/use remove buttons
+- Added state management for delete modal: isDeleteModalOpen, itemToDelete, deleteError, isDeleting, successMessage
+- Added openDeleteModal() and closeDeleteModal() functions
+- Added handleDeleteConfirm() function that calls DELETE /api/configurations/:id/bom/:itemId
+- Added Actions column header to BOM table (visible only for users with edit permissions)
+- Added Remove button to each BOM item row with trash icon
+- Added delete confirmation modal with part details (Part Number, Part Name, QPA)
+- Added success message toast that auto-dismisses after 3 seconds
+- After successful removal, refreshes both BOM data and configuration to update counts
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager - Logged in as depot_mgr/depot123 (Jane Depot)
+2. ✅ Navigate to configuration with BOM entries - Navigated to /configurations/1 (Camera System X Configuration)
+3. ✅ Click BOM tab - Clicked BOM tab, saw 3 child parts with Remove buttons
+4. ✅ Click remove on part entry - Clicked Remove button on PN-CABLE-CAM (Camera Cable Assembly)
+5. ✅ Verify confirmation dialog - Dialog showed with part details and warning message
+6. ✅ Confirm removal - Clicked "Remove Part" button
+7. ✅ Verify part removed from BOM - BOM count changed from 3 to 2, part no longer in list, success message displayed
+
+**Screenshots:**
+- .playwright-mcp/feature57_bom_tab_with_remove_buttons.png - BOM tab with remove buttons visible
+- .playwright-mcp/feature57_bom_items_with_remove.png - Child parts table with Remove buttons
+- .playwright-mcp/feature57_remove_confirmation_dialog.png - Confirmation dialog with part details
+- .playwright-mcp/feature57_part_removed_success.png - After removal, BOM count shows 2
+- .playwright-mcp/feature57_bom_after_removal.png - BOM tab showing only 2 remaining items
+
+**Notes:**
+- Backend DELETE endpoint at /api/configurations/:id/bom/:itemId was already implemented
+- Remove buttons only visible to users with ADMIN or DEPOT_MANAGER role
+- No console errors detected during testing
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #55)
 
 ### Completed This Session:
