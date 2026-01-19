@@ -278,7 +278,7 @@ app.put('/api/users/:id', (req, res) => {
     return res.status(404).json({ error: 'User not found' })
   }
 
-  const { username, email, first_name, last_name, role, password, program_ids, active } = req.body
+  const { username, email, first_name, last_name, role, password, program_ids, default_program_id, active } = req.body
   const existingUser = mockUsers[userIndex]
 
   // Validate required fields
@@ -342,14 +342,19 @@ app.put('/api/users/:id', (req, res) => {
   }
 
   // Build programs array with is_default flag
-  const programs = program_ids.map((pgmId: number, index: number) => {
+  // Use default_program_id if provided and valid, otherwise use first program
+  const effectiveDefaultId = default_program_id && program_ids.includes(default_program_id)
+    ? default_program_id
+    : program_ids[0]
+
+  const programs = program_ids.map((pgmId: number) => {
     const program = allPrograms.find(p => p.pgm_id === pgmId)
     if (!program) {
       throw new Error(`Invalid program ID: ${pgmId}`)
     }
     return {
       ...program,
-      is_default: index === 0 // First program is default
+      is_default: pgmId === effectiveDefaultId
     }
   })
 
@@ -366,7 +371,8 @@ app.put('/api/users/:id', (req, res) => {
 
   mockUsers[userIndex] = updatedUser
 
-  console.log(`[USERS] User updated: ${username} (ID: ${userId}, Role: ${role})`)
+  const defaultProgramCode = programs.find(p => p.is_default)?.pgm_cd || 'none'
+  console.log(`[USERS] User updated: ${username} (ID: ${userId}, Role: ${role}, Default Program: ${defaultProgramCode})`)
 
   res.json({
     message: 'User updated successfully',

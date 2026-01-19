@@ -900,3 +900,57 @@ displays correctly regardless of authentication state.
 - Frontend running on port 5173, backend on port 3001
 - Other agents working in parallel on Features #15, #16 (profile page, program assignments)
 
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #16)
+
+### Completed This Session:
+- Feature #16: User profile displays correctly - VERIFIED AND PASSING
+
+**Implementation:**
+- Created ProfilePage.tsx component with comprehensive user profile display
+- Profile header with user initials avatar (e.g., "JA" for John Admin)
+- Displays all required user information in organized layout
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to profile page (user menu) - Clicked "Your Profile" from user dropdown
+3. ✅ Verify username displays - "admin" shown in Username field and @admin in header
+4. ✅ Verify email displays - "admin@example.mil" shown
+5. ✅ Verify name displays - "John Admin" shown in header and Full Name field
+6. ✅ Verify role displays - "Administrator" badge with red styling
+7. ✅ Verify assigned programs display - CRIIS (default), ACTS, ARDS, 236 all shown
+
+**Additional Testing:**
+- Tested with field_tech user to verify different roles display correctly
+- "Depot Manager" badge shows with blue styling for field_tech
+- Single program (CRIIS) displays correctly for users with limited program access
+- No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature16_profile_page_admin.png - Admin user profile
+- .playwright-mcp/feature16_profile_page_field_tech.png - Field tech user profile
+
+**Technical Details:**
+- ProfilePage reads user data from authStore (Zustand)
+- Role badges color-coded: Admin=red, Depot Manager=blue, Field Tech=green, Viewer=gray
+- Programs show default indicator when applicable
+- User ID displayed for reference
+- Program Details section shows full program names
+
+**Commit:** 30656a5 - Implement Feature #16: User profile displays correctly
+
+### Current Status:
+- Features Passing: 14 (Features #1-13, #16)
+- Total Features: 372
+- Completion: ~3.8%
+
+### What Was Built:
+- frontend/src/pages/ProfilePage.tsx - Complete profile page component
+- Updated frontend/src/App.tsx - Replaced placeholder with ProfilePage
+
+### Notes:
+- Frontend server running on port 5174
+- Backend server running on port 3001
+- Profile page accessible via user menu dropdown "Your Profile"
