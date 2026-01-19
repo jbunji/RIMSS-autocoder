@@ -3424,3 +3424,110 @@ Frontend (frontend/src/pages/AssetDetailPage.tsx):
 ### Next Steps:
 - Continue with remaining features in backlog
 
+
+
+---
+
+## Testing Session: 2026-01-19 13:18
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Clear all session data and cookies - Cleared localStorage and sessionStorage
+2. ✅ Navigate to homepage URL - Navigated to http://localhost:5173
+3. ✅ Verify redirect to login page - URL changed to http://localhost:5173/login
+4. ✅ Verify login form is displayed - Login form visible with Username, Password fields and Sign In button
+
+**Additional verification:**
+- Protected route /dashboard also redirects to /login when unauthenticated
+- No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature3_regression_login_redirect.png - Login page after redirect
+
+[Testing] Session complete - verified feature #3 (no regression found)
+
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #45)
+
+### Completed This Session:
+- Feature #45: ETI tracking updates correctly - VERIFIED AND PASSING
+
+**Description:** Elapsed Time Indicator (ETI) tracks asset usage hours
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added ETIHistoryEntry interface to track ETI changes
+- Added etiHistory array for storing ETI history records
+- Added addETIHistory() helper function to create history entries
+- Added initializeETIHistory() to seed sample ETI history data
+- Added GET /api/assets/:id/eti-history endpoint - retrieves ETI history for an asset
+- Added POST /api/assets/:id/eti endpoint - updates ETI hours with validation
+- ETI updates are also recorded in general asset history for audit trail
+
+**Frontend (frontend/src/pages/AssetDetailPage.tsx):**
+- Added ETIHistoryEntry interface
+- Added "ETI Tracking" tab alongside Details and History tabs
+- Tab displays current ETI hours prominently (1,275 hrs etc.)
+- Tab shows full ETI history with:
+  - Source badges (Maintenance/Manual/Sortie)
+  - Timestamps
+  - Hours changed (old → new with +/- diff)
+  - Reference numbers
+  - Notes
+  - User who made the change
+- Added "Update ETI" button for authorized users (Admin/Depot Manager/Field Tech)
+- Added Update ETI modal with:
+  - Hours to add/subtract input
+  - Source dropdown (Manual/Maintenance/Sortie)
+  - Reference field (optional)
+  - Notes field (optional)
+  - Preview of new ETI value
+  - Cancel and Update buttons
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager (depot_mgr/depot123)
+2. ✅ Navigate to Assets page
+3. ✅ View asset with ETI tracking (CRIIS-001 - 1,250 hrs)
+4. ✅ Click on ETI Tracking tab
+5. ✅ View current ETI value (1,250 hrs)
+6. ✅ View ETI history (2 entries showing past updates)
+7. ✅ Click Update ETI button
+8. ✅ Fill form: +25 hours, source=Maintenance, ref=TEST-ETI-UPDATE-45
+9. ✅ Verify preview shows new value (1,275 hrs)
+10. ✅ Submit and verify success message
+11. ✅ Verify new entry appears in ETI history
+12. ✅ Verify current ETI updated to 1,275 hrs
+13. ✅ Verify History tab shows ETI change in audit trail
+14. ✅ Verify Assets list shows updated ETI (1,275)
+15. ✅ No console errors
+
+**Screenshots:**
+- .playwright-mcp/feature-45-eti-tracking-verified.png - ETI tab with updated value
+
+### Current Status:
+- Feature #45 marked as PASSING
+- 44/374 features complete (11.8%)
+
+### Files Modified:
+- backend/src/index.ts - Added ETI history tracking and API endpoints
+- frontend/src/pages/AssetDetailPage.tsx - Added ETI Tracking tab and Update ETI modal
+
+### Commit:
+- b350122 "Implement ETI (Elapsed Time Indicator) tracking feature #45"
+
+### Notes:
+- ETI (Elapsed Time Indicator) tracks operational hours for assets
+- Three sources of ETI updates: maintenance events, manual entry, sorties
+- All ETI changes are auditable via the History tab
+- Role-based access: Admin, Depot Manager, and Field Technician can update ETI
+- Backend uses in-memory storage, so changes reset on server restart
+
+### Next Steps:
+- Continue with remaining features in backlog
