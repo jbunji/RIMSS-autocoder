@@ -3226,6 +3226,674 @@ app.get('/api/parts-orders/:id', (req, res) => {
   });
 });
 
+// =====================================
+// CONFIGURATIONS (cfg_set) ENDPOINTS
+// =====================================
+
+// Configuration set interface
+interface ConfigurationSet {
+  cfg_set_id: number;
+  cfg_name: string;
+  cfg_type: string;
+  pgm_id: number;
+  partno_id: number | null;
+  partno: string | null;
+  part_name: string | null;
+  description: string | null;
+  active: boolean;
+  ins_by: string;
+  ins_date: string;
+  chg_by: string | null;
+  chg_date: string | null;
+  // Computed fields
+  bom_item_count: number;
+  asset_count: number;
+}
+
+// BOM (Bill of Materials) item interface
+interface BOMItem {
+  list_id: number;
+  cfg_set_id: number;
+  partno_p: string;  // Parent part number
+  partno_c: string;  // Child part number
+  part_name_c: string;  // Child part name
+  sort_order: number;
+  qpa: number;  // Quantity per assembly
+  active: boolean;
+}
+
+// Initialize mock configuration data
+function initializeConfigurations(): ConfigurationSet[] {
+  const today = new Date();
+  const subtractDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.toISOString();
+  };
+
+  return [
+    // CRIIS program configurations (pgm_id: 1)
+    {
+      cfg_set_id: 1,
+      cfg_name: 'Camera System X Configuration',
+      cfg_type: 'ASSEMBLY',
+      pgm_id: 1,
+      partno_id: 4,
+      partno: 'PN-CAMERA-X',
+      part_name: 'Camera System X',
+      description: 'Standard camera system configuration including sensor units and mounting hardware',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(365),
+      chg_by: 'depot_mgr',
+      chg_date: subtractDays(30),
+      bom_item_count: 3,
+      asset_count: 2,
+    },
+    {
+      cfg_set_id: 2,
+      cfg_name: 'Radar Unit Configuration',
+      cfg_type: 'ASSEMBLY',
+      pgm_id: 1,
+      partno_id: 6,
+      partno: 'PN-RADAR-01',
+      part_name: 'Radar Unit 01',
+      description: 'Complete radar unit configuration with power supply and antenna assembly',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(400),
+      chg_by: null,
+      chg_date: null,
+      bom_item_count: 4,
+      asset_count: 2,
+    },
+    {
+      cfg_set_id: 3,
+      cfg_name: 'Communication System Config',
+      cfg_type: 'SYSTEM',
+      pgm_id: 1,
+      partno_id: 8,
+      partno: 'PN-COMM-SYS',
+      part_name: 'Communication System',
+      description: 'Field communication system configuration with encryption modules',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(300),
+      chg_by: 'depot_mgr',
+      chg_date: subtractDays(15),
+      bom_item_count: 5,
+      asset_count: 2,
+    },
+    {
+      cfg_set_id: 4,
+      cfg_name: 'Navigation Unit Standard',
+      cfg_type: 'COMPONENT',
+      pgm_id: 1,
+      partno_id: 10,
+      partno: 'PN-NAV-UNIT',
+      part_name: 'Navigation Unit',
+      description: 'GPS-enabled navigation unit with inertial backup',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(250),
+      chg_by: null,
+      chg_date: null,
+      bom_item_count: 2,
+      asset_count: 1,
+    },
+    // ACTS program configurations (pgm_id: 2)
+    {
+      cfg_set_id: 5,
+      cfg_name: 'Targeting System A Config',
+      cfg_type: 'ASSEMBLY',
+      pgm_id: 2,
+      partno_id: 11,
+      partno: 'PN-TARGET-A',
+      part_name: 'Targeting System A',
+      description: 'Primary targeting system with laser designator and optical sight',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(350),
+      chg_by: 'depot_mgr',
+      chg_date: subtractDays(45),
+      bom_item_count: 4,
+      asset_count: 2,
+    },
+    {
+      cfg_set_id: 6,
+      cfg_name: 'Targeting System B Config',
+      cfg_type: 'ASSEMBLY',
+      pgm_id: 2,
+      partno_id: 13,
+      partno: 'PN-TARGET-B',
+      part_name: 'Targeting System B',
+      description: 'Advanced targeting system with thermal imaging',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(280),
+      chg_by: null,
+      chg_date: null,
+      bom_item_count: 3,
+      asset_count: 1,
+    },
+    {
+      cfg_set_id: 7,
+      cfg_name: 'Laser Designator Config',
+      cfg_type: 'COMPONENT',
+      pgm_id: 2,
+      partno_id: 14,
+      partno: 'PN-LASER-SYS',
+      part_name: 'Laser Designator',
+      description: 'High-power laser designator module configuration',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(200),
+      chg_by: null,
+      chg_date: null,
+      bom_item_count: 2,
+      asset_count: 2,
+    },
+    // ARDS program configurations (pgm_id: 3)
+    {
+      cfg_set_id: 8,
+      cfg_name: 'Data Processor Configuration',
+      cfg_type: 'SYSTEM',
+      pgm_id: 3,
+      partno_id: 17,
+      partno: 'PN-DATA-SYS',
+      part_name: 'Data Processor',
+      description: 'High-performance data processor with reconnaissance camera and data link',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(320),
+      chg_by: 'depot_mgr',
+      chg_date: subtractDays(60),
+      bom_item_count: 5,
+      asset_count: 2,
+    },
+    {
+      cfg_set_id: 9,
+      cfg_name: 'Reconnaissance Camera Config',
+      cfg_type: 'COMPONENT',
+      pgm_id: 3,
+      partno_id: 19,
+      partno: 'PN-RECON-CAM',
+      part_name: 'Reconnaissance Camera',
+      description: 'Multi-spectrum reconnaissance camera with IR capability',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(180),
+      chg_by: null,
+      chg_date: null,
+      bom_item_count: 3,
+      asset_count: 2,
+    },
+    {
+      cfg_set_id: 10,
+      cfg_name: 'Data Link System Config',
+      cfg_type: 'COMPONENT',
+      pgm_id: 3,
+      partno_id: 21,
+      partno: 'PN-LINK-SYS',
+      part_name: 'Data Link System',
+      description: 'Encrypted data link for real-time transmission',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(150),
+      chg_by: null,
+      chg_date: null,
+      bom_item_count: 2,
+      asset_count: 1,
+    },
+    // Program 236 configurations (pgm_id: 4)
+    {
+      cfg_set_id: 11,
+      cfg_name: 'Special System Alpha Config',
+      cfg_type: 'SYSTEM',
+      pgm_id: 4,
+      partno_id: 22,
+      partno: 'PN-SPEC-001',
+      part_name: 'Special System Alpha',
+      description: 'Classified system configuration - access restricted',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(400),
+      chg_by: 'admin',
+      chg_date: subtractDays(90),
+      bom_item_count: 4,
+      asset_count: 2,
+    },
+    {
+      cfg_set_id: 12,
+      cfg_name: 'Special System Beta Config',
+      cfg_type: 'COMPONENT',
+      pgm_id: 4,
+      partno_id: 24,
+      partno: 'PN-SPEC-002',
+      part_name: 'Special System Beta',
+      description: 'Secondary classified system module',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(220),
+      chg_by: null,
+      chg_date: null,
+      bom_item_count: 2,
+      asset_count: 1,
+    },
+    // Inactive configuration for testing
+    {
+      cfg_set_id: 13,
+      cfg_name: 'Legacy Sensor Config (Deprecated)',
+      cfg_type: 'COMPONENT',
+      pgm_id: 1,
+      partno_id: null,
+      partno: 'PN-SENSOR-OLD',
+      part_name: 'Legacy Sensor Unit',
+      description: 'Deprecated configuration - do not use for new installations',
+      active: false,
+      ins_by: 'admin',
+      ins_date: subtractDays(800),
+      chg_by: 'admin',
+      chg_date: subtractDays(500),
+      bom_item_count: 0,
+      asset_count: 0,
+    },
+  ];
+}
+
+// Mutable array of configurations
+const configurations: ConfigurationSet[] = initializeConfigurations();
+
+// GET /api/configurations - List all configurations for a program (requires authentication)
+app.get('/api/configurations', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (required or use default)
+  let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // If no program specified, use user's default program
+  if (!programIdFilter) {
+    const defaultProgram = user.programs.find(p => p.is_default);
+    programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+  }
+
+  // Check if user has access to this program
+  if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Filter configurations by program and active status
+  let filteredConfigs = configurations.filter(c => c.pgm_id === programIdFilter);
+
+  // Apply active filter (default to showing only active)
+  const showInactive = req.query.include_inactive === 'true';
+  if (!showInactive) {
+    filteredConfigs = filteredConfigs.filter(c => c.active);
+  }
+
+  // Apply type filter
+  const typeFilter = req.query.type as string;
+  if (typeFilter) {
+    filteredConfigs = filteredConfigs.filter(c => c.cfg_type === typeFilter);
+  }
+
+  // Apply search filter
+  const searchQuery = (req.query.search as string)?.toLowerCase();
+  if (searchQuery) {
+    filteredConfigs = filteredConfigs.filter(c =>
+      c.cfg_name.toLowerCase().includes(searchQuery) ||
+      c.partno?.toLowerCase().includes(searchQuery) ||
+      c.part_name?.toLowerCase().includes(searchQuery) ||
+      c.description?.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // Apply sorting
+  const sortBy = (req.query.sort_by as string) || 'cfg_name';
+  const sortOrder = (req.query.sort_order as string) || 'asc';
+
+  filteredConfigs.sort((a, b) => {
+    let aVal: string | number = '';
+    let bVal: string | number = '';
+
+    switch (sortBy) {
+      case 'cfg_name':
+        aVal = a.cfg_name.toLowerCase();
+        bVal = b.cfg_name.toLowerCase();
+        break;
+      case 'cfg_type':
+        aVal = a.cfg_type.toLowerCase();
+        bVal = b.cfg_type.toLowerCase();
+        break;
+      case 'partno':
+        aVal = (a.partno || '').toLowerCase();
+        bVal = (b.partno || '').toLowerCase();
+        break;
+      case 'bom_item_count':
+        aVal = a.bom_item_count;
+        bVal = b.bom_item_count;
+        break;
+      case 'asset_count':
+        aVal = a.asset_count;
+        bVal = b.asset_count;
+        break;
+      case 'ins_date':
+        aVal = new Date(a.ins_date).getTime();
+        bVal = new Date(b.ins_date).getTime();
+        break;
+      default:
+        aVal = a.cfg_name.toLowerCase();
+        bVal = b.cfg_name.toLowerCase();
+    }
+
+    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Pagination
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+
+  const paginatedConfigs = filteredConfigs.slice(startIndex, endIndex);
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === programIdFilter);
+
+  console.log(`[CONFIGS] List request by ${user.username} for program ${program?.pgm_cd} - Total: ${filteredConfigs.length}, Page: ${page}`);
+
+  res.json({
+    configurations: paginatedConfigs,
+    pagination: {
+      page,
+      limit,
+      total: filteredConfigs.length,
+      total_pages: Math.ceil(filteredConfigs.length / limit),
+    },
+    program: {
+      pgm_id: program?.pgm_id || programIdFilter,
+      pgm_cd: program?.pgm_cd || 'UNKNOWN',
+      pgm_name: program?.pgm_name || 'Unknown Program',
+    },
+  });
+});
+
+// GET /api/configurations/:id - Get single configuration by ID (requires authentication)
+app.get('/api/configurations/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const config = configurations.find(c => c.cfg_set_id === configId);
+
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this configuration's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === config.pgm_id);
+
+  console.log(`[CONFIGS] Detail request for config ${config.cfg_name} by ${user.username}`);
+
+  res.json({
+    configuration: {
+      ...config,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    },
+  });
+});
+
+// PUT /api/configurations/:id - Update configuration (requires depot_manager or admin)
+app.put('/api/configurations/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can edit configurations
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to edit configurations' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const configIndex = configurations.findIndex(c => c.cfg_set_id === configId);
+
+  if (configIndex === -1) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  const config = configurations[configIndex];
+
+  // Check if user has access to this configuration's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Extract updatable fields from request body
+  const { cfg_name, cfg_type, description, active } = req.body;
+
+  // Validation
+  if (cfg_name !== undefined && (typeof cfg_name !== 'string' || cfg_name.trim().length === 0)) {
+    return res.status(400).json({ error: 'Configuration name cannot be empty' });
+  }
+
+  if (cfg_type !== undefined && !['ASSEMBLY', 'SYSTEM', 'COMPONENT'].includes(cfg_type)) {
+    return res.status(400).json({ error: 'Invalid configuration type. Must be ASSEMBLY, SYSTEM, or COMPONENT' });
+  }
+
+  // Store old values for audit logging
+  const oldValues = {
+    cfg_name: config.cfg_name,
+    cfg_type: config.cfg_type,
+    description: config.description,
+    active: config.active,
+  };
+
+  // Update fields
+  if (cfg_name !== undefined) {
+    config.cfg_name = cfg_name.trim();
+  }
+  if (cfg_type !== undefined) {
+    config.cfg_type = cfg_type;
+  }
+  if (description !== undefined) {
+    config.description = description?.trim() || null;
+  }
+  if (active !== undefined) {
+    config.active = Boolean(active);
+  }
+
+  // Update audit fields
+  config.chg_by = user.username;
+  config.chg_date = new Date().toISOString();
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === config.pgm_id);
+
+  console.log(`[CONFIGS] Updated config ${config.cfg_name} (ID: ${configId}) by ${user.username}`);
+  console.log(`[CONFIGS] Old values:`, oldValues);
+  console.log(`[CONFIGS] New values:`, { cfg_name: config.cfg_name, cfg_type: config.cfg_type, description: config.description, active: config.active });
+
+  res.json({
+    message: 'Configuration updated successfully',
+    configuration: {
+      ...config,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    },
+  });
+});
+
+// GET /api/reference/parts - Get available part numbers for configuration forms
+app.get('/api/reference/parts', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string
+  let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // If no program specified, use user's default program
+  if (!programIdFilter) {
+    const defaultProgram = user.programs.find(p => p.is_default);
+    programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+  }
+
+  // Check if user has access to this program
+  if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Mock part numbers for the program (in real app, this would come from part_list table)
+  const mockParts = [
+    { partno_id: 1, partno: 'PN-SENSOR-A', name: 'Sensor Unit A', pgm_id: 1 },
+    { partno_id: 2, partno: 'PN-SENSOR-B', name: 'Sensor Unit B', pgm_id: 1 },
+    { partno_id: 3, partno: 'PN-SENSOR-C', name: 'Sensor Unit C', pgm_id: 1 },
+    { partno_id: 4, partno: 'PN-CAMERA-X', name: 'Camera System X', pgm_id: 1 },
+    { partno_id: 5, partno: 'PN-CAMERA-Y', name: 'Camera System Y', pgm_id: 1 },
+    { partno_id: 6, partno: 'PN-RADAR-01', name: 'Radar Unit 01', pgm_id: 1 },
+    { partno_id: 7, partno: 'PN-RADAR-02', name: 'Radar Unit 02', pgm_id: 1 },
+    { partno_id: 8, partno: 'PN-COMM-SYS', name: 'Communication System', pgm_id: 1 },
+    { partno_id: 9, partno: 'PN-POWER-MOD', name: 'Power Module', pgm_id: 1 },
+    { partno_id: 10, partno: 'PN-NAV-UNIT', name: 'Navigation Unit', pgm_id: 1 },
+    { partno_id: 11, partno: 'PN-TARGET-A', name: 'Targeting System A', pgm_id: 2 },
+    { partno_id: 12, partno: 'PN-TARGET-B', name: 'Targeting System B', pgm_id: 2 },
+    { partno_id: 13, partno: 'PN-TARGET-C', name: 'Targeting System C', pgm_id: 2 },
+    { partno_id: 14, partno: 'PN-OPTICS-A', name: 'Optical System A', pgm_id: 2 },
+    { partno_id: 15, partno: 'PN-LASER-01', name: 'Laser Designator 01', pgm_id: 2 },
+    { partno_id: 16, partno: 'PN-RECON-A', name: 'Reconnaissance Unit A', pgm_id: 3 },
+    { partno_id: 17, partno: 'PN-RECON-B', name: 'Reconnaissance Unit B', pgm_id: 3 },
+    { partno_id: 18, partno: 'PN-DATA-SYS', name: 'Data Processing System', pgm_id: 3 },
+    { partno_id: 19, partno: 'PN-236-CTRL', name: '236 Control Unit', pgm_id: 4 },
+    { partno_id: 20, partno: 'PN-236-PROC', name: '236 Processor Module', pgm_id: 4 },
+  ];
+
+  // Filter parts by program
+  const filteredParts = mockParts.filter(p => p.pgm_id === programIdFilter);
+
+  res.json({
+    parts: filteredParts,
+    total: filteredParts.length,
+  });
+});
+
+// POST /api/configurations - Create new configuration (requires depot_manager or admin)
+app.post('/api/configurations', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can create configurations
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to create configurations' });
+  }
+
+  const { cfg_name, cfg_type, partno_id, partno, part_name, description, pgm_id } = req.body;
+
+  // Validation
+  if (!cfg_name || typeof cfg_name !== 'string' || cfg_name.trim().length === 0) {
+    return res.status(400).json({ error: 'Configuration name is required' });
+  }
+
+  if (!cfg_type || !['ASSEMBLY', 'SYSTEM', 'COMPONENT'].includes(cfg_type)) {
+    return res.status(400).json({ error: 'Configuration type is required and must be ASSEMBLY, SYSTEM, or COMPONENT' });
+  }
+
+  // Determine program ID
+  const targetPgmId = pgm_id || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id || 1;
+
+  // Check if user has access to target program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(targetPgmId) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Check for duplicate configuration name in same program
+  const existingConfig = configurations.find(
+    c => c.cfg_name.toLowerCase() === cfg_name.trim().toLowerCase() && c.pgm_id === targetPgmId
+  );
+  if (existingConfig) {
+    return res.status(400).json({ error: 'A configuration with this name already exists in this program' });
+  }
+
+  // Generate new ID
+  const newId = Math.max(...configurations.map(c => c.cfg_set_id), 0) + 1;
+
+  // Create new configuration
+  const newConfig: ConfigurationSet = {
+    cfg_set_id: newId,
+    cfg_name: cfg_name.trim(),
+    cfg_type,
+    pgm_id: targetPgmId,
+    partno_id: partno_id || null,
+    partno: partno || null,
+    part_name: part_name || null,
+    description: description?.trim() || null,
+    active: true,
+    ins_by: user.username,
+    ins_date: new Date().toISOString(),
+    chg_by: null,
+    chg_date: null,
+    bom_item_count: 0,
+    asset_count: 0,
+  };
+
+  // Add to configurations array
+  configurations.push(newConfig);
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === targetPgmId);
+
+  console.log(`[CONFIGS] Created new config "${newConfig.cfg_name}" (ID: ${newId}) by ${user.username} for program ${program?.pgm_cd}`);
+
+  res.status(201).json({
+    message: 'Configuration created successfully',
+    configuration: {
+      ...newConfig,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    },
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
