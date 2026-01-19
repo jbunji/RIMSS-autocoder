@@ -1,5 +1,74 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #79)
+
+### Completed This Session:
+- Feature #79: Maintenance backlog view grouped by configuration - VERIFIED AND PASSING
+
+**Description:** Backlog view shows events grouped by aircraft configuration
+
+**Implementation:**
+
+**Frontend (frontend/src/pages/MaintenancePage.tsx):**
+- Added ChevronDownIcon, ChevronUpIcon, QueueListIcon, Squares2X2Icon icons
+- Added viewMode state ('list' | 'grouped') with default 'list'
+- Added expandedGroups state (Set of configuration names)
+- Added groupEventsByConfiguration() function - groups events by asset_name
+- Added toggleGroup() function - expands/collapses individual groups
+- Added expandAllGroups() and collapseAllGroups() functions
+- Added view toggle UI with "List" and "Grouped" buttons
+- Added "Expand All" and "Collapse All" buttons (visible in grouped view)
+- Added renderGroupedView() function:
+  - Summary: "X configurations with Y open events"
+  - Collapsible accordion headers with:
+    - Chevron icon (up when expanded, down when collapsed)
+    - Configuration name
+    - Unit count with serial numbers
+    - Priority summary badges (PQDR, Critical, Urgent, Routine)
+    - Event count badge
+  - Expanded events show:
+    - Job number and serial number
+    - PQDR badge if flagged
+    - Discrepancy description
+    - Date, days open (color-coded), location
+    - Event type and priority badges
+    - Delete button (admin only)
+  - Click on event navigates to detail page
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Maintenance > Backlog tab - Successfully navigated to /maintenance
+3. ✅ Verify grouping by configuration displays - View toggle shows "List" and "Grouped" buttons
+4. ✅ Expand configuration group - Clicked on "Camera System X" - expanded to show event
+5. ✅ Verify events for that configuration list - Shows MX-2024-001 with all details
+6. ✅ Collapse group - Clicked again to collapse - event hidden
+7. ✅ Verify proper accordion behavior:
+   - Expand All button expands all 4 groups
+   - Collapse All button collapses all groups
+   - Individual group toggle works correctly
+   - Click on event navigates to /maintenance/1 detail page
+
+**Screenshots:**
+- .playwright-mcp/feature79_maintenance_list_view.png - List view with toggle buttons
+- .playwright-mcp/feature79_grouped_view_collapsed.png - Grouped view with all collapsed
+- .playwright-mcp/feature79_group_expanded.png - Camera System X expanded
+- .playwright-mcp/feature79_expanded_event_visible.png - All groups showing expanded events
+- .playwright-mcp/feature79_all_expanded.png - Expand All clicked
+- .playwright-mcp/feature79_all_expanded_scrolled.png - Scrolled to show more groups
+- .playwright-mcp/feature79_collapsed_after_collapse_all.png - After Collapse All
+- .playwright-mcp/feature79_event_detail_navigation.png - Navigation to event detail page
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #79 marked as PASSING
+- Commit: e099397 "Implement Feature #79: Maintenance backlog view grouped by configuration"
+
+### Files Modified:
+- frontend/src/pages/MaintenancePage.tsx - Added grouped view mode with accordion UI
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #78)
 
 ### Completed This Session:
@@ -6309,4 +6378,70 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 **Console errors:** None detected
 
 [Testing] Session complete - verified feature #39 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #64 'Part relationship validation' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as admin/admin123
+2. ✅ Navigate to configuration BOM - Navigated to Camera System X Configuration → BOM tab
+3. ✅ Attempt to add part that creates circular reference - Tried adding PN-SENSOR-A as child of PN-MOUNT-KIT
+4. ✅ Verify error message - 'Circular reference detected: Cannot set "PN-MOUNT-KIT" as parent of "PN-SENSOR-A" because it would create a circular dependency in the assembly hierarchy.'
+5. ✅ Attempt to add duplicate part type - Tried adding PN-MOUNT-KIT which already exists
+6. ✅ Verify validation message - 'This part is already in the BOM for this configuration'
+7. ✅ Add valid part - Added PN-TEST-VALID-001 (Test Valid Part For Regression)
+8. ✅ Verify success - Part added successfully, BOM count increased from 3 to 4
+
+**Validation Types Tested:**
+- Circular reference detection: ✅ Working
+- Duplicate part detection: ✅ Working
+- Valid part addition: ✅ Working
+
+**Screenshots:**
+- .playwright-mcp/feature64_circular_reference_validation.png - Circular reference error
+- .playwright-mcp/feature64_duplicate_part_validation.png - Duplicate part error
+- .playwright-mcp/feature64_valid_part_added_success.png - Success after adding valid part
+- .playwright-mcp/feature64_bom_with_new_part.png - BOM table showing new part
+
+**Console errors:** None related to the feature (only expected 400 errors from validation tests)
+
+[Testing] Session complete - verified feature #64 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #76 'Attachment download from maintenance event' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to event with attachments - Navigated to MX-2024-001 (Camera System X)
+3. ✅ Click on attachment to download - Clicked Download button for test_regression_download.txt
+4. ✅ Verify file downloads correctly - File downloaded to .playwright-mcp/test-regression-download.txt
+5. ✅ Verify file content matches uploaded file - Downloaded content matches original exactly
+
+**Note:** Backend server had crashed during initial testing (infrastructure issue). After restart and fresh upload, download feature verified working correctly.
+
+**UI Components Verified:**
+- Attachments section header with file count '(1 file)'
+- File listing: name, size (81 Bytes), uploader (John Admin), date (1/19/2026)
+- Description displayed correctly
+- Download and Delete buttons functional
+
+**Screenshots:**
+- .playwright-mcp/feature76_regression_test_verified.png - Attachments section with download button
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #76 (no regression found)
 
