@@ -18,6 +18,8 @@ import {
   PhotoIcon,
   PlusIcon,
   TrashIcon,
+  CubeIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -46,6 +48,61 @@ interface RepairsSummary {
   total: number
   open: number
   closed: number
+}
+
+// InstalledPart interface
+interface InstalledPart {
+  installed_part_id: number
+  repair_id: number
+  event_id: number
+  asset_id: number
+  asset_sn: string
+  asset_pn: string
+  asset_name: string
+  installation_date: string
+  installation_notes: string | null
+  previous_location: string | null
+  installed_by: number
+  installed_by_name: string
+  created_at: string
+}
+
+// RemovedPart interface
+interface RemovedPart {
+  removed_part_id: number
+  repair_id: number
+  event_id: number
+  asset_id: number
+  asset_sn: string
+  asset_pn: string
+  asset_name: string
+  removal_date: string
+  removal_reason: string | null
+  removal_notes: string | null
+  new_status: string | null
+  removed_by: number
+  removed_by_name: string
+  created_at: string
+}
+
+// Available asset for installation
+interface AvailableAsset {
+  asset_id: number
+  serno: string
+  partno: string
+  nomen: string | null
+  status: string
+  location: string | null
+}
+
+// Available asset for removal
+interface RemovableAsset {
+  asset_id: number
+  serno: string
+  partno: string
+  name: string
+  status_cd: string
+  admin_loc: string
 }
 
 // Attachment interface
@@ -289,6 +346,70 @@ export default function MaintenanceDetailPage() {
   const [deleteRepairError, setDeleteRepairError] = useState<string | null>(null)
   const [deleteRepairSuccess, setDeleteRepairSuccess] = useState<string | null>(null)
 
+  // Installed Parts state
+  const [installedPartsMap, setInstalledPartsMap] = useState<Map<number, InstalledPart[]>>(new Map())
+  const [loadingInstalledParts, setLoadingInstalledParts] = useState<Set<number>>(new Set())
+
+  // Add Installed Part modal state
+  const [isAddInstalledPartModalOpen, setIsAddInstalledPartModalOpen] = useState(false)
+  const [addInstalledPartRepair, setAddInstalledPartRepair] = useState<Repair | null>(null)
+  const [availableAssets, setAvailableAssets] = useState<AvailableAsset[]>([])
+  const [assetSearchQuery, setAssetSearchQuery] = useState('')
+  const [assetSearchLoading, setAssetSearchLoading] = useState(false)
+  const [selectedAsset, setSelectedAsset] = useState<AvailableAsset | null>(null)
+  const [installationDate, setInstallationDate] = useState(new Date().toISOString().split('T')[0])
+  const [installationNotes, setInstallationNotes] = useState('')
+  const [addInstalledPartLoading, setAddInstalledPartLoading] = useState(false)
+  const [addInstalledPartError, setAddInstalledPartError] = useState<string | null>(null)
+  const [addInstalledPartSuccess, setAddInstalledPartSuccess] = useState<string | null>(null)
+
+  // Delete Installed Part state
+  const [deletingInstalledPartId, setDeletingInstalledPartId] = useState<number | null>(null)
+
+  // Removed Parts state
+  const [removedPartsMap, setRemovedPartsMap] = useState<Map<number, RemovedPart[]>>(new Map())
+  const [loadingRemovedParts, setLoadingRemovedParts] = useState<Set<number>>(new Set())
+
+  // Add Removed Part modal state
+  const [isAddRemovedPartModalOpen, setIsAddRemovedPartModalOpen] = useState(false)
+  const [addRemovedPartRepair, setAddRemovedPartRepair] = useState<Repair | null>(null)
+  const [removableAssets, setRemovableAssets] = useState<RemovableAsset[]>([])
+  const [removableAssetSearchQuery, setRemovableAssetSearchQuery] = useState('')
+  const [removableAssetSearchLoading, setRemovableAssetSearchLoading] = useState(false)
+  const [selectedRemovableAsset, setSelectedRemovableAsset] = useState<RemovableAsset | null>(null)
+  const [removalDate, setRemovalDate] = useState(new Date().toISOString().split('T')[0])
+  const [removalReason, setRemovalReason] = useState('')
+  const [removalNotes, setRemovalNotes] = useState('')
+  const [newAssetStatus, setNewAssetStatus] = useState('')
+  const [addRemovedPartLoading, setAddRemovedPartLoading] = useState(false)
+  const [addRemovedPartError, setAddRemovedPartError] = useState<string | null>(null)
+  const [addRemovedPartSuccess, setAddRemovedPartSuccess] = useState<string | null>(null)
+
+  // Delete Removed Part state
+  const [deletingRemovedPartId, setDeletingRemovedPartId] = useState<number | null>(null)
+
+  // Removal reason options
+  const removalReasonOptions = [
+    { value: '', label: 'Select a reason...' },
+    { value: 'FAILED', label: 'Failed - Component Failure' },
+    { value: 'DAMAGED', label: 'Damaged - Physical Damage' },
+    { value: 'WORN', label: 'Worn - End of Service Life' },
+    { value: 'UPGRADE', label: 'Upgrade - Replaced with Better Part' },
+    { value: 'CALIBRATION', label: 'Calibration - Needs Recalibration' },
+    { value: 'INSPECTION', label: 'Inspection - Scheduled Inspection' },
+    { value: 'OTHER', label: 'Other' },
+  ]
+
+  // Asset status options for removed parts
+  const assetStatusOptions = [
+    { value: '', label: 'Keep current status' },
+    { value: 'NMCM', label: 'NMCM - Non-Mission Capable Maintenance' },
+    { value: 'NMCS', label: 'NMCS - Non-Mission Capable Supply' },
+    { value: 'CNDM', label: 'CNDM - Condition Not Determined' },
+    { value: 'FMC', label: 'FMC - Full Mission Capable' },
+    { value: 'PMC', label: 'PMC - Partial Mission Capable' },
+  ]
+
   // Check if user can edit (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
   const canEdit = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
 
@@ -381,6 +502,380 @@ export default function MaintenanceDetailPage() {
       setAttachmentsLoading(false)
     }
   }, [token, id])
+
+  // Fetch installed parts for a repair
+  const fetchInstalledParts = useCallback(async (repairId: number) => {
+    if (!token) return
+
+    setLoadingInstalledParts(prev => new Set(prev).add(repairId))
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}/installed-parts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch installed parts')
+        return
+      }
+
+      const data = await response.json()
+      setInstalledPartsMap(prev => {
+        const newMap = new Map(prev)
+        newMap.set(repairId, data.installed_parts || [])
+        return newMap
+      })
+    } catch (err) {
+      console.error('Error fetching installed parts:', err)
+    } finally {
+      setLoadingInstalledParts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(repairId)
+        return newSet
+      })
+    }
+  }, [token])
+
+  // Fetch installed parts for all repairs when repairs are loaded
+  useEffect(() => {
+    if (repairs.length > 0 && token) {
+      repairs.forEach(repair => {
+        fetchInstalledParts(repair.repair_id)
+      })
+    }
+  }, [repairs, token, fetchInstalledParts])
+
+  // Search available assets for installation
+  const searchAvailableAssets = useCallback(async (query: string) => {
+    if (!token || !id) return
+
+    setAssetSearchLoading(true)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/events/${id}/available-assets?search=${encodeURIComponent(query)}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        console.error('Failed to search assets')
+        return
+      }
+
+      const data = await response.json()
+      setAvailableAssets(data.assets || [])
+    } catch (err) {
+      console.error('Error searching assets:', err)
+    } finally {
+      setAssetSearchLoading(false)
+    }
+  }, [token, id])
+
+  // Debounced asset search
+  useEffect(() => {
+    if (!isAddInstalledPartModalOpen) return
+
+    const timeoutId = setTimeout(() => {
+      searchAvailableAssets(assetSearchQuery)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [assetSearchQuery, isAddInstalledPartModalOpen, searchAvailableAssets])
+
+  // Open Add Installed Part modal
+  const openAddInstalledPartModal = (repair: Repair) => {
+    setAddInstalledPartRepair(repair)
+    setAvailableAssets([])
+    setAssetSearchQuery('')
+    setSelectedAsset(null)
+    setInstallationDate(new Date().toISOString().split('T')[0])
+    setInstallationNotes('')
+    setAddInstalledPartError(null)
+    setAddInstalledPartSuccess(null)
+    setIsAddInstalledPartModalOpen(true)
+    // Initial search with empty query to show available assets
+    searchAvailableAssets('')
+  }
+
+  // Close Add Installed Part modal
+  const closeAddInstalledPartModal = () => {
+    setIsAddInstalledPartModalOpen(false)
+    setAddInstalledPartRepair(null)
+    setSelectedAsset(null)
+    setAvailableAssets([])
+  }
+
+  // Handle adding installed part
+  const handleAddInstalledPart = async () => {
+    if (!token || !addInstalledPartRepair || !selectedAsset) return
+
+    setAddInstalledPartLoading(true)
+    setAddInstalledPartError(null)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/repairs/${addInstalledPartRepair.repair_id}/installed-parts`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            asset_id: selectedAsset.asset_id,
+            installation_date: installationDate,
+            installation_notes: installationNotes || null,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add installed part')
+      }
+
+      setAddInstalledPartSuccess(`Part "${selectedAsset.serno}" added successfully!`)
+
+      // Refresh installed parts for this repair
+      await fetchInstalledParts(addInstalledPartRepair.repair_id)
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        closeAddInstalledPartModal()
+      }, 1500)
+    } catch (err) {
+      setAddInstalledPartError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setAddInstalledPartLoading(false)
+    }
+  }
+
+  // Handle removing installed part
+  const handleRemoveInstalledPart = async (installedPart: InstalledPart) => {
+    if (!token) return
+
+    setDeletingInstalledPartId(installedPart.installed_part_id)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/installed-parts/${installedPart.installed_part_id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to remove installed part')
+      }
+
+      // Refresh installed parts for this repair
+      await fetchInstalledParts(installedPart.repair_id)
+    } catch (err) {
+      console.error('Error removing installed part:', err)
+      alert(err instanceof Error ? err.message : 'Failed to remove installed part')
+    } finally {
+      setDeletingInstalledPartId(null)
+    }
+  }
+
+  // Fetch removed parts for a repair
+  const fetchRemovedParts = useCallback(async (repairId: number) => {
+    if (!token) return
+
+    setLoadingRemovedParts(prev => new Set(prev).add(repairId))
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}/removed-parts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch removed parts')
+        return
+      }
+
+      const data = await response.json()
+      setRemovedPartsMap(prev => {
+        const newMap = new Map(prev)
+        newMap.set(repairId, data.removed_parts || [])
+        return newMap
+      })
+    } catch (err) {
+      console.error('Error fetching removed parts:', err)
+    } finally {
+      setLoadingRemovedParts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(repairId)
+        return newSet
+      })
+    }
+  }, [token])
+
+  // Fetch removed parts for all repairs when repairs are loaded
+  useEffect(() => {
+    if (repairs.length > 0 && token) {
+      repairs.forEach(repair => {
+        fetchRemovedParts(repair.repair_id)
+      })
+    }
+  }, [repairs, token, fetchRemovedParts])
+
+  // Search removable assets
+  const searchRemovableAssets = useCallback(async (query: string) => {
+    if (!token || !id) return
+
+    setRemovableAssetSearchLoading(true)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/events/${id}/removable-assets?search=${encodeURIComponent(query)}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        console.error('Failed to search removable assets')
+        return
+      }
+
+      const data = await response.json()
+      setRemovableAssets(data.assets || [])
+    } catch (err) {
+      console.error('Error searching removable assets:', err)
+    } finally {
+      setRemovableAssetSearchLoading(false)
+    }
+  }, [token, id])
+
+  // Debounced removable asset search
+  useEffect(() => {
+    if (!isAddRemovedPartModalOpen) return
+
+    const timeoutId = setTimeout(() => {
+      searchRemovableAssets(removableAssetSearchQuery)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [removableAssetSearchQuery, isAddRemovedPartModalOpen, searchRemovableAssets])
+
+  // Open Add Removed Part modal
+  const openAddRemovedPartModal = (repair: Repair) => {
+    setAddRemovedPartRepair(repair)
+    setRemovableAssets([])
+    setRemovableAssetSearchQuery('')
+    setSelectedRemovableAsset(null)
+    setRemovalDate(new Date().toISOString().split('T')[0])
+    setRemovalReason('')
+    setRemovalNotes('')
+    setNewAssetStatus('')
+    setAddRemovedPartError(null)
+    setAddRemovedPartSuccess(null)
+    setIsAddRemovedPartModalOpen(true)
+    // Initial search with empty query to show available assets
+    searchRemovableAssets('')
+  }
+
+  // Close Add Removed Part modal
+  const closeAddRemovedPartModal = () => {
+    setIsAddRemovedPartModalOpen(false)
+    setAddRemovedPartRepair(null)
+    setSelectedRemovableAsset(null)
+    setRemovableAssets([])
+  }
+
+  // Handle adding removed part
+  const handleAddRemovedPart = async () => {
+    if (!token || !addRemovedPartRepair || !selectedRemovableAsset) return
+
+    setAddRemovedPartLoading(true)
+    setAddRemovedPartError(null)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/repairs/${addRemovedPartRepair.repair_id}/removed-parts`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            asset_id: selectedRemovableAsset.asset_id,
+            removal_date: removalDate,
+            removal_reason: removalReason || null,
+            removal_notes: removalNotes || null,
+            new_status: newAssetStatus || null,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add removed part')
+      }
+
+      setAddRemovedPartSuccess(`Part "${selectedRemovableAsset.serno}" recorded as removed!`)
+
+      // Refresh removed parts for this repair
+      await fetchRemovedParts(addRemovedPartRepair.repair_id)
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        closeAddRemovedPartModal()
+      }, 1500)
+    } catch (err) {
+      setAddRemovedPartError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setAddRemovedPartLoading(false)
+    }
+  }
+
+  // Handle deleting removed part record
+  const handleDeleteRemovedPart = async (removedPart: RemovedPart) => {
+    if (!token) return
+
+    setDeletingRemovedPartId(removedPart.removed_part_id)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/removed-parts/${removedPart.removed_part_id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete removed part record')
+      }
+
+      // Refresh removed parts for this repair
+      await fetchRemovedParts(removedPart.repair_id)
+    } catch (err) {
+      console.error('Error deleting removed part:', err)
+      alert(err instanceof Error ? err.message : 'Failed to delete removed part record')
+    } finally {
+      setDeletingRemovedPartId(null)
+    }
+  }
 
   // Handle attachment upload
   const handleUploadAttachment = async () => {
@@ -1411,6 +1906,170 @@ export default function MaintenanceDetailPage() {
                           {repair.tag_no && <span>Tag: {repair.tag_no}</span>}
                           {repair.doc_no && <span>Doc: {repair.doc_no}</span>}
                           <span>By: {repair.created_by_name}</span>
+                        </div>
+
+                        {/* Installed Parts Sub-section */}
+                        <div className="mt-4 pt-3 border-t border-gray-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center">
+                              <CubeIcon className="h-4 w-4 mr-1" />
+                              Installed Parts
+                              <span className="ml-1 text-gray-400">
+                                ({installedPartsMap.get(repair.repair_id)?.length || 0})
+                              </span>
+                            </h4>
+                            {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                              <button
+                                onClick={() => openAddInstalledPartModal(repair)}
+                                className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center"
+                              >
+                                <PlusIcon className="h-3 w-3 mr-0.5" />
+                                Add Part
+                              </button>
+                            )}
+                          </div>
+
+                          {loadingInstalledParts.has(repair.repair_id) ? (
+                            <div className="flex items-center justify-center py-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                            </div>
+                          ) : (installedPartsMap.get(repair.repair_id)?.length || 0) === 0 ? (
+                            <p className="text-xs text-gray-400 italic">No parts installed</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {installedPartsMap.get(repair.repair_id)?.map((installedPart) => (
+                                <div
+                                  key={installedPart.installed_part_id}
+                                  className="flex items-center justify-between bg-white border border-gray-200 rounded p-2"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <CubeIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                      <span className="text-sm font-medium text-gray-900 truncate">
+                                        {installedPart.asset_sn}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        ({installedPart.asset_pn})
+                                      </span>
+                                    </div>
+                                    <div className="ml-6 text-xs text-gray-500">
+                                      <span>{installedPart.asset_name}</span>
+                                      <span className="mx-1">•</span>
+                                      <span>Installed: {new Date(installedPart.installation_date).toLocaleDateString()}</span>
+                                      <span className="mx-1">•</span>
+                                      <span>By: {installedPart.installed_by_name}</span>
+                                    </div>
+                                    {installedPart.installation_notes && (
+                                      <p className="ml-6 text-xs text-gray-600 mt-1 italic">
+                                        {installedPart.installation_notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {canDeleteRepairs && event.status === 'open' && (
+                                    <button
+                                      onClick={() => handleRemoveInstalledPart(installedPart)}
+                                      disabled={deletingInstalledPartId === installedPart.installed_part_id}
+                                      className="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded disabled:opacity-50"
+                                      title="Remove installed part"
+                                    >
+                                      {deletingInstalledPartId === installedPart.installed_part_id ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                                      ) : (
+                                        <TrashIcon className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Removed Parts Sub-section */}
+                        <div className="mt-4 pt-3 border-t border-gray-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center">
+                              <CubeIcon className="h-4 w-4 mr-1 text-red-500" />
+                              Removed Parts
+                              <span className="ml-1 text-gray-400">
+                                ({removedPartsMap.get(repair.repair_id)?.length || 0})
+                              </span>
+                            </h4>
+                            {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                              <button
+                                onClick={() => openAddRemovedPartModal(repair)}
+                                className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center"
+                              >
+                                <PlusIcon className="h-3 w-3 mr-0.5" />
+                                Add Removed Part
+                              </button>
+                            )}
+                          </div>
+
+                          {loadingRemovedParts.has(repair.repair_id) ? (
+                            <div className="flex items-center justify-center py-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                            </div>
+                          ) : (removedPartsMap.get(repair.repair_id)?.length || 0) === 0 ? (
+                            <p className="text-xs text-gray-400 italic">No parts removed</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {removedPartsMap.get(repair.repair_id)?.map((removedPart) => (
+                                <div
+                                  key={removedPart.removed_part_id}
+                                  className="flex items-center justify-between bg-red-50 border border-red-200 rounded p-2"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <CubeIcon className="h-4 w-4 text-red-500 flex-shrink-0" />
+                                      <span className="text-sm font-medium text-gray-900 truncate">
+                                        {removedPart.asset_sn}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        ({removedPart.asset_pn})
+                                      </span>
+                                      {removedPart.removal_reason && (
+                                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-red-100 text-red-700">
+                                          {removedPart.removal_reason}
+                                        </span>
+                                      )}
+                                      {removedPart.new_status && (
+                                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
+                                          → {removedPart.new_status}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="ml-6 text-xs text-gray-500">
+                                      <span>{removedPart.asset_name}</span>
+                                      <span className="mx-1">•</span>
+                                      <span>Removed: {new Date(removedPart.removal_date).toLocaleDateString()}</span>
+                                      <span className="mx-1">•</span>
+                                      <span>By: {removedPart.removed_by_name}</span>
+                                    </div>
+                                    {removedPart.removal_notes && (
+                                      <p className="ml-6 text-xs text-gray-600 mt-1 italic">
+                                        {removedPart.removal_notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                                    <button
+                                      onClick={() => handleDeleteRemovedPart(removedPart)}
+                                      disabled={deletingRemovedPartId === removedPart.removed_part_id}
+                                      className="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded disabled:opacity-50"
+                                      title="Delete removed part record"
+                                    >
+                                      {deletingRemovedPartId === removedPart.removed_part_id ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                                      ) : (
+                                        <TrashIcon className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                       {event.status === 'open' && (
@@ -2759,6 +3418,376 @@ export default function MaintenanceDetailPage() {
                   <>
                     <TrashIcon className="h-4 w-4 mr-2" />
                     Delete Repair
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Add Installed Part Modal */}
+      <Dialog
+        open={isAddInstalledPartModalOpen}
+        onClose={closeAddInstalledPartModal}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full rounded-lg bg-white shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <CubeIcon className="h-5 w-5 mr-2 text-primary-600" />
+                Add Installed Part
+                {addInstalledPartRepair && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    (Repair #{addInstalledPartRepair.repair_seq})
+                  </span>
+                )}
+              </Dialog.Title>
+              <button
+                onClick={closeAddInstalledPartModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {addInstalledPartSuccess && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {addInstalledPartSuccess}
+                </div>
+              )}
+
+              {addInstalledPartError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+                  <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                  {addInstalledPartError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Search Replacement Asset <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={assetSearchQuery}
+                    onChange={(e) => setAssetSearchQuery(e.target.value)}
+                    placeholder="Search by S/N, P/N, or name..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                  {assetSearchLoading && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg">
+                  {availableAssets.length === 0 && !assetSearchLoading ? (
+                    <div className="p-3 text-sm text-gray-500 text-center">
+                      {assetSearchQuery ? 'No assets found' : 'Start typing to search assets'}
+                    </div>
+                  ) : (
+                    availableAssets.map((asset) => (
+                      <div
+                        key={asset.asset_id}
+                        onClick={() => setSelectedAsset(asset)}
+                        className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 ${
+                          selectedAsset?.asset_id === asset.asset_id ? 'bg-primary-50 border-primary-200' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-medium text-gray-900">{asset.serno}</span>
+                            <span className="text-gray-500 ml-2 text-sm">({asset.partno})</span>
+                          </div>
+                          <span className={`px-2 py-0.5 text-xs rounded-full ${
+                            asset.status === 'FMC' ? 'bg-green-100 text-green-700' :
+                            asset.status === 'PMC' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {asset.status}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {asset.nomen || 'No description'}
+                          {asset.location && <span className="ml-2">• Location: {asset.location}</span>}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {selectedAsset && (
+                  <div className="mt-2 p-2 bg-primary-50 border border-primary-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <CheckCircleIcon className="h-4 w-4 text-primary-600 mr-2" />
+                        <span className="text-sm font-medium text-primary-700">
+                          Selected: {selectedAsset.serno}
+                        </span>
+                      </div>
+                      <button onClick={() => setSelectedAsset(null)} className="text-primary-600 hover:text-primary-700 text-xs">
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Installation Date</label>
+                <input
+                  type="date"
+                  value={installationDate}
+                  onChange={(e) => setInstallationDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Installation Notes</label>
+                <textarea
+                  value={installationNotes}
+                  onChange={(e) => setInstallationNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Enter any notes about the installation..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
+              <button
+                type="button"
+                onClick={closeAddInstalledPartModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAddInstalledPart}
+                disabled={addInstalledPartLoading || !selectedAsset}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {addInstalledPartLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Add Installed Part
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Add Removed Part Modal */}
+      <Dialog open={isAddRemovedPartModalOpen} onClose={closeAddRemovedPartModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <CubeIcon className="h-5 w-5 mr-2 text-red-500" />
+                Add Removed Part
+              </Dialog.Title>
+              <button
+                onClick={closeAddRemovedPartModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* Success Message */}
+              {addRemovedPartSuccess && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center text-green-700">
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {addRemovedPartSuccess}
+                </div>
+              )}
+
+              {/* Error Message */}
+              {addRemovedPartError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700">
+                  <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                  {addRemovedPartError}
+                </div>
+              )}
+
+              {/* Asset Search */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Search Asset to Remove *
+                </label>
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={removableAssetSearchQuery}
+                    onChange={(e) => setRemovableAssetSearchQuery(e.target.value)}
+                    placeholder="Search by serial number, part number, or name..."
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  />
+                </div>
+
+                {/* Asset Search Results */}
+                <div className="mt-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg">
+                  {removableAssetSearchLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
+                    </div>
+                  ) : removableAssets.length === 0 ? (
+                    <div className="p-3 text-sm text-gray-500 text-center">
+                      {removableAssetSearchQuery ? 'No assets found' : 'Start typing to search assets'}
+                    </div>
+                  ) : (
+                    removableAssets.map((asset) => (
+                      <div
+                        key={asset.asset_id}
+                        onClick={() => setSelectedRemovableAsset(asset)}
+                        className={`p-3 cursor-pointer hover:bg-gray-50 border-b last:border-b-0 ${
+                          selectedRemovableAsset?.asset_id === asset.asset_id ? 'bg-red-50 border-red-200' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-medium text-gray-900">{asset.serno}</span>
+                            <span className="text-gray-500 ml-2 text-sm">({asset.partno})</span>
+                          </div>
+                          <span className={`px-2 py-0.5 text-xs rounded-full ${
+                            asset.status_cd === 'FMC' ? 'bg-green-100 text-green-700' :
+                            asset.status_cd === 'PMC' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {asset.status_cd}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {asset.name}
+                          {asset.admin_loc && <span className="ml-2">• Location: {asset.admin_loc}</span>}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {selectedRemovableAsset && (
+                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <CheckCircleIcon className="h-4 w-4 text-red-600 mr-2" />
+                        <span className="text-sm font-medium text-red-700">
+                          Selected: {selectedRemovableAsset.serno}
+                        </span>
+                      </div>
+                      <button onClick={() => setSelectedRemovableAsset(null)} className="text-red-600 hover:text-red-700 text-xs">
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Removal Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Removal Date
+                </label>
+                <input
+                  type="date"
+                  value={removalDate}
+                  onChange={(e) => setRemovalDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+
+              {/* Removal Reason */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reason for Removal
+                </label>
+                <select
+                  value={removalReason}
+                  onChange={(e) => setRemovalReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                >
+                  {removalReasonOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* New Asset Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Update Asset Status To
+                </label>
+                <select
+                  value={newAssetStatus}
+                  onChange={(e) => setNewAssetStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                >
+                  {assetStatusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Removal Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={removalNotes}
+                  onChange={(e) => setRemovalNotes(e.target.value)}
+                  placeholder="Enter any additional details about the removal..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 rounded-b-xl sticky bottom-0">
+              <button
+                onClick={closeAddRemovedPartModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={addRemovedPartLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddRemovedPart}
+                disabled={addRemovedPartLoading || !selectedRemovableAsset || !!addRemovedPartSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {addRemovedPartLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <CubeIcon className="h-4 w-4 mr-2" />
+                    Add Removed Part
                   </>
                 )}
               </button>

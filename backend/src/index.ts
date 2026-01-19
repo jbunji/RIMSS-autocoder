@@ -2064,6 +2064,102 @@ function initializeRepairs(): void {
 // Initialize repairs on server start
 initializeRepairs();
 
+// InstalledPart interface for tracking parts installed during repairs
+interface InstalledPart {
+  installed_part_id: number;
+  repair_id: number;
+  event_id: number;
+  asset_id: number; // The asset that was installed
+  asset_sn: string; // Serial number of installed asset
+  asset_pn: string; // Part number of installed asset
+  asset_name: string; // Name of installed asset
+  installation_date: string;
+  installation_notes: string | null;
+  previous_location: string | null; // Where the asset was before installation
+  installed_by: number;
+  installed_by_name: string;
+  created_at: string;
+}
+
+// Persistent storage for installed parts
+let installedParts: InstalledPart[] = [];
+let installedPartNextId = 1;
+
+// Initialize installed parts with mock data
+function initializeInstalledParts(): void {
+  // Example: Part installed in Repair #1 (closed repair)
+  installedParts = [
+    {
+      installed_part_id: 1,
+      repair_id: 1,
+      event_id: 1,
+      asset_id: 2, // Example asset
+      asset_sn: 'CRIIS-002',
+      asset_pn: 'PN-PWR-001',
+      asset_name: 'Power Supply Unit',
+      installation_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      installation_notes: 'Replaced faulty PSU connector with spare unit',
+      previous_location: 'Depot Alpha',
+      installed_by: 3,
+      installed_by_name: 'Bob Field',
+      created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
+  installedPartNextId = 2;
+}
+
+// Initialize installed parts on server start
+initializeInstalledParts();
+
+// RemovedPart interface for tracking parts removed during repairs
+interface RemovedPart {
+  removed_part_id: number;
+  repair_id: number;
+  event_id: number;
+  asset_id: number; // The asset that was removed
+  asset_sn: string; // Serial number of removed asset
+  asset_pn: string; // Part number of removed asset
+  asset_name: string; // Name of removed asset
+  removal_date: string;
+  removal_reason: string | null; // Reason for removal (failed, damaged, etc.)
+  removal_notes: string | null;
+  new_status: string | null; // What status the asset should be set to (NMCM, NMCS, etc.)
+  removed_by: number;
+  removed_by_name: string;
+  created_at: string;
+}
+
+// Persistent storage for removed parts
+let removedParts: RemovedPart[] = [];
+let removedPartNextId = 1;
+
+// Initialize removed parts with mock data
+function initializeRemovedParts(): void {
+  // Example: Part removed in Repair #1 (closed repair)
+  removedParts = [
+    {
+      removed_part_id: 1,
+      repair_id: 1,
+      event_id: 1,
+      asset_id: 3, // Example asset - CRIIS-003 Sensor Unit B
+      asset_sn: 'CRIIS-003',
+      asset_pn: 'PN-SENSOR-B',
+      asset_name: 'Sensor Unit B',
+      removal_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      removal_reason: 'FAILED',
+      removal_notes: 'Faulty power connector caused sensor failure. Removed for depot repair.',
+      new_status: 'NMCM',
+      removed_by: 3,
+      removed_by_name: 'Bob Field',
+      created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ];
+  removedPartNextId = 2;
+}
+
+// Initialize removed parts on server start
+initializeRemovedParts();
+
 // Attachment interface for maintenance event attachments
 interface Attachment {
   attachment_id: number;
@@ -2849,6 +2945,628 @@ app.delete('/api/repairs/:id', (req, res) => {
   res.json({
     message: 'Repair deleted successfully',
     repair: deletedRepairInfo,
+  });
+});
+
+// ============================================
+// INSTALLED PARTS ENDPOINTS
+// ============================================
+
+// Get installed parts for a repair
+app.get('/api/repairs/:repairId/installed-parts', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const repairId = parseInt(req.params.repairId, 10);
+  const repair = repairs.find(r => r.repair_id === repairId);
+
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // Get installed parts for this repair
+  const repairInstalledParts = installedParts.filter(ip => ip.repair_id === repairId);
+
+  console.log(`[INSTALLED_PARTS] Fetched ${repairInstalledParts.length} installed parts for repair ${repairId} by ${user.username}`);
+
+  res.json({
+    installed_parts: repairInstalledParts,
+    total: repairInstalledParts.length,
+  });
+});
+
+// Add an installed part to a repair
+app.post('/api/repairs/:repairId/installed-parts', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can add installed parts
+  if (!['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to add installed parts.' });
+  }
+
+  const repairId = parseInt(req.params.repairId, 10);
+  const repair = repairs.find(r => r.repair_id === repairId);
+
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // Cannot add installed parts to closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot add installed parts to a closed repair' });
+  }
+
+  // Cannot add installed parts to closed events
+  if (event.status === 'closed') {
+    return res.status(400).json({ error: 'Cannot add installed parts to a closed maintenance event' });
+  }
+
+  const { asset_id, installation_date, installation_notes } = req.body;
+
+  // Validate required fields
+  if (!asset_id) {
+    return res.status(400).json({ error: 'Asset ID is required' });
+  }
+
+  // Find the asset to get its details
+  const asset = mockAssets.find(a => a.asset_id === asset_id);
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if asset belongs to the same program
+  if (asset.pgm_id !== event.pgm_id) {
+    return res.status(400).json({ error: 'Asset must belong to the same program as the maintenance event' });
+  }
+
+  // Check if asset is already installed in this repair
+  const existingInstall = installedParts.find(ip => ip.repair_id === repairId && ip.asset_id === asset_id);
+  if (existingInstall) {
+    return res.status(400).json({ error: 'This asset is already recorded as installed in this repair' });
+  }
+
+  // Store previous location before updating
+  const previousLocation = asset.location || null;
+
+  // Create the installed part record
+  const newInstalledPart: InstalledPart = {
+    installed_part_id: installedPartNextId++,
+    repair_id: repairId,
+    event_id: event.event_id,
+    asset_id: asset.asset_id,
+    asset_sn: asset.serno,
+    asset_pn: asset.partno,
+    asset_name: asset.nomen || asset.partno,
+    installation_date: installation_date || new Date().toISOString().split('T')[0],
+    installation_notes: installation_notes || null,
+    previous_location: previousLocation,
+    installed_by: user.user_id,
+    installed_by_name: user.full_name,
+    created_at: new Date().toISOString(),
+  };
+
+  installedParts.push(newInstalledPart);
+
+  // Update the asset's location to indicate it's now installed in the maintenance event's asset
+  const targetAsset = mockAssets.find(a => a.asset_id === event.asset_id);
+  if (targetAsset) {
+    asset.location = `Installed in ${targetAsset.serno}`;
+  }
+
+  console.log(`[INSTALLED_PARTS] Added installed part (asset ${asset.serno}) to repair ${repairId} by ${user.username}. Previous location: ${previousLocation}`);
+
+  res.status(201).json({
+    message: 'Installed part recorded successfully',
+    installed_part: newInstalledPart,
+  });
+});
+
+// Remove an installed part from a repair
+app.delete('/api/installed-parts/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN and DEPOT_MANAGER can remove installed parts
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. Only administrators and depot managers can remove installed parts.' });
+  }
+
+  const installedPartId = parseInt(req.params.id, 10);
+  const installedPartIndex = installedParts.findIndex(ip => ip.installed_part_id === installedPartId);
+
+  if (installedPartIndex === -1) {
+    return res.status(404).json({ error: 'Installed part record not found' });
+  }
+
+  const installedPart = installedParts[installedPartIndex];
+
+  // Get the repair to check access
+  const repair = repairs.find(r => r.repair_id === installedPart.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Associated repair not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === installedPart.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this installed part record' });
+  }
+
+  // Cannot remove installed parts from closed events
+  if (event.status === 'closed') {
+    return res.status(400).json({ error: 'Cannot remove installed parts from a closed maintenance event' });
+  }
+
+  // Restore the asset's previous location
+  const asset = mockAssets.find(a => a.asset_id === installedPart.asset_id);
+  if (asset && installedPart.previous_location) {
+    asset.location = installedPart.previous_location;
+    console.log(`[INSTALLED_PARTS] Restored asset ${asset.serno} location to: ${installedPart.previous_location}`);
+  }
+
+  // Store info for response before deletion
+  const deletedInfo = {
+    installed_part_id: installedPart.installed_part_id,
+    asset_sn: installedPart.asset_sn,
+    repair_id: installedPart.repair_id,
+  };
+
+  // Remove the installed part record
+  installedParts.splice(installedPartIndex, 1);
+
+  console.log(`[INSTALLED_PARTS] Removed installed part ${installedPartId} (asset ${installedPart.asset_sn}) from repair ${installedPart.repair_id} by ${user.username}`);
+
+  res.json({
+    message: 'Installed part record removed successfully',
+    installed_part: deletedInfo,
+  });
+});
+
+// Search assets for installation (within the same program)
+app.get('/api/events/:eventId/available-assets', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const eventId = parseInt(req.params.eventId, 10);
+  const event = maintenanceEvents.find(e => e.event_id === eventId);
+
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  const searchQuery = (req.query.search as string || '').toLowerCase();
+
+  // Get assets from the same program that are not the event's primary asset
+  let availableAssets = mockAssets.filter(a =>
+    a.pgm_id === event.pgm_id &&
+    a.asset_id !== event.asset_id
+  );
+
+  // Apply search filter if provided
+  if (searchQuery) {
+    availableAssets = availableAssets.filter(a =>
+      a.serno.toLowerCase().includes(searchQuery) ||
+      a.partno.toLowerCase().includes(searchQuery) ||
+      (a.nomen && a.nomen.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  // Limit results
+  const limit = parseInt(req.query.limit as string, 10) || 20;
+  availableAssets = availableAssets.slice(0, limit);
+
+  console.log(`[INSTALLED_PARTS] Asset search for event ${event.job_no} by ${user.username} - found ${availableAssets.length} results`);
+
+  res.json({
+    assets: availableAssets.map(a => ({
+      asset_id: a.asset_id,
+      serno: a.serno,
+      partno: a.partno,
+      nomen: a.nomen,
+      status: a.status,
+      location: a.location,
+    })),
+    total: availableAssets.length,
+  });
+});
+
+// ============================================
+// REMOVED PARTS ENDPOINTS
+// ============================================
+
+// Get removed parts for a repair
+app.get('/api/repairs/:repairId/removed-parts', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const repairId = parseInt(req.params.repairId, 10);
+  const repair = repairs.find(r => r.repair_id === repairId);
+
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // Get removed parts for this repair
+  const repairRemovedParts = removedParts.filter(rp => rp.repair_id === repairId);
+
+  console.log(`[REMOVED_PARTS] Fetched ${repairRemovedParts.length} removed parts for repair ${repairId} by ${user.username}`);
+
+  res.json({
+    removed_parts: repairRemovedParts,
+    total: repairRemovedParts.length,
+  });
+});
+
+// Add a removed part to a repair
+app.post('/api/repairs/:repairId/removed-parts', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can add removed parts
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to add removed parts.' });
+  }
+
+  const repairId = parseInt(req.params.repairId, 10);
+  const repair = repairs.find(r => r.repair_id === repairId);
+
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // Cannot add removed parts to repairs in closed events
+  if (event.status === 'closed') {
+    return res.status(400).json({ error: 'Cannot add removed parts to repairs in closed maintenance events' });
+  }
+
+  // Cannot add removed parts to closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot add removed parts to closed repairs' });
+  }
+
+  const { asset_id, removal_date, removal_reason, removal_notes, new_status } = req.body;
+
+  // Validate required fields
+  if (!asset_id) {
+    return res.status(400).json({ error: 'Asset ID is required' });
+  }
+
+  // Find the asset being removed
+  const asset = mockAssets.find(a => a.asset_id === asset_id);
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check that asset belongs to the same program
+  if (asset.pgm_id !== event.pgm_id) {
+    return res.status(400).json({ error: 'Asset must belong to the same program as the maintenance event' });
+  }
+
+  // Check if this asset is already removed in this repair
+  const existingRemoval = removedParts.find(rp => rp.repair_id === repairId && rp.asset_id === asset_id);
+  if (existingRemoval) {
+    return res.status(400).json({ error: 'This asset is already listed as removed in this repair' });
+  }
+
+  // Use provided removal_date or default to today
+  const removalDate = removal_date || new Date().toISOString().split('T')[0];
+
+  const newRemovedPart: RemovedPart = {
+    removed_part_id: removedPartNextId++,
+    repair_id: repairId,
+    event_id: repair.event_id,
+    asset_id: asset.asset_id,
+    asset_sn: asset.serno,
+    asset_pn: asset.partno,
+    asset_name: asset.name,
+    removal_date: removalDate,
+    removal_reason: removal_reason || null,
+    removal_notes: removal_notes || null,
+    new_status: new_status || null,
+    removed_by: user.user_id,
+    removed_by_name: `${user.first_name} ${user.last_name}`,
+    created_at: new Date().toISOString(),
+  };
+
+  removedParts.push(newRemovedPart);
+
+  // Optionally update the removed part's asset status if new_status is provided
+  if (new_status) {
+    const assetIndex = mockAssets.findIndex(a => a.asset_id === asset_id);
+    if (assetIndex !== -1) {
+      const oldStatus = mockAssets[assetIndex].status_cd;
+      mockAssets[assetIndex].status_cd = new_status;
+      console.log(`[REMOVED_PARTS] Updated removed asset ${asset.serno} status from ${oldStatus} to ${new_status}`);
+    }
+  }
+
+  // AUTO-STATUS UPDATE: When a part is removed from a repair, check if the parent asset
+  // (the one being repaired) should have its status changed to NMCM
+  // This implements the business rule: "Removing parts triggers status update to NMCM"
+  const parentAsset = mockAssets.find(a => a.asset_id === event.asset_id);
+  const parentDetailedAsset = detailedAssets.find(a => a.asset_id === event.asset_id);
+  let statusChanged = false;
+  let oldParentStatus = '';
+
+  // Check status from detailedAssets (primary source) or mockAssets (fallback)
+  const currentStatus = parentDetailedAsset?.status_cd || parentAsset?.status_cd;
+
+  if (currentStatus === 'FMC') {
+    // Parent asset is FMC - removing a part means it's now in maintenance
+    oldParentStatus = 'FMC';
+
+    // Update both mockAssets and detailedAssets to ensure consistency
+    if (parentAsset) {
+      parentAsset.status_cd = 'NMCM';
+    }
+    if (parentDetailedAsset) {
+      parentDetailedAsset.status_cd = 'NMCM';
+    }
+    statusChanged = true;
+
+    const assetSerno = parentDetailedAsset?.serno || parentAsset?.serno || 'Unknown';
+    const assetId = parentDetailedAsset?.asset_id || parentAsset?.asset_id || event.asset_id;
+    const pgmId = parentDetailedAsset?.pgm_id || parentAsset?.pgm_id || event.pgm_id;
+
+    console.log(`[REMOVED_PARTS] AUTO-STATUS: Parent asset ${assetSerno} status changed from FMC to NMCM due to part removal`);
+
+    // Add to activity log (audit trail) for the automatic status change
+    const now = new Date();
+    const statusChangeActivity: ActivityLogEntry = {
+      activity_id: 1000 + dynamicActivityLog.length + 1,
+      timestamp: now.toISOString(),
+      user_id: user.user_id,
+      username: user.username,
+      user_full_name: `${user.first_name} ${user.last_name}`,
+      action_type: 'status_change',
+      entity_type: 'asset',
+      entity_id: assetId,
+      entity_name: assetSerno,
+      description: `Auto-status change: ${assetSerno} changed from FMC to NMCM due to part removal (${asset.serno}) in repair #${repairId}`,
+      pgm_id: pgmId,
+    };
+    dynamicActivityLog.push(statusChangeActivity);
+  }
+
+  console.log(`[REMOVED_PARTS] Added removed part ${newRemovedPart.removed_part_id} (asset ${asset.serno}) to repair ${repairId} by ${user.username}`);
+
+  // Build response with optional status change info
+  const response: any = {
+    message: 'Removed part recorded successfully',
+    removed_part: newRemovedPart,
+  };
+
+  // Include status change info if the parent asset status was updated
+  if (statusChanged) {
+    const assetSerno = parentDetailedAsset?.serno || parentAsset?.serno || 'Unknown';
+    const assetIdForResponse = parentDetailedAsset?.asset_id || parentAsset?.asset_id || event.asset_id;
+    response.status_change = {
+      asset_id: assetIdForResponse,
+      asset_sn: assetSerno,
+      old_status: oldParentStatus,
+      new_status: 'NMCM',
+      message: `Asset ${assetSerno} status automatically changed from ${oldParentStatus} to NMCM due to part removal`,
+    };
+  }
+
+  res.status(201).json(response);
+});
+
+// Delete a removed part record
+app.delete('/api/removed-parts/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can delete
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to delete removed parts.' });
+  }
+
+  const removedPartId = parseInt(req.params.id, 10);
+  const removedPartIndex = removedParts.findIndex(rp => rp.removed_part_id === removedPartId);
+
+  if (removedPartIndex === -1) {
+    return res.status(404).json({ error: 'Removed part record not found' });
+  }
+
+  const removedPart = removedParts[removedPartIndex];
+
+  // Get the associated repair
+  const repair = repairs.find(r => r.repair_id === removedPart.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Associated repair not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this removed part' });
+  }
+
+  // Cannot delete removed parts from repairs in closed events
+  if (event.status === 'closed') {
+    return res.status(400).json({ error: 'Cannot delete removed parts from repairs in closed maintenance events' });
+  }
+
+  // Cannot delete removed parts from closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot delete removed parts from closed repairs' });
+  }
+
+  const deletedInfo = {
+    removed_part_id: removedPart.removed_part_id,
+    asset_sn: removedPart.asset_sn,
+    repair_id: removedPart.repair_id,
+  };
+
+  // Remove the removed part record
+  removedParts.splice(removedPartIndex, 1);
+
+  console.log(`[REMOVED_PARTS] Deleted removed part ${removedPartId} (asset ${removedPart.asset_sn}) from repair ${removedPart.repair_id} by ${user.username}`);
+
+  res.json({
+    message: 'Removed part record deleted successfully',
+    removed_part: deletedInfo,
+  });
+});
+
+// Search assets for removal (within the same program)
+app.get('/api/events/:eventId/removable-assets', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const eventId = parseInt(req.params.eventId, 10);
+  const event = maintenanceEvents.find(e => e.event_id === eventId);
+
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  const searchQuery = (req.query.search as string || '').toLowerCase();
+
+  // Get all assets from the same program (including the event's primary asset - it could be a subcomponent)
+  let removableAssets = mockAssets.filter(a => a.pgm_id === event.pgm_id && a.active);
+
+  // Apply search filter if provided
+  if (searchQuery) {
+    removableAssets = removableAssets.filter(a =>
+      a.serno.toLowerCase().includes(searchQuery) ||
+      a.partno.toLowerCase().includes(searchQuery) ||
+      a.name.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // Limit results
+  const limit = parseInt(req.query.limit as string, 10) || 20;
+  removableAssets = removableAssets.slice(0, limit);
+
+  console.log(`[REMOVED_PARTS] Asset search for event ${event.job_no} by ${user.username} - found ${removableAssets.length} results`);
+
+  res.json({
+    assets: removableAssets.map(a => ({
+      asset_id: a.asset_id,
+      serno: a.serno,
+      partno: a.partno,
+      name: a.name,
+      status_cd: a.status_cd,
+      admin_loc: a.admin_loc,
+    })),
+    total: removableAssets.length,
   });
 });
 
