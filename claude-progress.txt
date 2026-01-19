@@ -1,5 +1,68 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #56)
+
+### Completed This Session:
+- Feature #56: Add part to configuration BOM - VERIFIED AND PASSING
+
+**Description:** Users can add parts to configuration BOM
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added GET /api/configurations/:id/bom endpoint - Fetches BOM items for a configuration
+- Added POST /api/configurations/:id/bom endpoint - Adds a part to the BOM
+- Added DELETE /api/configurations/:id/bom/:itemId endpoint - Removes a part from BOM
+- All endpoints include authentication and authorization (only ADMIN/DEPOT_MANAGER can modify)
+- Validates required fields (partno_c, part_name_c, qpa)
+- Checks for duplicate parts in configuration
+- Auto-generates list_id and updates bom_item_count
+
+**Frontend (frontend/src/pages/ConfigurationDetailPage.tsx):**
+- Added imports for react-hook-form, zod, and additional Heroicons (PlusIcon, MagnifyingGlassIcon, XMarkIcon)
+- Added Zod schema for add BOM item form validation
+- Added Part interface for available parts dropdown
+- Added state for Add Part modal: isAddModalOpen, availableParts, addError, addSuccess, partSearchQuery, selectedPart
+- Added form setup with useForm hook for add BOM item
+- Added fetchParts() function to load available parts from /api/reference/parts
+- Added openAddModal(), closeAddModal(), selectPart() functions
+- Added onAddSubmit() handler that calls POST /api/configurations/:id/bom
+- Added filteredParts computed value for search filtering
+- Added "Add Part" button in BOM Items List header (visible only for ADMIN/DEPOT_MANAGER)
+- Added Add Part to BOM modal with:
+  - Part search field with auto-complete dropdown
+  - Selected part info display
+  - Part Number input field (auto-filled from selection)
+  - Part Name input field (auto-filled from selection)
+  - Quantity Per Assembly input (default: 1)
+  - Sort Order input (auto-set to next available)
+  - Form validation with error messages
+  - Cancel and Add to BOM buttons
+- Fixed null safety checks for bomData.bom_items rendering
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager - Logged in as depot_mgr/depot123 (Jane Depot)
+2. ✅ Navigate to configuration detail - Navigated to /configurations/1 (Camera System X Configuration)
+3. ✅ Click BOM tab - Clicked BOM tab, saw 3 child parts
+4. ✅ Click Add Part button - Modal opened with search and form fields
+5. ✅ Search for part by part number - Searched for "SENSOR", saw 3 results
+6. ✅ Select part from results - Selected PN-SENSOR-B, fields auto-filled
+7. ✅ Enter quantity per assembly - Changed quantity to 2
+8. ✅ Enter sort order - Auto-set to 4
+9. ✅ Save changes - Clicked "Add to BOM" button
+10. ✅ Verify part appears in BOM - BOM count changed from 3 to 4, new part visible in table with correct QPA
+
+**Screenshots:**
+- .playwright-mcp/feature_56_add_part_to_bom_verified.png - BOM tab showing 4 items after adding PN-SENSOR-B
+
+**Notes:**
+- Part search functionality works with available parts from /api/reference/parts
+- Can also enter custom part number/name manually
+- No console errors detected during testing
+- Feature integrates well with existing remove functionality (#57)
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #57)
 
 ### Completed This Session:
@@ -4545,4 +4608,70 @@ The delete functionality was already implemented as part of Feature #53 (Edit co
 **Console errors:** None detected
 
 [Testing] Session complete - verified feature #4 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 13:53
+
+[Testing] Feature #49 'Assets filtered by user program' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as user assigned to CRIIS only - Logged in as field_tech/field123 (Bob Field, FIELD_TECHNICIAN)
+2. ✅ Navigate to Assets page - Successfully navigated to /assets
+3. ✅ Verify only CRIIS assets display - 10 CRIIS assets visible (CRIIS-001 through CRIIS-010)
+4. ✅ Verify no ACTS assets visible - Searched for 'ACTS' - returned 0 assets
+5. ✅ Verify no ARDS assets visible - Searched for 'ARDS' - returned 0 assets
+6. ✅ Verify no 236 assets visible - Searched for '236' - returned 0 assets
+
+**Additional Observations:**
+- Program selector in header shows 'CRIIS'
+- Page header confirms: 'Viewing assets for CRIIS - Common Remotely Operated Integrated Reconnaissance System'
+- Export buttons correctly disabled when filtered to 0 assets
+- Program-based data isolation working correctly
+
+**Screenshots:**
+- .playwright-mcp/feature49_criis_assets_filtered.png - Assets page showing only CRIIS assets
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #49 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 13:52
+
+[Testing] Feature #16 'User profile displays correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Tested with admin/admin123 AND field_tech/field123
+2. ✅ Navigate to profile page (user menu) - Successfully accessed via user dropdown menu
+3. ✅ Verify username displays - Shows 'admin' / 'field_tech'
+4. ✅ Verify email displays - Shows 'admin@example.mil' / 'field@example.mil'
+5. ✅ Verify name displays - Shows 'John Admin' / 'Bob Field'
+6. ✅ Verify role displays - Shows 'Administrator' / 'Field Technician' with color badges
+7. ✅ Verify assigned programs display - Admin: CRIIS, ACTS, ARDS, 236 / Field Tech: CRIIS (default)
+
+**Additional Observations:**
+- Profile page has clean, professional layout with avatar initials (JA, BF)
+- Role is displayed with color-coded badge styling
+- Assigned programs correctly show default program indicator
+- Edit Profile and Change Password options available
+- User ID displayed (#1 for admin, #3 for field_tech)
+- Program Details section shows full program names
+
+**Screenshots:**
+- .playwright-mcp/feature16_profile_page.png - Admin profile view
+- .playwright-mcp/feature16_profile_field_tech.png - Field technician profile view
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #16 (no regression found)
 
