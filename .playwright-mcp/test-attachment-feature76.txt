@@ -1,0 +1,4 @@
+Test attachment file for Feature #76 - Attachment Download Verification
+This file was created to test the attachment download functionality.
+Created: 2026-01-19
+Feature: Attachment download from maintenance event
