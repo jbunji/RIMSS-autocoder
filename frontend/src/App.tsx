@@ -11,6 +11,7 @@ import UsersPage from './pages/admin/UsersPage'
 import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
 import MaintenanceDetailPage from './pages/MaintenanceDetailPage'
+import PartsOrderDetailPage from './pages/PartsOrderDetailPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -90,6 +91,7 @@ function App() {
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           <Route path="/pmi/:id" element={<PMIDetailPage />} />
           <Route path="/maintenance/:id" element={<MaintenanceDetailPage />} />
+          <Route path="/parts-orders/:id" element={<PartsOrderDetailPage />} />
         </Route>
 
         {/* Redirect root to dashboard (which will redirect to login if not authenticated) */}

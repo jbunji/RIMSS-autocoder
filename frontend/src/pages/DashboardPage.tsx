@@ -73,6 +73,43 @@ interface MaintenanceData {
   summary: MaintenanceSummary
 }
 
+// Parts Order interfaces
+interface PartsOrder {
+  order_id: number
+  part_no: string
+  part_name: string
+  nsn: string
+  qty_ordered: number
+  qty_received: number
+  unit_price: number
+  order_date: string
+  status: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled'
+  requestor_id: number
+  requestor_name: string
+  asset_sn: string | null
+  asset_name: string | null
+  job_no: string | null
+  priority: 'routine' | 'urgent' | 'critical'
+  pgm_id: number
+  notes: string
+  shipping_tracking: string | null
+  estimated_delivery: string | null
+}
+
+interface PartsSummary {
+  pending: number
+  acknowledged: number
+  critical: number
+  urgent: number
+  routine: number
+  total: number
+}
+
+interface PartsData {
+  orders: PartsOrder[]
+  summary: PartsSummary
+}
+
 // Status code colors and styling
 const statusColors: Record<string, { bg: string; text: string; border: string }> = {
   FMC: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-500' },
@@ -140,6 +177,45 @@ function formatDaysSinceStart(startDate: string): string {
   return `${days} days open`
 }
 
+// Priority colors for parts orders
+function getPartsPriorityColorClass(priority: PartsOrder['priority']): { bg: string; text: string; border: string; dot: string } {
+  switch (priority) {
+    case 'critical':
+      return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-red-600' }
+    case 'urgent':
+      return { bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-400', dot: 'bg-orange-500' }
+    case 'routine':
+    default:
+      return { bg: 'bg-gray-50', text: 'text-gray-800', border: 'border-gray-400', dot: 'bg-gray-500' }
+  }
+}
+
+// Get status label for parts order
+function getPartsStatusLabel(status: PartsOrder['status']): { label: string; color: string } {
+  switch (status) {
+    case 'pending':
+      return { label: 'Pending', color: 'text-yellow-600' }
+    case 'acknowledged':
+      return { label: 'Acknowledged', color: 'text-blue-600' }
+    default:
+      return { label: status, color: 'text-gray-600' }
+  }
+}
+
+// Format order date for display
+function formatOrderDate(dateString: string): string {
+  const orderDate = new Date(dateString)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  orderDate.setHours(0, 0, 0, 0)
+  const diffTime = today.getTime() - orderDate.getTime()
+  const days = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  if (days < 7) return `${days} days ago`
+  return orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { user, currentProgramId, token } = useAuthStore()
@@ -149,9 +225,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [pmiLoading, setPmiLoading] = useState(true)
   const [maintenanceLoading, setMaintenanceLoading] = useState(true)
+  const [partsData, setPartsData] = useState<PartsData | null>(null)
+  const [partsLoading, setPartsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pmiError, setPmiError] = useState<string | null>(null)
   const [maintenanceError, setMaintenanceError] = useState<string | null>(null)
+  const [partsError, setPartsError] = useState<string | null>(null)
 
   // Fetch asset status
   useEffect(() => {
@@ -258,6 +337,41 @@ export default function DashboardPage() {
     fetchMaintenanceData()
   }, [token, currentProgramId])
 
+  // Fetch parts awaiting action data
+  useEffect(() => {
+    const fetchPartsData = async () => {
+      if (!token) return
+
+      setPartsLoading(true)
+      setPartsError(null)
+
+      try {
+        const url = currentProgramId
+          ? `http://localhost:3001/api/dashboard/parts-awaiting-action?program_id=${currentProgramId}`
+          : 'http://localhost:3001/api/dashboard/parts-awaiting-action'
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch parts data')
+        }
+
+        const data = await response.json()
+        setPartsData(data)
+      } catch (err) {
+        setPartsError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setPartsLoading(false)
+      }
+    }
+
+    fetchPartsData()
+  }, [token, currentProgramId])
+
   // Handle PMI item click
   const handlePMIClick = (pmiId: number) => {
     navigate(`/pmi/${pmiId}`)
@@ -266,6 +380,11 @@ export default function DashboardPage() {
   // Handle maintenance event click
   const handleMaintenanceClick = (eventId: number) => {
     navigate(`/maintenance/${eventId}`)
+  }
+
+  // Handle parts order click
+  const handlePartsOrderClick = (orderId: number) => {
+    navigate(`/parts-orders/${orderId}`)
   }
 
   return (
@@ -523,10 +642,93 @@ export default function DashboardPage() {
         </div>
 
         {/* Parts Awaiting Action Widget */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-sm font-medium text-gray-500">Parts Awaiting Action</h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-900">--</p>
-          <p className="text-xs text-gray-400 mt-1">Coming soon</p>
+        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500">Parts Awaiting Action</h3>
+            {partsData && (
+              <div className="flex items-center space-x-3 text-xs">
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
+                  <span className="text-gray-600">{partsData.summary.pending} pending</span>
+                </span>
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                  <span className="text-gray-600">{partsData.summary.acknowledged} ack</span>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {partsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : partsError ? (
+            <div className="text-red-600 py-4">{partsError}</div>
+          ) : partsData && partsData.orders.length > 0 ? (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {partsData.orders.map((order) => {
+                const colors = getPartsPriorityColorClass(order.priority)
+                const statusInfo = getPartsStatusLabel(order.status)
+                return (
+                  <button
+                    key={order.order_id}
+                    onClick={() => handlePartsOrderClick(order.order_id)}
+                    className={`w-full text-left ${colors.bg} ${colors.text} rounded-lg p-3 border-l-4 ${colors.border} hover:opacity-80 transition-opacity cursor-pointer`}
+                    aria-label={`View parts order for ${order.part_name}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <span className={`w-2 h-2 rounded-full ${colors.dot} flex-shrink-0`}></span>
+                          <p className="text-sm font-medium truncate">{order.part_name}</p>
+                        </div>
+                        <p className="text-xs mt-1 opacity-75 truncate">
+                          {order.asset_name ? `For: ${order.asset_name}` : 'Stock replenishment'}
+                        </p>
+                        <p className="text-xs mt-1 font-mono opacity-60">{order.part_no}</p>
+                      </div>
+                      <div className="text-right ml-2 flex-shrink-0">
+                        <p className={`text-xs font-semibold ${statusInfo.color}`}>{statusInfo.label}</p>
+                        <p className="text-xs opacity-60 mt-1">Qty: {order.qty_ordered}</p>
+                        <p className="text-xs opacity-50 mt-1">{formatOrderDate(order.order_date)}</p>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No parts awaiting action</p>
+              <p className="text-xs text-gray-300 mt-1">All orders have been processed</p>
+            </div>
+          )}
+
+          {/* Summary and legend */}
+          {partsData && partsData.orders.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 rounded-full bg-red-600 mr-1"></span>
+                    Critical ({partsData.summary.critical})
+                  </span>
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 rounded-full bg-orange-500 mr-1"></span>
+                    Urgent ({partsData.summary.urgent})
+                  </span>
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 rounded-full bg-gray-500 mr-1"></span>
+                    Routine ({partsData.summary.routine})
+                  </span>
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  Total: {partsData.summary.total}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
