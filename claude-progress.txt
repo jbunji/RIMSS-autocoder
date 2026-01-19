@@ -2849,3 +2849,99 @@ Fixed by:
 - Search functionality was already implemented - this session verified it works correctly
 - No code changes required - feature already working as expected
 
+
+---
+
+## Testing Session: 2026-01-19 12:57
+
+[Testing] Feature #22 'Dashboard shows PMI due soon alerts widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - Dashboard loaded at /dashboard
+3. ✅ Verify PMI alerts widget displays - 'PMI Due Soon' widget visible with 7 PMI items
+4. ✅ Verify red items are due within 7 days - Confirmed:
+   - ECU Assembly A (3 days overdue) - RED
+   - Sensor Unit B (Due in 2 days) - RED
+   - Power Supply C (Due in 6 days) - RED
+5. ✅ Verify yellow items are due 8-30 days - Confirmed:
+   - Display Module D (Due in 11 days) - YELLOW
+   - Communication Radio E (Due in 20 days) - YELLOW
+6. ✅ Verify green items are due after 30 days - Confirmed:
+   - Camera Assembly G (Due in 44 days) - GREEN
+   - Processing Unit I (Due in 119 days) - GREEN
+7. ✅ Click on PMI item to navigate to detail - Clicked ECU Assembly A, navigated to /pmi/1
+
+**Color Coding Validation:**
+All 7 PMI items have correct color coding based on due dates:
+- RED: overdue or ≤7 days (3 items verified)
+- YELLOW: 8-30 days (2 items verified)
+- GREEN: >30 days (2 items verified)
+
+**Screenshots:**
+- .playwright-mcp/feature22_regression_dashboard_pmi.png - Dashboard with PMI widget
+- .playwright-mcp/feature22_regression_pmi_detail.png - PMI detail page
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #22 (no regression found)
+
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #38)
+
+### Completed This Session:
+- Feature #38: Asset search by part number - VERIFIED AND PASSING
+
+**Feature Description:** Users can search assets by part number
+
+**Implementation Status:** ALREADY IMPLEMENTED - No code changes needed
+
+The search functionality was already implemented in both backend and frontend:
+
+**Backend (backend/src/index.ts lines 2003-2011):**
+- Search filter applies to serno, partno, and part_name fields
+- Case-insensitive search using toLowerCase()
+- Partial match using includes()
+
+**Frontend (frontend/src/pages/AssetsPage.tsx):**
+- Search input with placeholder "Search by S/N, P/N, or name..."
+- 300ms debounce on search input
+- Search parameter sent to backend API
+
+**Testing Steps Verified:**
+1. Log in as any user - Logged in as admin/admin123
+2. Navigate to Assets page - Navigated to /assets, saw 11 total assets
+3. Enter part number in search box - Entered "PN-SENSOR"
+4. Verify matching assets display - Filtered to 3 assets:
+   - CRIIS-001 (PN-SENSOR-A)
+   - CRIIS-002 (PN-SENSOR-A)  
+   - CRIIS-003 (PN-SENSOR-B)
+5. Clear search and try partial match - Cleared, then entered "RADAR"
+6. Verify partial matches display - Filtered to 2 assets:
+   - CRIIS-006 (PN-RADAR-01)
+   - CRIIS-007 (PN-RADAR-01)
+
+**Additional Tests:**
+- Exact part number search "PN-CAMERA-X" returns 2 matching assets
+- Search persists after clicking Refresh button
+- Case-insensitive search works
+
+**Screenshots:**
+- .playwright-mcp/feature38_partno_search_partial.png - Search with "PN-SENSOR"
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #38 marked as PASSING
+- Features Passing: 36/374 (9.6%)
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Search matches against serial number, part number, AND asset name
+- 300ms debounce prevents excessive API calls while typing
