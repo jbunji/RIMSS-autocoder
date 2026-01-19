@@ -742,3 +742,53 @@ displays correctly regardless of authentication state.
 ### Notes:
 - Edit and Delete buttons exist in UI but functionality was added by parallel agent (Feature #12, #13)
 - Backend CORS updated to support multiple localhost ports (5173, 5174, 5175)
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #13)
+
+### Completed This Session:
+- Feature #13: Admin can delete user - VERIFIED AND PASSING
+
+**Implementation:**
+- DELETE /api/users/:id endpoint already existed in backend (added by parallel agent)
+- Added delete confirmation dialog modal to UsersPage.tsx
+- Added openDeleteModal, closeDeleteModal, and handleDelete functions
+- Added isDeleteModalOpen, deletingUser, isDeleting state variables
+- Wired up delete button onClick to open confirmation modal
+- Success message displays after successful deletion
+- User list automatically refreshes after deletion
+
+**Testing Steps Verified:**
+1. ✅ Log in as admin - Used admin/admin123
+2. ✅ Navigate to Admin > Users - Clicked Users link in Administration section
+3. ✅ Click delete on existing user - Clicked delete (trash icon) on Sam Viewer
+4. ✅ Verify confirmation dialog appears - Modal displayed with "Delete User" title, user details
+5. ✅ Confirm deletion - Clicked "Delete User" button
+6. ✅ Verify user removed from list - Sam Viewer no longer in users table
+7. ✅ Verify success message displays - "User 'viewer' deleted successfully!" shown
+
+**Network Requests Verified:**
+- DELETE http://localhost:3001/api/users/4 => 200 OK
+- GET http://localhost:3001/api/users => 200 OK (refresh after delete)
+
+**Screenshots:**
+- .playwright-mcp/feature13_delete_confirmation_dialog.png - Delete confirmation modal
+- .playwright-mcp/feature13_delete_success.png - Users page after deletion
+
+**No console errors detected.**
+
+**Commit:** b611f50 - Implement Feature #13: Admin can delete user
+
+### Current Status:
+- Features Passing: 11+ (Features #1-11, #13)
+- Total Features: 372
+- Completion: ~3%
+
+### What Was Modified:
+- frontend/src/pages/admin/UsersPage.tsx - Added delete confirmation modal and handlers
+
+### Notes:
+- Frontend server running on port 5173
+- Backend server running on port 3001
+- Delete endpoint already existed in backend from parallel agent work
