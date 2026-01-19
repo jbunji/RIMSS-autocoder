@@ -337,6 +337,55 @@ const assetStatusCodes = [
   { status_cd: 'CNDM', status_name: 'Cannot Determine Mission', description: 'Asset status cannot be determined' },
 ]
 
+// Status transition rules - defines which transitions are allowed
+// Business rules:
+// - FMC: Can transition to any status (asset can degrade or need maintenance)
+// - PMC: Can transition to FMC (fixed), or degrade to NMCM/NMCS/CNDM
+// - NMCM: Can transition to FMC (fully fixed), PMC (partially fixed), or NMCS (waiting for parts), CNDM
+// - NMCS: Can transition to FMC (fixed), PMC (partially fixed), NMCM (parts arrived, now in maintenance), CNDM
+// - CNDM: Cannot directly go to FMC or PMC (must go through maintenance - NMCM/NMCS first)
+const statusTransitionRules: Record<string, string[]> = {
+  'FMC': ['PMC', 'NMCM', 'NMCS', 'CNDM'],  // FMC can degrade to anything
+  'PMC': ['FMC', 'NMCM', 'NMCS', 'CNDM'],  // PMC can improve to FMC or degrade further
+  'NMCM': ['FMC', 'PMC', 'NMCS', 'CNDM'],  // NMCM can be fixed or transition to supply wait
+  'NMCS': ['FMC', 'PMC', 'NMCM', 'CNDM'],  // NMCS can be fixed or transition to maintenance
+  'CNDM': ['NMCM', 'NMCS'],  // CNDM must go through maintenance before becoming capable
+}
+
+// Function to validate status transitions
+function isValidStatusTransition(fromStatus: string, toStatus: string): { valid: boolean; message?: string } {
+  // Same status is always allowed (no change)
+  if (fromStatus === toStatus) {
+    return { valid: true };
+  }
+
+  const allowedTransitions = statusTransitionRules[fromStatus];
+
+  if (!allowedTransitions) {
+    return { valid: false, message: `Unknown current status: ${fromStatus}` };
+  }
+
+  if (!allowedTransitions.includes(toStatus)) {
+    const fromName = assetStatusCodes.find(s => s.status_cd === fromStatus)?.status_name || fromStatus;
+    const toName = assetStatusCodes.find(s => s.status_cd === toStatus)?.status_name || toStatus;
+
+    // Provide specific guidance for CNDM restrictions
+    if (fromStatus === 'CNDM' && (toStatus === 'FMC' || toStatus === 'PMC')) {
+      return {
+        valid: false,
+        message: `Invalid status transition: Cannot change directly from ${fromName} to ${toName}. Assets with undetermined status must first be placed in maintenance (NMCM) or supply wait (NMCS) before becoming mission capable.`
+      };
+    }
+
+    return {
+      valid: false,
+      message: `Invalid status transition: Cannot change from ${fromName} to ${toName}. Allowed transitions from ${fromName}: ${allowedTransitions.map(s => assetStatusCodes.find(sc => sc.status_cd === s)?.status_name || s).join(', ')}.`
+    };
+  }
+
+  return { valid: true };
+}
+
 // Location options
 const adminLocations = [
   { loc_id: 1, loc_cd: 'DEPOT-A', loc_name: 'Depot Alpha' },
@@ -2098,6 +2147,13 @@ app.put('/api/assets/:id', (req, res) => {
     if (!validStatuses.includes(status_cd)) {
       return res.status(400).json({ error: 'Invalid status code' });
     }
+
+    // Validate status transition using business rules
+    const transitionResult = isValidStatusTransition(asset.status_cd, status_cd);
+    if (!transitionResult.valid) {
+      return res.status(400).json({ error: transitionResult.message });
+    }
+
     const oldStatus = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
     const newStatus = assetStatusCodes.find(s => s.status_cd === status_cd);
     changes.push(`Status: ${oldStatus?.status_name || asset.status_cd} → ${newStatus?.status_name || status_cd}`);
@@ -2388,6 +2444,7 @@ app.get('/api/reference/asset-statuses', (req, res) => {
 
   res.json({
     statuses: assetStatusCodes,
+    transitionRules: statusTransitionRules,
   });
 });
 
