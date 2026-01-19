@@ -4936,3 +4936,63 @@ This is expected UX behavior - hiding pagination when unnecessary.
 9. ✅ Verify software association displays - Tab updated to "(2)", new row appeared in table
 
 **Commit:** 1bdf266 - Add Software tab with version associations to Configuration detail (Feature #59)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #62)
+
+### Completed This Session:
+- Feature #62: Configuration export with CUI markings - VERIFIED AND PASSING
+
+**Description:** Configuration exports include CUI compliance
+
+**Implementation:**
+
+**Frontend (frontend/src/pages/ConfigurationsPage.tsx):**
+- Added imports for jsPDF, jspdf-autotable, and xlsx libraries
+- Added DocumentArrowDownIcon for export button styling
+- Implemented getZuluTimestamp() - returns UTC timestamp in "2026-01-19 19:05:54Z" format
+- Implemented getZuluDateForFilename() - returns "20260119" format for filenames
+- Implemented exportToPdf() function:
+  - Creates landscape A4 PDF with jsPDF
+  - Yellow (#FEF3C7) CUI header banner: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+  - Yellow CUI footer banner: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+  - Report title: "RIMSS Configuration Report"
+  - Program info, ZULU timestamp, total configurations count
+  - Data table with columns: Name, Type, Part Number, Part Name, BOM Items, Assets, Active, Created
+  - Page numbers and timestamps in footer
+  - Filename: CUI_Configurations_YYYYMMDD.pdf
+- Implemented exportToExcel() function:
+  - Creates XLSX workbook with CUI header row
+  - Report metadata (program, timestamp, total count)
+  - Data table with columns: Name, Type, Part Number, Part Name, Description, BOM Items, Assets, Active, Created, Created By
+  - CUI footer row at bottom
+  - Filename: CUI_Configurations_YYYYMMDD.xlsx
+- Added Export PDF button (red icon) and Export Excel button (green icon) to page header
+- Buttons disabled when no configurations to export
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Configurations page - Successfully navigated to /configurations (4 configurations)
+3. ✅ Click Export PDF - PDF downloaded successfully
+4. ✅ Verify PDF has CUI header/footer - Header: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)", Footer: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+5. ✅ Verify filename starts with CUI_ - Downloaded as CUI_Configurations_20260119.pdf
+6. ✅ Export Excel - Excel downloaded successfully
+7. ✅ Verify Excel has CUI markings - Row 0: CUI header, Row 12: CUI footer, ZULU timestamp in row 3
+
+**Screenshots:**
+- .playwright-mcp/feature62_config_export_buttons.png - Configurations page with Export PDF/Excel buttons
+- .playwright-mcp/feature62_export_test_complete.png - Page after successful exports
+- .playwright-mcp/CUI-Configurations-20260119.pdf - Exported PDF with CUI markings
+- .playwright-mcp/CUI-Configurations-20260119.xlsx - Exported Excel with CUI markings
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #62 marked as PASSING
+- Commit: b6ed4c6 "Implement Feature #62: Configuration export with CUI markings"
+
+### Files Modified:
+- frontend/src/pages/ConfigurationsPage.tsx - Added export functionality with CUI compliance
+
