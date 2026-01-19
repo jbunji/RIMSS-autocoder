@@ -75,15 +75,14 @@ interface BOMItem {
   active: boolean
 }
 
-// BOM Response interface
+// BOM Response interface (matches backend response)
 interface BOMResponse {
-  bom: {
-    parent_part: {
-      partno: string
-      name: string
-    }
-    items: BOMItem[]
-    total_items: number
+  bom_items: BOMItem[]
+  total: number
+  configuration: {
+    cfg_set_id: number
+    cfg_name: string
+    partno: string | null
   }
 }
 
@@ -112,7 +111,7 @@ export default function ConfigurationDetailPage() {
   const [error, setError] = useState<string | null>(null)
 
   // BOM state
-  const [bomData, setBomData] = useState<BOMResponse['bom'] | null>(null)
+  const [bomData, setBomData] = useState<BOMResponse | null>(null)
   const [bomLoading, setBomLoading] = useState(false)
   const [bomError, setBomError] = useState<string | null>(null)
 
@@ -267,6 +266,111 @@ export default function ConfigurationDetailPage() {
       setIsDeleting(false)
     }
   }
+
+  // Fetch available parts for selection
+  const fetchParts = useCallback(async () => {
+    if (!token || !configuration) return
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/reference/parts?program_id=${configuration.pgm_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableParts(data.parts || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch parts:', err)
+    }
+  }, [token, configuration])
+
+  // Open add modal
+  const openAddModal = () => {
+    setAddError(null)
+    setAddSuccess(false)
+    setSelectedPart(null)
+    setPartSearchQuery('')
+    const nextSortOrder = (bomData?.items?.length || 0) + 1
+    resetAddForm({
+      partno_c: '',
+      part_name_c: '',
+      qpa: 1,
+      sort_order: nextSortOrder,
+    })
+    fetchParts()
+    setIsAddModalOpen(true)
+  }
+
+  // Close add modal
+  const closeAddModal = () => {
+    setIsAddModalOpen(false)
+    setAddError(null)
+    setAddSuccess(false)
+    setSelectedPart(null)
+    setPartSearchQuery('')
+    resetAddForm()
+  }
+
+  // Handle part selection from search results
+  const selectPart = (part: Part) => {
+    setSelectedPart(part)
+    setAddValue('partno_c', part.partno)
+    setAddValue('part_name_c', part.name)
+    setPartSearchQuery('')
+  }
+
+  // Handle add BOM item form submit
+  const onAddSubmit = async (data: AddBomItemFormData) => {
+    if (!token || !id) return
+
+    setAddError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${id}/bom`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          partno_c: data.partno_c,
+          part_name_c: data.part_name_c,
+          qpa: data.qpa,
+          sort_order: data.sort_order,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add part to BOM')
+      }
+
+      setAddSuccess(true)
+
+      // Refresh data
+      await fetchBOM()
+      await fetchConfiguration()
+
+      setSuccessMessage(`Part "${data.partno_c}" added to BOM successfully`)
+
+      setTimeout(() => {
+        closeAddModal()
+        setTimeout(() => setSuccessMessage(null), 3000)
+      }, 1500)
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : 'An error occurred')
+    }
+  }
+
+  // Filter parts based on search query
+  const filteredParts = availableParts.filter(part => {
+    if (!partSearchQuery) return true
+    const query = partSearchQuery.toLowerCase()
+    return part.partno.toLowerCase().includes(query) || part.name.toLowerCase().includes(query)
+  })
 
   // Format date for display
   const formatDate = (dateString: string | null): string => {
@@ -577,9 +681,21 @@ export default function ConfigurationDetailPage() {
 
               {/* BOM Items List */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Child Parts ({bomData?.total_items || 0})
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Child Parts ({bomData?.total_items || 0})
+                  </h3>
+                  {canEditBom && (
+                    <button
+                      type="button"
+                      onClick={openAddModal}
+                      className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                    >
+                      <PlusIcon className="mr-1.5 h-5 w-5" />
+                      Add Part
+                    </button>
+                  )}
+                </div>
 
                 {bomLoading ? (
                   <div className="flex items-center justify-center py-8">
@@ -788,6 +904,238 @@ export default function ConfigurationDetailPage() {
                       )}
                     </button>
                   </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Add Part to BOM Modal */}
+      <Transition appear show={isAddModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeAddModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  {addSuccess ? (
+                    <div className="text-center py-8">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                        <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                      </div>
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">Part Added!</h3>
+                      <p className="mt-2 text-sm text-gray-500">
+                        The part has been added to the BOM successfully.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center justify-between">
+                        <span className="flex items-center">
+                          <PlusIcon className="h-5 w-5 mr-2 text-primary-600" />
+                          Add Part to BOM
+                        </span>
+                        <button
+                          type="button"
+                          className="text-gray-400 hover:text-gray-500"
+                          onClick={closeAddModal}
+                        >
+                          <XMarkIcon className="h-6 w-6" />
+                        </button>
+                      </Dialog.Title>
+
+                      {/* Error message */}
+                      {addError && (
+                        <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
+                          <p className="text-sm text-red-700">{addError}</p>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleAddSubmit(onAddSubmit)} className="mt-4 space-y-4">
+                        {/* Part Search */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Search for Part
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                              type="text"
+                              value={partSearchQuery}
+                              onChange={(e) => setPartSearchQuery(e.target.value)}
+                              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                              placeholder="Type to search parts..."
+                            />
+                          </div>
+                          {/* Search Results */}
+                          {partSearchQuery && filteredParts.length > 0 && (
+                            <div className="mt-1 max-h-40 overflow-y-auto border border-gray-200 rounded-md bg-white shadow-sm">
+                              {filteredParts.slice(0, 10).map((part) => (
+                                <button
+                                  key={part.partno_id}
+                                  type="button"
+                                  onClick={() => selectPart(part)}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                                >
+                                  <span className="font-medium">{part.partno}</span>
+                                  <span className="text-gray-500 ml-2">- {part.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {partSearchQuery && filteredParts.length === 0 && (
+                            <p className="mt-1 text-sm text-gray-500">No matching parts found. You can enter a custom part number below.</p>
+                          )}
+                        </div>
+
+                        {/* Selected Part Info */}
+                        {selectedPart && (
+                          <div className="bg-primary-50 border border-primary-200 rounded-md p-3">
+                            <p className="text-sm text-primary-800">
+                              <span className="font-medium">Selected:</span> {selectedPart.partno} - {selectedPart.name}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Part Number */}
+                        <div>
+                          <label htmlFor="partno_c" className="block text-sm font-medium text-gray-700">
+                            Part Number <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="partno_c"
+                            {...registerAdd('partno_c')}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                              addErrors.partno_c
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                            }`}
+                            placeholder="e.g., PN-SENSOR-A"
+                          />
+                          {addErrors.partno_c && (
+                            <p className="mt-1 text-sm text-red-600">{addErrors.partno_c.message}</p>
+                          )}
+                        </div>
+
+                        {/* Part Name */}
+                        <div>
+                          <label htmlFor="part_name_c" className="block text-sm font-medium text-gray-700">
+                            Part Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="part_name_c"
+                            {...registerAdd('part_name_c')}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                              addErrors.part_name_c
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                            }`}
+                            placeholder="e.g., Sensor Unit Alpha"
+                          />
+                          {addErrors.part_name_c && (
+                            <p className="mt-1 text-sm text-red-600">{addErrors.part_name_c.message}</p>
+                          )}
+                        </div>
+
+                        {/* Quantity Per Assembly */}
+                        <div>
+                          <label htmlFor="qpa" className="block text-sm font-medium text-gray-700">
+                            Quantity Per Assembly <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            id="qpa"
+                            {...registerAdd('qpa', { valueAsNumber: true })}
+                            min="1"
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                              addErrors.qpa
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                            }`}
+                          />
+                          {addErrors.qpa && (
+                            <p className="mt-1 text-sm text-red-600">{addErrors.qpa.message}</p>
+                          )}
+                        </div>
+
+                        {/* Sort Order */}
+                        <div>
+                          <label htmlFor="sort_order" className="block text-sm font-medium text-gray-700">
+                            Sort Order <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            id="sort_order"
+                            {...registerAdd('sort_order', { valueAsNumber: true })}
+                            min="1"
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                              addErrors.sort_order
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                            }`}
+                          />
+                          {addErrors.sort_order && (
+                            <p className="mt-1 text-sm text-red-600">{addErrors.sort_order.message}</p>
+                          )}
+                          <p className="mt-1 text-xs text-gray-500">
+                            Determines the order in which parts appear in the BOM
+                          </p>
+                        </div>
+
+                        {/* Form Actions */}
+                        <div className="mt-6 flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={closeAddModal}
+                            className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isAddSubmitting}
+                            className="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isAddSubmitting ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                                Adding...
+                              </>
+                            ) : (
+                              'Add to BOM'
+                            )}
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
                 </Dialog.Panel>
               </Transition.Child>
             </div>
