@@ -1,5 +1,70 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #73)
+
+### Completed This Session:
+- Feature #73: Maintenance event linked to sortie - IMPLEMENTED AND PASSING
+
+**Description:** Events can be associated with sorties
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added Sortie interface with fields: sortie_id, pgm_id, asset_id, mission_id, serno, ac_tailno, sortie_date, sortie_effect, current_unit, assigned_unit, range, reason, remarks
+- Created sorties data array with sample sorties for all 4 programs (CRIIS, ACTS, ARDS, 236)
+- Added sortie_id field to MaintenanceEvent interface (optional)
+- Created GET /api/sorties endpoint - returns sorties filtered by user's program
+- Created GET /api/sorties/:id endpoint - returns single sortie by ID
+- Updated POST /api/events to accept and validate sortie_id:
+  - Validates sortie exists
+  - Validates sortie belongs to same program as selected asset
+- Updated PUT /api/events/:id to handle sortie_id updates
+
+**Frontend (frontend/src/pages/MaintenancePage.tsx):**
+- Added Sortie interface and SortiesResponse interface
+- Added sortie_id to NewEventFormData
+- Added sorties and sortiesLoading state
+- Added fetchSorties callback to load sorties from API
+- Added "Linked Sortie" dropdown to create modal with options:
+  - "No sortie linked (optional)" default
+  - List of available sorties showing mission_id, serno, and date
+- Sortie selection is optional
+
+**Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):**
+- Added sortie_id to MaintenanceEvent interface
+- Added Sortie interface
+- Added sortie_id to EditFormData
+- Added sorties, sortiesLoading, linkedSortie state
+- Added fetchSorties and fetchLinkedSortie callbacks
+- Added "Linked Sortie" dropdown to edit modal
+- Added "Linked Sortie" section to detail page display:
+  - Blue bordered card with sortie information
+  - Mission ID with status badge (color-coded by sortie_effect)
+  - Asset info, date, tail number, unit, range, reason, remarks
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin user (depot manager equivalent)
+2. ✅ Navigate to Maintenance page
+3. ✅ Click "New Event" to open create modal
+4. ✅ Select asset CRIIS-001
+5. ✅ Enter discrepancy description
+6. ✅ Select sortie "CRIIS-SORTIE-001" from dropdown
+7. ✅ Click "Create Event" - event created as MX-DEP-2026-001
+8. ✅ Navigate to event detail page
+9. ✅ Verify "Linked Sortie" section displays with all sortie details
+
+**Screenshots:**
+- .playwright-mcp/feature-73-linked-sortie-verification.png - Event detail page top
+- .playwright-mcp/feature-73-linked-sortie-section.png - Linked Sortie section visible
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #73 marked as PASSING
+- Commit: 3db9770 "Implement Feature #73: Link maintenance events to sorties"
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #70)
 
 ### Completed This Session:
@@ -5931,4 +5996,69 @@ Screenshots:
 **Console errors:** None detected
 
 [Testing] Session complete - verified feature #56 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #23 'Dashboard shows open maintenance jobs widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - Dashboard loaded at /dashboard
+3. ✅ Verify open jobs widget displays - Widget shows header 'Open Maintenance Jobs' with count indicators (1 Critical, 2 Urgent, 1 Routine) and 4 job cards
+4. ✅ Verify count reflects real open jobs - Dashboard shows Total: 4, confirmed on Maintenance page Backlog (4)
+5. ✅ Click on job to navigate to maintenance detail - Clicked MX-2024-001, navigated to /maintenance/1 with full event details
+
+**Jobs Displayed in Widget:**
+- MX-2024-001: Camera System X - Critical - 6 days open - Standard
+- MX-2024-002: Radar Unit 01 - Urgent - 11 days open - Standard
+- MX-2024-004: Communication System - Urgent - 2 days open - TCTO
+- MX-2024-003: Sensor Unit B - Routine - 3 days open - PMI
+
+**Screenshots:**
+- .playwright-mcp/feature23_dashboard_open_jobs_widget.png - Dashboard overview
+- .playwright-mcp/feature23_open_maintenance_jobs_widget.png - Open Maintenance Jobs widget close-up
+- .playwright-mcp/feature23_open_jobs_full_list.png - Full list with all 4 jobs and Total count
+- .playwright-mcp/feature23_maintenance_detail_navigation.png - Navigation to maintenance detail page
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #23 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #10 'JWT token refresh works correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Wait for token to approach expiration - Used localStorage override to set 5-second refresh interval for testing
+3. ✅ Verify refresh token request is made - Console log: '[TokenRefreshManager] Initiating token refresh...'
+4. ✅ Verify new access token is received - Console log: '[TokenRefreshManager] Token refreshed successfully'
+5. ✅ Verify session continues without interruption - User remained logged in as 'John Admin', dashboard data continued to display
+
+**Technical Details Verified:**
+- Frontend TokenRefreshManager component schedules refresh 5 minutes before token expiry
+- Backend /api/auth/refresh endpoint returns 200 OK with new token
+- Multiple successful refresh cycles observed during testing
+- After test override removed, standard 25-minute (1500s) refresh interval restored
+- Token refresh supports localStorage override for testing purposes
+
+**Network Requests:**
+- Multiple [POST] http://localhost:3001/api/auth/refresh => [200] OK observed
+
+**Screenshots:**
+- .playwright-mcp/.playwright-mcp/feature10_token_refresh_verified.png - Dashboard showing continued session
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #10 (no regression found)
 
