@@ -72,6 +72,7 @@ const editUserSchema = z.object({
     .refine(val => !val || /[^A-Za-z0-9]/.test(val), 'Password must contain at least one special character')
     .optional(),
   program_ids: z.array(z.number()).min(1, 'At least one program must be selected'),
+  default_program_id: z.number().optional(),
 })
 
 type CreateUserFormData = z.infer<typeof createUserSchema>
@@ -107,6 +108,7 @@ export default function UsersPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([])
   const [editSelectedPrograms, setEditSelectedPrograms] = useState<number[]>([])
+  const [editDefaultProgramId, setEditDefaultProgramId] = useState<number | null>(null)
 
   const {
     register,
@@ -191,8 +193,21 @@ export default function UsersPage() {
         ? prev.filter(id => id !== programId)
         : [...prev, programId]
       setValueEdit('program_ids', newSelection, { shouldValidate: true })
+
+      // If the unchecked program was the default, reset default to first selected
+      if (!newSelection.includes(editDefaultProgramId || 0)) {
+        const newDefault = newSelection[0] || null
+        setEditDefaultProgramId(newDefault)
+        setValueEdit('default_program_id', newDefault ?? undefined)
+      }
+
       return newSelection
     })
+  }
+
+  const handleEditDefaultProgramChange = (programId: number) => {
+    setEditDefaultProgramId(programId)
+    setValueEdit('default_program_id', programId)
   }
 
   const onSubmit = async (data: CreateUserFormData) => {
@@ -244,6 +259,9 @@ export default function UsersPage() {
   const openEditModal = (user: User) => {
     setEditingUser(user)
     setError(null)
+    // Find the default program
+    const defaultProgram = user.programs?.find(p => p.is_default)
+    const defaultProgramId = defaultProgram?.pgm_id || (user.programs?.[0]?.pgm_id ?? null)
     // Pre-fill form with user data
     resetEdit({
       username: user.username,
@@ -253,8 +271,10 @@ export default function UsersPage() {
       role: user.role as 'ADMIN' | 'DEPOT_MANAGER' | 'FIELD_TECHNICIAN' | 'VIEWER',
       password: '',
       program_ids: user.programs?.map(p => p.pgm_id) || [],
+      default_program_id: defaultProgramId ?? undefined,
     })
     setEditSelectedPrograms(user.programs?.map(p => p.pgm_id) || [])
+    setEditDefaultProgramId(defaultProgramId)
     setIsEditModalOpen(true)
   }
 
@@ -263,6 +283,7 @@ export default function UsersPage() {
     setEditingUser(null)
     resetEdit()
     setEditSelectedPrograms([])
+    setEditDefaultProgramId(null)
     setError(null)
   }
 
@@ -324,6 +345,7 @@ export default function UsersPage() {
         last_name: data.last_name,
         role: data.role,
         program_ids: data.program_ids,
+        default_program_id: editDefaultProgramId || data.program_ids[0],
       }
 
       // Only include password if provided
@@ -499,9 +521,14 @@ export default function UsersPage() {
                       {user.programs?.map((program) => (
                         <span
                           key={program.pgm_id}
-                          className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded"
+                          className={`px-2 py-0.5 text-xs rounded ${
+                            program.is_default
+                              ? 'bg-primary-100 text-primary-800 font-semibold ring-1 ring-primary-300'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                          title={program.is_default ? 'Default program' : ''}
                         >
-                          {program.pgm_cd}
+                          {program.pgm_cd}{program.is_default && ' ★'}
                         </span>
                       ))}
                     </div>
@@ -946,29 +973,49 @@ export default function UsersPage() {
                       <label className="block text-sm font-medium text-gray-700">
                         Program Assignments <span className="text-red-500">*</span>
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">Select one or more programs</p>
+                      <p className="text-xs text-gray-500 mt-1">Select one or more programs, then set the default program</p>
                       <div className="mt-2 space-y-2">
-                        {PROGRAMS.map((program) => (
-                          <label
-                            key={program.pgm_id}
-                            className={`flex items-center p-3 rounded-md border cursor-pointer transition-colors ${
-                              editSelectedPrograms.includes(program.pgm_id)
-                                ? 'border-primary-500 bg-primary-50'
-                                : 'border-gray-200 hover:bg-gray-50'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={editSelectedPrograms.includes(program.pgm_id)}
-                              onChange={() => handleEditProgramToggle(program.pgm_id)}
-                              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                            />
-                            <div className="ml-3">
-                              <span className="text-sm font-medium text-gray-900">{program.pgm_cd}</span>
-                              <span className="text-xs text-gray-500 ml-2">- {program.pgm_name}</span>
+                        {PROGRAMS.map((program) => {
+                          const isSelected = editSelectedPrograms.includes(program.pgm_id)
+                          const isDefault = editDefaultProgramId === program.pgm_id
+                          return (
+                            <div
+                              key={program.pgm_id}
+                              className={`flex items-center justify-between p-3 rounded-md border transition-colors ${
+                                isSelected
+                                  ? 'border-primary-500 bg-primary-50'
+                                  : 'border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              <label className="flex items-center cursor-pointer flex-1">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => handleEditProgramToggle(program.pgm_id)}
+                                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                />
+                                <div className="ml-3">
+                                  <span className="text-sm font-medium text-gray-900">{program.pgm_cd}</span>
+                                  <span className="text-xs text-gray-500 ml-2">- {program.pgm_name}</span>
+                                </div>
+                              </label>
+                              {isSelected && (
+                                <div className="flex items-center ml-4">
+                                  <input
+                                    type="radio"
+                                    name="default_program"
+                                    checked={isDefault}
+                                    onChange={() => handleEditDefaultProgramChange(program.pgm_id)}
+                                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                                  />
+                                  <span className={`ml-2 text-xs ${isDefault ? 'text-primary-700 font-semibold' : 'text-gray-500'}`}>
+                                    {isDefault ? 'Default' : 'Set as Default'}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          </label>
-                        ))}
+                          )
+                        })}
                       </div>
                       {errorsEdit.program_ids && (
                         <p className="mt-1 text-sm text-red-600">{errorsEdit.program_ids.message}</p>

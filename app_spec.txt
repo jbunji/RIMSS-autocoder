@@ -1,0 +1,838 @@
+<project_specification>
+  <project_name>RIMSS</project_name>
+
+  <overview>
+    RIMSS (Remote Independent Maintenance Status System) is a modern military aviation maintenance tracking and inventory management system. It manages the complete lifecycle of aircraft components and assets including configuration management, maintenance events, repairs, labor tracking, PMI scheduling, TCTO compliance, sortie operations, and spare parts inventory. The system supports multiple defense programs (CRIIS, ACTS, ARDS, 236) with program-based data isolation ensuring users only see data relevant to their assigned program.
+  </overview>
+
+  <technology_stack>
+    <frontend>
+      <framework>React 18+ with TypeScript</framework>
+      <styling>Tailwind CSS</styling>
+      <state_management>React Query for server state, Zustand for client state</state_management>
+      <ui_components>Headless UI + custom components</ui_components>
+      <tables>TanStack Table (React Table) with server-side pagination</tables>
+      <forms>React Hook Form with Zod validation</forms>
+      <charts>Recharts for dashboard widgets</charts>
+    </frontend>
+    <backend>
+      <runtime>Node.js 20+ with TypeScript</runtime>
+      <framework>Express.js with tRPC for type-safe APIs</framework>
+      <database>PostgreSQL 15+</database>
+      <orm>Prisma ORM</orm>
+      <authentication>Passport.js with JWT tokens, CAC/PIV hooks ready</authentication>
+      <validation>Zod schemas shared with frontend</validation>
+      <file_storage>Local filesystem with cloud migration path</file_storage>
+    </backend>
+    <communication>
+      <api>tRPC for internal APIs, REST endpoints for IMDS integration hooks</api>
+      <realtime>WebSocket for dashboard updates (optional enhancement)</realtime>
+    </communication>
+    <testing>
+      <unit>Vitest</unit>
+      <integration>Playwright for E2E</integration>
+    </testing>
+  </technology_stack>
+
+  <prerequisites>
+    <environment_setup>
+      Node.js 20+, PostgreSQL 15+, pnpm package manager
+    </environment_setup>
+  </prerequisites>
+
+  <feature_count>372</feature_count>
+
+  <security_and_access_control>
+    <user_roles>
+      <role name="admin">
+        <description>System Administrator - Full system access</description>
+        <permissions>
+          - Full CRUD on all entities across all programs
+          - User management (create, edit, delete, assign roles/programs)
+          - System configuration and settings
+          - View audit logs
+          - Access all programs' data
+          - Manage code tables and reference data
+        </permissions>
+        <protected_routes>
+          - /admin/* (admin dashboard, user management, system settings)
+          - All routes accessible
+        </protected_routes>
+      </role>
+      <role name="depot_manager">
+        <description>Depot Manager - Depot-level maintenance operations</description>
+        <permissions>
+          - Full CRUD on maintenance events, repairs, labor for assigned programs
+          - Parts ordering fulfillment (acknowledge, fill, ship)
+          - View and manage spares inventory
+          - Access configuration management
+          - View sorties and PMI schedules
+          - Cannot manage users or system settings
+        </permissions>
+        <protected_routes>
+          - /maintenance/*, /spares/*, /config/*, /inventory/*, /sorties/*, /pmi/*, /tcto/*
+          - Data filtered to assigned programs only
+        </protected_routes>
+      </role>
+      <role name="field_technician">
+        <description>Field Technician - Field-level maintenance operations</description>
+        <permissions>
+          - Create and edit maintenance events, repairs, labor
+          - Create parts requests (cannot fulfill)
+          - View spares inventory (cannot edit)
+          - View and create sorties
+          - View configurations (limited edit)
+          - Upload attachments to maintenance jobs
+        </permissions>
+        <protected_routes>
+          - /maintenance/*, /sorties/*, /inventory/* (view), /config/* (view), /spares/* (view)
+          - Data filtered to assigned program only
+        </protected_routes>
+      </role>
+      <role name="viewer">
+        <description>Read-Only User - View access only</description>
+        <permissions>
+          - View all data for assigned program
+          - Export reports (PDF/Excel)
+          - Cannot create, edit, or delete any records
+        </permissions>
+        <protected_routes>
+          - All routes accessible in read-only mode
+          - Data filtered to assigned program only
+        </protected_routes>
+      </role>
+    </user_roles>
+    <multi_program_isolation>
+      <programs>
+        - CRIIS (Common Remotely Operated Integrated Reconnaissance System)
+        - ACTS (Advanced Targeting Capability System)
+        - ARDS (Airborne Reconnaissance Data System)
+        - 236 (Program identifier)
+      </programs>
+      <rules>
+        - Users are assigned to one or more programs
+        - All queries filter by user's assigned program(s)
+        - Admin role can see all programs
+        - Program context shown in header/navigation
+        - Users with multiple programs can switch between them
+      </rules>
+    </multi_program_isolation>
+    <authentication>
+      <method>Username/password with JWT tokens, CAC/PIV integration hooks ready</method>
+      <session_timeout>30 minutes of inactivity</session_timeout>
+      <password_requirements>Minimum 12 characters, uppercase, lowercase, number, special character</password_requirements>
+    </authentication>
+    <sensitive_operations>
+      - Delete operations require confirmation dialog
+      - Bulk deletes require additional confirmation
+      - User role changes require admin re-authentication
+      - Parts ordering acknowledgment cannot be undone
+    </sensitive_operations>
+    <cui_compliance>
+      - All pages display CUI banner in header and footer
+      - All exports (PDF, Excel) include CUI markings
+      - Export filenames prefixed with "CUI_"
+      - Timestamps in ZULU time on exports
+    </cui_compliance>
+  </security_and_access_control>
+
+  <core_features>
+    <authentication_user_management>
+      - User login with username/password
+      - JWT token-based session management
+      - Password reset functionality
+      - User profile management
+      - Role assignment (Admin, Depot Manager, Field Technician, Viewer)
+      - Program assignment (CRIIS, ACTS, ARDS, 236)
+      - User CRUD operations (admin only)
+      - Session timeout and auto-logout
+      - CAC/PIV integration hooks (for future implementation)
+      - Audit logging of all authentication events
+    </authentication_user_management>
+
+    <dashboard>
+      - Program-filtered dashboard view
+      - Asset status summary widget (FMC/PMC/NMCM/NMCS/CNDM counts)
+      - PMI due soon alerts widget (color-coded: red/yellow/green)
+      - Open maintenance jobs widget
+      - Parts awaiting action widget
+      - Recent activity feed
+      - Quick navigation to all modules
+      - Responsive layout for desktop and tablet
+      - Real-time data refresh
+    </dashboard>
+
+    <asset_management>
+      - Asset CRUD operations
+      - Unique serial number + part number validation
+      - Status tracking (FMC, PMC, NMCM, NMCS, CNDM)
+      - Status transition rules and validation
+      - Administrative location (ownership) tracking
+      - Custodial location (physical) tracking
+      - In-transit tracking with carrier info
+      - Bad actor flagging for chronic failures
+      - ETI (Elapsed Time Indicator) tracking for life-limited items
+      - UII (Unique Item Identifier) support
+      - Manufacturing date and acceptance date tracking
+      - NDI (Non-Destructive Inspection) date tracking
+      - Asset search with multiple criteria
+      - Column filtering and sorting
+      - Program-filtered results
+      - Asset detail view with full history
+      - Asset hierarchy view (NHA/SRA relationships)
+      - Export to PDF/Excel with CUI markings
+    </asset_management>
+
+    <configuration_management>
+      - Configuration set CRUD operations
+      - Bill of Materials (BOM) management
+      - NHA (Next Higher Assembly) relationships
+      - SRA (Shop Replaceable Assembly) associations
+      - Software version associations per asset
+      - Configuration search across NHA/SRA
+      - Configuration hierarchy visualization
+      - Validation of part relationships
+      - Configuration export with CUI markings
+      - Program-filtered configurations
+    </configuration_management>
+
+    <maintenance_events>
+      - Maintenance event CRUD operations
+      - Job number generation (unique per location)
+      - Event types: Standard, PMI, TCTO, BIT/PC
+      - Date In / Date Out tracking
+      - Status workflow (open/closed)
+      - Discrepancy description
+      - ETIC (Estimated Time In Commission)
+      - Event-to-asset association
+      - Event-to-sortie association
+      - Close event validation (all repairs must be closed)
+      - PQDR (Product Quality Deficiency Report) flagging
+      - Attachment upload support (PDF, images)
+      - Event search and filtering
+      - Maintenance backlog/workload view
+      - Grouped by aircraft configuration
+      - Export to PDF/Excel with CUI markings
+    </maintenance_events>
+
+    <repair_management>
+      - Repair CRUD operations within events
+      - Repair sequence tracking
+      - Start date / Stop date validation
+      - Type of maintenance codes
+      - How malfunction codes
+      - When discovered codes
+      - Shop status tracking
+      - MICAP (Mission Capable) flagging
+      - Chief review and supervisor review flags
+      - Repeat/recur flagging
+      - ETI in/out tracking
+      - Narrative/remarks field
+      - Parts removed tracking
+      - Parts installed tracking
+      - Auto-status update on part removal (NMCM)
+      - Exception handling for no-defect codes (799, 800, 804, 806)
+      - Exception handling for cannibalization (Action T)
+    </repair_management>
+
+    <labor_tracking>
+      - Labor record CRUD within repairs
+      - Labor sequence tracking
+      - Action taken codes
+      - Category of labor codes
+      - Crew chief and crew size tracking
+      - Hours worked tracking
+      - Start/stop time validation
+      - Corrective action narrative
+      - Discrepancy description
+      - Inspected by / Corrected by fields
+      - BIT (Built-In Test) log capture
+      - Labor parts tracking (worked/removed/installed)
+    </labor_tracking>
+
+    <pmi_scheduling>
+      - PMI (Periodic Maintenance Inspection) management
+      - PMI type categorization
+      - Due date tracking (calendar-based)
+      - Due ETM tracking (usage-based)
+      - Color-coded due date alerts:
+        - Red: Due within 7 days or overdue
+        - Yellow: Due in 8-30 days
+        - Green: Due after 30 days
+      - Interval filter selections (30/60/90/180/365 days)
+      - PMI completion tracking
+      - Auto-PMI creation for specific part actions (ECU)
+      - PMI history per asset
+      - PMI search and filtering
+      - Export to PDF/Excel with CUI markings
+    </pmi_scheduling>
+
+    <tcto_tracking>
+      - TCTO (Time Compliance Technical Order) CRUD
+      - TCTO number (unique per program)
+      - Effective date tracking
+      - Asset compliance tracking
+      - Completion date recording
+      - Link to repair records
+      - TCTO search and filtering
+      - Compliance status reporting
+      - Export to PDF/Excel with CUI markings
+    </tcto_tracking>
+
+    <sortie_tracking>
+      - Sortie CRUD operations
+      - Mission ID tracking
+      - Sortie date recording
+      - Aircraft tail number association
+      - Asset association
+      - Sortie effectiveness codes
+      - Current unit / Assigned unit tracking
+      - Range codes
+      - Reason/remarks fields
+      - Bulk import from Excel
+      - Sortie search and filtering
+      - Program-filtered sorties
+      - Link sorties to maintenance events
+      - Export to PDF/Excel with CUI markings
+    </sortie_tracking>
+
+    <spares_management>
+      - Spare parts inventory CRUD
+      - Part number and serial number tracking
+      - Status tracking
+      - Location tracking
+      - Depot location assignment
+      - Warranty and manufacturing date
+      - Software version associations
+      - Spare reactivation (soft delete recovery)
+      - Duplicate detection (part + serial unique)
+      - Spare search and filtering
+      - Mass update capability
+      - Export to PDF/Excel with CUI markings
+    </spares_management>
+
+    <parts_ordering_workflow>
+      - Parts request creation from maintenance
+      - Four-stage workflow:
+        1. REQUEST: Field creates request with removed part info
+        2. ACKNOWLEDGE: Depot acknowledges receipt (timestamps)
+        3. FILL: Depot selects replacement part, enters ship info
+        4. DELIVER: Field acknowledges receipt (timestamps)
+      - Tracking number support (FedEx, UPS, DHL, GOV)
+      - Tracking number links to carrier websites
+      - PQDR flagging (highlighted in red)
+      - Request cannot be un-acknowledged
+      - Order history tracking
+      - Parts ordered search and filtering
+      - Export to PDF/Excel with CUI markings
+    </parts_ordering_workflow>
+
+    <etm_engineering_time_meters>
+      - Meter history tracking
+      - Meter type (hours, cycles, ETI)
+      - Meter in / Meter out readings
+      - Meter change/replacement handling
+      - Validation (out >= in unless meter changed)
+      - Configuration meters tracking
+      - Meter history per asset
+      - ETM updates on maintenance events
+    </etm_engineering_time_meters>
+
+    <software_version_tracking>
+      - Software catalog CRUD
+      - Software number/identifier
+      - Software type codes
+      - Revision tracking
+      - Effective date
+      - CPIN (Computer Program Identification Number) support
+      - Software-to-asset associations
+      - Multiple software per asset support
+    </software_version_tracking>
+
+    <notifications>
+      - System notification CRUD
+      - Priority levels
+      - Program-filtered notifications
+      - Start date / Stop date for display window
+      - Acknowledge functionality
+      - Notification list view
+      - Unread notification indicator
+    </notifications>
+
+    <reports_and_exports>
+      - PDF export for all modules
+      - Excel export for all modules
+      - CUI header/footer on all exports
+      - Filename format: CUI_[Type]_[YYYYMMDD]
+      - Timestamp in ZULU time
+      - Configuration grouping preserved
+      - Filter state respected in exports
+      - Print-friendly views
+      - Inventory report by system type
+      - Maintenance backlog report
+      - PMI schedule report
+      - Parts ordered report
+      - Sortie report
+      - Bad actor report
+    </reports_and_exports>
+
+    <search_and_filtering>
+      - Global search across assets, events, configs
+      - Column-level filtering on all data tables
+      - Sort by any column
+      - Case-insensitive search
+      - Special character handling
+      - Program isolation in all searches
+      - Saved filter preferences (per user)
+      - Clear all filters functionality
+      - Pagination with filter preservation
+    </search_and_filtering>
+
+    <audit_logging>
+      - Log all create/update/delete operations
+      - User tracking on all changes
+      - IP address logging
+      - Timestamp logging
+      - Old values / New values capture (JSON)
+      - Audit log viewing (admin only)
+      - Audit log filtering by user, table, action, date
+    </audit_logging>
+
+    <data_import>
+      - Sortie bulk import from Excel
+      - Import validation with error reporting
+      - Duplicate handling (skip/update options)
+      - Import preview before commit
+      - Import history logging
+    </data_import>
+
+    <imds_integration_hooks>
+      - API structure ready for IMDS sync
+      - sent_imds flag on events, repairs, labor
+      - Validation workflow (valid flag)
+      - IMDS-related fields preserved:
+        - job_no, wuc_cd, how_mal, when_disc, action_taken
+      - non_imds flag for manual entries
+      - REST endpoints ready for future integration
+    </imds_integration_hooks>
+
+    <mobile_responsive>
+      - Responsive layout for desktop (1920px)
+      - Responsive layout for tablet (768px)
+      - Responsive layout for mobile (375px)
+      - Touch-friendly controls
+      - Collapsible navigation on mobile
+      - Horizontal scroll for wide tables on mobile
+      - Modal fitting within viewport
+    </mobile_responsive>
+  </core_features>
+
+  <database_schema>
+    <tables>
+      <program>
+        - pgm_id (PK), pgm_cd, pgm_name, pgm_desc, active, ins_by, ins_date, chg_by, chg_date
+      </program>
+      <users>
+        - user_id (PK), username, password_hash, email, first_name, last_name, role, active, last_login, ins_by, ins_date, chg_by, chg_date
+      </users>
+      <user_program>
+        - user_program_id (PK), user_id (FK), pgm_id (FK), is_default, ins_by, ins_date
+      </user_program>
+      <code>
+        - code_id (PK), code_type, code_value, description, active, sort_order, ins_by, ins_date, chg_by, chg_date
+      </code>
+      <code_group>
+        - cdgrp_id (PK), group_cd, code_id (FK), sort_order, description, ins_by, ins_date
+      </code_group>
+      <location>
+        - loc_id (PK), majcom_cd, site_cd, unit_cd, squad_cd, description, geoloc, display_name, active, ins_by, ins_date, chg_by, chg_date
+      </location>
+      <part_list>
+        - partno_id (PK), partno, pgm_id (FK), sys_type, noun, nsn, cage, nha_id, config, unit_price, sn_tracked, wuc_cd, mds_cd, version, errc, lsru_flag, loc_idr, active, valid, val_by, val_date, ins_by, ins_date, chg_by, chg_date
+      </part_list>
+      <asset>
+        - asset_id (PK), partno_id (FK), serno, status_cd (FK), loc_ida (FK), loc_idc (FK), nha_asset_id, cfg_set_id, active, reportable, cfo_tracked, bad_actor, valid, val_by, val_date, uii, etic, lotno, mfg_date, accept_date, next_ndi_date, deployed_date, tcn, shipper, ship_date, recv_date, eti, eti_liate, in_transit, tail_no, remarks, ins_by, ins_date, chg_by, chg_date
+      </asset>
+      <cfg_set>
+        - cfg_set_id (PK), cfg_name, cfg_type, pgm_id (FK), partno_id (FK), description, active, ins_by, ins_date, chg_by, chg_date
+      </cfg_set>
+      <cfg_list>
+        - list_id (PK), cfg_set_id (FK), partno_p (FK), partno_c (FK), sort_order, qpa, active, ins_by, ins_date, chg_by, chg_date
+      </cfg_list>
+      <event>
+        - event_id (PK), asset_id (FK), loc_id (FK), job_no, discrepancy, start_job, stop_job, when_disc, how_mal, wuc_cd, priority, symbol, event_type, sortie_id, source, source_cat, sent_imds, non_imds, valid, val_by, val_date, etic_date, ins_by, ins_date, chg_by, chg_date
+      </event>
+      <repair>
+        - repair_id (PK), event_id (FK), repair_seq, asset_id (FK), start_date, stop_date, type_maint, how_mal, when_disc, shop_status, narrative, tag_no, doc_no, eti_in, eti_out, eti_delta, micap, micap_login, damage, chief_review, super_review, eti_change, repeat_recur, sent_imds, valid, val_by, val_date, ins_by, ins_date, chg_by, chg_date
+      </repair>
+      <labor>
+        - labor_id (PK), repair_id (FK), labor_seq, asset_id (FK), action_taken, how_mal, when_disc, type_maint, cat_labor, start_date, stop_date, hours, crew_chief, crew_size, corrective, discrepancy, remarks, corrected_by, inspected_by, bit_log, sent_imds, valid, val_by, val_date, ins_by, ins_date, chg_by, chg_date
+      </labor>
+      <labor_part>
+        - labor_part_id (PK), labor_id (FK), asset_id (FK), partno_id (FK), part_action, qty, ins_by, ins_date, chg_by, chg_date
+      </labor_part>
+      <labor_bit_pc>
+        - labor_bit_id (PK), labor_id (FK), bit_partno, bit_name, bit_seq, bit_wuc, how_mal, bit_qty, fsc, bit_delete, valid, val_by, val_date, ins_by, ins_date
+      </labor_bit_pc>
+      <asset_inspection>
+        - hist_id (PK), asset_id (FK), repair_id (FK), wuc_cd, jst_id, pmi_type, complete_date, next_due_date, completed_etm, next_due_etm, job_no, completed_by, valid, ins_by, ins_date, chg_by, chg_date
+      </asset_inspection>
+      <meter_hist>
+        - meter_id (PK), asset_id (FK), repair_id (FK), labor_id, event_id, meter_type, meter_action, meter_in, meter_out, changed, failure, seq_num, remarks, valid, ins_by, ins_date, chg_by, chg_date
+      </meter_hist>
+      <cfg_meters>
+        - meter_id (PK), cfg_set_id (FK), meter_type, meter_value, ins_by, ins_date, chg_by, chg_date
+      </cfg_meters>
+      <software>
+        - sw_id (PK), sw_number, sw_type, sys_id, revision, revision_date, sw_title, sw_desc, eff_date, cpin_flag, active, valid, val_by, val_date, ins_by, ins_date, chg_by, chg_date
+      </software>
+      <software_asset>
+        - sw_asset_id (PK), asset_id (FK), sw_id (FK), eff_date, ins_by, ins_date
+      </software_asset>
+      <sorties>
+        - sortie_id (PK), pgm_id (FK), asset_id (FK), mission_id, serno, ac_tailno, sortie_date, sortie_effect, ac_station, ac_type, current_unit, assigned_unit, range, reason, remarks, source_data, is_non_podded, is_debrief, is_live_monitor, valid, val_by, val_date, ins_by, ins_date, chg_by, chg_date
+      </sorties>
+      <tcto>
+        - tcto_id (PK), pgm_id (FK), tcto_no, tcto_type, tcto_code, wuc_cd, sys_type, station_type, old_partno_id, new_partno_id, eff_date, remarks, active, ins_by, ins_date, chg_by, chg_date
+      </tcto>
+      <tcto_asset>
+        - tcto_asset_id (PK), tcto_id (FK), asset_id (FK), repair_id (FK), complete_date, remarks, valid, val_by, val_date, ins_by, ins_date, chg_by, chg_date
+      </tcto_asset>
+      <sru_order>
+        - order_id (PK), event_id (FK), repair_id (FK), partno_id (FK), asset_id (FK), loc_id (FK), sru_id, doc_no, order_date, order_qty, status, micap, delivery_dest, delivery_priority, ujc, acknowledge_date, fill_date, repl_sru_ship_date, repl_sru_recv_date, shipper, tcn, rem_shipper, rem_tcn, rem_sru_ship_date, receiver, receive_qty, receive_date, esd, wuc_cd, remarks, active, ins_by, ins_date, chg_by, chg_date
+      </sru_order>
+      <bad_actor>
+        - bad_actor_id (PK), loc_id (FK), sys_id, status_period, status_period_type, status_count, status_cd (FK), multi_ac, active, ins_by, ins_date, chg_by, chg_date
+      </bad_actor>
+      <attachments>
+        - attachment_id (PK), event_id (FK), repair_id, attachment_name, attachment_type, file_path, file_size, mime_type, ins_by, ins_date
+      </attachments>
+      <notification>
+        - msg_id (PK), pgm_id (FK), loc_id, msg_text, priority, start_date, stop_date, from_user, to_user, acknowledged, ack_by, ack_date, active, ins_by, ins_date
+      </notification>
+      <audit_log>
+        - log_id (PK), user_id (FK), action, table_name, record_id, old_values (JSONB), new_values (JSONB), ip_address, created_at
+      </audit_log>
+      <adm_variable>
+        - var_id (PK), var_name, var_value, var_desc, active, ins_by, ins_date, chg_by, chg_date
+      </adm_variable>
+    </tables>
+  </database_schema>
+
+  <api_endpoints_summary>
+    <authentication>
+      - POST /api/auth/login
+      - POST /api/auth/logout
+      - POST /api/auth/refresh
+      - POST /api/auth/password-reset
+      - GET /api/auth/me
+    </authentication>
+    <users>
+      - GET /api/users
+      - GET /api/users/:id
+      - POST /api/users
+      - PUT /api/users/:id
+      - DELETE /api/users/:id
+      - PUT /api/users/:id/programs
+    </users>
+    <programs>
+      - GET /api/programs
+      - GET /api/programs/:id
+    </programs>
+    <assets>
+      - GET /api/assets
+      - GET /api/assets/:id
+      - POST /api/assets
+      - PUT /api/assets/:id
+      - DELETE /api/assets/:id
+      - GET /api/assets/:id/history
+      - GET /api/assets/:id/hierarchy
+    </assets>
+    <configurations>
+      - GET /api/configurations
+      - GET /api/configurations/:id
+      - POST /api/configurations
+      - PUT /api/configurations/:id
+      - DELETE /api/configurations/:id
+      - GET /api/configurations/:id/bom
+    </configurations>
+    <events>
+      - GET /api/events
+      - GET /api/events/:id
+      - POST /api/events
+      - PUT /api/events/:id
+      - DELETE /api/events/:id
+      - GET /api/events/backlog
+    </events>
+    <repairs>
+      - GET /api/events/:eventId/repairs
+      - GET /api/repairs/:id
+      - POST /api/events/:eventId/repairs
+      - PUT /api/repairs/:id
+      - DELETE /api/repairs/:id
+    </repairs>
+    <labor>
+      - GET /api/repairs/:repairId/labor
+      - GET /api/labor/:id
+      - POST /api/repairs/:repairId/labor
+      - PUT /api/labor/:id
+      - DELETE /api/labor/:id
+    </labor>
+    <pmi>
+      - GET /api/pmi
+      - GET /api/pmi/:id
+      - POST /api/pmi
+      - PUT /api/pmi/:id
+    </pmi>
+    <tcto>
+      - GET /api/tcto
+      - GET /api/tcto/:id
+      - POST /api/tcto
+      - PUT /api/tcto/:id
+      - DELETE /api/tcto/:id
+      - GET /api/tcto/:id/assets
+    </tcto>
+    <sorties>
+      - GET /api/sorties
+      - GET /api/sorties/:id
+      - POST /api/sorties
+      - PUT /api/sorties/:id
+      - DELETE /api/sorties/:id
+      - POST /api/sorties/import
+    </sorties>
+    <spares>
+      - GET /api/spares
+      - GET /api/spares/:id
+      - POST /api/spares
+      - PUT /api/spares/:id
+      - DELETE /api/spares/:id
+      - PUT /api/spares/mass-update
+    </spares>
+    <parts_orders>
+      - GET /api/parts-orders
+      - GET /api/parts-orders/:id
+      - POST /api/parts-orders
+      - PUT /api/parts-orders/:id/acknowledge
+      - PUT /api/parts-orders/:id/fill
+      - PUT /api/parts-orders/:id/deliver
+    </parts_orders>
+    <notifications>
+      - GET /api/notifications
+      - POST /api/notifications
+      - PUT /api/notifications/:id/acknowledge
+    </notifications>
+    <codes>
+      - GET /api/codes
+      - GET /api/codes/:type
+    </codes>
+    <locations>
+      - GET /api/locations
+    </locations>
+    <reports>
+      - GET /api/reports/inventory
+      - GET /api/reports/backlog
+      - GET /api/reports/pmi
+      - GET /api/reports/parts-ordered
+    </reports>
+    <exports>
+      - GET /api/exports/:module/pdf
+      - GET /api/exports/:module/excel
+    </exports>
+    <audit>
+      - GET /api/audit-logs
+    </audit>
+    <imds_hooks>
+      - POST /api/imds/sync (placeholder for future IMDS integration)
+      - GET /api/imds/pending (placeholder for future IMDS integration)
+    </imds_hooks>
+  </api_endpoints_summary>
+
+  <ui_layout>
+    <main_structure>
+      Fixed header with CUI banner, program selector, user menu
+      Collapsible sidebar with module navigation
+      Main content area with breadcrumbs
+      Fixed footer with CUI marking
+    </main_structure>
+    <navigation_modules>
+      - Dashboard (home)
+      - Assets (inventory by system type)
+      - Configurations
+      - Maintenance (Backlog, PMI, TCTO tabs)
+      - Sorties
+      - Spares
+      - Parts Ordered
+      - Notifications
+      - Reports
+      - Admin (users, codes, settings) - admin only
+    </navigation_modules>
+    <common_patterns>
+      - Data tables with search, filter, sort, pagination
+      - Detail views with edit/delete actions
+      - Modal dialogs for confirmations and lookups
+      - Form validation with inline error messages
+      - Loading spinners during async operations
+      - Toast notifications for success/error feedback
+      - Export buttons (PDF, Excel, Print)
+    </common_patterns>
+  </ui_layout>
+
+  <design_system>
+    <color_palette>
+      Primary: Blue (#1E40AF) - Military/professional theme
+      Secondary: Gray (#374151)
+      Success: Green (#059669)
+      Warning: Yellow (#D97706)
+      Danger: Red (#DC2626)
+      PMI Red: #DC2626 (due within 7 days)
+      PMI Yellow: #F59E0B (due 8-30 days)
+      PMI Green: #10B981 (due after 30 days)
+      CUI Banner: Yellow (#FEF3C7) with black text
+    </color_palette>
+    <typography>
+      Font Family: Inter (system fallback: -apple-system, BlinkMacSystemFont, sans-serif)
+      Headings: Semi-bold
+      Body: Regular
+      Monospace: For serial numbers, part numbers, codes
+    </typography>
+  </design_system>
+
+  <implementation_steps>
+    <step number="1">
+      <title>Foundation Setup</title>
+      <tasks>
+        - Initialize project structure (monorepo with frontend/backend)
+        - Set up PostgreSQL database
+        - Configure Prisma ORM with initial schema
+        - Set up Express server with tRPC
+        - Configure React with TypeScript and Vite
+        - Set up Tailwind CSS
+        - Implement authentication (login, JWT, sessions)
+        - Create base layout with CUI banners
+      </tasks>
+    </step>
+    <step number="2">
+      <title>Core Infrastructure</title>
+      <tasks>
+        - Implement user management (CRUD, roles, program assignment)
+        - Create code tables and seed reference data
+        - Implement location management
+        - Set up audit logging
+        - Create reusable UI components (tables, forms, modals)
+        - Implement program-based data filtering
+      </tasks>
+    </step>
+    <step number="3">
+      <title>Asset Management</title>
+      <tasks>
+        - Part list management
+        - Asset CRUD with all fields
+        - Status transitions and validation
+        - Asset search and filtering
+        - Asset hierarchy (NHA/SRA)
+        - Bad actor flagging
+      </tasks>
+    </step>
+    <step number="4">
+      <title>Configuration Management</title>
+      <tasks>
+        - Configuration set CRUD
+        - BOM (Bill of Materials) management
+        - Software version associations
+        - Configuration search
+      </tasks>
+    </step>
+    <step number="5">
+      <title>Maintenance Module</title>
+      <tasks>
+        - Event CRUD with validation
+        - Repair CRUD with workflows
+        - Labor CRUD
+        - Parts tracking (removed/installed)
+        - Attachment uploads
+        - Maintenance backlog view
+      </tasks>
+    </step>
+    <step number="6">
+      <title>PMI and TCTO</title>
+      <tasks>
+        - PMI scheduling and tracking
+        - Color-coded due date alerts
+        - TCTO management
+        - Asset compliance tracking
+      </tasks>
+    </step>
+    <step number="7">
+      <title>Sortie and Spares</title>
+      <tasks>
+        - Sortie CRUD
+        - Sortie bulk import
+        - Spares inventory management
+        - Mass update capability
+      </tasks>
+    </step>
+    <step number="8">
+      <title>Parts Ordering Workflow</title>
+      <tasks>
+        - Request creation
+        - Acknowledge workflow
+        - Fill workflow
+        - Deliver workflow
+        - Tracking number integration
+      </tasks>
+    </step>
+    <step number="9">
+      <title>Reporting and Export</title>
+      <tasks>
+        - PDF export with CUI markings
+        - Excel export with CUI markings
+        - Report views for all modules
+        - Dashboard widgets
+      </tasks>
+    </step>
+    <step number="10">
+      <title>Polish and Integration</title>
+      <tasks>
+        - Mobile responsive refinement
+        - Notifications system
+        - IMDS integration hooks
+        - Performance optimization
+        - Final testing and bug fixes
+      </tasks>
+    </step>
+  </implementation_steps>
+
+  <success_criteria>
+    <functionality>
+      - All CRUD operations work for every entity
+      - Role-based access control enforced
+      - Program-based data isolation working
+      - All workflows completable end-to-end
+      - Search and filtering operational across all modules
+      - Status transitions follow business rules
+      - PMI color coding displays correctly
+      - Parts ordering workflow functions through all stages
+    </functionality>
+    <user_experience>
+      - Pages load in under 3 seconds
+      - Responsive design works on desktop, tablet, mobile
+      - Clear feedback for all user actions
+      - Intuitive navigation between modules
+      - CUI markings visible on all pages and exports
+    </user_experience>
+    <technical_quality>
+      - No console errors during normal operation
+      - All API endpoints return proper status codes
+      - Database queries optimized with proper indexes
+      - Audit logging captures all data changes
+      - JWT authentication secure and functioning
+    </technical_quality>
+    <design_polish>
+      - Consistent styling across all pages
+      - PMI color coding clearly visible
+      - Export files properly formatted with CUI
+      - Forms validate before submission
+      - Error messages are clear and actionable
+    </design_polish>
+  </success_criteria>
+</project_specification>

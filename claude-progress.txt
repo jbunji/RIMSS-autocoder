@@ -792,3 +792,51 @@ displays correctly regardless of authentication state.
 - Frontend server running on port 5173
 - Backend server running on port 3001
 - Delete endpoint already existed in backend from parallel agent work
+
+---
+
+## Testing Session: 2026-01-19 12:08
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED AND PASSING
+
+**Verification Steps:**
+1. ✅ Cleared all session data (localStorage and sessionStorage)
+2. ✅ Navigated to homepage URL (http://localhost:5176/)
+3. ✅ Verified redirect to login page (/login)
+4. ✅ Verified login form is displayed (Username, Password, Sign In button)
+
+**Additional Tests:**
+- Navigated to /dashboard - correctly redirected to /login
+- No console errors detected
+
+**Screenshot:** .playwright-mcp/feature3_login_redirect_verified.png
+
+[Testing] Session complete - verified feature #3 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 12:09
+
+[Testing] Feature #7 'User cannot log in with invalid credentials' - VERIFIED PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Navigate to login page - http://localhost:5177/login
+2. ✅ Enter invalid username - 'invalid_user_xyz'
+3. ✅ Enter any password - 'wrongpassword123'
+4. ✅ Click login button - Clicked 'Sign In' button
+5. ✅ Verify error message displays - 'Invalid username or password' shown in red
+6. ✅ Verify user remains on login page - URL still http://localhost:5177/login
+7. ✅ Verify no session is created - localStorage token and user are both null
+
+**Console Errors:** Only expected 401 Unauthorized from /api/auth/login (correct behavior)
+
+**Screenshot:** .playwright-mcp/feature7_invalid_login_error.png
+
+**Additional Work:**
+- Updated CORS config to allow ports 5176 and 5177 for development flexibility
+
+[Testing] Session complete - verified feature #7 (no regression)
