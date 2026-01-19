@@ -8,6 +8,7 @@ import { Layout } from './components/layout'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import UsersPage from './pages/admin/UsersPage'
+import ProfilePage from './pages/ProfilePage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -83,7 +84,7 @@ function App() {
           <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
           <Route path="/admin" element={<PlaceholderPage title="Admin" />} />
           <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/profile" element={<PlaceholderPage title="Your Profile" />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
         </Route>
 
