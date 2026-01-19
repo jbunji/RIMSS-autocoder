@@ -198,7 +198,7 @@ export default function ConfigurationDetailPage() {
       }
 
       const data: BOMResponse = await response.json()
-      setBomData(data.bom)
+      setBomData(data)
     } catch (err) {
       setBomError(err instanceof Error ? err.message : 'An error occurred')
       console.error('Error fetching BOM:', err)
@@ -293,7 +293,7 @@ export default function ConfigurationDetailPage() {
     setAddSuccess(false)
     setSelectedPart(null)
     setPartSearchQuery('')
-    const nextSortOrder = (bomData?.items?.length || 0) + 1
+    const nextSortOrder = (bomData?.bom_items?.length || 0) + 1
     resetAddForm({
       partno_c: '',
       part_name_c: '',
@@ -588,7 +588,7 @@ export default function ConfigurationDetailPage() {
           >
             <div className="flex items-center justify-center gap-2">
               <ListBulletIcon className="h-5 w-5" />
-              BOM ({bomData?.total_items || configuration.bom_item_count})
+              BOM ({bomData?.total || configuration.bom_item_count})
             </div>
           </Tab>
         </Tab.List>
@@ -664,7 +664,7 @@ export default function ConfigurationDetailPage() {
           <Tab.Panel className="rounded-xl bg-white p-6 shadow">
             <div className="space-y-6">
               {/* Parent Part Header */}
-              {bomData && (
+              {bomData && bomData.configuration && (
                 <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
                   <h3 className="text-sm font-medium text-primary-900 mb-2">Parent Part (Assembly)</h3>
                   <div className="flex items-center gap-4">
@@ -672,8 +672,8 @@ export default function ConfigurationDetailPage() {
                       <CubeIcon className="h-10 w-10 text-primary-600" />
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-primary-900">{bomData.parent_part.partno}</p>
-                      <p className="text-sm text-primary-700">{bomData.parent_part.name}</p>
+                      <p className="text-lg font-semibold text-primary-900">{bomData.configuration.partno || 'N/A'}</p>
+                      <p className="text-sm text-primary-700">{bomData.configuration.cfg_name}</p>
                     </div>
                   </div>
                 </div>
@@ -683,7 +683,7 @@ export default function ConfigurationDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-gray-900">
-                    Child Parts ({bomData?.total_items || 0})
+                    Child Parts ({bomData?.total || 0})
                   </h3>
                   {canEditBom && (
                     <button
@@ -709,7 +709,7 @@ export default function ConfigurationDetailPage() {
                   <div className="bg-red-50 border border-red-200 rounded-md p-4">
                     <p className="text-sm text-red-800">{bomError}</p>
                   </div>
-                ) : bomData && bomData.items.length > 0 ? (
+                ) : bomData && bomData.bom_items && bomData.bom_items.length > 0 ? (
                   <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
                     <table className="min-w-full divide-y divide-gray-300">
                       <thead className="bg-gray-50">
@@ -737,7 +737,7 @@ export default function ConfigurationDetailPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
-                        {bomData.items.map((item, index) => (
+                        {bomData.bom_items.map((item, index) => (
                           <tr key={item.list_id} className="hover:bg-gray-50">
                             <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6">
                               {index + 1}
@@ -783,16 +783,16 @@ export default function ConfigurationDetailPage() {
               </div>
 
               {/* BOM Summary */}
-              {bomData && bomData.items.length > 0 && (
+              {bomData && bomData.bom_items && bomData.bom_items.length > 0 && (
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Total unique parts:</span>
-                    <span className="font-medium text-gray-900">{bomData.total_items}</span>
+                    <span className="font-medium text-gray-900">{bomData.total}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm mt-1">
                     <span className="text-gray-500">Total quantity (all parts):</span>
                     <span className="font-medium text-gray-900">
-                      {bomData.items.reduce((sum, item) => sum + item.qpa, 0)}
+                      {bomData.bom_items.reduce((sum, item) => sum + item.qpa, 0)}
                     </span>
                   </div>
                 </div>

@@ -3254,12 +3254,14 @@ interface ConfigurationSet {
 interface BOMItem {
   list_id: number;
   cfg_set_id: number;
-  partno_p: string;  // Parent part number
-  partno_c: string;  // Child part number
+  partno_p: string;  // Parent part number (configuration's base part)
+  partno_c: string;  // Child part number (this item's part number)
   part_name_c: string;  // Child part name
   sort_order: number;
   qpa: number;  // Quantity per assembly
   active: boolean;
+  nha_partno_c: string | null;  // NHA (Next Higher Assembly) - parent part within BOM hierarchy
+  is_sra: boolean;  // Is this a Sub-Replaceable Assembly (has an NHA parent)?
 }
 
 // Initialize mock configuration data
@@ -3742,13 +3744,12 @@ app.get('/api/configurations/:id/bom', (req, res) => {
   console.log(`[CONFIGS] BOM request for config ${config.cfg_name} by ${user.username} - ${configBomItems.length} items`);
 
   res.json({
-    bom: {
-      parent_part: {
-        partno: config.partno || 'N/A',
-        name: config.part_name || config.cfg_name,
-      },
-      items: configBomItems,
-      total_items: configBomItems.length,
+    bom_items: configBomItems,
+    total: configBomItems.length,
+    configuration: {
+      cfg_set_id: config.cfg_set_id,
+      cfg_name: config.cfg_name,
+      partno: config.partno,
     },
   });
 });
@@ -4035,50 +4036,6 @@ app.delete('/api/configurations/:id', (req, res) => {
       cfg_set_id: deletedConfig.cfg_set_id,
       cfg_name: deletedConfig.cfg_name,
       cfg_type: deletedConfig.cfg_type,
-    },
-  });
-});
-
-// GET /api/configurations/:id/bom - Get BOM items for a configuration
-app.get('/api/configurations/:id/bom', (req, res) => {
-  const payload = authenticateRequest(req, res);
-  if (!payload) return;
-
-  const user = mockUsers.find(u => u.user_id === payload.userId);
-  if (!user) {
-    return res.status(401).json({ error: 'User not found' });
-  }
-
-  const configId = parseInt(req.params.id, 10);
-  if (isNaN(configId)) {
-    return res.status(400).json({ error: 'Invalid configuration ID' });
-  }
-
-  // Find the configuration
-  const config = configurations.find(c => c.cfg_set_id === configId);
-  if (!config) {
-    return res.status(404).json({ error: 'Configuration not found' });
-  }
-
-  // Check if user has access to this program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this configuration' });
-  }
-
-  // Get BOM items for this configuration
-  const configBomItems = bomItems.filter(item => item.cfg_set_id === configId);
-
-  // Sort by sort_order
-  configBomItems.sort((a, b) => a.sort_order - b.sort_order);
-
-  res.json({
-    bom_items: configBomItems,
-    total: configBomItems.length,
-    configuration: {
-      cfg_set_id: config.cfg_set_id,
-      cfg_name: config.cfg_name,
-      partno: config.partno,
     },
   });
 });
