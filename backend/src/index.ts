@@ -328,6 +328,51 @@ const allPrograms = [
   { pgm_id: 4, pgm_cd: '236', pgm_name: 'Program 236' },
 ]
 
+// Asset status codes
+const assetStatusCodes = [
+  { status_cd: 'FMC', status_name: 'Full Mission Capable', description: 'Asset is fully operational and mission ready' },
+  { status_cd: 'PMC', status_name: 'Partial Mission Capable', description: 'Asset can perform some but not all mission types' },
+  { status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', description: 'Asset is down due to maintenance requirements' },
+  { status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', description: 'Asset is down awaiting parts/supplies' },
+  { status_cd: 'CNDM', status_name: 'Cannot Determine Mission', description: 'Asset status cannot be determined' },
+]
+
+// Mock asset data for different programs
+const mockAssets = [
+  // CRIIS program assets (pgm_id: 1)
+  { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', pgm_id: 1, status_cd: 'FMC', active: true },
+  { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', pgm_id: 1, status_cd: 'FMC', active: true },
+  { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', pgm_id: 1, status_cd: 'PMC', active: true },
+  { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', pgm_id: 1, status_cd: 'FMC', active: true },
+  { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', pgm_id: 1, status_cd: 'NMCM', active: true },
+  { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', pgm_id: 1, status_cd: 'NMCS', active: true },
+  { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', pgm_id: 1, status_cd: 'FMC', active: true },
+  { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', pgm_id: 1, status_cd: 'PMC', active: true },
+  { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', pgm_id: 1, status_cd: 'CNDM', active: true },
+  { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', pgm_id: 1, status_cd: 'FMC', active: true },
+
+  // ACTS program assets (pgm_id: 2)
+  { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', pgm_id: 2, status_cd: 'FMC', active: true },
+  { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', pgm_id: 2, status_cd: 'FMC', active: true },
+  { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', pgm_id: 2, status_cd: 'NMCM', active: true },
+  { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', pgm_id: 2, status_cd: 'PMC', active: true },
+  { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', pgm_id: 2, status_cd: 'NMCS', active: true },
+  { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', pgm_id: 2, status_cd: 'FMC', active: true },
+
+  // ARDS program assets (pgm_id: 3)
+  { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', pgm_id: 3, status_cd: 'FMC', active: true },
+  { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', pgm_id: 3, status_cd: 'FMC', active: true },
+  { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', pgm_id: 3, status_cd: 'PMC', active: true },
+  { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', pgm_id: 3, status_cd: 'NMCM', active: true },
+  { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', pgm_id: 3, status_cd: 'CNDM', active: true },
+
+  // Program 236 assets (pgm_id: 4)
+  { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', pgm_id: 4, status_cd: 'FMC', active: true },
+  { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', pgm_id: 4, status_cd: 'NMCS', active: true },
+  { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', pgm_id: 4, status_cd: 'PMC', active: true },
+  { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', pgm_id: 4, status_cd: 'FMC', active: true },
+]
+
 // Authentication middleware helper
 function authenticateRequest(req: express.Request, res: express.Response): { userId: number } | null {
   const authHeader = req.headers.authorization
@@ -617,6 +662,70 @@ app.post('/api/users', (req, res) => {
   res.status(201).json({
     message: 'User created successfully',
     user: { ...newUser, active: true }
+  })
+})
+
+// Dashboard: Get asset status summary (requires authentication)
+app.get('/api/dashboard/asset-status', (req, res) => {
+  const payload = authenticateRequest(req, res)
+  if (!payload) return
+
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
+  }
+
+  // Get the program ID from query param, or use user's default program
+  let programId = parseInt(req.query.program_id as string, 10)
+  if (isNaN(programId)) {
+    // Default to user's default program
+    const defaultProgram = user.programs.find(p => p.is_default)
+    programId = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1
+  }
+
+  // Check if user has access to this program
+  if (!user.programs.find(p => p.pgm_id === programId) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' })
+  }
+
+  // Get assets for the selected program
+  const programAssets = mockAssets.filter(a => a.pgm_id === programId && a.active)
+
+  // Count assets by status
+  const statusCounts: Record<string, number> = {
+    FMC: 0,
+    PMC: 0,
+    NMCM: 0,
+    NMCS: 0,
+    CNDM: 0,
+  }
+
+  programAssets.forEach(asset => {
+    if (statusCounts.hasOwnProperty(asset.status_cd)) {
+      statusCounts[asset.status_cd]++
+    }
+  })
+
+  // Build response with status details
+  const statusSummary = assetStatusCodes.map(status => ({
+    status_cd: status.status_cd,
+    status_name: status.status_name,
+    description: status.description,
+    count: statusCounts[status.status_cd] || 0,
+  }))
+
+  const totalAssets = programAssets.length
+
+  // Calculate mission capability rate (FMC + PMC as capable)
+  const missionCapable = statusCounts.FMC + statusCounts.PMC
+  const missionCapabilityRate = totalAssets > 0 ? Math.round((missionCapable / totalAssets) * 100) : 0
+
+  res.json({
+    program_id: programId,
+    program_cd: allPrograms.find(p => p.pgm_id === programId)?.pgm_cd || 'UNKNOWN',
+    total_assets: totalAssets,
+    mission_capability_rate: missionCapabilityRate,
+    status_summary: statusSummary,
   })
 })
 
