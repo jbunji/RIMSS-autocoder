@@ -10,7 +10,32 @@ const PORT = process.env.PORT || 3001
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+
+    // Allow localhost on common development ports
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      'http://127.0.0.1:5175',
+    ]
+
+    // Also allow FRONTEND_URL from env if set
+    const frontendUrl = process.env.FRONTEND_URL
+    if (frontendUrl && !allowedOrigins.includes(frontendUrl)) {
+      allowedOrigins.push(frontendUrl)
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   credentials: true,
 }))
 app.use(express.json())
@@ -342,6 +367,33 @@ app.put('/api/users/:id', (req, res) => {
   res.json({
     message: 'User updated successfully',
     user: { ...updatedUser, active: active !== false }
+  })
+})
+
+// Delete user by ID (admin only)
+app.delete('/api/users/:id', (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  const userId = parseInt(req.params.id, 10)
+  const userIndex = mockUsers.findIndex(u => u.user_id === userId)
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' })
+  }
+
+  const user = mockUsers[userIndex]
+
+  // Remove user from mock data
+  mockUsers.splice(userIndex, 1)
+
+  // Remove password entry
+  delete mockPasswords[user.username]
+
+  console.log(`[USERS] User deleted: ${user.username} (ID: ${userId})`)
+
+  res.json({
+    message: 'User deleted successfully',
+    user: { user_id: userId, username: user.username }
   })
 })
 
