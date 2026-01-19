@@ -6062,3 +6062,127 @@ Screenshots:
 
 [Testing] Session complete - verified feature #10 (no regression found)
 
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #25 'Dashboard shows recent activity feed' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - Successfully at /dashboard
+3. ✅ Verify recent activity feed displays - 'Recent Activity' section visible with '10 recent activities' header
+4. ✅ Verify activities show timestamp - Relative timestamps shown (5m ago, 12m ago, 25m ago, 45m ago, 1h ago)
+5. ✅ Verify activities show user - User names displayed (Bob Field, Jane Depot, John Admin)
+6. ✅ Verify activities show action description - Clear descriptions for each activity
+
+**Activities Displayed:**
+- Created maintenance job MX-2024-011 for Sensor Unit A (Bob Field, 5m ago)
+- Acknowledged parts order for Laser Diode Module (Jane Depot, 12m ago)
+- Ordered 4x Lithium Battery Pack for Camera System X (Bob Field, 25m ago)
+- Updated user account test_user - changed role to VIEWER (John Admin, 45m ago)
+- Completed 30-Day Inspection on Sensor Unit A (Jane Depot, 1h ago)
+- Updated maintenance job MX-2024-002 - added repair notes (Bob Field, 1h ago)
+
+**Additional Features Verified:**
+- Color-coded activity type icons (+, ↔, ~, ✓, 📦)
+- Legend showing: Created, Updated, Status, Completed
+
+**Screenshots:**
+- .playwright-mcp/feature25_dashboard_recent_activity.png - Full dashboard view
+- .playwright-mcp/feature25_recent_activity_widget.png - Recent Activity widget close-up
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #25 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #1 'Application loads without errors' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to application URL - http://localhost:5173 loaded, redirected to /login
+2. ✅ No console errors - Only React DevTools info and React Router future flag warnings
+3. ✅ Login page renders with username and password fields - Both input fields with placeholders visible
+4. ✅ CUI banner displays in header - 'CUI - Controlled Unclassified Information' visible at top
+5. ✅ CUI marking displays in footer - 'CUI - Controlled Unclassified Information' visible at bottom
+
+**Additional Elements Verified:**
+- RIMSS title and tagline present
+- Sign In button functional
+- Forgot password link present
+- 'Authorized users only' warning message displayed
+
+**Screenshot:** .playwright-mcp/feature1_login_page_verification.png
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #1 (no regression found)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #76)
+
+### Completed This Session:
+- Feature #76: Attachment download from maintenance event - VERIFIED AND PASSING
+
+**Description:** Users can download attached files from maintenance events
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to event with attachments - Navigated to MX-2024-001 (Camera System X)
+3. ✅ Click on attachment to download - Clicked Download button for test_attachment_feature76.txt
+4. ✅ Verify file downloads correctly - File downloaded to .playwright-mcp/test-attachment-feature76.txt
+5. ✅ Verify file content matches uploaded file - Downloaded content matches original exactly
+
+**Additional Verifications:**
+- ✅ Uploaded test file to create attachment (test_attachment_feature76.txt - 213 bytes)
+- ✅ Download button triggers browser file download
+- ✅ Downloaded file content verified to match original
+- ✅ PDF download also works (test_document.pdf)
+- ✅ Multiple file types supported (PDF, TXT, PNG)
+- ✅ Data persists after page refresh
+- ✅ No console errors detected
+
+**UI Components Working:**
+- Attachments section header with file count "(X files)"
+- File icon differentiates between document and image types
+- Download button with download icon
+- Delete button with trash icon
+- File metadata display (size, uploader, date, description)
+
+**Backend Implementation (already in place):**
+- GET /api/events/:eventId/attachments - Lists attachments for an event
+- GET /api/attachments/:id/download - Downloads attachment file
+- File streaming with proper Content-Type and Content-Disposition headers
+- Authorization checks for program access
+
+**Frontend Implementation:**
+- handleDownloadAttachment function creates blob URL and triggers download
+- downloadingAttachmentId state for loading indicator
+- formatFileSize helper formats bytes to human-readable string
+- getFileIcon displays appropriate icon for file type
+
+**Screenshots:**
+- .playwright-mcp/feature76_maintenance_detail_attachments_section.png - Maintenance detail page
+- .playwright-mcp/feature76_attachments_section_empty.png - Empty attachments section
+- .playwright-mcp/feature76_attachments_uploaded.png - After file upload
+- .playwright-mcp/feature76_download_verified.png - After download test
+- .playwright-mcp/feature76_attachments_after_refresh.png - Data persists after refresh
+
+### Current Status:
+- Feature #76 marked as PASSING
+- Commit pending
+
+### Note:
+The attachment infrastructure (backend endpoints and frontend UI) was already implemented by another agent working on Feature #75 (upload). This session verified the download functionality works correctly.
+

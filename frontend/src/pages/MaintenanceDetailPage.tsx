@@ -12,6 +12,10 @@ import {
   PrinterIcon,
   LockClosedIcon,
   ExclamationTriangleIcon,
+  PaperClipIcon,
+  ArrowDownTrayIcon,
+  DocumentIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -38,6 +42,21 @@ interface RepairsSummary {
   total: number
   open: number
   closed: number
+}
+
+// Attachment interface
+interface Attachment {
+  attachment_id: number
+  event_id: number
+  filename: string
+  original_filename: string
+  file_path: string
+  file_size: number
+  mime_type: string
+  uploaded_by: number
+  uploaded_by_name: string
+  uploaded_at: string
+  description: string | null
 }
 
 interface MaintenanceEvent {
@@ -167,6 +186,19 @@ export default function MaintenanceDetailPage() {
   // Close repair state
   const [closingRepairId, setClosingRepairId] = useState<number | null>(null)
 
+  // Attachments state
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false)
+  const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<number | null>(null)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadDescription, setUploadDescription] = useState('')
+  const [uploadLoading, setUploadLoading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [deletingAttachmentId, setDeletingAttachmentId] = useState<number | null>(null)
+
   // Check if user can edit (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
   const canEdit = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
 
@@ -230,6 +262,196 @@ export default function MaintenanceDetailPage() {
     }
   }, [token, id])
 
+  // Fetch attachments for the event
+  const fetchAttachments = useCallback(async () => {
+    if (!token || !id) return
+
+    setAttachmentsLoading(true)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/events/${id}/attachments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch attachments')
+        return
+      }
+
+      const data = await response.json()
+      setAttachments(data.attachments || [])
+    } catch (err) {
+      console.error('Error fetching attachments:', err)
+    } finally {
+      setAttachmentsLoading(false)
+    }
+  }, [token, id])
+
+  // Handle attachment upload
+  const handleUploadAttachment = async () => {
+    if (!token || !id || !uploadFile) return
+
+    setUploadLoading(true)
+    setUploadError(null)
+    setUploadProgress(0)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadFile)
+      if (uploadDescription) {
+        formData.append('description', uploadDescription)
+      }
+
+      // Simulate progress for UX
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90))
+      }, 100)
+
+      const response = await fetch(`http://localhost:3001/api/events/${id}/attachments`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      })
+
+      clearInterval(progressInterval)
+      setUploadProgress(100)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to upload attachment')
+      }
+
+      const data = await response.json()
+      setUploadSuccess(`File "${data.attachment.original_filename}" uploaded successfully!`)
+
+      // Refresh attachments list
+      await fetchAttachments()
+
+      // Reset form and close modal after a short delay
+      setTimeout(() => {
+        closeUploadModal()
+      }, 1500)
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'An error occurred during upload')
+      setUploadProgress(0)
+    } finally {
+      setUploadLoading(false)
+    }
+  }
+
+  // Open upload modal
+  const openUploadModal = () => {
+    setUploadFile(null)
+    setUploadDescription('')
+    setUploadError(null)
+    setUploadSuccess(null)
+    setUploadProgress(0)
+    setIsUploadModalOpen(true)
+  }
+
+  // Close upload modal
+  const closeUploadModal = () => {
+    setIsUploadModalOpen(false)
+    setUploadFile(null)
+    setUploadDescription('')
+    setUploadError(null)
+    setUploadSuccess(null)
+    setUploadProgress(0)
+  }
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        setUploadError('File size exceeds 10MB limit')
+        return
+      }
+      setUploadFile(file)
+      setUploadError(null)
+    }
+  }
+
+  // Download attachment
+  const handleDownloadAttachment = async (attachment: Attachment) => {
+    if (!token) return
+
+    setDownloadingAttachmentId(attachment.attachment_id)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/attachments/${attachment.attachment_id}/download`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to download attachment')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = attachment.original_filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error('Error downloading attachment:', err)
+    } finally {
+      setDownloadingAttachmentId(null)
+    }
+  }
+
+  // Delete attachment
+  const handleDeleteAttachment = async (attachmentId: number) => {
+    if (!token) return
+
+    setDeletingAttachmentId(attachmentId)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/attachments/${attachmentId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete attachment')
+      }
+
+      // Refresh attachments list
+      await fetchAttachments()
+    } catch (err) {
+      console.error('Error deleting attachment:', err)
+    } finally {
+      setDeletingAttachmentId(null)
+    }
+  }
+
+  // Helper to format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  // Check if file is an image
+  const isImageFile = (mimeType: string): boolean => {
+    return mimeType.startsWith('image/')
+  }
+
   // Fetch sorties for dropdown
   const fetchSorties = useCallback(async () => {
     if (!token || !event) return
@@ -292,8 +514,9 @@ export default function MaintenanceDetailPage() {
     if (event) {
       fetchRepairs()
       fetchLinkedSortie()
+      fetchAttachments()
     }
-  }, [event, fetchRepairs, fetchLinkedSortie])
+  }, [event, fetchRepairs, fetchLinkedSortie, fetchAttachments])
 
   // Close a repair
   const handleCloseRepair = async (repairId: number) => {
@@ -835,6 +1058,109 @@ export default function MaintenanceDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Attachments Section */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4 border-b pb-2">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                <PaperClipIcon className="h-5 w-5 mr-2 text-gray-500" />
+                Attachments
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  ({attachments.length} file{attachments.length !== 1 ? 's' : ''})
+                </span>
+              </h2>
+              {canEdit && (
+                <button
+                  onClick={openUploadModal}
+                  className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4 mr-1 rotate-180" />
+                  Upload
+                </button>
+              )}
+            </div>
+
+            {attachmentsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              </div>
+            ) : attachments.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <PaperClipIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                <p>No attachments uploaded</p>
+                {canEdit && (
+                  <button
+                    onClick={openUploadModal}
+                    className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    Upload your first attachment
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {attachments.map((attachment) => (
+                  <div
+                    key={attachment.attachment_id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center min-w-0 flex-1">
+                      {isImageFile(attachment.mime_type) ? (
+                        <PhotoIcon className="h-8 w-8 text-green-500 flex-shrink-0" />
+                      ) : (
+                        <DocumentIcon className="h-8 w-8 text-blue-500 flex-shrink-0" />
+                      )}
+                      <div className="ml-3 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate" title={attachment.original_filename}>
+                          {attachment.original_filename}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <span>{formatFileSize(attachment.file_size)}</span>
+                          <span>•</span>
+                          <span>{attachment.uploaded_by_name}</span>
+                          <span>•</span>
+                          <span>{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
+                        </div>
+                        {attachment.description && (
+                          <p className="text-xs text-gray-600 mt-1 truncate" title={attachment.description}>
+                            {attachment.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                      <button
+                        onClick={() => handleDownloadAttachment(attachment)}
+                        disabled={downloadingAttachmentId === attachment.attachment_id}
+                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
+                        title="Download"
+                      >
+                        {downloadingAttachmentId === attachment.attachment_id ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent" />
+                        ) : (
+                          <ArrowDownTrayIcon className="h-5 w-5" />
+                        )}
+                      </button>
+                      {canEdit && (
+                        <button
+                          onClick={() => handleDeleteAttachment(attachment.attachment_id)}
+                          disabled={deletingAttachmentId === attachment.attachment_id}
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                          title="Delete"
+                        >
+                          {deletingAttachmentId === attachment.attachment_id ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <XMarkIcon className="h-5 w-5" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right column - Asset information */}
@@ -1224,6 +1550,160 @@ export default function MaintenanceDetailPage() {
                   <>
                     <LockClosedIcon className="h-4 w-4 mr-2" />
                     Close Event
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Upload Attachment Modal */}
+      <Dialog open={isUploadModalOpen} onClose={closeUploadModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <PaperClipIcon className="h-5 w-5 mr-2 text-gray-500" />
+                Upload Attachment
+              </Dialog.Title>
+              <button
+                onClick={closeUploadModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Success Message */}
+              {uploadSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{uploadSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {uploadError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{uploadError}</p>
+                </div>
+              )}
+
+              {/* File Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select File <span className="text-red-500">*</span>
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary-400 transition-colors">
+                  <div className="space-y-1 text-center">
+                    {uploadFile ? (
+                      <>
+                        {isImageFile(uploadFile.type) ? (
+                          <PhotoIcon className="mx-auto h-12 w-12 text-green-500" />
+                        ) : (
+                          <DocumentIcon className="mx-auto h-12 w-12 text-blue-500" />
+                        )}
+                        <p className="text-sm text-gray-900 font-medium">{uploadFile.name}</p>
+                        <p className="text-xs text-gray-500">{formatFileSize(uploadFile.size)}</p>
+                        <button
+                          type="button"
+                          onClick={() => setUploadFile(null)}
+                          className="text-sm text-red-600 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <PaperClipIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="flex text-sm text-gray-600">
+                          <label
+                            htmlFor="file-upload"
+                            className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none"
+                          >
+                            <span>Upload a file</span>
+                            <input
+                              id="file-upload"
+                              name="file-upload"
+                              type="file"
+                              className="sr-only"
+                              onChange={handleFileSelect}
+                              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx,.txt"
+                            />
+                          </label>
+                          <p className="pl-1">or drag and drop</p>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          PDF, images, Word, Excel, or text up to 10MB
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Description Input */}
+              <div>
+                <label htmlFor="upload_description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (optional)
+                </label>
+                <textarea
+                  id="upload_description"
+                  value={uploadDescription}
+                  onChange={(e) => setUploadDescription(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Add a description for this attachment..."
+                />
+              </div>
+
+              {/* Upload Progress */}
+              {uploadLoading && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Uploading...</span>
+                    <span className="text-gray-600">{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeUploadModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={uploadLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUploadAttachment}
+                disabled={uploadLoading || !uploadFile || !!uploadSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {uploadLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownTrayIcon className="h-4 w-4 mr-2 rotate-180" />
+                    Upload
                   </>
                 )}
               </button>
