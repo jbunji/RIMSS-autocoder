@@ -199,6 +199,127 @@ app.post('/api/auth/logout', (_req, res) => {
   res.json({ message: 'Logged out successfully' })
 })
 
+// Change password endpoint
+app.post('/api/auth/change-password', (req, res) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Not authenticated' })
+  }
+
+  const token = authHeader.substring(7)
+  const payload = parseMockToken(token)
+
+  if (!payload) {
+    return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
+  }
+
+  const { currentPassword, newPassword, confirmPassword } = req.body
+
+  // Validate required fields
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({ error: 'All password fields are required' })
+  }
+
+  // Verify current password
+  if (mockPasswords[user.username] !== currentPassword) {
+    return res.status(400).json({ error: 'Current password is incorrect' })
+  }
+
+  // Verify new passwords match
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ error: 'New passwords do not match' })
+  }
+
+  // Validate new password requirements (12+ chars, uppercase, lowercase, number, special char)
+  if (newPassword.length < 12) {
+    return res.status(400).json({ error: 'Password must be at least 12 characters' })
+  }
+  if (!/[A-Z]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one uppercase letter' })
+  }
+  if (!/[a-z]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one lowercase letter' })
+  }
+  if (!/[0-9]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one number' })
+  }
+  if (!/[^A-Za-z0-9]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one special character' })
+  }
+
+  // Check new password is different from current
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ error: 'New password must be different from current password' })
+  }
+
+  // Update the password
+  mockPasswords[user.username] = newPassword
+
+  console.log(`[AUTH] Password changed for user: ${user.username}`)
+
+  res.json({ message: 'Password changed successfully' })
+})
+
+// Update own profile endpoint (for any authenticated user)
+app.put('/api/profile', (req, res) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Not authenticated' })
+  }
+
+  const token = authHeader.substring(7)
+  const payload = parseMockToken(token)
+
+  if (!payload) {
+    return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
+  const userIndex = mockUsers.findIndex(u => u.user_id === payload.userId)
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' })
+  }
+
+  const existingUser = mockUsers[userIndex]
+  const { email, first_name, last_name } = req.body
+
+  // Validate required fields
+  if (!email || !first_name || !last_name) {
+    return res.status(400).json({ error: 'Email, first name, and last name are required' })
+  }
+
+  // Validate email format
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' })
+  }
+
+  // Check for duplicate email (excluding current user)
+  if (mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.user_id !== payload.userId)) {
+    return res.status(400).json({ error: 'Email already exists' })
+  }
+
+  // Update the user (only email, first_name, last_name - no role/programs/username changes)
+  const updatedUser = {
+    ...existingUser,
+    email,
+    first_name,
+    last_name,
+  }
+
+  mockUsers[userIndex] = updatedUser
+
+  console.log(`[PROFILE] User profile updated: ${existingUser.username} (ID: ${payload.userId})`)
+
+  res.json({
+    message: 'Profile updated successfully',
+    user: updatedUser
+  })
+})
+
 // Programs list
 const allPrograms = [
   { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System' },
