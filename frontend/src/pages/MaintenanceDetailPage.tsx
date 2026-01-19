@@ -10,8 +10,35 @@ import {
   MapPinIcon,
   WrenchScrewdriverIcon,
   PrinterIcon,
+  LockClosedIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+
+// Repair interface
+interface Repair {
+  repair_id: number
+  event_id: number
+  repair_seq: number
+  asset_id: number
+  start_date: string
+  stop_date: string | null
+  type_maint: string
+  how_mal: string | null
+  when_disc: string | null
+  shop_status: 'open' | 'closed'
+  narrative: string
+  tag_no: string | null
+  doc_no: string | null
+  created_by_name: string
+  created_at: string
+}
+
+interface RepairsSummary {
+  total: number
+  open: number
+  closed: number
+}
 
 interface MaintenanceEvent {
   event_id: number
@@ -97,6 +124,21 @@ export default function MaintenanceDetailPage() {
   const [editError, setEditError] = useState<string | null>(null)
   const [editSuccess, setEditSuccess] = useState<string | null>(null)
 
+  // Repairs state
+  const [repairs, setRepairs] = useState<Repair[]>([])
+  const [repairsSummary, setRepairsSummary] = useState<RepairsSummary>({ total: 0, open: 0, closed: 0 })
+  const [repairsLoading, setRepairsLoading] = useState(false)
+
+  // Close event modal state
+  const [isCloseEventModalOpen, setIsCloseEventModalOpen] = useState(false)
+  const [closeEventDate, setCloseEventDate] = useState(new Date().toISOString().split('T')[0])
+  const [closeEventLoading, setCloseEventLoading] = useState(false)
+  const [closeEventError, setCloseEventError] = useState<string | null>(null)
+  const [closeEventSuccess, setCloseEventSuccess] = useState<string | null>(null)
+
+  // Close repair state
+  const [closingRepairId, setClosingRepairId] = useState<number | null>(null)
+
   // Check if user can edit (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
   const canEdit = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
 
@@ -132,9 +174,129 @@ export default function MaintenanceDetailPage() {
     }
   }, [token, id])
 
+  // Fetch repairs for the event
+  const fetchRepairs = useCallback(async () => {
+    if (!token || !id) return
+
+    setRepairsLoading(true)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/events/${id}/repairs`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch repairs')
+        return
+      }
+
+      const data = await response.json()
+      setRepairs(data.repairs || [])
+      setRepairsSummary(data.summary || { total: 0, open: 0, closed: 0 })
+    } catch (err) {
+      console.error('Error fetching repairs:', err)
+    } finally {
+      setRepairsLoading(false)
+    }
+  }, [token, id])
+
   useEffect(() => {
     fetchEvent()
   }, [fetchEvent])
+
+  useEffect(() => {
+    if (event) {
+      fetchRepairs()
+    }
+  }, [event, fetchRepairs])
+
+  // Close a repair
+  const handleCloseRepair = async (repairId: number) => {
+    if (!token) return
+
+    setClosingRepairId(repairId)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          shop_status: 'closed',
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to close repair')
+      }
+
+      // Refresh repairs
+      await fetchRepairs()
+    } catch (err) {
+      console.error('Error closing repair:', err)
+    } finally {
+      setClosingRepairId(null)
+    }
+  }
+
+  // Open close event modal
+  const openCloseEventModal = () => {
+    setCloseEventDate(new Date().toISOString().split('T')[0])
+    setCloseEventError(null)
+    setCloseEventSuccess(null)
+    setIsCloseEventModalOpen(true)
+  }
+
+  // Close the close event modal
+  const closeCloseEventModal = () => {
+    setIsCloseEventModalOpen(false)
+    setCloseEventError(null)
+    setCloseEventSuccess(null)
+  }
+
+  // Handle close event submission
+  const handleCloseEvent = async () => {
+    if (!token || !event) return
+
+    setCloseEventLoading(true)
+    setCloseEventError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/events/${event.event_id}/close`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          stop_job: closeEventDate,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to close maintenance event')
+      }
+
+      const data = await response.json()
+      setCloseEventSuccess('Maintenance event closed successfully!')
+      setEvent(data.event)
+
+      // Close modal after a short delay to show success message
+      setTimeout(() => {
+        closeCloseEventModal()
+      }, 1500)
+    } catch (err) {
+      setCloseEventError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setCloseEventLoading(false)
+    }
+  }
 
   // Open edit modal
   const openEditModal = () => {
@@ -400,6 +562,93 @@ export default function MaintenanceDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Repairs Section */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4 border-b pb-2">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Repairs
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  ({repairsSummary.total} total, {repairsSummary.open} open, {repairsSummary.closed} closed)
+                </span>
+              </h2>
+            </div>
+
+            {repairsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              </div>
+            ) : repairs.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <WrenchScrewdriverIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                <p>No repairs recorded for this event</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {repairs.map((repair) => (
+                  <div
+                    key={repair.repair_id}
+                    className={`border rounded-lg p-4 ${
+                      repair.shop_status === 'open'
+                        ? 'border-yellow-200 bg-yellow-50'
+                        : 'border-green-200 bg-green-50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm font-semibold text-gray-900">
+                            Repair #{repair.repair_seq}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                              repair.shop_status === 'open'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}
+                          >
+                            {repair.shop_status.toUpperCase()}
+                          </span>
+                          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                            {repair.type_maint}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-2">{repair.narrative}</p>
+                        <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                          <span>Started: {new Date(repair.start_date).toLocaleDateString()}</span>
+                          {repair.stop_date && (
+                            <span>Completed: {new Date(repair.stop_date).toLocaleDateString()}</span>
+                          )}
+                          {repair.tag_no && <span>Tag: {repair.tag_no}</span>}
+                          {repair.doc_no && <span>Doc: {repair.doc_no}</span>}
+                          <span>By: {repair.created_by_name}</span>
+                        </div>
+                      </div>
+                      {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                        <button
+                          onClick={() => handleCloseRepair(repair.repair_id)}
+                          disabled={closingRepairId === repair.repair_id}
+                          className="ml-4 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        >
+                          {closingRepairId === repair.repair_id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-700 border-t-transparent mr-1" />
+                              Closing...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircleIcon className="h-4 w-4 mr-1" />
+                              Close Repair
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right column - Asset information */}
@@ -428,13 +677,22 @@ export default function MaintenanceDetailPage() {
             <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Quick Actions</h2>
             <div className="space-y-2">
               {canEdit && event.status === 'open' && (
-                <button
-                  onClick={openEditModal}
-                  className="w-full px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium flex items-center justify-center"
-                >
-                  <PencilSquareIcon className="h-4 w-4 mr-2" />
-                  Edit Event
-                </button>
+                <>
+                  <button
+                    onClick={openEditModal}
+                    className="w-full px-4 py-2 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors text-sm font-medium flex items-center justify-center"
+                  >
+                    <PencilSquareIcon className="h-4 w-4 mr-2" />
+                    Edit Event
+                  </button>
+                  <button
+                    onClick={openCloseEventModal}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center"
+                  >
+                    <LockClosedIcon className="h-4 w-4 mr-2" />
+                    Close Event
+                  </button>
+                </>
               )}
               <button
                 onClick={() => navigate('/maintenance')}
@@ -596,6 +854,144 @@ export default function MaintenanceDetailPage() {
                   <>
                     <CheckCircleIcon className="h-4 w-4 mr-2" />
                     Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Close Event Modal */}
+      <Dialog open={isCloseEventModalOpen} onClose={closeCloseEventModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Close Maintenance Event
+              </Dialog.Title>
+              <button
+                onClick={closeCloseEventModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Success Message */}
+              {closeEventSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{closeEventSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {closeEventError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <p className="text-red-700 text-sm">{closeEventError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Warning about open repairs */}
+              {repairsSummary.open > 0 && !closeEventSuccess && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-yellow-800 font-medium">Open Repairs Detected</p>
+                      <p className="text-yellow-700 text-sm mt-1">
+                        There {repairsSummary.open === 1 ? 'is' : 'are'} {repairsSummary.open} open repair{repairsSummary.open === 1 ? '' : 's'} for this event.
+                        All repairs must be closed before the event can be closed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Confirmation text */}
+              {repairsSummary.open === 0 && !closeEventSuccess && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-blue-700 text-sm">
+                    You are about to close maintenance event <strong>{event?.job_no}</strong>.
+                    This action will mark the job as completed.
+                  </p>
+                </div>
+              )}
+
+              {/* Job Number (read-only) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Job Number
+                </label>
+                <p className="text-lg font-mono font-semibold text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  {event?.job_no}
+                </p>
+              </div>
+
+              {/* Date Out / Stop Job */}
+              <div>
+                <label htmlFor="close_event_date" className="block text-sm font-medium text-gray-700 mb-1">
+                  Date Out (Completion Date) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="close_event_date"
+                  value={closeEventDate}
+                  onChange={(e) => setCloseEventDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  disabled={closeEventLoading || !!closeEventSuccess}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter the date when maintenance work was completed
+                </p>
+              </div>
+
+              {/* Repairs Summary */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Repairs Summary</p>
+                <div className="flex gap-4 text-sm">
+                  <span className="text-gray-600">Total: {repairsSummary.total}</span>
+                  <span className="text-green-600">Closed: {repairsSummary.closed}</span>
+                  <span className={repairsSummary.open > 0 ? 'text-yellow-600 font-medium' : 'text-gray-600'}>
+                    Open: {repairsSummary.open}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeCloseEventModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={closeEventLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCloseEvent}
+                disabled={closeEventLoading || !!closeEventSuccess || repairsSummary.open > 0}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {closeEventLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Closing...
+                  </>
+                ) : (
+                  <>
+                    <LockClosedIcon className="h-4 w-4 mr-2" />
+                    Close Event
                   </>
                 )}
               </button>

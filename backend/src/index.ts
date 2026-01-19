@@ -1902,6 +1902,7 @@ app.get('/api/events', (req, res) => {
   // Get query parameters
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
   const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
+  const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
   const searchQuery = req.query.search as string | undefined;
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = parseInt(req.query.limit as string, 10) || 10;
@@ -1920,6 +1921,12 @@ app.get('/api/events', (req, res) => {
   // Apply status filter if specified
   if (statusFilter === 'open' || statusFilter === 'closed') {
     filteredEvents = filteredEvents.filter(event => event.status === statusFilter);
+  }
+
+  // Apply event type filter if specified
+  const validEventTypes = ['Standard', 'PMI', 'TCTO', 'BIT/PC'];
+  if (eventTypeFilter && validEventTypes.includes(eventTypeFilter)) {
+    filteredEvents = filteredEvents.filter(event => event.event_type === eventTypeFilter);
   }
 
   // Apply search filter if specified
