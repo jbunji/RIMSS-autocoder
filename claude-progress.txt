@@ -1,5 +1,52 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #89)
+
+### Completed This Session:
+- Feature #89: Parts installed tracking in repairs - VERIFIED AND PASSING
+
+**Description:** Installed parts are tracked in repairs
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added InstalledPart interface with fields: installed_part_id, repair_id, event_id, asset_id, asset_sn, asset_pn, asset_name, installation_date, installation_notes, previous_location, installed_by, installed_by_name, created_at
+- Added installedParts array and installedPartNextId counter
+- Added initializeInstalledParts() function with mock data for Repair #1
+- Added GET /api/repairs/:repairId/installed-parts - Get installed parts for a repair
+- Added POST /api/repairs/:repairId/installed-parts - Add installed part to a repair
+- Added DELETE /api/installed-parts/:id - Remove installed part (ADMIN/DEPOT_MANAGER only)
+- Added GET /api/events/:eventId/available-assets - Search assets for installation
+- Asset location updated to "Installed in <asset>" when part is installed
+- Previous location stored for restoration on delete
+
+**Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):**
+- Added InstalledPart and AvailableAsset interfaces
+- Added state for installed parts, modal, search, and selection
+- Added fetchInstalledParts, searchAvailableAssets functions
+- Added openAddInstalledPartModal, closeAddInstalledPartModal, handleAddInstalledPart functions
+- Added Installed Parts UI section to each repair card with count badge
+- Added "Add Part" button for open repairs (only field_tech/depot_mgr)
+- Added Add Installed Part modal with asset search and selection
+- Modal includes installation date and notes fields
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Navigate to repair - MX-2024-001, Repair #2
+3. ✅ Click Add Installed Part - Clicked "Add Part" button, modal opened
+4. ✅ Search for replacement asset - 9 assets displayed, search working
+5. ✅ Select asset - Selected CRIIS-007 (Radar Unit 01)
+6. ✅ Enter installation details - Added notes "Installed replacement radar unit for circuit board repair"
+7. ✅ Save changes - Submitted successfully
+8. ✅ Verify installed part displays - Shows in Repair #2 with count (1)
+9. ✅ Verify asset location updated - CRIIS-007 location changed from "Depot Alpha" to "Installed in CRIIS-005"
+
+**Current Status:**
+- Feature #89 marked as PASSING
+- Commit: 26dc419 "Implement Feature #89: Parts installed tracking in repairs"
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #85)
 
 ### Completed This Session:
@@ -7091,4 +7138,42 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 **Console errors:** None detected
 
 [Testing] Session complete - verified feature #58 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #40 'Asset column filtering works' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Assets table has column-level filters
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123 (John Admin)
+2. ✅ Navigate to Assets page - Successfully navigated to /assets
+3. ✅ Apply filter on status column - Used Status dropdown filter
+4. ✅ Select FMC status - Selected 'FMC - Full Mission Capable'
+5. ✅ Verify only FMC assets display - Table filtered to show 5 assets (all FMC)
+6. ✅ Clear filter - Selected 'All Statuses'
+7. ✅ Verify all assets display - Table restored to show all 10 assets
+
+**Key Validations:**
+- ✅ Status filter dropdown available with all 6 options (All Statuses, FMC, PMC, NMCM, NMCS, CNDM)
+- ✅ Filter correctly reduces displayed assets (10 → 5 for FMC)
+- ✅ Asset count updates dynamically ('10 total assets' → '5 total assets')
+- ✅ Clearing filter restores all assets
+- ✅ All status badges display correctly in the Status column
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature40_assets_all.png - Initial state with 10 assets
+- .playwright-mcp/feature40_assets_fmc_filtered.png - Filtered to FMC only (5 assets)
+- .playwright-mcp/feature40_assets_all_restored.png - Filter cleared, all 10 assets shown
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #40 (no regression found)
 
