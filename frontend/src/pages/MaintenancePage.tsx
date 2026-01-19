@@ -12,6 +12,7 @@ import {
   PlusIcon,
   XMarkIcon,
   TrashIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -129,6 +130,7 @@ export default function MaintenancePage() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [eventTypeFilter, setEventTypeFilter] = useState<string>('') // '' = all, or specific type
   const [activeTab, setActiveTab] = useState(0) // 0 = Backlog (open), 1 = History (closed)
 
   // New Event Modal State
@@ -193,6 +195,10 @@ export default function MaintenancePage() {
         params.append('search', debouncedSearch)
       }
 
+      if (eventTypeFilter) {
+        params.append('event_type', eventTypeFilter)
+      }
+
       const response = await fetch(`http://localhost:3001/api/events?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -213,13 +219,13 @@ export default function MaintenancePage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, debouncedSearch])
+  }, [token, currentProgramId, debouncedSearch, eventTypeFilter])
 
-  // Fetch events when tab changes or search changes
+  // Fetch events when tab changes, search changes, or event type filter changes
   useEffect(() => {
     const status = activeTab === 0 ? 'open' : 'closed'
     fetchEvents(1, status)
-  }, [fetchEvents, activeTab, debouncedSearch])
+  }, [fetchEvents, activeTab, debouncedSearch, eventTypeFilter])
 
   // Refetch when program changes
   useEffect(() => {
@@ -520,9 +526,10 @@ export default function MaintenancePage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
+      {/* Search and Filters */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+        {/* Search */}
+        <div className="relative flex-1">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
@@ -531,6 +538,27 @@ export default function MaintenancePage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
+        </div>
+
+        {/* Event Type Filter */}
+        <div className="relative sm:w-56">
+          <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <select
+            value={eventTypeFilter}
+            onChange={(e) => setEventTypeFilter(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white"
+          >
+            <option value="">All Event Types</option>
+            <option value="Standard">Standard</option>
+            <option value="PMI">PMI (Periodic Maintenance)</option>
+            <option value="TCTO">TCTO (Time Compliance)</option>
+            <option value="BIT/PC">BIT/PC (Built-In Test)</option>
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+            </svg>
+          </div>
         </div>
       </div>
 

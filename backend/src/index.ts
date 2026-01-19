@@ -3665,6 +3665,58 @@ app.post('/api/assets/:id/eti', (req, res) => {
   });
 });
 
+// GET /api/assets/:id/events - Get maintenance events linked to an asset
+app.get('/api/assets/:id/events', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = mockAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Find all maintenance events linked to this asset
+  const assetEvents = maintenanceEvents
+    .filter(e => e.asset_id === assetId)
+    .sort((a, b) => new Date(b.start_job).getTime() - new Date(a.start_job).getTime());
+
+  // Calculate summary statistics
+  const summary = {
+    total: assetEvents.length,
+    open: assetEvents.filter(e => e.status === 'open').length,
+    closed: assetEvents.filter(e => e.status === 'closed').length,
+    by_type: {
+      standard: assetEvents.filter(e => e.event_type === 'Standard').length,
+      pmi: assetEvents.filter(e => e.event_type === 'PMI').length,
+      tcto: assetEvents.filter(e => e.event_type === 'TCTO').length,
+      bitpc: assetEvents.filter(e => e.event_type === 'BIT/PC').length,
+    },
+  };
+
+  console.log(`[ASSETS] Events request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${assetEvents.length} events`);
+
+  res.json({
+    asset_id: assetId,
+    serno: asset.serno,
+    events: assetEvents,
+    summary,
+    total: assetEvents.length,
+  });
+});
+
 // PUT /api/assets/:id - Update an existing asset (requires authentication and depot_manager/admin role)
 app.put('/api/assets/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
