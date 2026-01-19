@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 
@@ -7,13 +7,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState<string | null>(null)
 
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuthStore()
+  const { login, sessionExpired, setSessionExpired } = useAuthStore()
 
   // Get the redirect path from location state, or default to dashboard
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+
+  // Check for session expiration from location state or store
+  useEffect(() => {
+    const locationState = location.state as { sessionExpired?: boolean; message?: string } | null
+
+    if (locationState?.sessionExpired || sessionExpired) {
+      const message = locationState?.message || 'Your session has expired due to inactivity. Please log in again.'
+      setSessionExpiredMessage(message)
+
+      // Clear the sessionExpired flag in store after showing message
+      if (sessionExpired) {
+        setSessionExpired(false)
+      }
+
+      // Clear location state to prevent message showing again on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, sessionExpired, setSessionExpired])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,6 +95,18 @@ export default function LoginPage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
                 Sign In
               </h2>
+
+              {/* Session Expired Message */}
+              {sessionExpiredMessage && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md" data-testid="session-expired-message">
+                  <div className="flex items-center">
+                    <svg className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="text-sm text-yellow-700">{sessionExpiredMessage}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Error Message */}
               {error && (

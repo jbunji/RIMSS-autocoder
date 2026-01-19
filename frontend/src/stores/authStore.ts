@@ -22,12 +22,14 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   currentProgramId: number | null
+  sessionExpired: boolean
 
   // Actions
   setUser: (user: User | null) => void
   setToken: (token: string | null) => void
   setLoading: (loading: boolean) => void
   setCurrentProgram: (programId: number) => void
+  setSessionExpired: (expired: boolean) => void
   login: (user: User, token: string) => void
   logout: () => void
   clearAuth: () => void
@@ -41,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: true,
       currentProgramId: null,
+      sessionExpired: false,
 
       setUser: (user) => set({
         user,
@@ -54,11 +57,14 @@ export const useAuthStore = create<AuthState>()(
 
       setCurrentProgram: (programId) => set({ currentProgramId: programId }),
 
+      setSessionExpired: (sessionExpired) => set({ sessionExpired }),
+
       login: (user, token) => set({
         user,
         token,
         isAuthenticated: true,
         isLoading: false,
+        sessionExpired: false,
         currentProgramId: user.programs?.find(p => p.is_default)?.pgm_id || user.programs?.[0]?.pgm_id || null
       }),
 
