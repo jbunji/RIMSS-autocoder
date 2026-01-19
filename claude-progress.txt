@@ -1,5 +1,61 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #67)
+
+### Completed This Session:
+- Feature #67: Edit maintenance event - IMPLEMENTED AND PASSING
+
+**Description:** Users can modify event details
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added PUT /api/events/:id endpoint for updating maintenance events
+- Fields that can be updated: discrepancy, event_type, priority, etic, location, status
+- Role-based access control (ADMIN, DEPOT_MANAGER, FIELD_TECHNICIAN can edit)
+- Program-based data isolation validation
+- Handles status changes (auto-sets stop_job when closing)
+
+**Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):**
+- Added "Edit Event" button to page header (visible for authorized roles)
+- Edit button only shown for open events (not closed)
+- Added Dialog modal for editing maintenance events
+- Form includes:
+  - Job Number (read-only display)
+  - Discrepancy description textarea (required)
+  - ETIC date picker (optional)
+  - Priority select: Routine, Urgent, Critical
+  - Location text input
+- Form validation with error messages
+- Success message display after save
+- UI automatically updates with new values after save
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as field_tech/field123 (Bob Field)
+2. ✅ Navigate to Maintenance page - Successfully navigated to /maintenance
+3. ✅ Click edit on existing open event - Clicked on MX-2024-003 (Sensor Unit B)
+4. ✅ Modify discrepancy description - Changed to "FEATURE67_TEST_EDIT - Scheduled PMI - 90-day calibration. Updated calibration schedule and added sensor alignment check."
+5. ✅ Update ETIC date - Set to 2026-01-28
+6. ✅ Save changes - Clicked "Save Changes" button
+7. ✅ Verify changes persist - Both discrepancy and ETIC updated on detail page and in list view
+
+**Screenshots:**
+- .playwright-mcp/feature67_maintenance_detail_before_edit.png - Detail page before editing
+- .playwright-mcp/feature67_edit_modal_open.png - Edit modal showing form
+- .playwright-mcp/feature67_edit_form_filled.png - Form with updated values
+- .playwright-mcp/feature67_final_test_form_filled.png - Final test form filled
+- .playwright-mcp/feature67_changes_persisted_final.png - Changes persisted on detail page
+- .playwright-mcp/feature67_list_shows_updated_discrepancy.png - Updated discrepancy in list
+
+**Console errors:** None related to feature
+
+### Current Status:
+- Feature #67 marked as PASSING
+- Commit: 7b4ade3 "Implement Feature #67: Edit maintenance event"
+- 66/374 features complete (~17.6%)
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #66)
 
 ### Completed This Session:
@@ -5453,3 +5509,33 @@ The backend validation was already implemented in previous commits. The validati
 - feature30_tablet_sidebar_overlay.png
 
 [Testing] Session complete - verified feature #30 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #4 'CUI banner displays correctly in header' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to any authenticated page - Verified on login page and dashboard
+2. ✅ Verify yellow CUI banner in header - Present with class 'bg-cui-bg'
+3. ✅ Verify banner text reads 'CUI' or 'Controlled Unclassified Information' - Text: 'CUI - Controlled Unclassified Information'
+4. ✅ Verify banner uses yellow background (#FEF3C7) - Confirmed: rgb(254, 243, 199)
+5. ✅ Verify banner text is black - Confirmed: rgb(0, 0, 0)
+
+**Additional Notes:**
+- CUI banner appears on both authenticated and unauthenticated pages
+- Banner also present in footer for consistent CUI marking
+- Styling verified via browser JavaScript evaluation
+
+**Screenshots:**
+- .playwright-mcp/feature4_cui_banner_login.png
+- .playwright-mcp/feature4_cui_banner_dashboard.png
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #4 (no regression found)
+
