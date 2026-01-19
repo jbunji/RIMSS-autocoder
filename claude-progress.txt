@@ -1157,3 +1157,52 @@ displays correctly regardless of authentication state.
 
 [Testing] Session complete - verified feature #3 (no regression found)
 
+---
+
+## Session: 2026-01-19 (Agent working on Feature #20)
+
+### Completed This Session:
+- Feature #20: Dashboard loads for authenticated user - VERIFIED AND PASSING
+
+**Feature Description:** Dashboard page loads with widgets for logged in users
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Tested with admin/admin123 and field_tech/field123
+2. ✅ Verify redirect to dashboard - Both users redirected to http://localhost:5173/dashboard after login
+3. ✅ Verify dashboard title displays - "Dashboard" heading (level 1) displayed prominently
+4. ✅ Verify page loads without errors - No console errors, all API calls returned 200 OK
+5. ✅ Verify loading states complete - Dashboard fully rendered with all widgets
+
+**Dashboard Features Verified:**
+- Welcome message with user name (e.g., "Welcome, John Admin" / "Welcome, Bob Field")
+- User role displayed (e.g., "You are logged in as ADMIN" / "FIELD TECHNICIAN")
+- Current program displayed (e.g., "Current Program: Common Remotely Operated...")
+- 4 dashboard widgets displayed:
+  - Asset Status Summary
+  - PMI Due Soon
+  - Open Maintenance Jobs
+  - Parts Awaiting Action
+- Navigation sidebar with all menu items
+- CUI banners in header and footer
+- User dropdown in top right with profile/settings/sign out options
+
+**Network Requests Verified:**
+- POST /api/auth/login => 200 OK
+- GET /api/auth/me => 200 OK
+
+**Screenshots:**
+- .playwright-mcp/feature20_dashboard_loaded.png - Dashboard for admin user
+- .playwright-mcp/feature20_dashboard_field_tech.png - Dashboard for field technician
+
+**No console errors detected.**
+
+### Current Status:
+- Feature #20 marked as PASSING
+- Features Passing: 18/373 (~4.8%)
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Dashboard correctly displays different information based on logged-in user
+- Role-based sidebar visibility works (Administration section only for admin users)
+
