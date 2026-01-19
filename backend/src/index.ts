@@ -1356,6 +1356,10 @@ let maintenanceEvents: MaintenanceEvent[] = [];
 let maintenanceEventNextId = 11; // Start after mock data IDs
 let maintenanceJobNextSeq = 11; // Start after mock job numbers (MX-2024-010)
 
+// Location-based job number tracking
+// Key: location string, Value: next sequence number for that location
+const locationJobSeqMap: Map<string, number> = new Map();
+
 // Initialize maintenance events on startup
 function initializeMaintenanceEvents(): void {
   const today = new Date();
@@ -1526,6 +1530,33 @@ function initializeMaintenanceEvents(): void {
 
 // Initialize maintenance events on server start
 initializeMaintenanceEvents();
+
+// Initialize location job sequence tracking based on existing events
+// This ensures new job numbers don't conflict with existing ones
+function initializeLocationJobSeqMap(): void {
+  // Group existing events by location and find the highest sequence per location
+  maintenanceEvents.forEach(event => {
+    const currentMax = locationJobSeqMap.get(event.location) || 0;
+    // Try to parse the sequence from the job number
+    // Format: MX-{PREFIX}-{YEAR}-{SEQ} or legacy MX-{YEAR}-{SEQ}
+    const parts = event.job_no.split('-');
+    if (parts.length >= 2) {
+      const seqStr = parts[parts.length - 1]; // Last part is always the sequence
+      const seq = parseInt(seqStr, 10);
+      if (!isNaN(seq) && seq > currentMax) {
+        locationJobSeqMap.set(event.location, seq);
+      }
+    }
+  });
+
+  // Increment each location's sequence so new events start after existing ones
+  locationJobSeqMap.forEach((seq, location) => {
+    locationJobSeqMap.set(location, seq + 1);
+  });
+
+  console.log('[EVENTS] Location job sequence map initialized:', Object.fromEntries(locationJobSeqMap));
+}
+initializeLocationJobSeqMap();
 
 // Repair interface for maintenance event repairs
 interface Repair {
@@ -1780,11 +1811,30 @@ function initializeRepairs(): void {
 // Initialize repairs on server start
 initializeRepairs();
 
-// Helper function to generate job number
-function generateJobNumber(): string {
+// Helper function to generate location prefix from location name
+function getLocationPrefix(location: string): string {
+  // Create a short prefix from the location name
+  // e.g., "Depot Alpha" -> "DA", "Field Site Bravo" -> "FSB"
+  const words = location.trim().split(/\s+/);
+  if (words.length === 1) {
+    // Single word: use first 3 characters
+    return words[0].substring(0, 3).toUpperCase();
+  }
+  // Multiple words: use first letter of each word
+  return words.map(w => w.charAt(0).toUpperCase()).join('');
+}
+
+// Helper function to generate job number unique per location
+function generateJobNumber(location: string): string {
   const year = new Date().getFullYear();
-  const seq = String(maintenanceJobNextSeq++).padStart(3, '0');
-  return `MX-${year}-${seq}`;
+  const prefix = getLocationPrefix(location);
+
+  // Get or initialize the sequence for this location
+  const currentSeq = locationJobSeqMap.get(location) || 1;
+  locationJobSeqMap.set(location, currentSeq + 1);
+
+  const seq = String(currentSeq).padStart(3, '0');
+  return `MX-${prefix}-${year}-${seq}`;
 }
 
 // Dashboard: Get open maintenance jobs (requires authentication)
@@ -2007,9 +2057,12 @@ app.post('/api/events', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this asset\'s program' });
   }
 
-  // Generate new event ID and job number
+  // Determine the location for this event
+  const eventLocation = location || asset.admin_loc || 'Unknown';
+
+  // Generate new event ID and job number (unique per location)
   const newEventId = maintenanceEventNextId++;
-  const newJobNo = generateJobNumber();
+  const newJobNo = generateJobNumber(eventLocation);
 
   // Create the new maintenance event
   const newEvent: MaintenanceEvent = {
@@ -2025,7 +2078,7 @@ app.post('/api/events', (req, res) => {
     priority: priority || 'Routine',
     status: 'open',
     pgm_id: asset.pgm_id,
-    location: location || asset.admin_loc || 'Unknown',
+    location: eventLocation,
     etic: etic || null,
     created_by_id: user.user_id,
     created_by_name: `${user.first_name} ${user.last_name}`,

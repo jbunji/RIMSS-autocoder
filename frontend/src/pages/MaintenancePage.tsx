@@ -11,6 +11,7 @@ import {
   CheckCircleIcon,
   PlusIcon,
   XMarkIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -147,9 +148,17 @@ export default function MaintenancePage() {
     location: '',
   })
 
+  // Delete Event Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [eventToDelete, setEventToDelete] = useState<MaintenanceEvent | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null)
+
   // Get user info from token to check role
   const { user } = useAuthStore()
   const canCreateEvent = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
+  const canDeleteEvent = user && user.role === 'ADMIN'
 
   // Debounce search input
   useEffect(() => {
@@ -359,6 +368,60 @@ export default function MaintenancePage() {
       setNewEventError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setNewEventLoading(false)
+    }
+  }
+
+  // Open delete confirmation modal
+  const openDeleteModal = (event: MaintenanceEvent, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent row click navigation
+    setEventToDelete(event)
+    setDeleteError(null)
+    setDeleteSuccess(null)
+    setIsDeleteModalOpen(true)
+  }
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setEventToDelete(null)
+    setDeleteError(null)
+    setDeleteSuccess(null)
+  }
+
+  // Handle delete event
+  const handleDeleteEvent = async () => {
+    if (!token || !eventToDelete) return
+
+    setDeleteLoading(true)
+    setDeleteError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/events/${eventToDelete.event_id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete maintenance event')
+      }
+
+      const data = await response.json()
+      const repairsMsg = data.repairs_deleted > 0 ? ` (${data.repairs_deleted} repair(s) also removed)` : ''
+      setDeleteSuccess(`Maintenance event "${data.event.job_no}" deleted successfully!${repairsMsg}`)
+
+      // Refresh the events list after a short delay to show success message
+      setTimeout(() => {
+        closeDeleteModal()
+        const status = activeTab === 0 ? 'open' : 'closed'
+        fetchEvents(1, status)
+      }, 1500)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -704,6 +767,119 @@ export default function MaintenancePage() {
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* Delete Event Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onClose={closeDeleteModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Delete Maintenance Event
+              </Dialog.Title>
+              <button
+                onClick={closeDeleteModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {/* Success Message */}
+              {deleteSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{deleteSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {deleteError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <p className="text-red-700 text-sm">{deleteError}</p>
+                </div>
+              )}
+
+              {!deleteSuccess && (
+                <>
+                  {/* Warning */}
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center">
+                      <ExclamationCircleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
+                      <p className="text-red-700 text-sm">
+                        Are you sure you want to delete this maintenance event? This action cannot be undone.
+                        All related repairs will also be deleted.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Event Details */}
+                  {eventToDelete && (
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Job Number:</span>
+                        <span className="text-sm font-mono font-semibold text-primary-600">{eventToDelete.job_no}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Asset:</span>
+                        <span className="text-sm font-medium text-gray-900">{eventToDelete.asset_sn} - {eventToDelete.asset_name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Status:</span>
+                        <span className={classNames(
+                          'text-xs font-medium px-2 py-0.5 rounded-full',
+                          eventToDelete.status === 'open' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                        )}>
+                          {eventToDelete.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Priority:</span>
+                        <span className="text-sm text-gray-900">{eventToDelete.priority}</span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            {!deleteSuccess && (
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                <button
+                  onClick={closeDeleteModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteEvent}
+                  disabled={deleteLoading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {deleteLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-4 w-4 mr-2" />
+                      Delete Event
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   )
 
@@ -777,6 +953,11 @@ export default function MaintenancePage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
+                {canDeleteEvent && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -852,6 +1033,17 @@ export default function MaintenancePage() {
                         {event.status.toUpperCase()}
                       </span>
                     </td>
+                    {canDeleteEvent && (
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <button
+                          onClick={(e) => openDeleteModal(event, e)}
+                          className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+                          title={`Delete ${event.job_no}`}
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 )
               })}
