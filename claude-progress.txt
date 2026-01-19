@@ -2696,3 +2696,111 @@ Fixed by:
 - Role-based access: Only ADMIN and DEPOT_MANAGER can see the Add Asset button
 - Form validation prevents invalid data submission
 - All dropdowns populated from backend reference data
+
+---
+
+## Testing Session: 2026-01-19 12:53
+
+[Testing] Feature #8 'User can log out' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Click user menu in header - Clicked 'John Admin' button in header
+3. ✅ Click logout button - Clicked 'Sign out' menuitem from dropdown
+4. ✅ Verify redirect to login page - Confirmed redirect to /login
+5. ✅ Verify JWT token is cleared - localStorage.getItem('token') returns null
+6. ✅ Verify session data is cleared - localStorage.getItem('user') returns null
+7. ✅ Verify cannot access protected routes - Navigating to /dashboard redirects to /login
+
+**Screenshots:**
+- .playwright-mcp/feature8_regression_user_menu_open.png - User menu dropdown open
+- .playwright-mcp/feature8_regression_after_logout.png - Login page after logout
+- .playwright-mcp/feature8_regression_protected_route_blocked.png - Protected route blocked
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #8 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 12:54
+
+[Testing] Feature #27 'Dashboard filters by selected program' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as user with multiple programs - Logged in as admin (has CRIIS, ACTS, ARDS, 236)
+2. ✅ Select CRIIS program - Dashboard showed CRIIS data:
+   - Total Assets: 11, Mission Capability Rate: 73%
+   - FMC: 6, PMC: 2, NMCM: 1, NMCS: 1, CNDM: 1
+   - 'Data for program: CRIIS' label
+   - 4 Open Maintenance Jobs, 7 PMI items
+3. ✅ Verify dashboard data shows CRIIS data only - Confirmed
+4. ✅ Switch to ACTS program - Used program dropdown
+5. ✅ Verify dashboard data updates to ACTS data only - Dashboard updated:
+   - Total Assets: 6, Mission Capability Rate: 67%
+   - FMC: 3, PMC: 1, NMCM: 1, NMCS: 1, CNDM: 0
+   - 'Data for program: ACTS' label
+   - 2 Open Maintenance Jobs, 2 PMI items
+   - Different parts orders specific to ACTS
+
+**Screenshots:**
+- .playwright-mcp/feature27_regression_criis_dashboard.png - Dashboard with CRIIS selected
+- .playwright-mcp/feature27_regression_acts_dashboard.png - Dashboard with ACTS selected
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #27 (no regression found)
+
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #35)
+
+### Completed This Session:
+- Feature #35: Asset serial number uniqueness validation - VERIFIED AND PASSING
+
+**Feature Description:** System prevents duplicate serial number + part number combinations
+
+**Implementation:**
+1. **Backend** - Updated POST /api/assets endpoint in backend/src/index.ts:
+   - Changed duplicate validation from serial-only to serial + part number combination
+   - Old check: `a.serno === serno && a.pgm_id === pgm_id`
+   - New check: `a.serno === serno && a.partno === partno && a.pgm_id === pgm_id`
+   - Updated error message to show both serial number and part number
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager - Logged in as depot_mgr/depot123
+2. ✅ Navigate to Assets page - Clicked Assets in sidebar, navigated to /assets
+3. ✅ Create asset with serial 'TEST123' and part 'PN001' - Created successfully, shown in table
+4. ✅ Attempt to create another asset with same serial and part - Form filled, submitted
+5. ✅ Verify error message about duplicate - Error displayed: "An asset with serial number 'TEST123' and part number 'PN001' already exists in this program"
+6. ✅ Verify second asset not created - Total count remained at 11, only one TEST123 in list
+
+**Screenshots:**
+- .playwright-mcp/feature35_first_asset_created.png - Assets page after first TEST123/PN001 created
+- .playwright-mcp/feature35_duplicate_error_message.png - Error message shown on duplicate attempt
+- .playwright-mcp/feature35_verified_no_duplicate_created.png - Final state showing no duplicate
+
+**No console errors detected** (400 Bad Request on duplicate is expected behavior)
+
+**Commit:** b1f3181 - Implement Feature #35: Asset serial number uniqueness validation
+
+### Current Status:
+- Feature #35 marked as PASSING
+- Features Passing: 33/374 (8.8%)
+
+### What Was Changed:
+- backend/src/index.ts - Updated duplicate validation to check serial + part number combination
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Validation is case-insensitive (uses toLowerCase() for comparison)
+- Uniqueness is enforced within the same program (pgm_id)
+
