@@ -583,6 +583,316 @@ export default function MaintenancePage() {
     setExpandedGroups(new Set())
   }
 
+  // Format date for display
+  const formatDateForExport = (dateString: string | null) => {
+    if (!dateString) return '-'
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  // Get ZULU timestamp for display
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  // Export maintenance events to PDF with CUI markings
+  const exportToPdf = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+
+      // Timestamp on footer
+      doc.text(`Generated: ${zuluTimestamp}`, 15, pageHeight - 5, { align: 'left' })
+    }
+
+    // Add title section after header
+    const addTitle = () => {
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(30, 64, 175) // Primary blue
+      doc.text('RIMSS Maintenance Events Report', pageWidth / 2, 20, { align: 'center' })
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(55, 65, 81) // Gray
+      const programText = program ? `Program: ${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'
+      doc.text(programText, pageWidth / 2, 27, { align: 'center' })
+
+      doc.setFontSize(9)
+      doc.text(`Report generated: ${zuluTimestamp}`, pageWidth / 2, 33, { align: 'center' })
+
+      // Status info
+      const statusText = activeTab === 0 ? 'Status: Open Events (Backlog)' : 'Status: Closed Events (History)'
+      doc.text(statusText, pageWidth / 2, 38, { align: 'center' })
+      doc.text(`Total Events: ${pagination.total}`, pageWidth / 2, 43, { align: 'center' })
+
+      // Add filter info if applied
+      const filters: string[] = []
+      if (eventTypeFilter) filters.push(`Event Type: ${eventTypeFilter}`)
+      if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
+      if (pqdrFilter) filters.push('PQDR Only')
+      if (dateFromFilter) filters.push(`From: ${dateFromFilter}`)
+      if (dateToFilter) filters.push(`To: ${dateToFilter}`)
+
+      if (filters.length > 0) {
+        doc.setFontSize(8)
+        doc.setTextColor(107, 114, 128)
+        doc.text(`Filters: ${filters.join(', ')}`, pageWidth / 2, 48, { align: 'center' })
+      }
+    }
+
+    // Prepare table data
+    const tableData = events.map(event => {
+      const daysOpen = calculateDaysOpen(event.start_job, event.stop_job)
+      return [
+        event.job_no + (event.pqdr ? ' (PQDR)' : ''),
+        event.asset_sn,
+        event.asset_name,
+        event.discrepancy.length > 50 ? event.discrepancy.substring(0, 47) + '...' : event.discrepancy,
+        event.event_type,
+        event.priority,
+        event.location,
+        formatDateForExport(event.start_job),
+        `${daysOpen} day${daysOpen !== 1 ? 's' : ''}`,
+        event.status.toUpperCase()
+      ]
+    })
+
+    // Add header to first page
+    addCuiHeader()
+    addTitle()
+
+    // Calculate start Y position based on filters
+    const filters: string[] = []
+    if (eventTypeFilter) filters.push(`Event Type: ${eventTypeFilter}`)
+    if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
+    if (pqdrFilter) filters.push('PQDR Only')
+    if (dateFromFilter) filters.push(`From: ${dateFromFilter}`)
+    if (dateToFilter) filters.push(`To: ${dateToFilter}`)
+    const startY = filters.length > 0 ? 53 : 48
+
+    // Generate table with autoTable
+    autoTable(doc, {
+      startY: startY,
+      head: [['Job #', 'Serial #', 'Asset Name', 'Discrepancy', 'Type', 'Priority', 'Location', 'Date In', 'Duration', 'Status']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [30, 64, 175], // Primary blue
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 8
+      },
+      bodyStyles: {
+        fontSize: 7,
+        textColor: [55, 65, 81]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251] // Light gray
+      },
+      margin: { top: 15, bottom: 15, left: 5, right: 5 },
+      didDrawPage: () => {
+        // Add CUI header on each page
+        addCuiHeader()
+      },
+      // Style specific columns
+      columnStyles: {
+        0: { cellWidth: 25 },  // Job #
+        1: { cellWidth: 25 },  // Serial #
+        2: { cellWidth: 35 },  // Asset Name
+        3: { cellWidth: 55 },  // Discrepancy
+        4: { cellWidth: 20 },  // Type
+        5: { cellWidth: 20 },  // Priority
+        6: { cellWidth: 30 },  // Location
+        7: { cellWidth: 25 },  // Date In
+        8: { cellWidth: 22 },  // Duration
+        9: { cellWidth: 20 },  // Status
+      }
+    })
+
+    // Get total pages and add footers
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addCuiFooter(i, totalPages)
+    }
+
+    // Generate filename with CUI prefix and ZULU date
+    const statusSuffix = activeTab === 0 ? 'Open' : 'Closed'
+    const filename = `CUI_Maintenance_${statusSuffix}_${getZuluDateForFilename()}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  // Export maintenance events to Excel with CUI markings
+  const exportToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = [`RIMSS Maintenance Events Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Status: ${activeTab === 0 ? 'Open Events (Backlog)' : 'Closed Events (History)'}`]
+    const reportInfoRow4 = [`Total Events: ${pagination.total}`]
+
+    // Filter info
+    const filters: string[] = []
+    if (eventTypeFilter) filters.push(`Event Type: ${eventTypeFilter}`)
+    if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
+    if (pqdrFilter) filters.push('PQDR Only')
+    if (dateFromFilter) filters.push(`From: ${dateFromFilter}`)
+    if (dateToFilter) filters.push(`To: ${dateToFilter}`)
+    const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
+
+    // Table header row
+    const headerRow = ['Job Number', 'Serial Number', 'Asset Name', 'Discrepancy', 'Event Type', 'Priority', 'Status', 'Location', 'Date In (ZULU)', 'Date Out (ZULU)', 'Days Open/Duration', 'PQDR Flag']
+
+    // Data rows
+    const dataRows = events.map(event => {
+      const daysOpen = calculateDaysOpen(event.start_job, event.stop_job)
+      // Format dates in ZULU
+      const dateInZulu = event.start_job ? new Date(event.start_job).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z') : ''
+      const dateOutZulu = event.stop_job ? new Date(event.stop_job).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z') : ''
+
+      return [
+        event.job_no,
+        event.asset_sn,
+        event.asset_name,
+        event.discrepancy,
+        event.event_type,
+        event.priority,
+        event.status.toUpperCase(),
+        event.location,
+        dateInZulu,
+        dateOutZulu,
+        `${daysOpen} day${daysOpen !== 1 ? 's' : ''}`,
+        event.pqdr ? 'Yes' : 'No'
+      ]
+    })
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      reportInfoRow4,
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 15 },  // Job Number
+      { wch: 15 },  // Serial Number
+      { wch: 25 },  // Asset Name
+      { wch: 50 },  // Discrepancy
+      { wch: 12 },  // Event Type
+      { wch: 10 },  // Priority
+      { wch: 10 },  // Status
+      { wch: 20 },  // Location
+      { wch: 22 },  // Date In (ZULU)
+      { wch: 22 },  // Date Out (ZULU)
+      { wch: 15 },  // Days Open/Duration
+      { wch: 10 },  // PQDR Flag
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Status
+      { s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } }, // Total events
+      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
+    ]
+
+    // Add filter merge if applicable
+    if (filterRow.length) {
+      ws['!merges']!.push({ s: { r: 6, c: 0 }, e: { r: 6, c: numCols - 1 } })
+    }
+
+    // Add worksheet to workbook
+    const statusSuffix = activeTab === 0 ? 'Open' : 'Closed'
+    XLSX.utils.book_append_sheet(wb, ws, `Maintenance_${statusSuffix}`)
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_Maintenance_${statusSuffix}_${getZuluDateForFilename()}.xlsx`
+
+    // Write the file and trigger download
+    XLSX.writeFile(wb, filename)
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -599,15 +909,41 @@ export default function MaintenancePage() {
               )}
             </div>
           </div>
-          {canCreateEvent && (
+          <div className="flex items-center gap-3">
+            {/* Export PDF Button */}
             <button
-              onClick={openNewEventModal}
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              type="button"
+              onClick={exportToPdf}
+              disabled={events.length === 0}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Export to PDF with CUI markings"
             >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              New Event
+              <DocumentArrowDownIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              Export PDF
             </button>
-          )}
+            {/* Export Excel Button */}
+            <button
+              type="button"
+              onClick={exportToExcel}
+              disabled={events.length === 0}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Export to Excel with CUI markings"
+            >
+              <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Export Excel
+            </button>
+            {canCreateEvent && (
+              <button
+                onClick={openNewEventModal}
+                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                New Event
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
