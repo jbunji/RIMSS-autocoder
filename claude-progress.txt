@@ -396,3 +396,66 @@ displays correctly regardless of authentication state.
 - Feature was already fully implemented, just needed verification
 - Both invalid username and wrong password scenarios work correctly
 - Security: Error message doesn't reveal whether username exists (same message for both cases)
+
+## Testing Session: 2026-01-19 11:56
+
+[Testing] Feature #6 'User can log in with valid credentials' verified - still PASSING
+  - Navigated to login page at http://localhost:5173/login
+  - Entered valid username: 'admin'
+  - Entered valid password: 'admin123'
+  - Clicked Sign In button
+  - Verified redirect to dashboard (/dashboard) ✅
+  - Verified user session established: 'Welcome, John Admin', role 'ADMIN' ✅
+  - Verified JWT token stored in localStorage under 'rimss-auth-storage' ✅
+  - No console errors detected
+  - Screenshot saved: .playwright-mcp/regression_feature6_login_success.png
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #8)
+
+### Completed This Session:
+- Feature #8: User can log out - VERIFIED AND PASSING
+
+**Implementation:**
+- Logout functionality was already implemented by previous agents
+- Navbar.tsx has handleLogout function that calls authStore.logout() and navigates to /login
+- authStore.logout() clears: user, token, isAuthenticated, isLoading, currentProgramId
+- Backend has POST /api/auth/logout endpoint (mock implementation)
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Click user menu in header - Opened user menu dropdown showing user info
+3. ✅ Click logout button - Clicked "Sign out" button in user menu
+4. ✅ Verify redirect to login page - URL changed from /dashboard to /login
+5. ✅ Verify JWT token is cleared - Token in localStorage changed from JWT string to null
+6. ✅ Verify session data is cleared - currentProgramId changed from 1 to null
+7. ✅ Verify cannot access protected routes - Navigating to /dashboard and /assets redirects to /login
+
+**localStorage Before Logout:**
+```json
+{"state":{"token":"eyJ1c2VySWQiOjEsImlhdCI6MTc2ODg0MTcxMjM5NSwiZXhwIjoxNzY4ODQzNTEyMzk1fQ==","currentProgramId":1},"version":0}
+```
+
+**localStorage After Logout:**
+```json
+{"state":{"token":null,"currentProgramId":null},"version":0}
+```
+
+**Screenshots:**
+- .playwright-mcp/feature8_logged_in_dashboard.png - Dashboard before logout
+- .playwright-mcp/feature8_user_menu_open.png - User menu with Sign out option
+- .playwright-mcp/feature8_after_logout.png - Login page after logout
+- .playwright-mcp/feature8_protected_route_blocked.png - Redirect to login when accessing protected route
+
+### Current Status:
+- Features Passing: 7 (Features #1, #2, #3, #4, #5, #6, #8)
+- Total Features: 372
+- Completion: ~1.9%
+
+### Notes:
+- No code changes required - logout functionality was already properly implemented
+- Zustand persist middleware properly clears token from localStorage on logout
+- ProtectedRoute component correctly redirects unauthenticated users to /login
+- No console errors during logout flow
+
