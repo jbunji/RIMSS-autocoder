@@ -312,3 +312,87 @@
 - All authentication infrastructure working correctly
 - Login flow: enter credentials -> POST /api/auth/login -> store token in Zustand/localStorage -> redirect to dashboard
 
+
+## Testing Session: 2026-01-19 11:54
+
+[Testing] Feature #4 'CUI banner displays correctly in header' verified - still PASSING
+  - Login page loads correctly at http://localhost:5178/login
+  - CUI banner present in header (DIV element at top of page)
+  - CUI banner present in footer (fixed position at bottom)
+  - Banner text: 'CUI - Controlled Unclassified Information' ✅
+  - Background color verified: rgb(254, 243, 199) = #FEF3C7 (yellow) ✅
+  - Text color verified: rgb(0, 0, 0) = #000000 (black) ✅
+  - Screenshot saved: .playwright-mcp/regression_test_feature4_cui_header_banner.png
+
+Note: CORS error detected when attempting login - this is a configuration issue 
+affecting authentication (CORS allows port 5173, frontend on 5178) but does NOT 
+affect Feature #4 (CUI banner display). CUI banner feature is purely visual and 
+displays correctly regardless of authentication state.
+
+[Testing] 2026-01-19 11:55 Feature #5 'CUI marking displays correctly in footer' verified - still PASSING
+  - Verified on Login page, Dashboard, and Assets page
+  - Footer text: 'CUI - Controlled Unclassified Information'
+  - Footer styling: fixed position, bottom: 0px, yellow bg (#FEF3C7), black text
+  - No console errors detected
+  - Screenshots saved: regression_feature5_*.png
+
+## Testing Session: 2026-01-19 11:55
+
+[Testing] Feature #5 'CUI marking displays correctly in footer' verified - still PASSING
+  - Tested on: /login, /dashboard, /assets pages
+  - Footer position: fixed, bottom: 0px (correctly anchored)
+  - Background color: rgb(254, 243, 199) = #FEF3C7 ✅
+  - Text color: rgb(0, 0, 0) = #000000 (black) ✅
+  - Footer text: 'CUI - Controlled Unclassified Information' ✅
+  - No console errors detected
+  - Screenshots saved:
+    - .playwright-mcp/regression_feature5_login_footer.png
+    - .playwright-mcp/regression_feature5_dashboard_footer.png
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #7)
+
+### Completed This Session:
+- Feature #7: User cannot log in with invalid credentials - VERIFIED AND PASSING
+
+**Implementation:**
+- Login validation was already implemented by previous agents
+- Backend POST /api/auth/login correctly returns 401 Unauthorized for invalid credentials
+- Frontend LoginPage.tsx displays error message from API response
+- No session/token is created when login fails
+
+**Testing Steps Verified:**
+1. ✅ Navigate to login page - http://localhost:5173/login
+2. ✅ Enter invalid username - "invalid_user_test123" entered
+3. ✅ Enter any password - "wrong_password_456" entered
+4. ✅ Click login button - Sign In button clicked
+5. ✅ Verify error message displays - "Invalid username or password" shown in red
+6. ✅ Verify user remains on login page - URL stayed at /login
+7. ✅ Verify no session is created - localStorage has no token or auth-storage
+
+**Additional Test:**
+- Tested valid username "admin" with wrong password "completely_wrong_password"
+- Same behavior: error message displayed, user stays on login page, no session created
+
+**Screenshots:**
+- .playwright-mcp/feature7_login_page_initial.png - Initial login page
+- .playwright-mcp/feature7_invalid_creds_entered.png - Form with invalid credentials
+- .playwright-mcp/feature7_error_message_displayed.png - Error message after failed login
+- .playwright-mcp/feature7_valid_user_wrong_password.png - Valid user with wrong password
+
+**Technical Details:**
+- API returns 401 Unauthorized for invalid credentials
+- Error message styled with red text for visibility
+- localStorage checks confirm: token=null, auth-storage=null
+- No JavaScript console errors (only expected 401 network error)
+
+### Current Status:
+- Features Passing: 7 (Features #1, #2, #3, #4, #5, #6, #7)
+- Total Features: 372
+- Completion: ~1.9%
+
+### Notes:
+- Feature was already fully implemented, just needed verification
+- Both invalid username and wrong password scenarios work correctly
+- Security: Error message doesn't reveal whether username exists (same message for both cases)
