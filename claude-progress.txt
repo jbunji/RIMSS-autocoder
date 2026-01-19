@@ -840,3 +840,63 @@ displays correctly regardless of authentication state.
 - Updated CORS config to allow ports 5176 and 5177 for development flexibility
 
 [Testing] Session complete - verified feature #7 (no regression)
+
+## Testing Session: 2026-01-19 12:09
+
+[Testing] Feature #5 'CUI marking displays correctly in footer' - VERIFIED STILL PASSING
+
+**Verification Steps Passed:**
+1. ✅ Navigate to any authenticated page - Tested login, dashboard, and users pages
+2. ✅ Verify CUI marking in footer - 'CUI - Controlled Unclassified Information' present on all pages
+3. ✅ Verify footer is fixed at bottom - Footer fixed at viewport bottom
+4. ✅ Verify proper styling matches design system - Cream/yellow background, centered text, consistent styling
+
+**Screenshots:**
+- .playwright-mcp/feature5_login_page_cui.png - Login page with CUI header/footer
+- .playwright-mcp/feature5_dashboard_cui.png - Dashboard with CUI marking
+- .playwright-mcp/feature5_users_page_cui.png - Users page with CUI marking
+
+**No console errors detected.**
+
+[Testing] Session complete - verified feature #5 (still passing)
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #14)
+
+### Completed This Session:
+- Feature #14: Admin can assign roles to users - VERIFIED AND PASSING
+
+**Feature Description:** Admin can set user roles (Admin, Depot Manager, Field Technician, Viewer)
+
+**Testing Steps Verified:**
+1. ✅ Log in as admin - Logged in as John Admin (admin/admin123)
+2. ✅ Navigate to Admin > Users - Clicked Users link in sidebar Administration section
+3. ✅ Edit existing user - Clicked edit button for field_tech (Bob Field)
+4. ✅ Change role selection - Changed from "Field Technician" to "Depot Manager" via dropdown
+5. ✅ Save changes - Clicked "Save Changes" button, success message displayed
+6. ✅ Verify role change persisted - Refreshed page, field_tech still shows "Depot Manager"
+7. ✅ Log out and log in as modified user - Logged out as admin, logged in as field_tech/field123
+8. ✅ Verify new role permissions apply - Dashboard shows "You are logged in as DEPOT MANAGER"
+   - Additionally verified: Administration section is hidden for non-admin users (correct behavior)
+
+**Screenshots:**
+- .playwright-mcp/feature14_role_changed_success.png - Admin user management page showing role changed
+- .playwright-mcp/feature14_new_role_verified.png - Bob Field logged in with DEPOT MANAGER role
+
+**Technical Details:**
+- Backend PUT /api/users/:id endpoint updates user role in memory
+- Frontend role dropdown uses values: ADMIN, DEPOT_MANAGER, FIELD_TECHNICIAN, VIEWER
+- Role change is reflected immediately in UI after save
+- Sidebar Administration section visibility is role-based (admin only)
+- No console errors during the entire flow
+
+### Current Status:
+- Feature #14 marked as PASSING
+- Features Passing: 14/372 (3.8%)
+
+### Notes:
+- Backend server was restarted during testing (was down temporarily)
+- Frontend running on port 5173, backend on port 3001
+- Other agents working in parallel on Features #15, #16 (profile page, program assignments)
+
