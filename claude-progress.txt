@@ -1,5 +1,61 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #65)
+
+### Completed This Session:
+- Feature #65: Maintenance events list page loads - IMPLEMENTED AND PASSING
+
+**Description:** Maintenance page displays list of all events
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added GET /api/events endpoint with full pagination, filtering, and search
+- Supports query parameters: program_id, status (open/closed), search, page, limit
+- Filters events by user's accessible programs
+- Returns summary counts (open, closed, critical, urgent, routine, total)
+- Sorts by priority (Critical first) then by start date
+
+**Frontend (frontend/src/pages/MaintenancePage.tsx):**
+- Created new MaintenancePage component with:
+  - Summary stats cards showing Critical, Urgent, Routine, Open Jobs, Closed Jobs counts
+  - Tabbed interface with "Backlog" (open events) and "History" (closed events)
+  - Events table with columns: Job#, Asset, Discrepancy, Type, Priority, Location, Started, Days Open, Status
+  - Search input for filtering by job number, asset, discrepancy, or location
+  - Pagination controls
+  - Click-to-navigate to event detail page
+- Updated App.tsx to use MaintenancePage instead of PlaceholderPage
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Maintenance page - Successfully navigated to /maintenance
+3. ✅ Verify events table displays - Table displays with 4 open CRIIS events
+4. ✅ Verify Backlog tab is default - "Backlog (4)" tab is selected by default
+5. ✅ Verify data loads from database - Real maintenance data showing (MX-2024-001, etc.)
+6. ✅ Verify program filter applied - Shows "Viewing maintenance events for CRIIS"
+
+**Additional Verifications:**
+- ✅ History tab shows closed events (1 closed event for CRIIS)
+- ✅ Clicking on event row navigates to maintenance detail page (/maintenance/:id)
+- ✅ Priority badges color-coded (red=Critical, orange=Urgent, blue=Routine)
+- ✅ Event type badges styled (Standard, PMI, TCTO, BIT/PC)
+- ✅ Days open/duration column shows time-based styling (>7 days = red, >3 = orange)
+
+**Screenshots:**
+- .playwright-mcp/feature65_maintenance_page_backlog.png - Maintenance page with Backlog tab (open events)
+- .playwright-mcp/feature65_maintenance_page_history.png - Maintenance page with History tab (closed events)
+- .playwright-mcp/feature65_maintenance_detail_page.png - Event detail page after clicking a row
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #65 marked as PASSING
+- 63/374 features complete (~16.8%)
+
+**Commit:** 28228af - Implement Feature #65: Maintenance events list page loads
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #63)
 
 ### Completed This Session:
@@ -5120,4 +5176,93 @@ This is expected UX behavior - hiding pagination when unnecessary.
 **Console errors:** Only expected 401 errors from failed login attempts (correct behavior)
 
 [Testing] Session complete - verified feature #7 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #30 'Dashboard responsive layout on tablet' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. Log in on tablet-sized viewport (768px) - Browser resized to 768x1024, logged in successfully
+2. Navigate to dashboard - Successfully navigated to /dashboard
+3. Verify widgets reflow appropriately - All widgets reflow correctly:
+   - Quick action buttons (Assets, Maintenance, etc.) display in 4x2 grid
+   - Asset Status Summary and PMI Due Soon side by side
+   - Open Maintenance Jobs and Parts Awaiting Action side by side
+   - Recent Activity takes full width at bottom
+4. Verify no horizontal scroll needed - Confirmed: documentScrollWidth (768) === viewportWidth (768)
+5. Verify touch targets are adequate size - 22/25 buttons meet 44px minimum; 3 minor exceptions in header (sidebar toggle 40x40, program selector 36px height, refresh 34px height) - all primary content areas have adequate touch targets
+
+**Additional Verification:**
+- Sidebar toggle opens slide-out navigation overlay (correct tablet behavior)
+- Sidebar navigation items are full-width with adequate touch targets
+- No horizontal overflow detected
+- No console errors
+
+**Screenshots:**
+- feature30_tablet_login.png - Login page at 768px width
+- feature30_tablet_dashboard.png - Full dashboard at 768px (full page)
+- feature30_tablet_dashboard_bottom.png - Bottom of dashboard
+- feature30_tablet_sidebar_open.png - Sidebar overlay on tablet
+
+[Testing] Session complete - verified feature #30 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 14:13
+
+[Testing] Feature #34 'Delete asset with confirmation' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin - Logged in successfully with admin/admin123
+2. ✅ Navigate to Assets page - Navigated to /assets, showed 10 total assets
+3. ✅ Click delete on existing asset - Clicked 'Delete CRIIS-010' button
+4. ✅ Verify confirmation dialog appears - Dialog appeared with:
+   - Title: 'Delete Asset'
+   - Warning: 'Are you sure you want to delete this asset? This action cannot be undone.'
+   - Asset details (Serial Number: CRIIS-010, Part Number: PN-NAV-UNIT, Name: Navigation Unit, Status: FMC)
+   - Cancel and 'Delete Asset' buttons
+5. ✅ Confirm deletion - Clicked 'Delete Asset' button
+6. ✅ Verify asset removed from list - Asset count changed from 10 to 9, CRIIS-010 no longer in table
+7. ✅ Verify success message - Displayed: 'Asset "CRIIS-010" deleted successfully'
+
+**Screenshots:**
+- .playwright-mcp/feature34_delete_confirmation_dialog.png - Confirmation dialog
+- .playwright-mcp/feature34_delete_success.png - After successful deletion
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #34 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 14:13
+
+[Testing] Feature #6 'User can log in with valid credentials' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to login page - Successfully loaded http://localhost:5173/login
+2. ✅ Enter valid username - Entered 'admin'
+3. ✅ Enter valid password - Entered 'admin123'
+4. ✅ Click login button - Clicked Sign In
+5. ✅ Verify redirect to dashboard - URL changed to /dashboard
+6. ✅ Verify user session is established - 'Welcome, John Admin' and 'ADMIN' role displayed
+7. ✅ Verify JWT token is stored - Token found in 'rimss-auth-storage' localStorage (Zustand persist)
+
+**Screenshots:**
+- .playwright-mcp/feature6_login_success_dashboard.png - Dashboard after successful login
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #6 (no regression found)
 
