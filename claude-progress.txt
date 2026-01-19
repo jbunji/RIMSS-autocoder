@@ -1,5 +1,72 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #81)
+
+### Completed This Session:
+- Feature #81: Maintenance event export with CUI compliance - VERIFIED AND PASSING
+
+**Description:** Maintenance exports include CUI compliance
+
+**Implementation:**
+
+**Frontend (frontend/src/pages/MaintenancePage.tsx):**
+- Added jsPDF, autoTable, and XLSX imports for PDF/Excel generation
+- Added DocumentArrowDownIcon for export button icons
+- Added getZuluTimestamp() helper - formats date as "YYYY-MM-DD HH:MM:SSZ"
+- Added getZuluDateForFilename() helper - formats date as "YYYYMMDD" for filenames
+- Added formatDateForExport() helper for PDF table dates
+- Added exportToPdf() function:
+  - Creates landscape A4 PDF document
+  - Yellow CUI header banner (CONTROLLED UNCLASSIFIED INFORMATION (CUI))
+  - Yellow CUI footer banner (CUI - CONTROLLED UNCLASSIFIED INFORMATION)
+  - Footer includes page numbers and ZULU timestamp
+  - Report title, program info, status (Open/Closed), and filter info
+  - AutoTable for maintenance events with all columns
+  - CUI header/footer on EVERY page via didDrawPage callback
+  - Filename: CUI_Maintenance_{Open/Closed}_{YYYYMMDD}.pdf
+- Added exportToExcel() function:
+  - CUI header row (merged across all columns)
+  - Report info rows with ZULU timestamp
+  - Column headers with ZULU notation for dates
+  - Data rows with ZULU formatted timestamps
+  - CUI footer row (merged across all columns)
+  - Filename: CUI_Maintenance_{Open/Closed}_{YYYYMMDD}.xlsx
+- Added Export PDF and Export Excel buttons in header section
+- Buttons disabled when no events to export
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Maintenance page - Successfully at /maintenance
+3. ✅ Click Export PDF - Downloaded CUI_Maintenance_Open_20260119.pdf
+4. ✅ Verify CUI header/footer on each page:
+   - Header: Yellow banner with "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Footer: Yellow banner with "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+   - Footer includes page number and ZULU timestamp
+5. ✅ Verify ZULU timestamps - "Report generated: 2026-01-19 20:03:48Z" in PDF
+6. ✅ Export Excel - Downloaded CUI_Maintenance_Open_20260119.xlsx
+7. ✅ Verify CUI markings in Excel:
+   - Row 0: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Row 3: "Generated: 2026-01-19 20:03:59Z"
+   - Date columns show ZULU format (2026-01-14 00:00:00Z)
+   - Last row: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+
+**Screenshots:**
+- .playwright-mcp/feature81_maintenance_page_export_buttons.png - Export buttons visible
+- .playwright-mcp/feature81_maintenance_history_tab.png - History tab with export
+- .playwright-mcp/CUI-Maintenance-Open-20260119.pdf - Exported PDF
+- .playwright-mcp/CUI-Maintenance-Open-20260119.xlsx - Exported Excel
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #81 marked as PASSING
+- Commit: e35611a "Implement Feature #81: Maintenance event export with CUI compliance"
+
+### Files Modified:
+- frontend/src/pages/MaintenancePage.tsx - Added export functionality with CUI compliance
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #79)
 
 ### Completed This Session:
@@ -6445,3 +6512,177 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 
 [Testing] Session complete - verified feature #76 (no regression found)
 
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #80)
+
+### Completed This Session:
+- Feature #80: Maintenance event search and filtering - VERIFIED AND PASSING
+
+**Description:** Users can search and filter maintenance events
+
+**Implementation:**
+
+**Backend (backend/src/index.ts):**
+- Added `date_from` query parameter for filtering events starting from a specific date
+- Added `date_to` query parameter for filtering events up to a specific date
+- Date range filter applies to the `start_job` field
+- Proper date handling with start-of-day and end-of-day timestamps
+
+**Frontend (frontend/src/pages/MaintenancePage.tsx):**
+- Added CalendarIcon and ArrowPathIcon imports
+- Added `dateFromFilter` and `dateToFilter` state variables
+- Updated fetchEvents to include date range parameters in API call
+- Updated useCallback and useEffect dependency arrays
+- Reorganized filter UI into two rows:
+  - Row 1: Search input + Event Type dropdown
+  - Row 2: Date Range picker + PQDR checkbox + Clear All Filters button
+- Added Date Range filter with calendar icon and two date inputs (From/To)
+- Added Clear All Filters button that appears only when filters are active
+- Clear All Filters resets: searchQuery, eventTypeFilter, pqdrFilter, dateFromFilter, dateToFilter
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Maintenance page - Successfully navigated to /maintenance with 4 open events
+3. ✅ Search by job number - Searched "MX-2024-001", filtered to 1 matching event
+4. ✅ Verify matching events display - Only MX-2024-001 displayed, counts updated (1 Critical, 0 Urgent, 0 Routine)
+5. ✅ Filter by date range - Set From: 2026-01-15, To: 2026-01-18
+6. ✅ Verify filtered results - 2 events displayed (MX-2024-003 Jan 16, MX-2024-004 Jan 17)
+7. ✅ Filter by status (open/closed) - History tab shows 1 closed event (MX-2024-008)
+8. ✅ Clear all filters - Button appeared when filters active, clicking it reset all filters
+9. ✅ Verify all events display - Back to 4 total events after clearing filters
+
+**Additional Verifications:**
+- ✅ Clear All Filters button only appears when at least one filter is active
+- ✅ Summary counts update dynamically based on filtered data
+- ✅ Tab counts update correctly (Backlog shows open count, History shows closed count)
+- ✅ All filters can be combined (search + date range + event type + PQDR)
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature80_maintenance_page_filters.png - Initial page with all filter controls
+- .playwright-mcp/feature80_search_by_job_number.png - Search filter results
+- .playwright-mcp/feature80_date_range_filter.png - Date range filter results
+- .playwright-mcp/feature80_history_tab_closed_events.png - History tab with closed events
+- .playwright-mcp/feature80_backlog_all_events.png - Final state after clearing filters
+
+### Current Status:
+- Feature #80 marked as PASSING
+- Commit: 0da6f41 "Implement Feature #80: Maintenance event search and filtering"
+
+### Files Modified:
+- backend/src/index.ts - Added date_from and date_to query parameters and filtering logic
+- frontend/src/pages/MaintenancePage.tsx - Added date range filter UI and Clear All Filters button
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #69 'Delete maintenance event' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin - Logged in as admin/admin123
+2. ✅ Navigate to Maintenance page - 4 maintenance events displayed
+3. ✅ Click delete on event - Clicked delete for MX-2024-003 (PMI - 90-day calibration)
+4. ✅ Verify confirmation dialog - Dialog showed warning message, event details (Job Number, Asset, Status, Priority), and Cancel/Delete buttons
+5. ✅ Confirm deletion - Clicked 'Delete Event' button
+6. ✅ Verify event removed - MX-2024-003 no longer in table, count decreased from 4 to 3
+7. ✅ Verify related repairs cascade deleted or blocked - Dialog confirmed 'All related repairs will also be deleted'
+
+**Additional Verifications:**
+- ✅ Data persists after page refresh - Maintenance page still shows 3 events
+- ✅ Dashboard reflects correct count - Open Maintenance Jobs shows Total: 3
+- ✅ Cancel button works - Tested cancel on MX-2024-001, event was NOT deleted
+- ✅ Summary stats update correctly - Critical=1, Urgent=2, Routine=0
+
+**Confirmation Dialog Features Verified:**
+- Warning message with red alert icon
+- Cascade deletion notice for related repairs
+- Event details display (Job Number, Asset, Status, Priority)
+- Cancel and Delete Event buttons
+
+**Screenshots:**
+- .playwright-mcp/feature69_maintenance_list_before_delete.png - Initial state with 4 events
+- .playwright-mcp/feature69_delete_confirmation_dialog.png - Confirmation dialog for MX-2024-003
+- .playwright-mcp/feature69_after_delete.png - After deletion (3 events)
+- .playwright-mcp/feature69_after_cancel.png - After cancel test (event preserved)
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #69 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #21 'Dashboard shows asset status summary widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - Dashboard loaded at http://localhost:5173/dashboard
+3. ✅ Verify asset status widget displays - 'Asset Status Summary' widget visible
+4. ✅ Verify FMC count shows - FMC: 5 displayed
+5. ✅ Verify PMC count shows - PMC: 2 displayed
+6. ✅ Verify NMCM count shows - NMCM: 1 displayed
+7. ✅ Verify NMCS count shows - NMCS: 1 displayed
+8. ✅ Verify CNDM count shows - CNDM: 1 displayed
+9. ✅ Verify counts are real data from database - API confirmed: Total 10, FMC 5, PMC 2, NMCM 1, NMCS 1, CNDM 1
+
+**Additional Widget Elements Verified:**
+- Total Assets count: 10
+- Mission Capability Rate: 70%
+- Program label: 'Data for program: CRIIS'
+- Tooltips on hover explaining each status code
+
+**API Verification:**
+- GET /api/dashboard/asset-status?programId=1 returns matching data
+- All counts verified against database via REST API
+
+**Screenshots:**
+- .playwright-mcp/feature21_asset_status_widget.png - Dashboard with widget visible
+- .playwright-mcp/feature21_asset_status_widget_full.png - Full view of status widget
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #21 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #37 'Asset search by serial number' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - Successfully navigated to /assets with 10 total assets
+3. ✅ Enter serial number in search box - Searched "CRIIS-005"
+4. ✅ Verify matching assets display - Only CRIIS-005 displayed, count changed to "1 total asset"
+5. ✅ Verify non-matching assets hidden - 9 other assets hidden from results
+6. ✅ Clear search - Cleared search input field
+7. ✅ Verify all assets display again - All 10 assets restored after clearing search
+
+**Additional Testing:**
+- ✅ Partial search by part number - Searched "RADAR", found 2 matching assets (CRIIS-006, CRIIS-007)
+- ✅ Search is case-insensitive and matches S/N, P/N, or name fields
+
+**Screenshots:**
+- .playwright-mcp/feature37_assets_initial_state.png - Initial page with 10 assets
+- .playwright-mcp/feature37_search_result_criis005.png - Search filtered to CRIIS-005
+- .playwright-mcp/feature37_search_cleared_all_assets.png - After clearing search (10 assets)
+- .playwright-mcp/feature37_partial_search_radar.png - Partial search for "RADAR" (2 assets)
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #37 (no regression found)
