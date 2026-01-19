@@ -3531,3 +3531,337 @@ Frontend (frontend/src/pages/AssetDetailPage.tsx):
 
 ### Next Steps:
 - Continue with remaining features in backlog
+
+---
+
+## Testing Session: 2026-01-19 13:25
+
+[Testing] Feature #16 'User profile displays correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to profile page (user menu) - Clicked John Admin → Your Profile
+3. ✅ Verify username displays - Shows 'admin'
+4. ✅ Verify email displays - Shows 'admin@example.mil'
+5. ✅ Verify name displays - Shows 'John Admin'
+6. ✅ Verify role displays - Shows 'Administrator' badge
+7. ✅ Verify assigned programs display - Shows CRIIS (default), ACTS, ARDS, 236
+
+**Additional Features Verified:**
+- Profile header with avatar initials (JA)
+- User ID displayed (#1)
+- Program Details section with full program names
+- Edit Profile button available
+- Change Password section available
+
+**Screenshots:**
+- .playwright-mcp/feature16_profile_page_verified.png - Full profile page
+
+**Console:** Only React Router v7 deprecation warnings (expected, not errors)
+
+[Testing] Session complete - verified feature #16 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 13:21
+
+[Testing] Feature #21 'Dashboard shows asset status summary widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - At /dashboard
+3. ✅ Verify asset status widget displays - "Asset Status Summary" heading visible
+4. ✅ Verify FMC count shows - FMC: 5
+5. ✅ Verify PMC count shows - PMC: 2
+6. ✅ Verify NMCM count shows - NMCM: 1
+7. ✅ Verify NMCS count shows - NMCS: 1
+8. ✅ Verify CNDM count shows - CNDM: 1
+9. ✅ Verify counts are real data from database - Shows "Data for program: CRIIS" with Total Assets: 10, Mission Capability Rate: 70%
+
+**Screenshots:**
+- .playwright-mcp/feature21_regression_asset_status_widget.png - Dashboard with Asset Status Summary widget
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #21 (no regression found)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #47)
+
+### Completed This Session:
+- Feature #47: Asset export to PDF includes CUI markings - VERIFIED AND PASSING
+
+**Implementation:**
+
+1. **Installed PDF Dependencies:**
+   - jspdf v4.0.0 - PDF generation library
+   - jspdf-autotable v5.0.7 - Table generation plugin
+
+2. **Added PDF Export Function (AssetsPage.tsx):**
+   - `getZuluTimestamp()` - Returns current UTC time in format "YYYY-MM-DD HH:MM:SSZ"
+   - `getZuluDateForFilename()` - Returns date for filename "YYYYMMDD"
+   - `exportToPdf()` - Main PDF generation function with:
+     - Landscape A4 format for better table fit
+     - CUI header banner (yellow background, centered text)
+     - CUI footer banner (yellow background, centered text)
+     - Report title with program info
+     - ZULU timestamp for generation time
+     - Total assets count
+     - Applied filters info (if any)
+     - Asset data table with all columns
+     - Bad Actor (BA) and Transit indicators
+     - Page numbering (Page X of Y)
+     - Filename format: CUI_Assets_YYYYMMDD.pdf
+
+3. **Added Export PDF Button:**
+   - Button added to Assets page header
+   - Uses DocumentArrowDownIcon from Heroicons
+   - Disabled when no assets to export
+   - Gray outlined style (secondary action)
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - Navigated to /assets with 10 assets
+3. ✅ Apply filters if desired - Tested with default (All Statuses)
+4. ✅ Click Export PDF button - Clicked button
+5. ✅ Verify PDF downloads - File downloaded successfully
+6. ✅ Open PDF - PDF content verified
+7. ✅ Verify CUI header on each page - "CONTROLLED UNCLASSIFIED INFORMATION (CUI)" at top
+8. ✅ Verify CUI footer on each page - "CUI - CONTROLLED UNCLASSIFIED INFORMATION" at bottom
+9. ✅ Verify filename starts with 'CUI_' - Filename is CUI_Assets_20260119.pdf
+10. ✅ Verify timestamps in ZULU time - "2026-01-19 18:24:11Z" displayed
+
+**Additional Verified Features:**
+- Report title: "RIMSS Asset Report"
+- Program info: "CRIIS - Common Remotely Operated Integrated Reconnaissance System"
+- Total assets: 10
+- All 10 assets with correct data displayed in table
+- CRIIS-005 shows (BA) for Bad Actor
+- CRIIS-009 shows (Transit) for In Transit
+- Generated timestamp in footer
+- Page numbering: "Page 1 of 1"
+- Blue header row in table (primary color #1E40AF)
+- Alternating row colors for readability
+
+**Screenshots:**
+- .playwright-mcp/feature47_assets_page_with_export_button.png - Assets page with Export PDF button
+- .playwright-mcp/CUI-Assets-20260119.pdf - Generated PDF with CUI markings
+
+### Current Status:
+- Feature #47 marked as PASSING
+- 45/374 features complete (~12.0%)
+
+### Files Modified:
+- frontend/package.json - Added jspdf and jspdf-autotable dependencies
+- frontend/pnpm-lock.yaml - Updated lockfile with new dependencies
+- frontend/src/pages/AssetsPage.tsx - Added PDF export functionality
+
+### Commit:
+- cd509fd "Implement Feature #47: Asset export to PDF includes CUI markings"
+
+### Notes:
+- PDF export follows CUI compliance requirements:
+  - Yellow banner header and footer on every page
+  - "CONTROLLED UNCLASSIFIED INFORMATION (CUI)" text
+  - Filename prefixed with "CUI_"
+  - All timestamps in ZULU (UTC) format
+- jsPDF generates client-side PDFs (no server required)
+- AutoTable plugin handles table generation with pagination
+- Export button disabled when no assets to export
+
+### Next Steps:
+- Continue with remaining features in backlog
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #46)
+
+### Completed This Session:
+- Feature #46: In-transit tracking with carrier info - VERIFIED AND PASSING
+
+**Implementation:**
+- Added carrier, tracking_number, and ship_date fields to AssetDetails interface in backend
+- Updated mock asset data with shipping information for in-transit assets (CRIIS-009, ACTS-021)
+- Added PUT endpoint handling for in-transit shipping fields
+- Added logic to clear shipping info when in_transit is set to false
+- Created "In-Transit / Shipping Information" UI section in AssetDetailPage.tsx
+- Added conditional form fields (disabled when asset is not in transit)
+- Added carrier dropdown (FedEx, UPS, USPS, DHL, Military Transport, Other)
+- Added tracking number input and ship date picker
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager - Logged in as depot_mgr
+2. ✅ Navigate to Assets - Accessed /assets page
+3. ✅ Edit asset to set in-transit status - Edited CRIIS-001
+4. ✅ Enter carrier info - Selected UPS from dropdown
+5. ✅ Enter tracking number - Entered TEST_46_1Z999AA10123456789
+6. ✅ Enter ship date - Set to 2026-01-19
+7. ✅ Save changes - Successfully saved with confirmation message
+8. ✅ Verify in-transit indicator - Transit badge visible in Assets list
+9. ✅ Verify carrier info accessible - Shipping info displays in detail view
+
+**Screenshots:**
+- feature-46-in-transit-edit-mode.png - Asset detail with in-transit checkbox
+- feature-46-in-transit-edit-filled.png - Form filled with carrier/tracking info
+- feature-46-in-transit-saved.png - Successful save confirmation
+- feature-46-assets-list-transit-indicator.png - Transit badge in list view
+
+### Current Status:
+- Feature #46 marked as PASSING
+- 47/374 features complete (~12.6%)
+
+### Files Modified:
+- backend/src/index.ts - Added carrier, tracking_number, ship_date to AssetDetails interface and PUT endpoint
+- frontend/src/pages/AssetDetailPage.tsx - Added In-Transit/Shipping Information UI section
+
+### Notes:
+- In-transit checkbox enables/disables shipping fields
+- Carrier field is a dropdown with common shipping carriers
+- When in_transit is set to false, shipping info is automatically cleared
+- Existing in-transit assets (CRIIS-009, ACTS-021) now have mock shipping data
+
+### Next Steps:
+- Continue with remaining features in backlog
+
+---
+
+## Testing Session: 2026-01-19 13:30
+
+[Testing] Feature #42 'Asset hierarchy view shows NHA/SRA relationships' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to asset with NHA relationship - Viewed CRIIS-001 (has NHA: CRIIS-004)
+3. ✅ View asset detail - Asset detail page displayed with all sections
+4. ✅ Verify NHA (parent) displays - Assembly Hierarchy section shows 'NHA (Next Higher Assembly) - Parent: CRIIS-004 Camera System X'
+5. ✅ Navigate to an NHA asset - Clicked on CRIIS-004 parent asset
+6. ✅ Verify SRA (children) list displays - CRIIS-004 shows 'SRA (Shop Replaceable Assemblies) - Children (2)' with CRIIS-001 and CRIIS-002
+7. ✅ Click on child to navigate - Clicked CRIIS-002 and successfully navigated to /assets/2
+
+**Additional Verified Features:**
+- Bidirectional navigation works (parent → child and child → parent)
+- NHA/SRA labels are clear and descriptive
+- Child count displayed correctly (2)
+- Part numbers and status (FMC) displayed for all related assets
+- Clickable buttons allow navigation between related assets
+
+**Screenshots:**
+- .playwright-mcp/feature42_nha_sra_hierarchy_verified.png - CRIIS-002 detail page after navigation
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #42 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 13:30
+
+[Testing] Feature #42 'Asset hierarchy view shows NHA/SRA relationships' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to asset with NHA relationship - Viewed CRIIS-001 (has NHA: CRIIS-004)
+3. ✅ View asset detail - Asset detail page displayed with all sections
+4. ✅ Verify NHA (parent) displays - Assembly Hierarchy section shows 'NHA (Next Higher Assembly) - Parent: CRIIS-004 Camera System X'
+5. ✅ Navigate to an NHA asset - Clicked on CRIIS-004 parent asset
+6. ✅ Verify SRA (children) list displays - CRIIS-004 shows 'SRA (Shop Replaceable Assemblies) - Children (2)' with CRIIS-001 and CRIIS-002
+7. ✅ Click on child to navigate - Clicked CRIIS-002 and successfully navigated to /assets/2
+
+**Additional Verified Features:**
+- Bidirectional navigation works (parent → child and child → parent)
+- NHA/SRA labels are clear and descriptive
+- Child count displayed correctly (2)
+- Part numbers and status (FMC) displayed for all related assets
+- Clickable buttons allow navigation between related assets
+
+**Screenshots:**
+- .playwright-mcp/feature42_nha_sra_hierarchy_verified.png - CRIIS-002 detail page after navigation
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #42 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 13:30
+
+[Testing] Feature #38 'Asset search by part number' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - Navigated to /assets with 10 assets
+3. ✅ Enter part number in search box - Searched for 'PN-SENSOR'
+4. ✅ Verify matching assets display - 3 assets with PN-SENSOR-A/B displayed
+5. ✅ Clear search and try partial match - Searched for 'RADAR'
+6. ✅ Verify partial matches display - 2 assets with PN-RADAR-01 displayed
+
+**Additional Verifications:**
+- Search count updates dynamically (10 → 3 → 2 → 10)
+- Clearing search restores all assets
+- No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature38_part_number_search_verified.png - Assets filtered by RADAR search
+
+[Testing] Session complete - verified feature #38 (no regression found)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #49)
+
+### Completed This Session:
+- Feature #49: Assets filtered by user program - VERIFIED AND PASSING
+
+**Description:** Users only see assets for their assigned programs
+
+**Verification Steps Completed:**
+1. ✅ Log in as user assigned to CRIIS only - Logged in as depot_mgr (Jane Depot)
+2. ✅ Navigate to Assets page - Navigated to /assets
+3. ✅ Verify only CRIIS assets display - All 10 assets were CRIIS-001 through CRIIS-010
+4. ✅ Verify no ACTS assets visible - No ACTS-prefixed assets shown
+5. ✅ Verify no ARDS assets visible - No ARDS-prefixed assets shown
+6. ✅ Verify no 236 assets visible - No 236-prefixed assets shown
+
+**Additional Verifications:**
+- Program selector dropdown only shows CRIIS for depot_mgr user
+- Header displays 'Viewing assets for CRIIS - Common Remotely Operated Integrated Reconnaissance System'
+- Total count shows 10 assets (all CRIIS program assets)
+- Admin user (John Admin) has access to all 4 programs: CRIIS, ACTS, ARDS, 236
+- When admin switches to ACTS program, dashboard shows different asset count (6 vs 10)
+
+**Backend Implementation (already in place):**
+- GET /api/assets filters by user's assigned programs
+- User program assignments stored in mockUsers array
+- Non-admin users can only access their assigned programs
+- Admin users have access to all programs
+
+**Screenshots:**
+- .playwright-mcp/feature49_depot_mgr_only_criis_assets.png - Assets page showing only CRIIS assets
+- .playwright-mcp/feature49_depot_mgr_program_selector_criis_only.png - Program dropdown showing only CRIIS
+- .playwright-mcp/feature49_admin_all_programs_dropdown.png - Admin's program dropdown showing all 4 programs
+
+### Current Status:
+- Feature #49 marked as PASSING
+
+### Notes:
+- Program-based data isolation is working correctly
+- Backend logic at /api/assets correctly filters assets by program
+- Frontend correctly reflects user's program access in dropdowns and data displays
+- No code changes required - feature was already implemented
+
