@@ -310,6 +310,7 @@ export default function AssetDetailPage() {
           cust_loc: editForm.cust_loc,
           notes: editForm.notes,
           active: editForm.active,
+          bad_actor: editForm.bad_actor,
         }),
       })
 
@@ -635,17 +636,6 @@ export default function AssetDetailPage() {
                 </p>
               </div>
 
-              {/* Bad Actor Flag */}
-              {asset.bad_actor && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">Bad Actor</label>
-                  <p className="mt-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                      ⚠️ Bad Actor
-                    </span>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
@@ -697,6 +687,37 @@ export default function AssetDetailPage() {
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${asset.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {asset.active ? 'Active' : 'Inactive'}
                     </span>
+                  </p>
+                )}
+              </div>
+
+              {/* Bad Actor Flag */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Bad Actor Flag</label>
+                {isEditing ? (
+                  <div className="mt-2">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={editForm.bad_actor ?? false}
+                        onChange={(e) => handleInputChange('bad_actor', e.target.checked)}
+                        className="rounded border-red-300 text-red-600 shadow-sm focus:border-red-500 focus:ring-red-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Flag as Bad Actor (chronic failures)</span>
+                    </label>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Bad actors are assets with repeated failures that require special attention.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="mt-1">
+                    {asset.bad_actor ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                        ⚠️ Bad Actor
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 text-sm">Not flagged</span>
+                    )}
                   </p>
                 )}
               </div>
