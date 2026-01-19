@@ -1,5 +1,56 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #63)
+
+### Completed This Session:
+- Feature #63: Configuration filtered by program - VERIFIED AND PASSING
+
+**Description:** Users only see configurations for assigned programs
+
+**Implementation Status:**
+The configuration filtering by program was already implemented in the backend. This session verified the feature works correctly through comprehensive browser automation testing.
+
+**Backend Implementation (already present):**
+- GET /api/configurations endpoint filters by program_id query parameter
+- If no program specified, uses user's default program
+- Non-admin users can only access configurations for their assigned programs
+- Admin users can switch between all programs using the program selector
+
+**Frontend Implementation (already present):**
+- Program selector in header allows switching between assigned programs
+- ConfigurationsPage fetches configurations with current program_id
+- Header displays: "Viewing configurations for [PROGRAM_CODE] - [PROGRAM_NAME]"
+- Configuration count updates based on selected program
+
+**Verification Steps Completed:**
+1. ✅ Log in as user with single program (field_tech - CRIIS only)
+2. ✅ Navigate to Configurations page
+3. ✅ Verify only program-specific configs display:
+   - field_tech sees 4 CRIIS configurations only
+   - Header shows: "Viewing configurations for CRIIS - Common Remotely Operated Integrated Reconnaissance System"
+   - No ability to switch to other programs (ACTS, ARDS, 236)
+4. ✅ Log in as admin
+5. ✅ Verify all program configs accessible:
+   - CRIIS: 4 configurations
+   - ACTS: 3 configurations (Laser Designator, Targeting A & B)
+   - ARDS: 3 configurations (Data Link, Data Processor, Recon Camera)
+   - 236: 2 configurations (Special System Alpha & Beta)
+   - Admin can switch between all programs using dropdown
+
+**Screenshots:**
+- .playwright-mcp/feature63_field_tech_criis_configs.png - Field tech sees only CRIIS configs
+- .playwright-mcp/feature63_admin_acts_configs.png - Admin viewing ACTS configurations
+- .playwright-mcp/feature63_admin_ards_configs.png - Admin viewing ARDS configurations
+- .playwright-mcp/feature63_admin_236_configs.png - Admin viewing Program 236 configurations
+
+**Console errors:** None related to this feature
+
+### Current Status:
+- Feature #63 marked as PASSING
+- 63/374 features complete (~16.8%)
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #61)
 
 ### Completed This Session:
@@ -5038,4 +5089,35 @@ This is expected UX behavior - hiding pagination when unnecessary.
 
 ### Files Modified:
 - frontend/src/pages/ConfigurationsPage.tsx - Added export functionality with CUI compliance
+
+
+
+---
+
+## Testing Session: 2026-01-19 14:09
+
+[Testing] Feature #7 'User cannot log in with invalid credentials' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to login page - Successfully loaded http://localhost:5173/login
+2. ✅ Enter invalid username - Entered 'invalid_user_xyz'
+3. ✅ Enter any password - Entered 'somepassword123'
+4. ✅ Click login button - Clicked Sign In
+5. ✅ Verify error message displays - Error 'Invalid username or password' shown in red
+6. ✅ Verify user remains on login page - URL stayed at /login
+7. ✅ Verify no session is created - localStorage shows token: null
+
+**Additional Testing:**
+- Also tested valid username (admin) with wrong password - Same error message displayed
+- Backend correctly returns 401 Unauthorized for invalid credentials
+
+**Screenshots:**
+- .playwright-mcp/feature7_invalid_credentials_error.png - Error with invalid username
+- .playwright-mcp/feature7_valid_user_wrong_password.png - Error with wrong password
+
+**Console errors:** Only expected 401 errors from failed login attempts (correct behavior)
+
+[Testing] Session complete - verified feature #7 (no regression found)
 
