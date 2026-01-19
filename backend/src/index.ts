@@ -480,6 +480,146 @@ interface AssetHistoryEntry {
 // Asset history storage - stores all history events for assets
 const assetHistory: AssetHistoryEntry[] = []
 
+// ETI (Elapsed Time Indicator) History interface and storage
+interface ETIHistoryEntry {
+  eti_history_id: number;
+  asset_id: number;
+  timestamp: string;
+  user_id: number;
+  username: string;
+  user_full_name: string;
+  old_eti_hours: number | null;
+  new_eti_hours: number;
+  hours_added: number;
+  source: 'maintenance' | 'manual' | 'sortie';  // How ETI was updated
+  source_id: number | null;  // ID of maintenance event, sortie, etc.
+  source_ref: string | null;  // Reference like job number
+  notes: string | null;
+}
+
+// ETI history storage
+const etiHistory: ETIHistoryEntry[] = []
+
+// Helper function to add ETI history entry
+function addETIHistory(
+  assetId: number,
+  user: { user_id: number; username: string; first_name: string; last_name: string },
+  oldETI: number | null,
+  newETI: number,
+  hoursAdded: number,
+  source: 'maintenance' | 'manual' | 'sortie',
+  sourceId: number | null,
+  sourceRef: string | null,
+  notes: string | null
+): ETIHistoryEntry {
+  const entry: ETIHistoryEntry = {
+    eti_history_id: etiHistory.length + 1,
+    asset_id: assetId,
+    timestamp: new Date().toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    old_eti_hours: oldETI,
+    new_eti_hours: newETI,
+    hours_added: hoursAdded,
+    source,
+    source_id: sourceId,
+    source_ref: sourceRef,
+    notes,
+  };
+  etiHistory.push(entry);
+  return entry;
+}
+
+// Initialize some ETI history for existing assets (simulate past updates)
+function initializeETIHistory(): void {
+  const today = new Date();
+  const subtractDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.toISOString();
+  };
+
+  // Sample ETI history entries for asset CRIIS-001 (asset_id: 1)
+  etiHistory.push({
+    eti_history_id: 1,
+    asset_id: 1,
+    timestamp: subtractDays(90),
+    user_id: 2,
+    username: 'depot_mgr',
+    user_full_name: 'Jane Depot',
+    old_eti_hours: 1100,
+    new_eti_hours: 1200,
+    hours_added: 100,
+    source: 'sortie',
+    source_id: null,
+    source_ref: 'SORTIE-2024-045',
+    notes: 'Post-mission ETI update'
+  });
+  etiHistory.push({
+    eti_history_id: 2,
+    asset_id: 1,
+    timestamp: subtractDays(45),
+    user_id: 2,
+    username: 'depot_mgr',
+    user_full_name: 'Jane Depot',
+    old_eti_hours: 1200,
+    new_eti_hours: 1250,
+    hours_added: 50,
+    source: 'maintenance',
+    source_id: 8,
+    source_ref: 'MX-2024-008',
+    notes: 'ETI recorded during 30-day PMI'
+  });
+
+  // Sample ETI history for CRIIS-005 (asset_id: 5) - high ETI unit
+  etiHistory.push({
+    eti_history_id: 3,
+    asset_id: 5,
+    timestamp: subtractDays(120),
+    user_id: 3,
+    username: 'field_tech',
+    user_full_name: 'Bob Technician',
+    old_eti_hours: 2800,
+    new_eti_hours: 3000,
+    hours_added: 200,
+    source: 'sortie',
+    source_id: null,
+    source_ref: 'SORTIE-2024-032',
+    notes: 'Extended deployment mission'
+  });
+  etiHistory.push({
+    eti_history_id: 4,
+    asset_id: 5,
+    timestamp: subtractDays(60),
+    user_id: 2,
+    username: 'depot_mgr',
+    user_full_name: 'Jane Depot',
+    old_eti_hours: 3000,
+    new_eti_hours: 3150,
+    hours_added: 150,
+    source: 'manual',
+    source_id: null,
+    source_ref: null,
+    notes: 'Corrected ETI after audit'
+  });
+  etiHistory.push({
+    eti_history_id: 5,
+    asset_id: 5,
+    timestamp: subtractDays(10),
+    user_id: 2,
+    username: 'depot_mgr',
+    user_full_name: 'Jane Depot',
+    old_eti_hours: 3150,
+    new_eti_hours: 3200,
+    hours_added: 50,
+    source: 'maintenance',
+    source_id: 1,
+    source_ref: 'MX-2024-001',
+    notes: 'ETI recorded at start of maintenance'
+  });
+}
+
 // Helper function to add asset history entry
 function addAssetHistory(
   assetId: number,
@@ -591,6 +731,9 @@ function initializeAssetHistory(): void {
 
 // Initialize asset history on server start
 initializeAssetHistory()
+
+// Initialize ETI history on server start
+initializeETIHistory()
 
 // Authentication middleware helper
 function authenticateRequest(req: express.Request, res: express.Response): { userId: number } | null {
@@ -2404,6 +2547,159 @@ app.get('/api/assets/:id/history', (req, res) => {
     serno: asset.serno,
     history,
     total: history.length,
+  });
+});
+
+// GET /api/assets/:id/eti-history - Get ETI (Elapsed Time Indicator) history for an asset
+app.get('/api/assets/:id/eti-history', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = detailedAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get ETI history entries for this asset, sorted by timestamp descending (most recent first)
+  const history = etiHistory
+    .filter(h => h.asset_id === assetId)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  console.log(`[ETI] History request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${history.length} entries`);
+
+  res.json({
+    asset_id: assetId,
+    serno: asset.serno,
+    current_eti_hours: asset.eti_hours,
+    history,
+    total: history.length,
+  });
+});
+
+// POST /api/assets/:id/eti - Update ETI hours for an asset (requires authentication and depot_manager/admin/field_technician role)
+app.post('/api/assets/:id/eti', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can update ETI
+  if (!['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to update ETI hours' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = detailedAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  const { hours_to_add, new_eti_hours, source, source_ref, notes } = req.body;
+
+  // Validate input - either hours_to_add or new_eti_hours must be provided
+  if (hours_to_add === undefined && new_eti_hours === undefined) {
+    return res.status(400).json({ error: 'Either hours_to_add or new_eti_hours must be provided' });
+  }
+
+  // Validate source
+  const validSources: Array<'maintenance' | 'manual' | 'sortie'> = ['maintenance', 'manual', 'sortie'];
+  const sourceType = source || 'manual';
+  if (!validSources.includes(sourceType)) {
+    return res.status(400).json({ error: 'Invalid source. Must be maintenance, manual, or sortie' });
+  }
+
+  const oldETI = asset.eti_hours;
+  let calculatedHoursAdded: number;
+  let calculatedNewETI: number;
+
+  if (new_eti_hours !== undefined) {
+    // Direct ETI value set
+    calculatedNewETI = parseFloat(new_eti_hours);
+    if (isNaN(calculatedNewETI) || calculatedNewETI < 0) {
+      return res.status(400).json({ error: 'new_eti_hours must be a non-negative number' });
+    }
+    calculatedHoursAdded = calculatedNewETI - (oldETI || 0);
+  } else {
+    // Add hours to existing
+    calculatedHoursAdded = parseFloat(hours_to_add);
+    if (isNaN(calculatedHoursAdded)) {
+      return res.status(400).json({ error: 'hours_to_add must be a valid number' });
+    }
+    calculatedNewETI = (oldETI || 0) + calculatedHoursAdded;
+    if (calculatedNewETI < 0) {
+      return res.status(400).json({ error: 'ETI hours cannot be negative' });
+    }
+  }
+
+  // Update the asset's ETI
+  asset.eti_hours = calculatedNewETI;
+
+  // Also update the mockAssets entry if exists
+  const mockAsset = mockAssets.find(a => a.asset_id === assetId);
+  // Note: mockAssets doesn't have eti_hours, but detailedAssets does
+
+  // Add ETI history entry
+  const historyEntry = addETIHistory(
+    assetId,
+    user,
+    oldETI,
+    calculatedNewETI,
+    calculatedHoursAdded,
+    sourceType,
+    null,  // source_id - could be linked to maintenance event
+    source_ref || null,
+    notes || null
+  );
+
+  // Add to asset history as well
+  const historyChanges: AssetHistoryChange[] = [{
+    field: 'eti_hours',
+    field_label: 'ETI Hours',
+    old_value: oldETI?.toString() || '0',
+    new_value: calculatedNewETI.toString()
+  }];
+
+  addAssetHistory(
+    assetId,
+    user,
+    'update',
+    historyChanges,
+    `Updated ETI hours: ${oldETI || 0} → ${calculatedNewETI} (${calculatedHoursAdded >= 0 ? '+' : ''}${calculatedHoursAdded} hours via ${sourceType})`
+  );
+
+  console.log(`[ETI] Updated by ${user.username} for asset ${asset.serno}: ${oldETI || 0} → ${calculatedNewETI} (${calculatedHoursAdded >= 0 ? '+' : ''}${calculatedHoursAdded})`);
+
+  res.json({
+    message: 'ETI hours updated successfully',
+    asset_id: assetId,
+    serno: asset.serno,
+    old_eti_hours: oldETI,
+    new_eti_hours: calculatedNewETI,
+    hours_added: calculatedHoursAdded,
+    history_entry: historyEntry,
   });
 });
 
