@@ -2437,7 +2437,7 @@ app.put('/api/assets/:id', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this asset' });
   }
 
-  const { partno, serno, name, status_cd, admin_loc, cust_loc, notes, active } = req.body;
+  const { partno, serno, name, status_cd, admin_loc, cust_loc, notes, active, bad_actor } = req.body;
 
   // Track changes for audit log
   const changes: string[] = [];
@@ -2528,6 +2528,39 @@ app.put('/api/assets/:id', (req, res) => {
     asset.active = active;
   }
 
+  // Also find and update the detailed asset entry for bad_actor and other fields
+  const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
+
+  if (bad_actor !== undefined && detailedAsset && bad_actor !== detailedAsset.bad_actor) {
+    changes.push(`Bad Actor: ${detailedAsset.bad_actor ? 'Yes' : 'No'} → ${bad_actor ? 'Yes' : 'No'}`);
+    historyChanges.push({ field: 'bad_actor', field_label: 'Bad Actor', old_value: detailedAsset.bad_actor ? 'Yes' : 'No', new_value: bad_actor ? 'Yes' : 'No' });
+    detailedAsset.bad_actor = bad_actor;
+  }
+
+  // Sync other changes to detailedAssets if present
+  if (detailedAsset) {
+    if (serno !== undefined) detailedAsset.serno = asset.serno;
+    if (partno !== undefined) detailedAsset.partno = asset.partno;
+    if (name !== undefined) detailedAsset.part_name = asset.name;
+    if (status_cd !== undefined) {
+      detailedAsset.status_cd = asset.status_cd;
+      const statusInfo = assetStatusCodes.find(s => s.status_cd === status_cd);
+      detailedAsset.status_name = statusInfo?.status_name || status_cd;
+    }
+    if (admin_loc !== undefined) {
+      detailedAsset.admin_loc = asset.admin_loc;
+      const locInfo = adminLocations.find(l => l.loc_cd === admin_loc);
+      detailedAsset.admin_loc_name = locInfo?.loc_name || admin_loc;
+    }
+    if (cust_loc !== undefined) {
+      detailedAsset.cust_loc = asset.cust_loc;
+      const locInfo = custodialLocations.find(l => l.loc_cd === cust_loc);
+      detailedAsset.cust_loc_name = locInfo?.loc_name || cust_loc;
+    }
+    if (notes !== undefined) detailedAsset.remarks = notes;
+    if (active !== undefined) detailedAsset.active = active;
+  }
+
   if (changes.length === 0) {
     return res.status(400).json({ error: 'No changes provided' });
   }
@@ -2577,6 +2610,7 @@ app.put('/api/assets/:id', (req, res) => {
       admin_loc_name: adminLocInfo?.loc_name || asset.admin_loc,
       cust_loc_name: custLocInfo?.loc_name || asset.cust_loc,
       status_name: statusInfo?.status_name || asset.status_cd,
+      bad_actor: detailedAsset?.bad_actor || false,
     },
     changes,
     audit: newActivity,
