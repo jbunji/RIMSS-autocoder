@@ -1796,12 +1796,18 @@ interface Repair {
   type_maint: string; // 'Corrective' | 'Preventive' | 'Modification' | 'Inspection'
   how_mal: string | null; // How Malfunctioned code
   when_disc: string | null; // When Discovered code
+  action_taken: string | null; // Action Taken code (T = cannibalization, R = repair, etc.)
   shop_status: 'open' | 'closed';
   narrative: string;
   tag_no: string | null;
   doc_no: string | null;
   micap: boolean; // Mission Capable impacting flag
   micap_login: string | null; // User who flagged as MICAP
+  // Cannibalization (Action T) fields
+  donor_asset_id: number | null; // ID of asset being cannibalized from
+  donor_asset_sn: string | null; // Serial number of donor asset
+  donor_asset_pn: string | null; // Part number of donor asset
+  donor_asset_name: string | null; // Name of donor asset
   created_by_name: string;
   created_at: string;
 }
@@ -1831,12 +1837,17 @@ function initializeRepairs(): void {
       type_maint: 'Corrective',
       how_mal: 'PWR',
       when_disc: 'BIT',
+      action_taken: 'R', // Regular repair
       shop_status: 'closed',
       narrative: 'Replaced faulty power supply connector. Tested - intermittent fault no longer present.',
       tag_no: 'TAG-001',
       doc_no: 'DOC-2024-001',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-5),
     },
@@ -1850,12 +1861,17 @@ function initializeRepairs(): void {
       type_maint: 'Corrective',
       how_mal: 'PWR',
       when_disc: 'OPS',
+      action_taken: null,
       shop_status: 'open',
       narrative: 'Additional power fault found. Investigating main circuit board.',
       tag_no: 'TAG-002',
       doc_no: null,
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-3),
     },
@@ -1870,12 +1886,17 @@ function initializeRepairs(): void {
       type_maint: 'Corrective',
       how_mal: 'FAIL',
       when_disc: 'OPS',
+      action_taken: null,
       shop_status: 'open',
       narrative: 'Power supply module failed. Awaiting replacement part PN-PSU-001.',
       tag_no: 'TAG-003',
       doc_no: 'DOC-2024-002',
       micap: true, // This repair is flagged as MICAP
       micap_login: 'jane_depot',
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-10),
     },
@@ -1890,12 +1911,17 @@ function initializeRepairs(): void {
       type_maint: 'Preventive',
       how_mal: null,
       when_disc: 'PMI',
+      action_taken: null,
       shop_status: 'open',
       narrative: '90-day calibration in progress. Sensor alignment adjustments underway.',
       tag_no: 'TAG-004',
       doc_no: 'DOC-2024-003',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-2),
     },
@@ -1910,12 +1936,17 @@ function initializeRepairs(): void {
       type_maint: 'Modification',
       how_mal: null,
       when_disc: 'TCTO',
+      action_taken: null,
       shop_status: 'open',
       narrative: 'Applying software update per TCTO 2024-15. Download and install in progress.',
       tag_no: 'TAG-005',
       doc_no: 'DOC-2024-004',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-1),
     },
@@ -1930,12 +1961,17 @@ function initializeRepairs(): void {
       type_maint: 'Corrective',
       how_mal: 'OPTIC',
       when_disc: 'BIT',
+      action_taken: null,
       shop_status: 'open',
       narrative: 'Optical sensor cleaning and realignment in progress.',
       tag_no: 'TAG-006',
       doc_no: 'DOC-2024-005',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-3),
     },
@@ -1950,12 +1986,17 @@ function initializeRepairs(): void {
       type_maint: 'Inspection',
       how_mal: null,
       when_disc: 'PMI',
+      action_taken: null,
       shop_status: 'open',
       narrative: 'Full system inspection underway. Checking all targeting subsystems.',
       tag_no: 'TAG-007',
       doc_no: 'DOC-2024-006',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-5),
     },
@@ -1970,12 +2011,17 @@ function initializeRepairs(): void {
       type_maint: 'Corrective',
       how_mal: 'OVHT',
       when_disc: 'OPS',
+      action_taken: null,
       shop_status: 'open',
       narrative: 'Thermal paste reapplication and cooling fan inspection.',
       tag_no: 'TAG-008',
       doc_no: 'DOC-2024-007',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-7),
     },
@@ -1990,12 +2036,17 @@ function initializeRepairs(): void {
       type_maint: 'Preventive',
       how_mal: null,
       when_disc: 'PMI',
+      action_taken: 'M', // Regular maintenance
       shop_status: 'closed',
       narrative: '30-day inspection completed. All systems nominal.',
       tag_no: 'TAG-009',
       doc_no: 'DOC-2024-008',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-15),
     },
@@ -2009,12 +2060,17 @@ function initializeRepairs(): void {
       type_maint: 'Preventive',
       how_mal: null,
       when_disc: 'PMI',
+      action_taken: 'L', // Lubrication
       shop_status: 'closed',
       narrative: 'Lubrication and cable inspection completed.',
       tag_no: 'TAG-010',
       doc_no: 'DOC-2024-009',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-14),
     },
@@ -2029,12 +2085,17 @@ function initializeRepairs(): void {
       type_maint: 'Preventive',
       how_mal: null,
       when_disc: 'PMI',
+      action_taken: 'C', // Calibration
       shop_status: 'closed',
       narrative: 'Annual calibration completed successfully. All targets within spec.',
       tag_no: 'TAG-011',
       doc_no: 'DOC-2024-010',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-20),
     },
@@ -2049,12 +2110,17 @@ function initializeRepairs(): void {
       type_maint: 'Corrective',
       how_mal: 'COMP',
       when_disc: 'BIT',
+      action_taken: null,
       shop_status: 'open',
       narrative: 'Classified component replacement required. Awaiting secure delivery.',
       tag_no: 'TAG-012',
       doc_no: 'DOC-2024-011',
       micap: false,
       micap_login: null,
+      donor_asset_id: null,
+      donor_asset_sn: null,
+      donor_asset_pn: null,
+      donor_asset_name: null,
       created_by_name: 'John Admin',
       created_at: addDays(-4),
     },
@@ -2734,11 +2800,16 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     return res.status(400).json({ error: 'Cannot add repairs to a closed maintenance event' });
   }
 
-  const { start_date, type_maint, how_mal, when_disc, narrative, tag_no, doc_no, micap } = req.body;
+  const { start_date, type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, micap, donor_asset_id } = req.body;
 
   // Validate required fields
   if (!type_maint || !narrative) {
     return res.status(400).json({ error: 'Maintenance type and narrative are required' });
+  }
+
+  // If action_taken is 'T' (cannibalization), donor_asset_id is required
+  if (action_taken === 'T' && !donor_asset_id) {
+    return res.status(400).json({ error: 'Donor asset is required for cannibalization (Action T)' });
   }
 
   // Calculate next repair sequence for this event
@@ -2747,6 +2818,32 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
 
   // Use provided start_date or default to today
   const repairStartDate = start_date || new Date().toISOString().split('T')[0];
+
+  // Look up donor asset details if cannibalization
+  let donorAssetDetails: { donor_asset_sn: string | null; donor_asset_pn: string | null; donor_asset_name: string | null } = {
+    donor_asset_sn: null,
+    donor_asset_pn: null,
+    donor_asset_name: null,
+  };
+
+  if (action_taken === 'T' && donor_asset_id) {
+    const donorAsset = assets.find(a => a.asset_id === donor_asset_id);
+    if (donorAsset) {
+      const donorPart = parts.find(p => p.partno_id === donorAsset.partno_id);
+      donorAssetDetails = {
+        donor_asset_sn: donorAsset.serno,
+        donor_asset_pn: donorPart?.partno || null,
+        donor_asset_name: donorPart?.noun || null,
+      };
+
+      // Update donor asset status to NMCS (Not Mission Capable - Supply) since a part was cannibalized from it
+      const donorAssetIndex = assets.findIndex(a => a.asset_id === donor_asset_id);
+      if (donorAssetIndex !== -1) {
+        assets[donorAssetIndex].status_cd = 'NMCS';
+        console.log(`[CANNIBALIZATION] Donor asset ${donorAsset.serno} status changed to NMCS`);
+      }
+    }
+  }
 
   const newRepair: Repair = {
     repair_id: repairNextId++,
@@ -2758,12 +2855,17 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     type_maint,
     how_mal: how_mal || null,
     when_disc: when_disc || null,
+    action_taken: action_taken || null,
     shop_status: 'open',
     narrative,
     tag_no: tag_no || null,
     doc_no: doc_no || null,
     micap: micap === true, // MICAP flag
     micap_login: micap === true ? user.username : null, // Track who set MICAP
+    donor_asset_id: action_taken === 'T' ? donor_asset_id : null,
+    donor_asset_sn: donorAssetDetails.donor_asset_sn,
+    donor_asset_pn: donorAssetDetails.donor_asset_pn,
+    donor_asset_name: donorAssetDetails.donor_asset_name,
     created_by_name: `${user.first_name} ${user.last_name}`,
     created_at: new Date().toISOString().split('T')[0],
   };
@@ -2815,7 +2917,7 @@ app.put('/api/repairs/:id', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this repair' });
   }
 
-  const { type_maint, how_mal, when_disc, narrative, tag_no, doc_no, shop_status, stop_date, micap } = req.body;
+  const { type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, shop_status, stop_date, micap, donor_asset_id } = req.body;
 
   // Update fields
   if (type_maint !== undefined) {
@@ -2835,6 +2937,59 @@ app.put('/api/repairs/:id', (req, res) => {
   }
   if (doc_no !== undefined) {
     repairs[repairIndex].doc_no = doc_no || null;
+  }
+
+  // Handle action_taken update and cannibalization workflow
+  if (action_taken !== undefined) {
+    const previousActionTaken = repairs[repairIndex].action_taken;
+    repairs[repairIndex].action_taken = action_taken || null;
+
+    // If changing to cannibalization (T), require donor asset
+    if (action_taken === 'T') {
+      if (!donor_asset_id && !repairs[repairIndex].donor_asset_id) {
+        return res.status(400).json({ error: 'Donor asset is required for cannibalization (Action T)' });
+      }
+    }
+
+    // If changing away from cannibalization, clear donor asset fields
+    if (previousActionTaken === 'T' && action_taken !== 'T') {
+      // Optionally restore donor asset status if needed
+      repairs[repairIndex].donor_asset_id = null;
+      repairs[repairIndex].donor_asset_sn = null;
+      repairs[repairIndex].donor_asset_pn = null;
+      repairs[repairIndex].donor_asset_name = null;
+    }
+  }
+
+  // Handle donor asset update for cannibalization
+  if (donor_asset_id !== undefined) {
+    const currentActionTaken = action_taken !== undefined ? action_taken : repairs[repairIndex].action_taken;
+
+    if (currentActionTaken === 'T' && donor_asset_id) {
+      const donorAsset = assets.find(a => a.asset_id === donor_asset_id);
+      if (donorAsset) {
+        const donorPart = parts.find(p => p.partno_id === donorAsset.partno_id);
+        repairs[repairIndex].donor_asset_id = donor_asset_id;
+        repairs[repairIndex].donor_asset_sn = donorAsset.serno;
+        repairs[repairIndex].donor_asset_pn = donorPart?.partno || null;
+        repairs[repairIndex].donor_asset_name = donorPart?.noun || null;
+
+        // Update donor asset status to NMCS
+        const donorAssetIndex = assets.findIndex(a => a.asset_id === donor_asset_id);
+        if (donorAssetIndex !== -1) {
+          assets[donorAssetIndex].status_cd = 'NMCS';
+          console.log(`[CANNIBALIZATION] Donor asset ${donorAsset.serno} status changed to NMCS`);
+        }
+      } else {
+        return res.status(400).json({ error: 'Donor asset not found' });
+      }
+    } else if (!currentActionTaken || currentActionTaken !== 'T') {
+      // Clear donor asset fields if not cannibalization
+      repairs[repairIndex].donor_asset_id = null;
+      repairs[repairIndex].donor_asset_sn = null;
+      repairs[repairIndex].donor_asset_pn = null;
+      repairs[repairIndex].donor_asset_name = null;
+    }
   }
 
   // Handle MICAP flag toggle
@@ -3086,6 +3241,12 @@ app.post('/api/repairs/:repairId/installed-parts', (req, res) => {
   const targetAsset = mockAssets.find(a => a.asset_id === event.asset_id);
   if (targetAsset) {
     asset.location = `Installed in ${targetAsset.serno}`;
+
+    // Also update detailedAssets since that's what the assets API uses
+    const detailedAsset = detailedAssets.find(a => a.asset_id === asset.asset_id);
+    if (detailedAsset) {
+      detailedAsset.location = `Installed in ${targetAsset.serno}`;
+    }
   }
 
   console.log(`[INSTALLED_PARTS] Added installed part (asset ${asset.serno}) to repair ${repairId} by ${user.username}. Previous location: ${previousLocation}`);
@@ -3147,6 +3308,13 @@ app.delete('/api/installed-parts/:id', (req, res) => {
   const asset = mockAssets.find(a => a.asset_id === installedPart.asset_id);
   if (asset && installedPart.previous_location) {
     asset.location = installedPart.previous_location;
+
+    // Also update detailedAssets since that's what the assets API uses
+    const detailedAsset = detailedAssets.find(a => a.asset_id === installedPart.asset_id);
+    if (detailedAsset) {
+      detailedAsset.location = installedPart.previous_location;
+    }
+
     console.log(`[INSTALLED_PARTS] Restored asset ${asset.serno} location to: ${installedPart.previous_location}`);
   }
 

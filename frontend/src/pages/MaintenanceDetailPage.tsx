@@ -20,6 +20,7 @@ import {
   TrashIcon,
   CubeIcon,
   MagnifyingGlassIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -309,7 +310,16 @@ export default function MaintenanceDetailPage() {
     { value: 'MECH', label: 'MECH - Mechanical' },
     { value: 'SOFT', label: 'SOFT - Software' },
     { value: 'OTHR', label: 'OTHR - Other' },
+    // No-Defect codes with special handling - parts not required
+    { value: '799', label: '799 - No Defect, Cannot Duplicate' },
+    { value: '800', label: '800 - No Defect Evident' },
+    { value: '804', label: '804 - No Defect, Component Bench Checked' },
+    { value: '806', label: '806 - Bench Check Satisfactory' },
   ]
+
+  // No-defect codes that have special handling (parts not required)
+  const noDefectCodes = ['799', '800', '804', '806']
+  const isNoDefectCode = (code: string | null) => code && noDefectCodes.includes(code)
 
   const whenDiscOptions = [
     { value: '', label: 'None / Not Applicable' },
@@ -1896,6 +1906,15 @@ export default function MaintenanceDetailPage() {
                               MICAP
                             </span>
                           )}
+                          {isNoDefectCode(repair.how_mal) && (
+                            <span
+                              className="px-2 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-800 flex items-center"
+                              title="No-Defect Code: Parts not required for this repair"
+                            >
+                              <InformationCircleIcon className="h-3 w-3 mr-1" />
+                              NO DEFECT ({repair.how_mal})
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-700 mb-2">{repair.narrative}</p>
                         <div className="flex flex-wrap gap-4 text-xs text-gray-500">
@@ -1908,6 +1927,22 @@ export default function MaintenanceDetailPage() {
                           <span>By: {repair.created_by_name}</span>
                         </div>
 
+                        {/* No-Defect Code Notice */}
+                        {isNoDefectCode(repair.how_mal) && (
+                          <div className="mt-4 pt-3 border-t border-gray-200">
+                            <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <InformationCircleIcon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-sm font-medium text-blue-800">No-Defect Code ({repair.how_mal})</p>
+                                <p className="text-xs text-blue-700 mt-1">
+                                  This repair uses a no-defect how-malfunctioned code, indicating no actual defect was found in the component.
+                                  Parts tracking is not required for this type of repair.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Installed Parts Sub-section */}
                         <div className="mt-4 pt-3 border-t border-gray-200">
                           <div className="flex items-center justify-between mb-2">
@@ -1918,7 +1953,7 @@ export default function MaintenanceDetailPage() {
                                 ({installedPartsMap.get(repair.repair_id)?.length || 0})
                               </span>
                             </h4>
-                            {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                            {canEdit && repair.shop_status === 'open' && event.status === 'open' && !isNoDefectCode(repair.how_mal) && (
                               <button
                                 onClick={() => openAddInstalledPartModal(repair)}
                                 className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center"
@@ -1933,6 +1968,8 @@ export default function MaintenanceDetailPage() {
                             <div className="flex items-center justify-center py-2">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                             </div>
+                          ) : isNoDefectCode(repair.how_mal) && (installedPartsMap.get(repair.repair_id)?.length || 0) === 0 ? (
+                            <p className="text-xs text-blue-500 italic">Parts not required for no-defect repairs</p>
                           ) : (installedPartsMap.get(repair.repair_id)?.length || 0) === 0 ? (
                             <p className="text-xs text-gray-400 italic">No parts installed</p>
                           ) : (
@@ -1995,7 +2032,7 @@ export default function MaintenanceDetailPage() {
                                 ({removedPartsMap.get(repair.repair_id)?.length || 0})
                               </span>
                             </h4>
-                            {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                            {canEdit && repair.shop_status === 'open' && event.status === 'open' && !isNoDefectCode(repair.how_mal) && (
                               <button
                                 onClick={() => openAddRemovedPartModal(repair)}
                                 className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center"
@@ -2010,6 +2047,8 @@ export default function MaintenanceDetailPage() {
                             <div className="flex items-center justify-center py-2">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
                             </div>
+                          ) : isNoDefectCode(repair.how_mal) && (removedPartsMap.get(repair.repair_id)?.length || 0) === 0 ? (
+                            <p className="text-xs text-blue-500 italic">Parts not required for no-defect repairs</p>
                           ) : (removedPartsMap.get(repair.repair_id)?.length || 0) === 0 ? (
                             <p className="text-xs text-gray-400 italic">No parts removed</p>
                           ) : (
@@ -2834,6 +2873,15 @@ export default function MaintenanceDetailPage() {
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
+                {isNoDefectCode(editRepairForm.how_mal) && (
+                  <div className="mt-2 flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-2">
+                    <InformationCircleIcon className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-700">
+                      <strong>No-Defect Code:</strong> This code indicates no actual defect was found.
+                      Parts tracking is not required for this repair.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* When Discovered */}
@@ -3060,6 +3108,15 @@ export default function MaintenanceDetailPage() {
                 <p className="text-xs text-gray-500 mt-1">
                   Code indicating how the malfunction manifested
                 </p>
+                {isNoDefectCode(addRepairForm.how_mal) && (
+                  <div className="mt-2 flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-2">
+                    <InformationCircleIcon className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-700">
+                      <strong>No-Defect Code:</strong> This code indicates no actual defect was found.
+                      Parts tracking is not required for this repair.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* When Discovered Code */}
