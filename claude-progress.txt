@@ -1,5 +1,53 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #78)
+
+### Completed This Session:
+- Feature #78: Attachment file size validation - VERIFIED AND PASSING
+
+**Description:** Large files are rejected with appropriate message
+
+**Implementation Already Existed:**
+The feature was already fully implemented by previous agents. This session verified the implementation:
+
+**Backend (backend/src/index.ts):**
+- Multer configured with 10MB file size limit (`fileSize: 10 * 1024 * 1024`)
+- Server-side validation rejects files exceeding the limit
+
+**Frontend (MaintenanceDetailPage.tsx):**
+- Client-side validation in handleFileSelect function
+- Checks file.size > 10 * 1024 * 1024 before accepting
+- Sets error message "File size exceeds 10MB limit" when validation fails
+- Upload button remains disabled until valid file selected
+- Upload modal shows "PDF, images, Word, Excel, or text up to 10MB"
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Navigate to event attachments - Navigated to MX-2024-001 maintenance event detail page
+3. ✅ Attempt to upload very large file (>10MB) - Uploaded 15MB file (large_test_file_15mb.bin)
+4. ✅ Verify error message about file size - Error displayed: "File size exceeds 10MB limit" (Upload button disabled)
+5. ✅ Upload acceptable size file - Uploaded small_test_file.txt (99 bytes)
+6. ✅ Verify success - File uploaded successfully, displayed in attachments list with correct metadata
+
+**Additional Verifications:**
+- ✅ Client-side validation works (prevents large files from being selected)
+- ✅ Backend has matching 10MB limit (multer configuration)
+- ✅ Error message is clear and user-friendly (red text in error banner)
+- ✅ Upload button is disabled when file is too large
+- ✅ Small files upload successfully and appear in attachments list
+- ✅ No JavaScript console errors related to the feature
+
+**Screenshots:**
+- .playwright-mcp/feature78_file_size_error.png - Error message for oversized file
+- .playwright-mcp/feature78_file_accepted.png - Small file accepted and ready for upload
+- .playwright-mcp/feature78_upload_success.png - Successful upload displayed
+
+### Current Progress:
+- Features passing: 78/374 (20.9%)
+- Feature #78 marked as passing
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #77)
 
 ### Completed This Session:
@@ -6228,4 +6276,37 @@ Screenshots:
 
 ### Note:
 The attachment infrastructure (backend endpoints and frontend UI) was already implemented by another agent working on Feature #75 (upload). This session verified the download functionality works correctly.
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #39 'Asset column sorting works' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to Assets page with multiple assets - 10 assets displayed
+3. ✅ Click serial number column header - Sort initiated
+4. ✅ Verify ascending sort applied - CRIIS-001 to CRIIS-010 order confirmed
+5. ✅ Click again - Toggled sort direction
+6. ✅ Verify descending sort applied - CRIIS-010 to CRIIS-001 order confirmed
+7. ✅ Sort by status column - Status column clicked
+8. ✅ Verify sort works - Sorted alphabetically by status (CNDM, FMC, NMCM, NMCS, PMC)
+
+**Sort Indicators Verified:**
+- Up arrow (▲) for ascending sort
+- Down arrow (▼) for descending sort
+- Arrow moves to currently sorted column
+
+**Screenshots:**
+- .playwright-mcp/feature39_assets_initial_state.png - Initial assets table
+- .playwright-mcp/feature39_serial_number_descending.png - Serial Number descending sort
+- .playwright-mcp/feature39_status_column_sorted.png - Status column sorted
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #39 (no regression found)
 
