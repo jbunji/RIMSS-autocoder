@@ -7,6 +7,7 @@ import { TokenRefreshManager } from './components/TokenRefreshManager'
 import { Layout } from './components/layout'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import UsersPage from './pages/admin/UsersPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -81,6 +82,7 @@ function App() {
           <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
           <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
           <Route path="/admin" element={<PlaceholderPage title="Admin" />} />
+          <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/profile" element={<PlaceholderPage title="Your Profile" />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
         </Route>
