@@ -1976,3 +1976,134 @@ The quick navigation links were already implemented (by concurrent agent work in
 - All 4 programs (CRIIS, ACTS, ARDS, 236) available for admin users
 - Program filtering applied consistently across all dashboard widgets
 
+
+
+---
+
+## Testing Session: 2026-01-19 12:40
+
+[Testing] Feature #22 'Dashboard shows PMI due soon alerts widget' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Navigate to dashboard - Dashboard at /dashboard
+3. ✅ Verify PMI alerts widget displays - 'PMI Due Soon' widget visible with header counts (3 red, 2 yellow, 2 green)
+4. ✅ Verify red items are due within 7 days:
+   - ECU Assembly A - '3 days overdue' (red background, red bullet)
+   - Sensor Unit B - 'Due in 2 days' (red background, red bullet)
+   - Power Supply C - 'Due in 6 days' (red background, red bullet)
+5. ✅ Verify yellow items are due 8-30 days:
+   - Display Module D - 'Due in 11 days' (yellow background, yellow bullet)
+   - Communication Radio E - 'Due in 20 days' (yellow background, yellow bullet)
+6. ✅ Verify green items are due after 30 days:
+   - Camera Assembly G - 'Due in 44 days' (green background, green bullet)
+   - Processing Unit I - 'Due in 119 days' (green background, green bullet)
+7. ✅ Click on PMI item to navigate to detail:
+   - ECU Assembly A -> /pmi/1 (OVERDUE badge)
+   - Display Module D -> /pmi/4 (UPCOMING badge)
+   - Camera Assembly G -> /pmi/7 (SCHEDULED badge)
+
+**Widget Features Verified:**
+- Header shows color-coded counts (Red 3, Yellow 2, Green 2)
+- Legend at bottom: 'Due in 7 days or less' / 'Due in 8-30 days' / 'Due after 30 days'
+- Items show asset name, PMI type, serial number, due status, and date
+- Clicking items navigates to PMI detail page with full information
+
+**Screenshots:**
+- .playwright-mcp/feature22_regression_pmi_widget.png - Dashboard with PMI widget
+- .playwright-mcp/feature22_regression_pmi_widget_full.png - Full PMI widget view
+- .playwright-mcp/feature22_regression_pmi_detail.png - Red/Overdue PMI detail (ECU Assembly A)
+- .playwright-mcp/feature22_regression_pmi_yellow.png - Yellow/Upcoming PMI detail (Display Module D)
+- .playwright-mcp/feature22_regression_pmi_green.png - Green/Scheduled PMI detail (Camera Assembly G)
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #22 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 12:40
+
+[Testing] Feature #10 'JWT token refresh works correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Wait for token to approach expiration - Used localStorage override to set 5 second refresh interval for testing
+3. ✅ Verify refresh token request is made - Console logs showed multiple '[TokenRefreshManager] Initiating token refresh...'
+4. ✅ Verify new access token is received - Console logs showed '[TokenRefreshManager] Token refreshed successfully' after each refresh
+5. ✅ Verify session continues without interruption - Dashboard remained functional, all API calls returned 200 OK
+
+**Implementation Details Verified:**
+- TokenRefreshManager component (frontend/src/components/TokenRefreshManager.tsx):
+  - Schedules token refresh 5 minutes before expiration (25 min default interval)
+  - Supports localStorage override for testing (rimss-token-refresh-override)
+  - Handles visibility change to refresh tokens when tab becomes active
+  - Dispatches 'token-refreshed' custom event
+  - Properly handles authentication state changes
+- Backend /api/auth/refresh endpoint (backend/src/index.ts):
+  - Validates Bearer token
+  - Returns new token with extended expiration
+  - Returns updated user data
+
+**Network Requests Verified:**
+- POST http://localhost:3001/api/auth/refresh => 200 OK (multiple times)
+- All dashboard API calls continue to work after refresh
+
+**Screenshots:**
+- .playwright-mcp/feature10_jwt_refresh_verified.png - Dashboard working after multiple token refreshes
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #10 (no regression found)
+
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #29)
+
+### Completed This Session:
+- Feature #29: Dashboard responsive layout on desktop - VERIFIED AND PASSING
+
+**Feature Description:** Dashboard displays correctly on desktop (1920px)
+
+**No Implementation Required:** The dashboard was already properly implemented with responsive design. This session verified the layout at 1920px width.
+
+**Testing Steps Verified:**
+1. ✅ Log in on desktop browser at 1920px width - Logged in as admin/admin123 with browser viewport set to 1920x1080
+2. ✅ Navigate to dashboard - Dashboard at /dashboard loaded successfully
+3. ✅ Verify all widgets visible without horizontal scroll - Confirmed via JavaScript check:
+   - bodyScrollWidth: 1920
+   - bodyClientWidth: 1920
+   - htmlScrollWidth: 1920
+   - htmlClientWidth: 1920
+   - hasHorizontalScroll: false
+4. ✅ Verify proper spacing between widgets:
+   - Two-column layout with Asset Status Summary and PMI Due Soon side by side
+   - Open Maintenance Jobs and Parts Awaiting Action side by side below
+   - Recent Activity widget spans full width at bottom
+   - Quick navigation buttons evenly spaced in a row
+   - Consistent padding and margins throughout
+5. ✅ Verify text is readable - All text clearly visible with appropriate font sizes and contrast
+
+**Screenshots:**
+- .playwright-mcp/feature29_dashboard_desktop_1920_top.png - Dashboard top view at 1920px
+- .playwright-mcp/feature29_dashboard_desktop_1920_bottom.png - Dashboard bottom view at 1920px
+- .playwright-mcp/feature29_dashboard_desktop_1920_fullpage.png - Full page screenshot
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #29 marked as PASSING
+- Features Passing: 28/374 (approx 7.5%)
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Dashboard uses responsive CSS with proper two-column grid layout at desktop widths
+- No horizontal scrollbar present at 1920px width
