@@ -1924,3 +1924,55 @@ The quick navigation links were already implemented (by concurrent agent work in
 - All quick link buttons have proper accessibility labels (aria-label)
 - Hover states with color changes for visual feedback
 
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #27)
+
+### Completed This Session:
+- Feature #27: Dashboard filters by selected program - VERIFIED AND PASSING
+
+**Feature Description:** Dashboard data is filtered by user's selected program
+
+**No Implementation Required:** This feature was already fully implemented by previous agents:
+- Program selector dropdown in Navbar allows switching between programs
+- authStore manages currentProgramId state and setCurrentProgram action
+- All dashboard API calls include program_id query parameter
+- Backend filters all dashboard data by program_id
+
+**Testing Steps Verified:**
+1. Log in as user with multiple programs - admin/admin123 (has CRIIS, ACTS, ARDS, 236)
+2. Select CRIIS program - Default program was CRIIS upon login
+   - Program selector shows "Program: CRIIS"
+   - Dashboard shows: 10 assets, 70% MCR, 7 PMI items, 4 maintenance jobs, 4 parts orders
+   - "Data for program: CRIIS" displayed in Asset Status widget
+3. Verify dashboard data shows CRIIS data only - All widgets display CRIIS-specific data
+4. Switch to ACTS program - Clicked Program dropdown, Selected "ACTS"
+   - Program selector updated to "Program: ACTS"
+5. Verify dashboard data updates to ACTS data only:
+   - Asset Status: 6 assets, 67% MCR, FMC=3, PMC=1, NMCM=1, NMCS=1, CNDM=0
+   - PMI: 2 items (Targeting Computer J, Navigation System F)
+   - Maintenance: 2 jobs (Targeting System B, Laser System)
+   - Parts: 2 orders (Laser Diode Module, Gyroscope Stabilizer)
+   - "Data for program: ACTS" displayed in Asset Status widget
+
+**Network Verification:**
+- API calls used program_id=1 for CRIIS, program_id=2 for ACTS
+- All dashboard endpoints correctly filter by selected program
+
+**Screenshots:**
+- .playwright-mcp/feature27_dashboard_criis_program.png - Dashboard with CRIIS data
+- .playwright-mcp/feature27_dashboard_acts_program.png - Dashboard with ACTS data
+
+**Console errors:** None detected
+
+### Current Status:
+- Feature #27 marked as PASSING
+- Features Passing: 25/374 (approx 6.7%)
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- All 4 programs (CRIIS, ACTS, ARDS, 236) available for admin users
+- Program filtering applied consistently across all dashboard widgets
+
