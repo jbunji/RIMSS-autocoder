@@ -459,3 +459,67 @@ displays correctly regardless of authentication state.
 - ProtectedRoute component correctly redirects unauthenticated users to /login
 - No console errors during logout flow
 
+
+## Testing Session: 2026-01-19 11:58
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' verified - still PASSING
+  - Navigated to http://localhost:5173/ (homepage)
+  - Verified automatic redirect to /login page ✅
+  - Verified login form displayed (Username, Password, Sign In button) ✅
+  - Additional test: /dashboard also redirects to /login ✅
+  - No console errors detected
+  - Screenshot saved: .playwright-mcp/regression_feature3_redirect_to_login.png
+
+[Testing] Session complete - verified feature #3 (still passing)
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #9)
+
+### Completed This Session:
+- Feature #9: Session timeout after inactivity - VERIFIED AND PASSING
+
+**Implementation:**
+- Created ActivityTracker component that monitors user activity events:
+  - mousedown, mousemove, keydown, scroll, touchstart, click
+  - Throttled activity detection (max 1 reset per second)
+  - Visibility change handling for tab switching
+- Added sessionExpired state to authStore
+- Updated LoginPage to display session expiration warning message
+- Session timeout set to 30 minutes as per spec (configurable via localStorage for testing)
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Simulate 30 minutes of inactivity - Used 5-second timeout override for testing
+3. ✅ Attempt to perform any action - Timer expired while on dashboard
+4. ✅ Verify session has expired - Console logged "[ActivityTracker] Session timed out due to inactivity"
+5. ✅ Verify redirect to login page - Page URL changed to /login
+6. ✅ Verify message about session expiration - Yellow warning displayed: "Your session has expired due to inactivity. Please log in again."
+
+**Screenshots:**
+- .playwright-mcp/feature9_session_timeout_message.png - Login page with session expiration message
+
+**Technical Details:**
+- ActivityTracker wraps the application in App.tsx
+- Uses setTimeout for inactivity detection
+- Handles visibility change API for tab switching scenarios
+- Allows localStorage override for testing: 'rimss-session-timeout-override'
+
+**Commit:** 170bc78 - Implement Feature #9: Session timeout after inactivity
+
+### Current Status:
+- Features Passing: 7 (Features #1, #2, #3, #4, #5, #6, #9)
+- Total Features: 372
+- Completion: ~1.9%
+
+### What Was Built:
+- frontend/src/components/ActivityTracker.tsx - Activity monitoring and session timeout component
+- Updated frontend/src/stores/authStore.ts - Added sessionExpired state
+- Updated frontend/src/App.tsx - Wrapped routes with ActivityTracker
+- Updated frontend/src/pages/LoginPage.tsx - Added session expiration message display
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Activity tracking successfully resets timer on user interaction
+- Session expiration message clears after user logs back in
