@@ -2151,6 +2151,8 @@ app.get('/api/events', (req, res) => {
   const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
   const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
   const searchQuery = req.query.search as string | undefined;
+  const dateFrom = req.query.date_from as string | undefined; // Filter events starting from this date (YYYY-MM-DD)
+  const dateTo = req.query.date_to as string | undefined; // Filter events up to this date (YYYY-MM-DD)
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = parseInt(req.query.limit as string, 10) || 10;
 
@@ -2191,6 +2193,24 @@ app.get('/api/events', (req, res) => {
       event.discrepancy.toLowerCase().includes(query) ||
       event.location.toLowerCase().includes(query)
     );
+  }
+
+  // Apply date range filter if specified (based on start_job date)
+  if (dateFrom) {
+    const fromDate = new Date(dateFrom);
+    fromDate.setHours(0, 0, 0, 0); // Start of day
+    filteredEvents = filteredEvents.filter(event => {
+      const eventDate = new Date(event.start_job);
+      return eventDate >= fromDate;
+    });
+  }
+  if (dateTo) {
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59, 999); // End of day
+    filteredEvents = filteredEvents.filter(event => {
+      const eventDate = new Date(event.start_job);
+      return eventDate <= toDate;
+    });
   }
 
   // Sort by priority (Critical first, then Urgent, then Routine), then by start date (newest first)

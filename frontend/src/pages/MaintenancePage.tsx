@@ -20,8 +20,12 @@ import {
   Squares2X2Icon,
   CalendarIcon,
   ArrowPathIcon,
+  DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 
 // Maintenance event interface matching backend
 interface MaintenanceEvent {
