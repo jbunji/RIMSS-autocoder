@@ -2010,6 +2010,61 @@ app.get('/api/assets', (req, res) => {
     );
   }
 
+  // Apply sorting
+  const sortBy = (req.query.sort_by as string) || 'serno';
+  const sortOrder = (req.query.sort_order as string) || 'asc';
+
+  // Valid sort columns
+  const validSortColumns = ['serno', 'partno', 'part_name', 'status_cd', 'location', 'eti_hours', 'next_pmi_date'];
+  if (validSortColumns.includes(sortBy)) {
+    filteredAssets.sort((a: AssetDetails, b: AssetDetails) => {
+      let aVal: string | number | null = null;
+      let bVal: string | number | null = null;
+
+      switch (sortBy) {
+        case 'serno':
+          aVal = a.serno.toLowerCase();
+          bVal = b.serno.toLowerCase();
+          break;
+        case 'partno':
+          aVal = a.partno.toLowerCase();
+          bVal = b.partno.toLowerCase();
+          break;
+        case 'part_name':
+          aVal = a.part_name.toLowerCase();
+          bVal = b.part_name.toLowerCase();
+          break;
+        case 'status_cd':
+          aVal = a.status_cd;
+          bVal = b.status_cd;
+          break;
+        case 'location':
+          aVal = a.location.toLowerCase();
+          bVal = b.location.toLowerCase();
+          break;
+        case 'eti_hours':
+          aVal = a.eti_hours ?? 0;
+          bVal = b.eti_hours ?? 0;
+          break;
+        case 'next_pmi_date':
+          aVal = a.next_pmi_date ? new Date(a.next_pmi_date).getTime() : 0;
+          bVal = b.next_pmi_date ? new Date(b.next_pmi_date).getTime() : 0;
+          break;
+      }
+
+      if (aVal === null || bVal === null) return 0;
+
+      let comparison = 0;
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        comparison = aVal.localeCompare(bVal);
+      } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+        comparison = aVal - bVal;
+      }
+
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+  }
+
   // Get pagination params
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = Math.min(parseInt(req.query.limit as string, 10) || 25, 100);
