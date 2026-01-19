@@ -14,8 +14,11 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   ChevronUpDownIcon,
+  DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 // Reference data interfaces
 interface Location {
@@ -357,6 +360,169 @@ export default function AssetsPage() {
     })
   }
 
+  // Get current ZULU (UTC) timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  // Export assets to PDF with CUI markings
+  const exportToPdf = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+
+      // Timestamp on footer
+      doc.text(`Generated: ${zuluTimestamp}`, 15, pageHeight - 5, { align: 'left' })
+    }
+
+    // Add title section after header
+    const addTitle = () => {
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(30, 64, 175) // Primary blue
+      doc.text('RIMSS Asset Report', pageWidth / 2, 20, { align: 'center' })
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(55, 65, 81) // Gray
+      const programText = program ? `Program: ${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'
+      doc.text(programText, pageWidth / 2, 27, { align: 'center' })
+
+      doc.setFontSize(9)
+      doc.text(`Report generated: ${zuluTimestamp}`, pageWidth / 2, 33, { align: 'center' })
+      doc.text(`Total Assets: ${pagination.total}`, pageWidth / 2, 38, { align: 'center' })
+
+      // Add filter info if applied
+      if (statusFilter || debouncedSearch) {
+        const filters: string[] = []
+        if (statusFilter) filters.push(`Status: ${statusFilter}`)
+        if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
+        doc.setFontSize(8)
+        doc.setTextColor(107, 114, 128)
+        doc.text(`Filters: ${filters.join(', ')}`, pageWidth / 2, 43, { align: 'center' })
+      }
+    }
+
+    // Prepare table data
+    const tableData = assets.map(asset => [
+      asset.serno + (asset.bad_actor ? ' (BA)' : '') + (asset.in_transit ? ' (Transit)' : ''),
+      asset.partno,
+      asset.part_name,
+      asset.status_cd,
+      asset.location,
+      asset.eti_hours !== null ? asset.eti_hours.toLocaleString() : '-',
+      formatDate(asset.next_pmi_date)
+    ])
+
+    // Add header to first page
+    addCuiHeader()
+    addTitle()
+
+    // Generate table with autoTable
+    autoTable(doc, {
+      startY: statusFilter || debouncedSearch ? 48 : 43,
+      head: [['Serial Number', 'Part Number', 'Name', 'Status', 'Location', 'ETI Hours', 'Next PMI']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [30, 64, 175], // Primary blue
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [55, 65, 81]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251] // Light gray
+      },
+      margin: { top: 15, bottom: 15, left: 10, right: 10 },
+      didDrawPage: (data) => {
+        // Add CUI header on each page
+        addCuiHeader()
+
+        // If this is not the first page, we don't have title space
+        if (data.pageNumber > 1) {
+          // Adjust starting position for subsequent pages
+        }
+      },
+      // Style specific columns
+      columnStyles: {
+        0: { cellWidth: 40 }, // Serial Number
+        1: { cellWidth: 35 }, // Part Number
+        2: { cellWidth: 55 }, // Name
+        3: { cellWidth: 20 }, // Status
+        4: { cellWidth: 45 }, // Location
+        5: { cellWidth: 25 }, // ETI Hours
+        6: { cellWidth: 30 }, // Next PMI
+      }
+    })
+
+    // Get total pages and add footers
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addCuiFooter(i, totalPages)
+    }
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_Assets_${getZuluDateForFilename()}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
   // Handle column sorting
   const handleSort = (column: SortColumn) => {
     if (sortBy === column) {
@@ -425,6 +591,16 @@ export default function AssetsPage() {
           <span className="text-sm text-gray-500">
             {pagination.total} total asset{pagination.total !== 1 ? 's' : ''}
           </span>
+          <button
+            type="button"
+            onClick={exportToPdf}
+            disabled={assets.length === 0}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export to PDF with CUI markings"
+          >
+            <DocumentArrowDownIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+            Export PDF
+          </button>
           {canCreateAsset && (
             <button
               type="button"
