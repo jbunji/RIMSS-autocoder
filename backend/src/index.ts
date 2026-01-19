@@ -337,40 +337,75 @@ const assetStatusCodes = [
   { status_cd: 'CNDM', status_name: 'Cannot Determine Mission', description: 'Asset status cannot be determined' },
 ]
 
+// Location options
+const adminLocations = [
+  { loc_id: 1, loc_cd: 'DEPOT-A', loc_name: 'Depot Alpha' },
+  { loc_id: 2, loc_cd: 'DEPOT-B', loc_name: 'Depot Beta' },
+  { loc_id: 3, loc_cd: 'DEPOT-C', loc_name: 'Depot Charlie' },
+  { loc_id: 4, loc_cd: 'FIELD-1', loc_name: 'Field Site 1' },
+  { loc_id: 5, loc_cd: 'FIELD-2', loc_name: 'Field Site 2' },
+  { loc_id: 6, loc_cd: 'HQ', loc_name: 'Headquarters' },
+]
+
+const custodialLocations = [
+  { loc_id: 1, loc_cd: 'MAINT-BAY-1', loc_name: 'Maintenance Bay 1' },
+  { loc_id: 2, loc_cd: 'MAINT-BAY-2', loc_name: 'Maintenance Bay 2' },
+  { loc_id: 3, loc_cd: 'STORAGE-A', loc_name: 'Storage Area A' },
+  { loc_id: 4, loc_cd: 'STORAGE-B', loc_name: 'Storage Area B' },
+  { loc_id: 5, loc_cd: 'FIELD-OPS', loc_name: 'Field Operations' },
+  { loc_id: 6, loc_cd: 'AIRCRAFT-1', loc_name: 'Aircraft 1' },
+  { loc_id: 7, loc_cd: 'AIRCRAFT-2', loc_name: 'Aircraft 2' },
+]
+
+// Asset interface for typed data
+interface Asset {
+  asset_id: number
+  serno: string
+  partno: string
+  name: string
+  pgm_id: number
+  status_cd: string
+  admin_loc: string
+  cust_loc: string
+  notes: string
+  active: boolean
+  created_date: string
+}
+
 // Mock asset data for different programs
-const mockAssets = [
+const mockAssets: Asset[] = [
   // CRIIS program assets (pgm_id: 1)
-  { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', pgm_id: 1, status_cd: 'FMC', active: true },
-  { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', pgm_id: 1, status_cd: 'FMC', active: true },
-  { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', pgm_id: 1, status_cd: 'PMC', active: true },
-  { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', pgm_id: 1, status_cd: 'FMC', active: true },
-  { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', pgm_id: 1, status_cd: 'NMCM', active: true },
-  { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', pgm_id: 1, status_cd: 'NMCS', active: true },
-  { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', pgm_id: 1, status_cd: 'FMC', active: true },
-  { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', pgm_id: 1, status_cd: 'PMC', active: true },
-  { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', pgm_id: 1, status_cd: 'CNDM', active: true },
-  { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', pgm_id: 1, status_cd: 'FMC', active: true },
+  { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: 'Primary sensor unit', active: true, created_date: '2024-01-15' },
+  { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', name: 'Sensor Unit A (Backup)', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'STORAGE-A', notes: 'Backup sensor unit', active: true, created_date: '2024-01-15' },
+  { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', admin_loc: 'FIELD-1', cust_loc: 'AIRCRAFT-1', notes: 'Minor calibration needed', active: true, created_date: '2024-02-01' },
+  { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-2', notes: '', active: true, created_date: '2024-02-10' },
+  { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', name: 'Camera System X-2', pgm_id: 1, status_cd: 'NMCM', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: 'Intermittent power failure', active: true, created_date: '2024-02-10' },
+  { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', admin_loc: 'FIELD-1', cust_loc: 'FIELD-OPS', notes: 'Awaiting power supply module', active: true, created_date: '2024-03-01' },
+  { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', name: 'Radar Unit 02', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-B', cust_loc: 'STORAGE-B', notes: '', active: true, created_date: '2024-03-01' },
+  { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', name: 'Communication System', pgm_id: 1, status_cd: 'PMC', admin_loc: 'FIELD-2', cust_loc: 'AIRCRAFT-2', notes: 'Software update pending', active: true, created_date: '2024-03-15' },
+  { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', name: 'Communication System (Backup)', pgm_id: 1, status_cd: 'CNDM', admin_loc: 'HQ', cust_loc: 'STORAGE-A', notes: 'Status to be determined', active: true, created_date: '2024-03-15' },
+  { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'AIRCRAFT-1', notes: '', active: true, created_date: '2024-04-01' },
 
   // ACTS program assets (pgm_id: 2)
-  { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', pgm_id: 2, status_cd: 'FMC', active: true },
-  { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', pgm_id: 2, status_cd: 'FMC', active: true },
-  { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', pgm_id: 2, status_cd: 'NMCM', active: true },
-  { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', pgm_id: 2, status_cd: 'PMC', active: true },
-  { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', pgm_id: 2, status_cd: 'NMCS', active: true },
-  { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', pgm_id: 2, status_cd: 'FMC', active: true },
+  { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: '', active: true, created_date: '2024-01-20' },
+  { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', name: 'Targeting System A (Secondary)', pgm_id: 2, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'STORAGE-A', notes: '', active: true, created_date: '2024-01-20' },
+  { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', name: 'Targeting System B', pgm_id: 2, status_cd: 'NMCM', admin_loc: 'DEPOT-B', cust_loc: 'MAINT-BAY-2', notes: 'BIT failure - optical alignment issue', active: true, created_date: '2024-02-15' },
+  { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', name: 'Laser System', pgm_id: 2, status_cd: 'PMC', admin_loc: 'FIELD-1', cust_loc: 'AIRCRAFT-1', notes: 'Minor alignment adjustment needed', active: true, created_date: '2024-03-01' },
+  { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', name: 'Laser System (Backup)', pgm_id: 2, status_cd: 'NMCS', admin_loc: 'FIELD-2', cust_loc: 'FIELD-OPS', notes: 'Awaiting laser diode replacement', active: true, created_date: '2024-03-01' },
+  { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', name: 'Optical Assembly', pgm_id: 2, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: '', active: true, created_date: '2024-04-15' },
 
   // ARDS program assets (pgm_id: 3)
-  { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', pgm_id: 3, status_cd: 'FMC', active: true },
-  { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', pgm_id: 3, status_cd: 'FMC', active: true },
-  { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', pgm_id: 3, status_cd: 'PMC', active: true },
-  { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', pgm_id: 3, status_cd: 'NMCM', active: true },
-  { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', pgm_id: 3, status_cd: 'CNDM', active: true },
+  { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', name: 'Data Processing System', pgm_id: 3, status_cd: 'FMC', admin_loc: 'DEPOT-C', cust_loc: 'MAINT-BAY-1', notes: '', active: true, created_date: '2024-02-01' },
+  { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', name: 'Data Processing System (Backup)', pgm_id: 3, status_cd: 'FMC', admin_loc: 'DEPOT-C', cust_loc: 'STORAGE-B', notes: '', active: true, created_date: '2024-02-01' },
+  { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'PMC', admin_loc: 'FIELD-1', cust_loc: 'AIRCRAFT-2', notes: 'Lens cleaning needed', active: true, created_date: '2024-03-10' },
+  { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', name: 'Reconnaissance Camera (Secondary)', pgm_id: 3, status_cd: 'NMCM', admin_loc: 'DEPOT-B', cust_loc: 'MAINT-BAY-2', notes: 'Recalibration in progress', active: true, created_date: '2024-03-10' },
+  { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', name: 'Data Link System', pgm_id: 3, status_cd: 'CNDM', admin_loc: 'HQ', cust_loc: 'STORAGE-A', notes: 'Under evaluation', active: true, created_date: '2024-04-01' },
 
   // Program 236 assets (pgm_id: 4)
-  { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', pgm_id: 4, status_cd: 'FMC', active: true },
-  { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', pgm_id: 4, status_cd: 'NMCS', active: true },
-  { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', pgm_id: 4, status_cd: 'PMC', active: true },
-  { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', pgm_id: 4, status_cd: 'FMC', active: true },
+  { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', name: 'Special Unit 001', pgm_id: 4, status_cd: 'FMC', admin_loc: 'HQ', cust_loc: 'STORAGE-A', notes: 'Classified', active: true, created_date: '2024-01-01' },
+  { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', name: 'Special Unit 002', pgm_id: 4, status_cd: 'NMCS', admin_loc: 'HQ', cust_loc: 'MAINT-BAY-1', notes: 'Awaiting classified component', active: true, created_date: '2024-01-01' },
+  { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', name: 'Special Unit 003', pgm_id: 4, status_cd: 'PMC', admin_loc: 'HQ', cust_loc: 'FIELD-OPS', notes: '', active: true, created_date: '2024-02-01' },
+  { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', name: 'Special Unit 004', pgm_id: 4, status_cd: 'FMC', admin_loc: 'HQ', cust_loc: 'STORAGE-B', notes: '', active: true, created_date: '2024-03-01' },
 ]
 
 // Authentication middleware helper
@@ -1798,6 +1833,308 @@ app.get('/api/dashboard/recent-activity', (req, res) => {
   res.json({
     activities: sortedActivity,
     total: sortedActivity.length,
+  });
+});
+
+// Enhanced mock asset data with more details for the Assets page
+interface AssetDetails {
+  asset_id: number;
+  serno: string;
+  partno: string;
+  part_name: string;
+  pgm_id: number;
+  status_cd: string;
+  status_name: string;
+  active: boolean;
+  location: string;
+  loc_type: 'depot' | 'field';
+  in_transit: boolean;
+  bad_actor: boolean;
+  last_maint_date: string | null;
+  next_pmi_date: string | null;
+  eti_hours: number | null;
+  remarks: string | null;
+}
+
+// Generate detailed asset data
+function generateDetailedAssets(): AssetDetails[] {
+  const today = new Date();
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+  const subtractDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split('T')[0];
+  };
+
+  return [
+    // CRIIS program assets (pgm_id: 1)
+    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null },
+    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null },
+    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update' },
+    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null },
+    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001' },
+    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002' },
+    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null },
+    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending' },
+    { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(90), next_pmi_date: null, eti_hours: null, remarks: 'En route from vendor repair' },
+    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null },
+
+    // ACTS program assets (pgm_id: 2)
+    { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(18), next_pmi_date: addDays(90), eti_hours: 750, remarks: null },
+    { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(25), next_pmi_date: addDays(65), eti_hours: 920, remarks: null },
+    { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', part_name: 'Targeting System B', pgm_id: 2, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(3), next_pmi_date: null, eti_hours: 2800, remarks: 'Optical alignment issue - MX-2024-005' },
+    { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(12), next_pmi_date: addDays(28), eti_hours: 1500, remarks: 'Range limited to 5km' },
+    { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(7), next_pmi_date: null, eti_hours: 3100, remarks: 'Awaiting laser diode - MX-2024-006' },
+    { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', part_name: 'Optical Sight Unit', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(40), next_pmi_date: addDays(50), eti_hours: 680, remarks: null },
+
+    // ARDS program assets (pgm_id: 3)
+    { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(22), next_pmi_date: addDays(68), eti_hours: 1400, remarks: null },
+    { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Echo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(35), next_pmi_date: addDays(55), eti_hours: 1650, remarks: null },
+    { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(8), next_pmi_date: addDays(22), eti_hours: 2200, remarks: 'IR channel degraded' },
+    { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: null, eti_hours: 2900, remarks: 'Lens recalibration - MX-2024-007' },
+    { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', part_name: 'Data Link System', pgm_id: 3, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(100), next_pmi_date: null, eti_hours: null, remarks: 'Returning from depot repair' },
+
+    // Program 236 assets (pgm_id: 4)
+    { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(14), next_pmi_date: addDays(76), eti_hours: 560, remarks: null },
+    { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(4), next_pmi_date: null, eti_hours: 1200, remarks: 'Awaiting classified component - MX-2024-010' },
+    { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', part_name: 'Special System Beta', pgm_id: 4, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(28), next_pmi_date: addDays(32), eti_hours: 890, remarks: 'Mode 3 limited' },
+    { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(50), next_pmi_date: addDays(40), eti_hours: 340, remarks: null },
+  ];
+}
+
+// GET /api/assets - List all assets for a program (requires authentication)
+app.get('/api/assets', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (required or use default)
+  let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // If no program specified, use user's default program
+  if (!programIdFilter) {
+    const defaultProgram = user.programs.find(p => p.is_default);
+    programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+  }
+
+  // Check if user has access to this program
+  if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Get detailed assets
+  const allAssets = generateDetailedAssets();
+
+  // Filter by program
+  let filteredAssets = allAssets.filter(asset => asset.pgm_id === programIdFilter);
+
+  // Apply optional status filter
+  const statusFilter = req.query.status as string;
+  if (statusFilter) {
+    filteredAssets = filteredAssets.filter(asset => asset.status_cd === statusFilter);
+  }
+
+  // Apply optional search filter (searches serno, partno, part_name)
+  const searchQuery = (req.query.search as string)?.toLowerCase();
+  if (searchQuery) {
+    filteredAssets = filteredAssets.filter(asset =>
+      asset.serno.toLowerCase().includes(searchQuery) ||
+      asset.partno.toLowerCase().includes(searchQuery) ||
+      asset.part_name.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // Get pagination params
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = Math.min(parseInt(req.query.limit as string, 10) || 25, 100);
+  const offset = (page - 1) * limit;
+
+  // Calculate total before pagination
+  const total = filteredAssets.length;
+
+  // Apply pagination
+  const paginatedAssets = filteredAssets.slice(offset, offset + limit);
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === programIdFilter);
+
+  console.log(`[ASSETS] List request by ${user.username} - Program: ${program?.pgm_cd}, Total: ${total}, Page: ${page}`);
+
+  res.json({
+    assets: paginatedAssets,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+    program: {
+      pgm_id: programIdFilter,
+      pgm_cd: program?.pgm_cd || 'UNKNOWN',
+      pgm_name: program?.pgm_name || 'Unknown Program',
+    },
+  });
+});
+
+// GET /api/assets/:id - Get single asset by ID (requires authentication)
+app.get('/api/assets/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const allAssets = generateDetailedAssets();
+  const asset = allAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
+
+  res.json({
+    asset: {
+      ...asset,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    }
+  });
+});
+
+// POST /api/assets - Create a new asset (requires authentication and depot_manager/admin role)
+app.post('/api/assets', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN and DEPOT_MANAGER can create assets
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to create assets' });
+  }
+
+  const { partno, serno, name, status_cd, admin_loc, cust_loc, notes, pgm_id } = req.body;
+
+  // Validate required fields
+  if (!partno || !serno || !status_cd || !admin_loc || !cust_loc || !pgm_id) {
+    return res.status(400).json({ error: 'Part number, serial number, status, administrative location, custodial location, and program are required' });
+  }
+
+  // Check if user has access to this program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Validate status code
+  const validStatuses = assetStatusCodes.map(s => s.status_cd);
+  if (!validStatuses.includes(status_cd)) {
+    return res.status(400).json({ error: 'Invalid status code' });
+  }
+
+  // Validate admin location
+  const validAdminLocs = adminLocations.map(l => l.loc_cd);
+  if (!validAdminLocs.includes(admin_loc)) {
+    return res.status(400).json({ error: 'Invalid administrative location' });
+  }
+
+  // Validate custodial location
+  const validCustLocs = custodialLocations.map(l => l.loc_cd);
+  if (!validCustLocs.includes(cust_loc)) {
+    return res.status(400).json({ error: 'Invalid custodial location' });
+  }
+
+  // Check for duplicate serial number (within same program)
+  const existingAsset = mockAssets.find(a => a.serno.toLowerCase() === serno.toLowerCase() && a.pgm_id === pgm_id);
+  if (existingAsset) {
+    return res.status(400).json({ error: 'An asset with this serial number already exists in this program' });
+  }
+
+  // Generate new asset ID
+  const newAssetId = Math.max(...mockAssets.map(a => a.asset_id)) + 1;
+
+  // Create the new asset
+  const newAsset: Asset = {
+    asset_id: newAssetId,
+    serno,
+    partno,
+    name: name || `${partno} - ${serno}`,
+    pgm_id,
+    status_cd,
+    admin_loc,
+    cust_loc,
+    notes: notes || '',
+    active: true,
+    created_date: new Date().toISOString().split('T')[0],
+  };
+
+  // Add to mock data array
+  mockAssets.push(newAsset);
+
+  // Get program and location info for response
+  const program = allPrograms.find(p => p.pgm_id === pgm_id);
+  const adminLocInfo = adminLocations.find(l => l.loc_cd === admin_loc);
+  const custLocInfo = custodialLocations.find(l => l.loc_cd === cust_loc);
+  const statusInfo = assetStatusCodes.find(s => s.status_cd === status_cd);
+
+  console.log(`[ASSETS] New asset created by ${user.username}: ${serno} (ID: ${newAssetId}, Program: ${program?.pgm_cd})`);
+
+  res.status(201).json({
+    message: 'Asset created successfully',
+    asset: {
+      ...newAsset,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+      admin_loc_name: adminLocInfo?.loc_name || admin_loc,
+      cust_loc_name: custLocInfo?.loc_name || cust_loc,
+      status_name: statusInfo?.status_name || status_cd,
+    }
+  });
+});
+
+// GET /api/reference/locations - Get available locations for asset forms
+app.get('/api/reference/locations', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  res.json({
+    admin_locations: adminLocations,
+    custodial_locations: custodialLocations,
+  });
+});
+
+// GET /api/reference/asset-statuses - Get available asset status codes
+app.get('/api/reference/asset-statuses', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  res.json({
+    statuses: assetStatusCodes,
   });
 });
 

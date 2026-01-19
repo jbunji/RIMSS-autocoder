@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
 import MaintenanceDetailPage from './pages/MaintenanceDetailPage'
 import PartsOrderDetailPage from './pages/PartsOrderDetailPage'
+import AssetsPage from './pages/AssetsPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -77,7 +78,8 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/assets" element={<PlaceholderPage title="Assets" />} />
+          <Route path="/assets" element={<AssetsPage />} />
+          <Route path="/assets/:id" element={<PlaceholderPage title="Asset Details" />} />
           <Route path="/configurations" element={<PlaceholderPage title="Configurations" />} />
           <Route path="/maintenance" element={<PlaceholderPage title="Maintenance" />} />
           <Route path="/sorties" element={<PlaceholderPage title="Sorties" />} />
