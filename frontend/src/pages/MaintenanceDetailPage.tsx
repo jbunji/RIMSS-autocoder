@@ -35,12 +35,18 @@ interface Repair {
   type_maint: string
   how_mal: string | null
   when_disc: string | null
+  action_taken: string | null // Action Taken code (T = cannibalization, R = repair, etc.)
   shop_status: 'open' | 'closed'
   narrative: string
   tag_no: string | null
   doc_no: string | null
   micap: boolean // Mission Capable impacting flag
   micap_login: string | null // User who flagged as MICAP
+  // Cannibalization (Action T) fields
+  donor_asset_id: number | null
+  donor_asset_sn: string | null
+  donor_asset_pn: string | null
+  donor_asset_name: string | null
   created_by_name: string
   created_at: string
 }
@@ -172,9 +178,11 @@ interface EditRepairFormData {
   type_maint: string
   how_mal: string
   when_disc: string
+  action_taken: string
   tag_no: string
   doc_no: string
   micap: boolean
+  donor_asset_id: number | null
 }
 
 // Priority colors
@@ -284,12 +292,16 @@ export default function MaintenanceDetailPage() {
     type_maint: '',
     how_mal: '',
     when_disc: '',
+    action_taken: '',
     narrative: '',
     micap: false,
+    donor_asset_id: null as number | null,
   })
   const [addRepairLoading, setAddRepairLoading] = useState(false)
   const [addRepairError, setAddRepairError] = useState<string | null>(null)
   const [addRepairSuccess, setAddRepairSuccess] = useState<string | null>(null)
+  const [donorAssets, setDonorAssets] = useState<AvailableAsset[]>([])
+  const [donorAssetsLoading, setDonorAssetsLoading] = useState(false)
 
   // Maintenance code options
   const typeMaintOptions = [
@@ -333,6 +345,33 @@ export default function MaintenanceDetailPage() {
     { value: 'OTHR', label: 'OTHR - Other' },
   ]
 
+  // Action Taken code options
+  const actionTakenOptions = [
+    { value: '', label: 'None / Not Applicable' },
+    { value: 'A', label: 'A - Adjusted' },
+    { value: 'B', label: 'B - Bench Checked' },
+    { value: 'C', label: 'C - Calibrated' },
+    { value: 'D', label: 'D - Disassembled' },
+    { value: 'F', label: 'F - Fabricated/Manufactured' },
+    { value: 'G', label: 'G - Altered/Modified' },
+    { value: 'I', label: 'I - Inspected' },
+    { value: 'K', label: 'K - Kit Installed' },
+    { value: 'L', label: 'L - Lubricated' },
+    { value: 'M', label: 'M - Maintained' },
+    { value: 'N', label: 'N - No Defect Found' },
+    { value: 'P', label: 'P - Repaired/Serviced' },
+    { value: 'R', label: 'R - Removed/Replaced' },
+    { value: 'S', label: 'S - Cleaned' },
+    { value: 'T', label: 'T - Cannibalization' },
+    { value: 'U', label: 'U - Functional Check' },
+    { value: 'V', label: 'V - Verified/Validated' },
+    { value: 'X', label: 'X - Condemned' },
+    { value: 'Z', label: 'Z - Other' },
+  ]
+
+  // Check if action taken is cannibalization
+  const isCannibalization = (code: string | null) => code === 'T'
+
   // Edit Repair modal state
   const [isEditRepairModalOpen, setIsEditRepairModalOpen] = useState(false)
   const [editingRepair, setEditingRepair] = useState<Repair | null>(null)
@@ -341,13 +380,17 @@ export default function MaintenanceDetailPage() {
     type_maint: '',
     how_mal: '',
     when_disc: '',
+    action_taken: '',
     tag_no: '',
     doc_no: '',
     micap: false,
+    donor_asset_id: null,
   })
   const [editRepairLoading, setEditRepairLoading] = useState(false)
   const [editRepairError, setEditRepairError] = useState<string | null>(null)
   const [editRepairSuccess, setEditRepairSuccess] = useState<string | null>(null)
+  const [editDonorAssets, setEditDonorAssets] = useState<AvailableAsset[]>([])
+  const [editDonorAssetsLoading, setEditDonorAssetsLoading] = useState(false)
 
   // Delete Repair modal state
   const [isDeleteRepairModalOpen, setIsDeleteRepairModalOpen] = useState(false)
@@ -1184,6 +1227,31 @@ export default function MaintenanceDetailPage() {
     }
   }
 
+  // Fetch donor assets for cannibalization
+  const fetchDonorAssets = async () => {
+    if (!token) return
+    setDonorAssetsLoading(true)
+    try {
+      const response = await fetch('http://localhost:3001/api/assets/available-for-install', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        // Filter to only show assets that could be donors (FMC, PMC status)
+        const eligibleDonors = data.assets.filter((a: AvailableAsset) =>
+          a.status === 'FMC' || a.status === 'PMC'
+        )
+        setDonorAssets(eligibleDonors)
+      }
+    } catch (error) {
+      console.error('Error fetching donor assets:', error)
+    } finally {
+      setDonorAssetsLoading(false)
+    }
+  }
+
   // Open add repair modal
   const openAddRepairModal = () => {
     setAddRepairForm({
@@ -1191,11 +1259,14 @@ export default function MaintenanceDetailPage() {
       type_maint: '',
       how_mal: '',
       when_disc: '',
+      action_taken: '',
       narrative: '',
       micap: false,
+      donor_asset_id: null,
     })
     setAddRepairError(null)
     setAddRepairSuccess(null)
+    setDonorAssets([])
     setIsAddRepairModalOpen(true)
   }
 
@@ -1204,12 +1275,23 @@ export default function MaintenanceDetailPage() {
     setIsAddRepairModalOpen(false)
     setAddRepairError(null)
     setAddRepairSuccess(null)
+    setDonorAssets([])
   }
 
   // Handle add repair form changes
-  const handleAddRepairFormChange = (field: string, value: string) => {
+  const handleAddRepairFormChange = (field: string, value: string | number | null) => {
     setAddRepairForm(prev => ({ ...prev, [field]: value }))
     setAddRepairError(null)
+
+    // If action_taken changed to 'T' (cannibalization), fetch donor assets
+    if (field === 'action_taken' && value === 'T') {
+      fetchDonorAssets()
+    }
+    // Clear donor asset if action_taken changed away from 'T'
+    if (field === 'action_taken' && value !== 'T') {
+      setAddRepairForm(prev => ({ ...prev, donor_asset_id: null }))
+      setDonorAssets([])
+    }
   }
 
   // Submit new repair
@@ -1223,6 +1305,11 @@ export default function MaintenanceDetailPage() {
     }
     if (!addRepairForm.narrative.trim()) {
       setAddRepairError('Narrative description is required')
+      return
+    }
+    // Validate cannibalization requires donor asset
+    if (addRepairForm.action_taken === 'T' && !addRepairForm.donor_asset_id) {
+      setAddRepairError('Donor asset is required for cannibalization (Action T)')
       return
     }
 
@@ -1241,8 +1328,10 @@ export default function MaintenanceDetailPage() {
           type_maint: addRepairForm.type_maint,
           how_mal: addRepairForm.how_mal || null,
           when_disc: addRepairForm.when_disc || null,
+          action_taken: addRepairForm.action_taken || null,
           narrative: addRepairForm.narrative.trim(),
           micap: addRepairForm.micap,
+          donor_asset_id: addRepairForm.action_taken === 'T' ? addRepairForm.donor_asset_id : null,
         }),
       })
 
@@ -1268,6 +1357,31 @@ export default function MaintenanceDetailPage() {
     }
   }
 
+  // Fetch donor assets for edit repair modal (cannibalization)
+  const fetchEditDonorAssets = async () => {
+    if (!token) return
+    setEditDonorAssetsLoading(true)
+    try {
+      const response = await fetch('http://localhost:3001/api/assets/available-for-install', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        // Filter to only show assets that could be donors (FMC, PMC status)
+        const eligibleDonors = data.assets.filter((a: AvailableAsset) =>
+          a.status === 'FMC' || a.status === 'PMC'
+        )
+        setEditDonorAssets(eligibleDonors)
+      }
+    } catch (error) {
+      console.error('Error fetching donor assets:', error)
+    } finally {
+      setEditDonorAssetsLoading(false)
+    }
+  }
+
   // Open edit repair modal
   const openEditRepairModal = (repair: Repair) => {
     setEditingRepair(repair)
@@ -1276,12 +1390,19 @@ export default function MaintenanceDetailPage() {
       type_maint: repair.type_maint,
       how_mal: repair.how_mal || '',
       when_disc: repair.when_disc || '',
+      action_taken: repair.action_taken || '',
       tag_no: repair.tag_no || '',
       doc_no: repair.doc_no || '',
       micap: repair.micap || false,
+      donor_asset_id: repair.donor_asset_id || null,
     })
     setEditRepairError(null)
     setEditRepairSuccess(null)
+    setEditDonorAssets([])
+    // If it's already a cannibalization, fetch donor assets
+    if (repair.action_taken === 'T') {
+      fetchEditDonorAssets()
+    }
     setIsEditRepairModalOpen(true)
   }
 
@@ -1291,12 +1412,23 @@ export default function MaintenanceDetailPage() {
     setEditingRepair(null)
     setEditRepairError(null)
     setEditRepairSuccess(null)
+    setEditDonorAssets([])
   }
 
   // Handle edit repair form field changes
-  const handleEditRepairFormChange = (field: keyof EditRepairFormData, value: string) => {
+  const handleEditRepairFormChange = (field: keyof EditRepairFormData, value: string | number | null) => {
     setEditRepairForm(prev => ({ ...prev, [field]: value }))
     setEditRepairError(null)
+
+    // If action_taken changed to 'T' (cannibalization), fetch donor assets
+    if (field === 'action_taken' && value === 'T') {
+      fetchEditDonorAssets()
+    }
+    // Clear donor asset if action_taken changed away from 'T'
+    if (field === 'action_taken' && value !== 'T') {
+      setEditRepairForm(prev => ({ ...prev, donor_asset_id: null }))
+      setEditDonorAssets([])
+    }
   }
 
   // Submit edit repair form
@@ -1310,6 +1442,11 @@ export default function MaintenanceDetailPage() {
     }
     if (!editRepairForm.type_maint) {
       setEditRepairError('Maintenance type is required')
+      return
+    }
+    // Validate cannibalization requires donor asset
+    if (editRepairForm.action_taken === 'T' && !editRepairForm.donor_asset_id) {
+      setEditRepairError('Donor asset is required for cannibalization (Action T)')
       return
     }
 
@@ -1328,9 +1465,11 @@ export default function MaintenanceDetailPage() {
           type_maint: editRepairForm.type_maint,
           how_mal: editRepairForm.how_mal || null,
           when_disc: editRepairForm.when_disc || null,
+          action_taken: editRepairForm.action_taken || null,
           tag_no: editRepairForm.tag_no || null,
           doc_no: editRepairForm.doc_no || null,
           micap: editRepairForm.micap,
+          donor_asset_id: editRepairForm.action_taken === 'T' ? editRepairForm.donor_asset_id : null,
         }),
       })
 
@@ -1913,6 +2052,20 @@ export default function MaintenanceDetailPage() {
                             >
                               <InformationCircleIcon className="h-3 w-3 mr-1" />
                               NO DEFECT ({repair.how_mal})
+                            </span>
+                          )}
+                          {isCannibalization(repair.action_taken) && (
+                            <span
+                              className="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-800 flex items-center"
+                              title={`Cannibalization from: ${repair.donor_asset_sn || 'N/A'}`}
+                            >
+                              <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
+                              CANN
+                            </span>
+                          )}
+                          {repair.action_taken && repair.action_taken !== 'T' && (
+                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
+                              Action: {repair.action_taken}
                             </span>
                           )}
                         </div>
@@ -2901,6 +3054,82 @@ export default function MaintenanceDetailPage() {
                 </select>
               </div>
 
+              {/* Action Taken Code */}
+              <div>
+                <label htmlFor="edit_repair_action_taken" className="block text-sm font-medium text-gray-700 mb-1">
+                  Action Taken Code
+                </label>
+                <select
+                  id="edit_repair_action_taken"
+                  value={editRepairForm.action_taken}
+                  onChange={(e) => handleEditRepairFormChange('action_taken', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {actionTakenOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                {isCannibalization(editRepairForm.action_taken) && (
+                  <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                    <ExclamationTriangleIcon className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700">
+                      <strong>Cannibalization:</strong> A part will be removed from a donor asset to repair this asset.
+                      The donor asset will be marked as NMCS.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Donor Asset Selection (only for Cannibalization) */}
+              {isCannibalization(editRepairForm.action_taken) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <label htmlFor="edit_repair_donor_asset" className="block text-sm font-medium text-amber-800 mb-2">
+                    Donor Asset <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-amber-700 mb-3">
+                    Select the asset that will provide the part for cannibalization.
+                  </p>
+                  {/* Show current donor asset if already set */}
+                  {editingRepair?.donor_asset_sn && editRepairForm.donor_asset_id === editingRepair.donor_asset_id && (
+                    <div className="mb-3 p-2 bg-white border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-800">
+                        <strong>Current Donor:</strong> {editingRepair.donor_asset_sn} - {editingRepair.donor_asset_pn} ({editingRepair.donor_asset_name || 'N/A'})
+                      </p>
+                    </div>
+                  )}
+                  {editDonorAssetsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-600"></div>
+                      <span className="ml-2 text-sm text-amber-700">Loading available assets...</span>
+                    </div>
+                  ) : editDonorAssets.length === 0 && !editingRepair?.donor_asset_id ? (
+                    <div className="text-center py-4 text-amber-700">
+                      <p className="text-sm">No eligible donor assets available.</p>
+                    </div>
+                  ) : (
+                    <select
+                      id="edit_repair_donor_asset"
+                      value={editRepairForm.donor_asset_id || ''}
+                      onChange={(e) => handleEditRepairFormChange('donor_asset_id', e.target.value ? parseInt(e.target.value) : null)}
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    >
+                      <option value="">Select donor asset...</option>
+                      {/* Show current donor if set */}
+                      {editingRepair?.donor_asset_id && editingRepair?.donor_asset_sn && (
+                        <option value={editingRepair.donor_asset_id}>
+                          {editingRepair.donor_asset_sn} - {editingRepair.donor_asset_pn} ({editingRepair.donor_asset_name || 'N/A'}) [Current]
+                        </option>
+                      )}
+                      {editDonorAssets.map((asset) => (
+                        <option key={asset.asset_id} value={asset.asset_id}>
+                          {asset.serno} - {asset.partno} ({asset.nomen || 'N/A'}) [{asset.status}]
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
+
               {/* Tag Number */}
               <div>
                 <label htmlFor="edit_repair_tag_no" className="block text-sm font-medium text-gray-700 mb-1">
@@ -3140,6 +3369,73 @@ export default function MaintenanceDetailPage() {
                   Code indicating when the issue was discovered
                 </p>
               </div>
+
+              {/* Action Taken Code */}
+              <div>
+                <label htmlFor="repair_action_taken" className="block text-sm font-medium text-gray-700 mb-1">
+                  Action Taken Code
+                </label>
+                <select
+                  id="repair_action_taken"
+                  value={addRepairForm.action_taken}
+                  onChange={(e) => handleAddRepairFormChange('action_taken', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  {actionTakenOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Code indicating what action was taken during the repair
+                </p>
+                {isCannibalization(addRepairForm.action_taken) && (
+                  <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                    <ExclamationTriangleIcon className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700">
+                      <strong>Cannibalization:</strong> A part will be removed from a donor asset to repair this asset.
+                      The donor asset will be marked as NMCS (Not Mission Capable - Supply).
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Donor Asset Selection (only for Cannibalization) */}
+              {isCannibalization(addRepairForm.action_taken) && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <label htmlFor="repair_donor_asset" className="block text-sm font-medium text-amber-800 mb-2">
+                    Donor Asset <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-amber-700 mb-3">
+                    Select the asset that will provide the part for cannibalization. This asset's status will change to NMCS.
+                  </p>
+                  {donorAssetsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-600"></div>
+                      <span className="ml-2 text-sm text-amber-700">Loading available assets...</span>
+                    </div>
+                  ) : donorAssets.length === 0 ? (
+                    <div className="text-center py-4 text-amber-700">
+                      <p className="text-sm">No eligible donor assets available (must be FMC or PMC status).</p>
+                    </div>
+                  ) : (
+                    <select
+                      id="repair_donor_asset"
+                      value={addRepairForm.donor_asset_id || ''}
+                      onChange={(e) => handleAddRepairFormChange('donor_asset_id', e.target.value ? parseInt(e.target.value) : null)}
+                      className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    >
+                      <option value="">Select donor asset...</option>
+                      {donorAssets.map((asset) => (
+                        <option key={asset.asset_id} value={asset.asset_id}>
+                          {asset.serno} - {asset.partno} ({asset.nomen || 'N/A'}) [{asset.status}]
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
 
               {/* Narrative Description */}
               <div>
