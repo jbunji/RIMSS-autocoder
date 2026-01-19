@@ -15,6 +15,8 @@ import {
   XMarkIcon,
   CheckIcon,
   PlusIcon,
+  TrashIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -124,6 +126,12 @@ export default function ConfigurationsPage() {
   const [configToEdit, setConfigToEdit] = useState<Configuration | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [modalError, setModalError] = useState<string | null>(null)
+
+  // Delete modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [configToDelete, setConfigToDelete] = useState<Configuration | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -315,6 +323,69 @@ export default function ConfigurationsPage() {
     )
   }
 
+  // Open create modal
+  const openCreateModal = () => {
+    setCreateError(null)
+    setCreateSuccess(false)
+    createForm.reset({
+      cfg_name: '',
+      cfg_type: undefined,
+      partno_id: '',
+      description: '',
+    })
+    setIsCreateModalOpen(true)
+  }
+
+  // Close create modal
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false)
+    setCreateError(null)
+    setCreateSuccess(false)
+    createForm.reset()
+  }
+
+  // Handle create form submit
+  const onCreateSubmit = async (data: CreateConfigFormData) => {
+    if (!token) return
+
+    setCreateError(null)
+
+    try {
+      // Find the selected part to get its details
+      const selectedPart = availableParts.find(p => p.partno_id.toString() === data.partno_id)
+
+      const response = await fetch('http://localhost:3001/api/configurations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cfg_name: data.cfg_name,
+          cfg_type: data.cfg_type,
+          partno_id: selectedPart?.partno_id || null,
+          partno: selectedPart?.partno || null,
+          part_name: selectedPart?.name || null,
+          description: data.description || null,
+          pgm_id: currentProgramId,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create configuration')
+      }
+
+      setCreateSuccess(true)
+      setTimeout(() => {
+        closeCreateModal()
+        fetchConfigurations(1)
+      }, 1500)
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'An error occurred')
+    }
+  }
+
   // Open edit modal
   const openEditModal = (config: Configuration) => {
     setConfigToEdit(config)
@@ -376,6 +447,58 @@ export default function ConfigurationsPage() {
     }
   }
 
+  // Open delete confirmation modal
+  const openDeleteModal = (config: Configuration) => {
+    setConfigToDelete(config)
+    setDeleteError(null)
+    setIsDeleteModalOpen(true)
+  }
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setConfigToDelete(null)
+    setDeleteError(null)
+    setIsDeleting(false)
+  }
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!configToDelete || !token) return
+
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${configToDelete.cfg_set_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete configuration')
+      }
+
+      // Refresh the list
+      await fetchConfigurations(pagination.page)
+
+      // Show success message and close modal
+      setSuccessMessage(`Configuration "${configToDelete.cfg_name}" deleted successfully`)
+      closeDeleteModal()
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete configuration')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -390,6 +513,16 @@ export default function ConfigurationsPage() {
           <span className="text-sm text-gray-500">
             {pagination.total} configuration{pagination.total !== 1 ? 's' : ''}
           </span>
+          {canEditConfig && (
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+            >
+              <PlusIcon className="mr-1.5 h-5 w-5" />
+              Add Configuration
+            </button>
+          )}
         </div>
       </div>
 
@@ -570,13 +703,23 @@ export default function ConfigurationsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                         {canEditConfig && (
-                          <button
-                            onClick={() => openEditModal(config)}
-                            className="text-primary-600 hover:text-primary-900 inline-flex items-center"
-                          >
-                            <PencilSquareIcon className="h-4 w-4 mr-1" />
-                            Edit
-                          </button>
+                          <>
+                            <button
+                              onClick={() => openEditModal(config)}
+                              className="text-primary-600 hover:text-primary-900 inline-flex items-center"
+                            >
+                              <PencilSquareIcon className="h-4 w-4 mr-1" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(config)}
+                              className="text-red-600 hover:text-red-900 inline-flex items-center"
+                              title={config.asset_count > 0 ? 'Cannot delete - has linked assets' : 'Delete configuration'}
+                            >
+                              <TrashIcon className="h-4 w-4 mr-1" />
+                              Delete
+                            </button>
+                          </>
                         )}
                         <button
                           onClick={() => navigate(`/configurations/${config.cfg_set_id}`)}
@@ -664,6 +807,489 @@ export default function ConfigurationsPage() {
           </>
         )}
       </div>
+
+      {/* Edit Configuration Modal */}
+      <Transition appear show={isEditModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeEditModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center justify-between">
+                    <span className="flex items-center">
+                      <PencilSquareIcon className="h-5 w-5 mr-2 text-primary-600" />
+                      Edit Configuration
+                    </span>
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-gray-500"
+                      onClick={closeEditModal}
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </Dialog.Title>
+
+                  {/* Modal Error */}
+                  {modalError && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
+                      <p className="text-sm text-red-700">{modalError}</p>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit(onEditSubmit)} className="mt-4 space-y-4">
+                    {/* Configuration Name */}
+                    <div>
+                      <label htmlFor="cfg_name" className="block text-sm font-medium text-gray-700">
+                        Configuration Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="cfg_name"
+                        {...register('cfg_name')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.cfg_name
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                      />
+                      {errors.cfg_name && (
+                        <p className="mt-1 text-sm text-red-600">{errors.cfg_name.message}</p>
+                      )}
+                    </div>
+
+                    {/* Configuration Type */}
+                    <div>
+                      <label htmlFor="cfg_type" className="block text-sm font-medium text-gray-700">
+                        Configuration Type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="cfg_type"
+                        {...register('cfg_type')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.cfg_type
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                      >
+                        <option value="ASSEMBLY">Assembly</option>
+                        <option value="SYSTEM">System</option>
+                        <option value="COMPONENT">Component</option>
+                      </select>
+                      {errors.cfg_type && (
+                        <p className="mt-1 text-sm text-red-600">{errors.cfg_type.message}</p>
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                        Description
+                      </label>
+                      <textarea
+                        id="description"
+                        rows={3}
+                        {...register('description')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.description
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                      />
+                      {errors.description && (
+                        <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                      )}
+                    </div>
+
+                    {/* Active Status */}
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="active"
+                        {...register('active')}
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="active" className="ml-2 block text-sm text-gray-900">
+                        Active
+                      </label>
+                    </div>
+
+                    {/* Read-only info */}
+                    {configToEdit && (
+                      <div className="bg-gray-50 rounded-md p-3 text-sm">
+                        <p className="text-gray-500">
+                          <span className="font-medium">Part Number:</span> {configToEdit.partno || 'N/A'}
+                        </p>
+                        <p className="text-gray-500">
+                          <span className="font-medium">BOM Items:</span> {configToEdit.bom_item_count}
+                        </p>
+                        <p className="text-gray-500">
+                          <span className="font-medium">Linked Assets:</span> {configToEdit.asset_count}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Form Actions */}
+                    <div className="mt-6 flex justify-end space-x-3">
+                      <button
+                        type="button"
+                        onClick={closeEditModal}
+                        className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <CheckIcon className="h-4 w-4 mr-1" />
+                            Save Changes
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Create Configuration Modal */}
+      <Transition.Root show={isCreateModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeCreateModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  {createSuccess ? (
+                    <div className="text-center py-8">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                        <CheckIcon className="h-6 w-6 text-green-600" />
+                      </div>
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">Configuration Created!</h3>
+                      <p className="mt-2 text-sm text-gray-500">
+                        The configuration has been added successfully.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="absolute right-0 top-0 pr-4 pt-4">
+                        <button
+                          type="button"
+                          className="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                          onClick={closeCreateModal}
+                        >
+                          <span className="sr-only">Close</span>
+                          <XMarkIcon className="h-6 w-6" />
+                        </button>
+                      </div>
+                      <div className="sm:flex sm:items-start">
+                        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10">
+                          <Cog6ToothIcon className="h-6 w-6 text-primary-600" />
+                        </div>
+                        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                          <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+                            Add Configuration
+                          </Dialog.Title>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Create a new configuration set for {program?.pgm_name || 'your program'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="mt-6 space-y-4">
+                        {/* Configuration Name */}
+                        <div>
+                          <label htmlFor="create_cfg_name" className="block text-sm font-medium text-gray-700">
+                            Configuration Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="create_cfg_name"
+                            {...createForm.register('cfg_name')}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                              createForm.formState.errors.cfg_name
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                            }`}
+                            placeholder="e.g., Camera System Configuration"
+                          />
+                          {createForm.formState.errors.cfg_name && (
+                            <p className="mt-1 text-sm text-red-600">{createForm.formState.errors.cfg_name.message}</p>
+                          )}
+                        </div>
+
+                        {/* Configuration Type */}
+                        <div>
+                          <label htmlFor="create_cfg_type" className="block text-sm font-medium text-gray-700">
+                            Configuration Type <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="create_cfg_type"
+                            {...createForm.register('cfg_type')}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                              createForm.formState.errors.cfg_type
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                            }`}
+                          >
+                            <option value="">Select a type</option>
+                            <option value="ASSEMBLY">Assembly - A complete assembly of components</option>
+                            <option value="SYSTEM">System - A full system configuration</option>
+                            <option value="COMPONENT">Component - An individual component</option>
+                          </select>
+                          {createForm.formState.errors.cfg_type && (
+                            <p className="mt-1 text-sm text-red-600">{createForm.formState.errors.cfg_type.message}</p>
+                          )}
+                        </div>
+
+                        {/* Base Part Number */}
+                        <div>
+                          <label htmlFor="create_partno_id" className="block text-sm font-medium text-gray-700">
+                            Base Part Number
+                          </label>
+                          <select
+                            id="create_partno_id"
+                            {...createForm.register('partno_id')}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          >
+                            <option value="">Select a part (optional)</option>
+                            {availableParts.map(part => (
+                              <option key={part.partno_id} value={part.partno_id}>
+                                {part.partno} - {part.name}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="mt-1 text-xs text-gray-500">
+                            The base part this configuration is built around
+                          </p>
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                          <label htmlFor="create_description" className="block text-sm font-medium text-gray-700">
+                            Description
+                          </label>
+                          <textarea
+                            id="create_description"
+                            rows={3}
+                            {...createForm.register('description')}
+                            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                              createForm.formState.errors.description
+                                ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                            }`}
+                            placeholder="Enter a description for this configuration..."
+                          />
+                          {createForm.formState.errors.description && (
+                            <p className="mt-1 text-sm text-red-600">{createForm.formState.errors.description.message}</p>
+                          )}
+                        </div>
+
+                        {/* Error message */}
+                        {createError && (
+                          <div className="rounded-md bg-red-50 p-3">
+                            <p className="text-sm text-red-700">{createError}</p>
+                          </div>
+                        )}
+
+                        {/* Form Actions */}
+                        <div className="mt-6 flex justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={closeCreateModal}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={createForm.formState.isSubmitting}
+                            className="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {createForm.formState.isSubmitting ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Creating...
+                              </>
+                            ) : (
+                              'Create Configuration'
+                            )}
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
+      {/* Delete Confirmation Modal */}
+      <Transition appear show={isDeleteModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeDeleteModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                      <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div>
+                      <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                        Delete Configuration
+                      </Dialog.Title>
+                      <p className="mt-1 text-sm text-gray-500">
+                        This action cannot be undone.
+                      </p>
+                    </div>
+                  </div>
+
+                  {configToDelete && (
+                    <div className="mt-4 bg-gray-50 rounded-md p-4">
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Configuration:</span> {configToDelete.cfg_name}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Type:</span> {configToDelete.cfg_type}
+                      </p>
+                      {configToDelete.partno && (
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">Part Number:</span> {configToDelete.partno}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Linked Assets:</span> {configToDelete.asset_count}
+                      </p>
+                      {configToDelete.asset_count > 0 && (
+                        <p className="mt-2 text-sm text-red-600 font-medium">
+                          ⚠️ This configuration has linked assets and cannot be deleted.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Delete Error */}
+                  {deleteError && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
+                      <p className="text-sm text-red-700">{deleteError}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={closeDeleteModal}
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteConfirm}
+                      disabled={isDeleting || (configToDelete?.asset_count ?? 0) > 0}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <TrashIcon className="h-4 w-4 mr-1" />
+                          Delete Configuration
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   )
 }

@@ -3894,6 +3894,64 @@ app.post('/api/configurations', (req, res) => {
   });
 });
 
+// DELETE /api/configurations/:id - Delete configuration (requires depot_manager or admin)
+app.delete('/api/configurations/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can delete configurations
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to delete configurations' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  if (isNaN(configId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID' });
+  }
+
+  const configIndex = configurations.findIndex(c => c.cfg_set_id === configId);
+  if (configIndex === -1) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  const config = configurations[configIndex];
+
+  // Check if user has access to this program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Check if configuration has linked assets
+  if (config.asset_count > 0) {
+    return res.status(400).json({
+      error: `Cannot delete configuration with linked assets. This configuration has ${config.asset_count} asset(s) linked to it. Please unlink all assets before deleting.`
+    });
+  }
+
+  // Remove from configurations array
+  const deletedConfig = configurations.splice(configIndex, 1)[0];
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === deletedConfig.pgm_id);
+
+  console.log(`[CONFIGS] Deleted config "${deletedConfig.cfg_name}" (ID: ${configId}) by ${user.username} from program ${program?.pgm_cd}`);
+
+  res.json({
+    message: 'Configuration deleted successfully',
+    configuration: {
+      cfg_set_id: deletedConfig.cfg_set_id,
+      cfg_name: deletedConfig.cfg_name,
+      cfg_type: deletedConfig.cfg_type,
+    },
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
