@@ -594,3 +594,37 @@ displays correctly regardless of authentication state.
 - Backend logs all refresh events for debugging
 - Component handles edge cases: visibility change, concurrent refresh prevention
 
+
+## Testing Session: 2026-01-19 12:04
+
+[Testing] Feature #8 'User can log out' - REGRESSION FOUND AND FIXED
+
+**Regression Found:**
+- CORS configuration was hardcoded to only allow http://localhost:5173
+- When port 5173 was in use, Vite started on port 5174
+- This caused "Access to fetch... from origin" CORS errors
+- Login and logout (all API calls) were failing with ERR_FAILED
+
+**Root Cause:**
+- backend/src/index.ts line 13 had: `origin: 'http://localhost:5173'`
+- Needed to accept multiple ports for development flexibility
+
+**Fix Applied:**
+- Updated CORS middleware to use dynamic origin validation
+- Now accepts ports 5173, 5174, 5175 on both localhost and 127.0.0.1
+- Still respects FRONTEND_URL environment variable
+
+**Verification Steps Passed:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Click user menu in header - Opened dropdown showing user info
+3. ✅ Click logout button - Clicked "Sign out" menu item
+4. ✅ Verify redirect to login page - URL changed to /login
+5. ✅ Verify JWT token is cleared - `token: null` in localStorage
+6. ✅ Verify session data is cleared - `currentProgramId: null` in localStorage
+7. ✅ Verify cannot access protected routes - /dashboard redirects to /login
+8. ✅ No console errors detected
+
+**Commit:** 8392a03 - Fix CORS regression: allow multiple localhost ports
+
+[Testing] Session complete - fixed regression in feature #8
+
