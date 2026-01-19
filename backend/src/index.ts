@@ -1539,6 +1539,268 @@ app.get('/api/dashboard/parts-awaiting-action', (req, res) => {
   });
 });
 
+// Mock Activity Log data for recent activity feed
+interface ActivityLogEntry {
+  activity_id: number;
+  timestamp: string;
+  user_id: number;
+  username: string;
+  user_full_name: string;
+  action_type: 'create' | 'update' | 'delete' | 'login' | 'logout' | 'status_change' | 'order' | 'complete';
+  entity_type: 'asset' | 'maintenance' | 'pmi' | 'parts_order' | 'user' | 'session' | 'tcto';
+  entity_id: number | null;
+  entity_name: string | null;
+  description: string;
+  pgm_id: number | null;
+}
+
+// Generate mock activity log data with realistic timestamps
+function generateMockActivityLog(): ActivityLogEntry[] {
+  const now = new Date();
+
+  // Helper to create timestamp strings with relative time
+  const subtractMinutes = (minutes: number): string => {
+    const date = new Date(now);
+    date.setMinutes(date.getMinutes() - minutes);
+    return date.toISOString();
+  };
+
+  return [
+    {
+      activity_id: 1,
+      timestamp: subtractMinutes(5),
+      user_id: 3,
+      username: 'field_tech',
+      user_full_name: 'Bob Field',
+      action_type: 'create',
+      entity_type: 'maintenance',
+      entity_id: 11,
+      entity_name: 'MX-2024-011',
+      description: 'Created maintenance job MX-2024-011 for Sensor Unit A',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 2,
+      timestamp: subtractMinutes(12),
+      user_id: 2,
+      username: 'depot_mgr',
+      user_full_name: 'Jane Depot',
+      action_type: 'status_change',
+      entity_type: 'parts_order',
+      entity_id: 3,
+      entity_name: 'PN-DIODE-003',
+      description: 'Acknowledged parts order for Laser Diode Module',
+      pgm_id: 2,
+    },
+    {
+      activity_id: 3,
+      timestamp: subtractMinutes(25),
+      user_id: 3,
+      username: 'field_tech',
+      user_full_name: 'Bob Field',
+      action_type: 'order',
+      entity_type: 'parts_order',
+      entity_id: 9,
+      entity_name: 'PN-BATT-009',
+      description: 'Ordered 4x Lithium Battery Pack for Camera System X',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 4,
+      timestamp: subtractMinutes(45),
+      user_id: 1,
+      username: 'admin',
+      user_full_name: 'John Admin',
+      action_type: 'update',
+      entity_type: 'user',
+      entity_id: 5,
+      entity_name: 'test_user',
+      description: 'Updated user account test_user - changed role to VIEWER',
+      pgm_id: null,
+    },
+    {
+      activity_id: 5,
+      timestamp: subtractMinutes(60),
+      user_id: 2,
+      username: 'depot_mgr',
+      user_full_name: 'Jane Depot',
+      action_type: 'complete',
+      entity_type: 'pmi',
+      entity_id: 12,
+      entity_name: 'PMI-30DAY',
+      description: 'Completed 30-Day Inspection on Sensor Unit A (CRIIS-001)',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 6,
+      timestamp: subtractMinutes(90),
+      user_id: 3,
+      username: 'field_tech',
+      user_full_name: 'Bob Field',
+      action_type: 'update',
+      entity_type: 'maintenance',
+      entity_id: 2,
+      entity_name: 'MX-2024-002',
+      description: 'Updated maintenance job MX-2024-002 - added repair notes',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 7,
+      timestamp: subtractMinutes(120),
+      user_id: 2,
+      username: 'depot_mgr',
+      user_full_name: 'Jane Depot',
+      action_type: 'status_change',
+      entity_type: 'asset',
+      entity_id: 5,
+      entity_name: 'CRIIS-005',
+      description: 'Changed asset status from FMC to NMCM - Camera System X',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 8,
+      timestamp: subtractMinutes(180),
+      user_id: 1,
+      username: 'admin',
+      user_full_name: 'John Admin',
+      action_type: 'create',
+      entity_type: 'user',
+      entity_id: 6,
+      entity_name: 'new_technician',
+      description: 'Created new user account new_technician with role FIELD_TECHNICIAN',
+      pgm_id: null,
+    },
+    {
+      activity_id: 9,
+      timestamp: subtractMinutes(240),
+      user_id: 3,
+      username: 'field_tech',
+      user_full_name: 'Bob Field',
+      action_type: 'create',
+      entity_type: 'maintenance',
+      entity_id: 1,
+      entity_name: 'MX-2024-001',
+      description: 'Created maintenance job MX-2024-001 - intermittent power failure',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 10,
+      timestamp: subtractMinutes(300),
+      user_id: 2,
+      username: 'depot_mgr',
+      user_full_name: 'Jane Depot',
+      action_type: 'status_change',
+      entity_type: 'parts_order',
+      entity_id: 5,
+      entity_name: 'PN-LENS-005',
+      description: 'Shipped parts order - Optical Lens Kit (FDX-2024-123456789)',
+      pgm_id: 3,
+    },
+    {
+      activity_id: 11,
+      timestamp: subtractMinutes(360),
+      user_id: 1,
+      username: 'admin',
+      user_full_name: 'John Admin',
+      action_type: 'update',
+      entity_type: 'tcto',
+      entity_id: 1,
+      entity_name: 'TCTO-2024-15',
+      description: 'Updated TCTO-2024-15 compliance deadline to 2024-03-15',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 12,
+      timestamp: subtractMinutes(420),
+      user_id: 3,
+      username: 'field_tech',
+      user_full_name: 'Bob Field',
+      action_type: 'order',
+      entity_type: 'parts_order',
+      entity_id: 1,
+      entity_name: 'PN-PSU-001',
+      description: 'Ordered 2x Power Supply Unit 24V for Radar Unit 01',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 13,
+      timestamp: subtractMinutes(500),
+      user_id: 2,
+      username: 'depot_mgr',
+      user_full_name: 'Jane Depot',
+      action_type: 'complete',
+      entity_type: 'maintenance',
+      entity_id: 8,
+      entity_name: 'MX-2024-008',
+      description: 'Closed maintenance job MX-2024-008 - 30-day inspection completed',
+      pgm_id: 1,
+    },
+    {
+      activity_id: 14,
+      timestamp: subtractMinutes(600),
+      user_id: 1,
+      username: 'admin',
+      user_full_name: 'John Admin',
+      action_type: 'login',
+      entity_type: 'session',
+      entity_id: null,
+      entity_name: null,
+      description: 'User logged in from 192.168.1.100',
+      pgm_id: null,
+    },
+    {
+      activity_id: 15,
+      timestamp: subtractMinutes(720),
+      user_id: 3,
+      username: 'field_tech',
+      user_full_name: 'Bob Field',
+      action_type: 'status_change',
+      entity_type: 'asset',
+      entity_id: 6,
+      entity_name: 'CRIIS-006',
+      description: 'Changed asset status from PMC to NMCS - Radar Unit 01',
+      pgm_id: 1,
+    },
+  ];
+}
+
+// Dashboard: Get recent activity (requires authentication)
+app.get('/api/dashboard/recent-activity', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get optional limit from query string (default to 10)
+  const limit = Math.min(parseInt(req.query.limit as string, 10) || 10, 50);
+
+  // Generate activity log
+  const allActivity = generateMockActivityLog();
+
+  // Filter activity by user's accessible programs (null pgm_id entries are global and visible to all)
+  const filteredActivity = allActivity.filter(
+    activity => activity.pgm_id === null || userProgramIds.includes(activity.pgm_id)
+  );
+
+  // Sort by timestamp (most recent first) and limit
+  const sortedActivity = filteredActivity
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, limit);
+
+  console.log(`[ACTIVITY] Recent activity request by ${user.username} - Returned: ${sortedActivity.length} entries`);
+
+  res.json({
+    activities: sortedActivity,
+    total: sortedActivity.length,
+  });
+});
+
 // Get single parts order by ID
 app.get('/api/parts-orders/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
