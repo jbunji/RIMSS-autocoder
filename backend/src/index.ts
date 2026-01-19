@@ -729,6 +729,272 @@ app.get('/api/dashboard/asset-status', (req, res) => {
   })
 })
 
+// Mock PMI data for testing
+interface PMIRecord {
+  pmi_id: number;
+  asset_id: number;
+  asset_sn: string;
+  asset_name: string;
+  pmi_type: string;
+  wuc_cd: string;
+  next_due_date: string;
+  days_until_due: number;
+  completed_date: string | null;
+  pgm_id: number;
+  status: 'overdue' | 'due_soon' | 'upcoming' | 'completed';
+}
+
+// Helper to calculate days until due
+function calculateDaysUntilDue(dateString: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDate = new Date(dateString);
+  dueDate.setHours(0, 0, 0, 0);
+  const diffTime = dueDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Helper to determine PMI status based on days until due
+function getPMIStatus(daysUntilDue: number): PMIRecord['status'] {
+  if (daysUntilDue < 0) return 'overdue';
+  if (daysUntilDue <= 7) return 'due_soon';  // Red - within 7 days
+  if (daysUntilDue <= 30) return 'upcoming'; // Yellow - 8-30 days
+  return 'upcoming'; // Green - after 30 days
+}
+
+// Generate dynamic PMI data based on current date
+function generateMockPMIData(): PMIRecord[] {
+  const today = new Date();
+
+  // Helper to create date strings
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  const pmiRecords: PMIRecord[] = [
+    // Red items - due within 7 days (including overdue)
+    {
+      pmi_id: 1,
+      asset_id: 101,
+      asset_sn: 'SN-2024-001',
+      asset_name: 'ECU Assembly A',
+      pmi_type: '30-Day Inspection',
+      wuc_cd: '14AAA',
+      next_due_date: addDays(-2), // Overdue by 2 days
+      days_until_due: -2,
+      completed_date: null,
+      pgm_id: 1, // CRIIS
+      status: 'overdue',
+    },
+    {
+      pmi_id: 2,
+      asset_id: 102,
+      asset_sn: 'SN-2024-002',
+      asset_name: 'Sensor Unit B',
+      pmi_type: '90-Day Calibration',
+      wuc_cd: '23BBB',
+      next_due_date: addDays(3), // Due in 3 days
+      days_until_due: 3,
+      completed_date: null,
+      pgm_id: 1, // CRIIS
+      status: 'due_soon',
+    },
+    {
+      pmi_id: 3,
+      asset_id: 103,
+      asset_sn: 'SN-2024-003',
+      asset_name: 'Power Supply C',
+      pmi_type: '60-Day Check',
+      wuc_cd: '41CCC',
+      next_due_date: addDays(7), // Due in 7 days (last red day)
+      days_until_due: 7,
+      completed_date: null,
+      pgm_id: 1, // CRIIS
+      status: 'due_soon',
+    },
+    // Yellow items - due in 8-30 days
+    {
+      pmi_id: 4,
+      asset_id: 104,
+      asset_sn: 'SN-2024-004',
+      asset_name: 'Display Module D',
+      pmi_type: '180-Day Service',
+      wuc_cd: '74DDD',
+      next_due_date: addDays(12), // Due in 12 days
+      days_until_due: 12,
+      completed_date: null,
+      pgm_id: 1, // CRIIS
+      status: 'upcoming',
+    },
+    {
+      pmi_id: 5,
+      asset_id: 105,
+      asset_sn: 'SN-2024-005',
+      asset_name: 'Communication Radio E',
+      pmi_type: '365-Day Overhaul',
+      wuc_cd: '62EEE',
+      next_due_date: addDays(21), // Due in 21 days
+      days_until_due: 21,
+      completed_date: null,
+      pgm_id: 1, // CRIIS
+      status: 'upcoming',
+    },
+    {
+      pmi_id: 6,
+      asset_id: 106,
+      asset_sn: 'SN-2024-006',
+      asset_name: 'Navigation System F',
+      pmi_type: '30-Day Inspection',
+      wuc_cd: '71FFF',
+      next_due_date: addDays(28), // Due in 28 days
+      days_until_due: 28,
+      completed_date: null,
+      pgm_id: 2, // ACTS
+      status: 'upcoming',
+    },
+    // Green items - due after 30 days
+    {
+      pmi_id: 7,
+      asset_id: 107,
+      asset_sn: 'SN-2024-007',
+      asset_name: 'Camera Assembly G',
+      pmi_type: '90-Day Calibration',
+      wuc_cd: '13GGG',
+      next_due_date: addDays(45), // Due in 45 days
+      days_until_due: 45,
+      completed_date: null,
+      pgm_id: 1, // CRIIS
+      status: 'upcoming',
+    },
+    {
+      pmi_id: 8,
+      asset_id: 108,
+      asset_sn: 'SN-2024-008',
+      asset_name: 'Antenna Array H',
+      pmi_type: '180-Day Service',
+      wuc_cd: '25HHH',
+      next_due_date: addDays(90), // Due in 90 days
+      days_until_due: 90,
+      completed_date: null,
+      pgm_id: 3, // ARDS
+      status: 'upcoming',
+    },
+    {
+      pmi_id: 9,
+      asset_id: 109,
+      asset_sn: 'SN-2024-009',
+      asset_name: 'Processing Unit I',
+      pmi_type: '365-Day Overhaul',
+      wuc_cd: '52III',
+      next_due_date: addDays(120), // Due in 120 days
+      days_until_due: 120,
+      completed_date: null,
+      pgm_id: 1, // CRIIS
+      status: 'upcoming',
+    },
+    // Additional items for different programs
+    {
+      pmi_id: 10,
+      asset_id: 110,
+      asset_sn: 'SN-2024-010',
+      asset_name: 'Targeting Computer J',
+      pmi_type: '60-Day Check',
+      wuc_cd: '33JJJ',
+      next_due_date: addDays(5), // Red - ACTS
+      days_until_due: 5,
+      completed_date: null,
+      pgm_id: 2, // ACTS
+      status: 'due_soon',
+    },
+  ];
+
+  // Update days_until_due and status dynamically
+  return pmiRecords.map(pmi => {
+    const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
+    return {
+      ...pmi,
+      days_until_due: daysUntilDue,
+      status: getPMIStatus(daysUntilDue),
+    };
+  });
+}
+
+// Get PMI due soon endpoint (with optional program filtering)
+app.get('/api/pmi/due-soon', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (optional)
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Generate fresh PMI data
+  const allPMI = generateMockPMIData();
+
+  // Filter PMI records by user's accessible programs
+  let filteredPMI = allPMI.filter(pmi => userProgramIds.includes(pmi.pgm_id));
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredPMI = filteredPMI.filter(pmi => pmi.pgm_id === programIdFilter);
+  }
+
+  // Sort by days_until_due (most urgent first)
+  filteredPMI.sort((a, b) => a.days_until_due - b.days_until_due);
+
+  // Calculate summary counts
+  const summary = {
+    overdue: filteredPMI.filter(p => p.days_until_due < 0).length,
+    red: filteredPMI.filter(p => p.days_until_due >= 0 && p.days_until_due <= 7).length,
+    yellow: filteredPMI.filter(p => p.days_until_due > 7 && p.days_until_due <= 30).length,
+    green: filteredPMI.filter(p => p.days_until_due > 30).length,
+    total: filteredPMI.length,
+  };
+
+  console.log(`[PMI] Due soon request by ${user.username} - Total: ${summary.total}, Red: ${summary.red + summary.overdue}, Yellow: ${summary.yellow}, Green: ${summary.green}`);
+
+  res.json({
+    pmi: filteredPMI,
+    summary,
+  });
+});
+
+// Get single PMI by ID
+app.get('/api/pmi/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const pmiId = parseInt(req.params.id, 10);
+  const allPMI = generateMockPMIData();
+  const pmi = allPMI.find(p => p.pmi_id === pmiId);
+
+  if (!pmi) {
+    return res.status(404).json({ error: 'PMI record not found' });
+  }
+
+  // Check if user has access to this PMI's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(pmi.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this PMI record' });
+  }
+
+  res.json({ pmi });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
