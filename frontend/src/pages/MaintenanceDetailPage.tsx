@@ -17,6 +17,7 @@ import {
   DocumentIcon,
   PhotoIcon,
   PlusIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -277,8 +278,18 @@ export default function MaintenanceDetailPage() {
   const [editRepairError, setEditRepairError] = useState<string | null>(null)
   const [editRepairSuccess, setEditRepairSuccess] = useState<string | null>(null)
 
+  // Delete Repair modal state
+  const [isDeleteRepairModalOpen, setIsDeleteRepairModalOpen] = useState(false)
+  const [deletingRepair, setDeletingRepair] = useState<Repair | null>(null)
+  const [deleteRepairLoading, setDeleteRepairLoading] = useState(false)
+  const [deleteRepairError, setDeleteRepairError] = useState<string | null>(null)
+  const [deleteRepairSuccess, setDeleteRepairSuccess] = useState<string | null>(null)
+
   // Check if user can edit (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
   const canEdit = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
+
+  // Check if user can delete repairs (ADMIN or DEPOT_MANAGER only)
+  const canDeleteRepairs = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
 
   const fetchEvent = useCallback(async () => {
     if (!token || !id) return
@@ -828,6 +839,58 @@ export default function MaintenanceDetailPage() {
       setEditRepairError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setEditRepairLoading(false)
+    }
+  }
+
+  // Open delete repair modal
+  const openDeleteRepairModal = (repair: Repair) => {
+    setDeletingRepair(repair)
+    setDeleteRepairError(null)
+    setDeleteRepairSuccess(null)
+    setIsDeleteRepairModalOpen(true)
+  }
+
+  // Close delete repair modal
+  const closeDeleteRepairModal = () => {
+    setIsDeleteRepairModalOpen(false)
+    setDeletingRepair(null)
+    setDeleteRepairError(null)
+    setDeleteRepairSuccess(null)
+  }
+
+  // Handle delete repair
+  const handleDeleteRepair = async () => {
+    if (!token || !deletingRepair) return
+
+    setDeleteRepairLoading(true)
+    setDeleteRepairError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/repairs/${deletingRepair.repair_id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete repair')
+      }
+
+      setDeleteRepairSuccess(`Repair #${deletingRepair.repair_seq} deleted successfully!`)
+
+      // Refresh repairs
+      await fetchRepairs()
+
+      // Close modal after a short delay to show success message
+      setTimeout(() => {
+        closeDeleteRepairModal()
+      }, 1500)
+    } catch (err) {
+      setDeleteRepairError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setDeleteRepairLoading(false)
     }
   }
 

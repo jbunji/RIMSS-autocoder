@@ -1,5 +1,63 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #84)
+
+### Completed This Session:
+- Feature #84: Close repair with stop date - VERIFIED AND PASSING
+
+**Description:** Repairs are closed by entering stop date
+
+**Implementation Already Existed:**
+The close repair functionality was already implemented in the codebase. This session verified the feature works correctly end-to-end.
+
+**Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):**
+- Close Repair modal with stop date input field
+- Client-side validation: stop_date must be >= start_date
+- handleCloseRepair function sends PUT request to update repair with stop_date and shop_status='closed'
+- Success/error message handling
+- Auto-refresh of repairs list after closing
+
+**Backend (backend/src/index.ts):**
+- PUT /api/repairs/:id endpoint accepts stop_date and shop_status parameters
+- Server-side validation: stop_date must be >= start_date
+- When shop_status='closed', sets stop_date if not already set
+- When stop_date is set, automatically sets shop_status='closed'
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Navigate to open repair - MX-2024-001 with Repair #2 (OPEN status)
+3. ✅ Enter stop date - Entered 2026-01-18 in the Stop Date input
+4. ✅ Verify stop date validation (must be >= start date) - Tested with date before start date (2026-01-10), received error: "Stop date cannot be before the start date (1/15/2026)"
+5. ✅ Save changes - Clicked "Close Repair" button
+6. ✅ Verify repair marked as closed - Repair #2 status changed from OPEN to CLOSED
+7. ✅ Verify shop status updated - Summary changed from "(2 total, 1 open, 1 closed)" to "(2 total, 0 open, 2 closed)"
+
+**Additional Tests:**
+- ✅ Tested closing repair on MX-2024-002 (Repair #1) - Successfully closed
+- ✅ Tested closing repair on MX-2024-004 (Repair #1) - Successfully closed
+- ✅ Data persists after page refresh
+- ✅ No console errors detected
+- ✅ API returns 200 OK for all operations
+
+**Bug Fix Applied:**
+- Fixed timezone issue in date validation by comparing date strings directly instead of Date objects
+- Changed from: `new Date(closingRepair.start_date) > new Date(closeRepairDate)`
+- Changed to: `startDateStr = closingRepair.start_date.split('T')[0]; if (stopDateStr < startDateStr)`
+
+**Screenshots:**
+- .playwright-mcp/.playwright-mcp/feature84_repairs_section_initial.png - Initial state with open repair
+- .playwright-mcp/.playwright-mcp/feature84_close_repair_modal.png - Close Repair modal
+- .playwright-mcp/.playwright-mcp/feature84_stop_date_validation_error.png - Validation error for invalid date
+- .playwright-mcp/.playwright-mcp/feature84_repair_closed_successfully.png - After repair closed
+- .playwright-mcp/.playwright-mcp/feature84_data_persists_after_refresh.png - Data persists after refresh
+- .playwright-mcp/.playwright-mcp/feature84_repair_closed_mx2024004.png - Additional test case closed
+
+### Current Status:
+- Feature #84 marked as PASSING
+- Commit pending
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #82)
 
 ### Completed This Session:
@@ -6770,4 +6828,32 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 
 ### Current Status:
 - Feature #83 marked as PASSING
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Clear all session data and cookies - Started fresh browser session
+2. ✅ Navigate to homepage URL - Navigated to http://localhost:5173
+3. ✅ Verify redirect to login page - Successfully redirected to /login
+4. ✅ Verify login form is displayed - Login form with username, password, sign-in button visible
+
+**Additional Testing:**
+- ✅ Protected route /dashboard also redirects to login when unauthenticated
+- ✅ CUI (Controlled Unclassified Information) banners displayed at top and bottom
+- ✅ Authorized users only warning message visible
+
+**Screenshots:**
+- .playwright-mcp/feature3_login_redirect.png - Login page after redirect
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #3 (no regression found)
 
