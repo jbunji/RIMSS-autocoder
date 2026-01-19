@@ -514,6 +514,196 @@ export default function MaintenancePage() {
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
+
+      {/* New Event Modal */}
+      <Dialog open={isNewEventModalOpen} onClose={closeNewEventModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Create New Maintenance Event
+              </Dialog.Title>
+              <button
+                onClick={closeNewEventModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* Success Message */}
+              {newEventSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{newEventSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {newEventError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{newEventError}</p>
+                </div>
+              )}
+
+              {/* Asset Selection */}
+              <div>
+                <label htmlFor="asset_id" className="block text-sm font-medium text-gray-700 mb-1">
+                  Asset <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="asset_id"
+                  value={newEventForm.asset_id}
+                  onChange={(e) => handleFormChange('asset_id', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={assetsLoading}
+                >
+                  <option value="">Select an asset...</option>
+                  {assets.map((asset) => (
+                    <option key={asset.asset_id} value={asset.asset_id}>
+                      {asset.serno} - {asset.name} ({asset.status_cd})
+                    </option>
+                  ))}
+                </select>
+                {assetsLoading && (
+                  <p className="text-sm text-gray-500 mt-1">Loading assets...</p>
+                )}
+              </div>
+
+              {/* Discrepancy Description */}
+              <div>
+                <label htmlFor="discrepancy" className="block text-sm font-medium text-gray-700 mb-1">
+                  Discrepancy Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="discrepancy"
+                  value={newEventForm.discrepancy}
+                  onChange={(e) => handleFormChange('discrepancy', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Describe the maintenance issue or discrepancy..."
+                />
+              </div>
+
+              {/* Event Type */}
+              <div>
+                <label htmlFor="event_type" className="block text-sm font-medium text-gray-700 mb-1">
+                  Event Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="event_type"
+                  value={newEventForm.event_type}
+                  onChange={(e) => handleFormChange('event_type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="Standard">Standard</option>
+                  <option value="PMI">PMI (Periodic Maintenance Inspection)</option>
+                  <option value="TCTO">TCTO (Time Compliance Technical Order)</option>
+                  <option value="BIT/PC">BIT/PC (Built-In Test / Pre-flight Check)</option>
+                </select>
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
+                  Priority
+                </label>
+                <select
+                  id="priority"
+                  value={newEventForm.priority}
+                  onChange={(e) => handleFormChange('priority', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                  <option value="Routine">Routine</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+
+              {/* Date In */}
+              <div>
+                <label htmlFor="start_job" className="block text-sm font-medium text-gray-700 mb-1">
+                  Date In <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="start_job"
+                  value={newEventForm.start_job}
+                  onChange={(e) => handleFormChange('start_job', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+
+              {/* ETIC */}
+              <div>
+                <label htmlFor="etic" className="block text-sm font-medium text-gray-700 mb-1">
+                  ETIC (Estimated Time In Commission)
+                </label>
+                <input
+                  type="date"
+                  id="etic"
+                  value={newEventForm.etic}
+                  onChange={(e) => handleFormChange('etic', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Optional"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Estimated date when the asset will be back in service
+                </p>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  id="location"
+                  value={newEventForm.location}
+                  onChange={(e) => handleFormChange('location', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Auto-filled from asset, or enter custom location"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeNewEventModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={newEventLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitNewEvent}
+                disabled={newEventLoading || !!newEventSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {newEventLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Create Event
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   )
 

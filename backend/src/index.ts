@@ -1790,6 +1790,94 @@ app.post('/api/events', (req, res) => {
   });
 });
 
+// Update maintenance event (requires authentication)
+// Roles: ADMIN, DEPOT_MANAGER, FIELD_TECHNICIAN can edit events
+app.put('/api/events/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can edit events
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to edit maintenance events.' });
+  }
+
+  const eventId = parseInt(req.params.id, 10);
+  const eventIndex = maintenanceEvents.findIndex(e => e.event_id === eventId);
+
+  if (eventIndex === -1) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  const event = maintenanceEvents[eventIndex];
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  // Extract fields that can be updated
+  const {
+    discrepancy,
+    event_type,
+    priority,
+    etic,
+    location,
+    status,
+    stop_job,
+  } = req.body;
+
+  // Update allowed fields
+  if (discrepancy !== undefined && discrepancy.trim() !== '') {
+    maintenanceEvents[eventIndex].discrepancy = discrepancy.trim();
+  }
+
+  if (event_type !== undefined && ['Standard', 'PMI', 'TCTO', 'BIT/PC'].includes(event_type)) {
+    maintenanceEvents[eventIndex].event_type = event_type;
+  }
+
+  if (priority !== undefined && ['Routine', 'Urgent', 'Critical'].includes(priority)) {
+    maintenanceEvents[eventIndex].priority = priority;
+  }
+
+  if (etic !== undefined) {
+    maintenanceEvents[eventIndex].etic = etic || null;
+  }
+
+  if (location !== undefined) {
+    maintenanceEvents[eventIndex].location = location;
+  }
+
+  // Handle status change to closed
+  if (status !== undefined && ['open', 'closed'].includes(status)) {
+    maintenanceEvents[eventIndex].status = status;
+    if (status === 'closed' && !maintenanceEvents[eventIndex].stop_job) {
+      maintenanceEvents[eventIndex].stop_job = new Date().toISOString().split('T')[0];
+    }
+    if (status === 'open') {
+      maintenanceEvents[eventIndex].stop_job = null;
+    }
+  }
+
+  // Allow explicit stop_job setting
+  if (stop_job !== undefined) {
+    maintenanceEvents[eventIndex].stop_job = stop_job || null;
+  }
+
+  console.log(`[EVENTS] Updated maintenance event ${event.job_no} by ${user.username}`);
+
+  res.json({
+    message: 'Maintenance event updated successfully',
+    event: maintenanceEvents[eventIndex],
+  });
+});
+
 // Get single PMI by ID
 app.get('/api/pmi/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
