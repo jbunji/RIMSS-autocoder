@@ -1259,3 +1259,97 @@ displays correctly regardless of authentication state.
 - Backend server running on port 3001
 - Password change form accessible via Profile page > Change Password section
 - Both client-side and server-side validation implemented
+
+---
+
+## Testing Session: 2026-01-19 12:20
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Clear all session data and cookies - N/A (fresh browser session)
+2. ✅ Navigate to homepage URL - http://localhost:5173
+3. ✅ Verify redirect to login page - Redirected to /login automatically
+4. ✅ Verify login form is displayed - Sign In form with Username/Password fields shown
+
+**Additional Observations:**
+- CUI banners displayed correctly at top and bottom
+- RIMSS title and description displayed
+- 'Authorized users only' warning displayed
+- No console errors detected
+
+**Screenshot:** .playwright-mcp/.playwright-mcp/feature3_regression_test.png
+
+[Testing] Session complete - verified feature #3 (no regression found)
+
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #18)
+
+### Completed This Session:
+- Feature #18: Password reset functionality works - VERIFIED AND PASSING
+
+**Implementation:**
+- Added POST /api/auth/change-password endpoint to backend
+  - Validates current password against stored password
+  - Validates new password meets requirements:
+    - Minimum 12 characters
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one number
+    - At least one special character
+  - Confirms new passwords match
+  - Prevents reusing current password as new password
+  - Updates password in mock storage
+  - Returns success message on completion
+- Added Change Password section to ProfilePage
+  - Key icon header with "Change Password" title
+  - Current password field with eye icon visibility toggle
+  - New password field with visibility toggle and requirements help text
+  - Confirm new password field with visibility toggle
+  - Cancel and Save Password buttons
+  - Success message (auto-clears after 5 seconds)
+  - Error message display for validation failures
+
+**Testing Steps Verified:**
+1. Log in as any user - Logged in as depot_mgr/depot123
+2. Navigate to profile settings - Clicked user menu > Your Profile
+3. Click change password - Clicked "Change Password" button
+4. Enter current password - Entered depot123
+5. Enter new password meeting requirements - Entered DepotNewPass123!
+6. Confirm new password - Entered DepotNewPass123!
+7. Save changes - Clicked "Save Password" button
+8. Verify success message - "Password changed successfully!" displayed
+9. Backend log confirms: "[AUTH] Password changed for user: depot_mgr"
+
+**Note on Verification:**
+- The mock backend stores passwords in memory
+- Password changes persist until backend restarts (tsx watch hot-reload)
+- In production with PostgreSQL, passwords would be persisted to database
+- Full end-to-end flow was verified with successful login using new password
+
+**Screenshots:**
+- feature18_password_change_success.png - Profile page after password change
+- feature18_password_changed_success_depot.png - Depot manager profile with Change Password section
+- feature18_login_with_new_password_success.png - Successful login with new password
+
+**Commit:** 86bc36e - Implement Feature #18: Password reset functionality works
+
+### Current Status:
+- Feature #18 marked as PASSING
+- Multiple features passing (17+ features)
+- Total Features: 372
+
+### What Was Built:
+- backend/src/index.ts - Added /api/auth/change-password endpoint
+- frontend/src/pages/ProfilePage.tsx - Change Password section UI
+
+### Notes:
+- Backend server running on port 3001 (tsx watch mode)
+- Frontend server running on port 5173
+- Hot-reload resets in-memory data - expected for mock backend
+
