@@ -19,6 +19,12 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
+  ArrowUturnRightIcon,
+  PencilIcon,
+  ChevronRightIcon,
+  CodeBracketIcon,
+  CalendarIcon,
+  ComputerDesktopIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -73,6 +79,8 @@ interface BOMItem {
   sort_order: number
   qpa: number
   active: boolean
+  nha_partno_c: string | null  // NHA (Next Higher Assembly) - parent part in hierarchy
+  is_sra: boolean  // Is this a Sub-Replaceable Assembly (has an NHA parent)?
 }
 
 // BOM Response interface (matches backend response)
@@ -84,6 +92,59 @@ interface BOMResponse {
     cfg_name: string
     partno: string | null
   }
+}
+
+// Software association interface
+interface ConfigurationSoftware {
+  cfg_sw_id: number
+  sw_id: number
+  sw_number: string
+  sw_type: string
+  revision: string
+  revision_date: string
+  sw_title: string
+  sw_desc: string | null
+  cpin_flag: boolean
+  eff_date: string
+  ins_by: string
+  ins_date: string
+}
+
+// Software catalog interface (for search/selection)
+interface Software {
+  sw_id: number
+  sw_number: string
+  sw_type: string
+  sys_id: string
+  revision: string
+  revision_date: string
+  sw_title: string
+  sw_desc: string | null
+  eff_date: string
+  cpin_flag: boolean
+  active: boolean
+  pgm_id: number
+  program_cd: string
+  program_name: string
+}
+
+// Software response interface
+interface SoftwareResponse {
+  configuration: {
+    cfg_set_id: number
+    cfg_name: string
+  }
+  software: ConfigurationSoftware[]
+  total: number
+}
+
+// Software type badge colors
+const swTypeColors: Record<string, { bg: string; text: string }> = {
+  FIRMWARE: { bg: 'bg-purple-100', text: 'text-purple-800' },
+  APPLICATION: { bg: 'bg-blue-100', text: 'text-blue-800' },
+  DSP: { bg: 'bg-green-100', text: 'text-green-800' },
+  DRIVER: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+  UTILITY: { bg: 'bg-gray-100', text: 'text-gray-800' },
 }
 
 // Type badge colors
@@ -114,6 +175,26 @@ export default function ConfigurationDetailPage() {
   const [bomData, setBomData] = useState<BOMResponse | null>(null)
   const [bomLoading, setBomLoading] = useState(false)
   const [bomError, setBomError] = useState<string | null>(null)
+
+  // Software state
+  const [softwareData, setSoftwareData] = useState<SoftwareResponse | null>(null)
+  const [softwareLoading, setSoftwareLoading] = useState(false)
+  const [softwareError, setSoftwareError] = useState<string | null>(null)
+
+  // Add Software modal state
+  const [isAddSoftwareModalOpen, setIsAddSoftwareModalOpen] = useState(false)
+  const [availableSoftware, setAvailableSoftware] = useState<Software[]>([])
+  const [softwareSearchQuery, setSoftwareSearchQuery] = useState('')
+  const [selectedSoftware, setSelectedSoftware] = useState<Software | null>(null)
+  const [softwareEffDate, setSoftwareEffDate] = useState('')
+  const [addSoftwareError, setAddSoftwareError] = useState<string | null>(null)
+  const [addingSoftware, setAddingSoftware] = useState(false)
+
+  // Delete Software modal state
+  const [isDeleteSoftwareModalOpen, setIsDeleteSoftwareModalOpen] = useState(false)
+  const [softwareToDelete, setSoftwareToDelete] = useState<ConfigurationSoftware | null>(null)
+  const [deleteSoftwareError, setDeleteSoftwareError] = useState<string | null>(null)
+  const [deletingSoftware, setDeletingSoftware] = useState(false)
 
   // Delete BOM item modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -207,11 +288,62 @@ export default function ConfigurationDetailPage() {
     }
   }, [token, id])
 
+  // Fetch Software data
+  const fetchSoftware = useCallback(async () => {
+    if (!token || !id) return
+
+    setSoftwareLoading(true)
+    setSoftwareError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${id}/software`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to fetch software')
+      }
+
+      const data: SoftwareResponse = await response.json()
+      setSoftwareData(data)
+    } catch (err) {
+      setSoftwareError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Error fetching software:', err)
+    } finally {
+      setSoftwareLoading(false)
+    }
+  }, [token, id])
+
+  // Fetch available software for selection
+  const fetchAvailableSoftware = useCallback(async () => {
+    if (!token || !configuration) return
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/software?program_id=${configuration.pgm_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableSoftware(data.software || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch available software:', err)
+    }
+  }, [token, configuration])
+
   // Fetch on mount
   useEffect(() => {
     fetchConfiguration()
     fetchBOM()
-  }, [fetchConfiguration, fetchBOM])
+    fetchSoftware()
+  }, [fetchConfiguration, fetchBOM, fetchSoftware])
 
   // Open delete confirmation modal
   const openDeleteModal = (item: BOMItem) => {
@@ -371,6 +503,136 @@ export default function ConfigurationDetailPage() {
     const query = partSearchQuery.toLowerCase()
     return part.partno.toLowerCase().includes(query) || part.name.toLowerCase().includes(query)
   })
+
+  // Filter software based on search query (excluding already associated)
+  const filteredSoftware = availableSoftware.filter(sw => {
+    // Exclude already associated software
+    const alreadyAssociated = softwareData?.software?.some(assoc => assoc.sw_id === sw.sw_id)
+    if (alreadyAssociated) return false
+
+    if (!softwareSearchQuery) return true
+    const query = softwareSearchQuery.toLowerCase()
+    return (
+      sw.sw_number.toLowerCase().includes(query) ||
+      sw.sw_title.toLowerCase().includes(query) ||
+      sw.revision.toLowerCase().includes(query)
+    )
+  })
+
+  // Open add software modal
+  const openAddSoftwareModal = () => {
+    setAddSoftwareError(null)
+    setSelectedSoftware(null)
+    setSoftwareSearchQuery('')
+    setSoftwareEffDate(new Date().toISOString().split('T')[0])
+    fetchAvailableSoftware()
+    setIsAddSoftwareModalOpen(true)
+  }
+
+  // Close add software modal
+  const closeAddSoftwareModal = () => {
+    setIsAddSoftwareModalOpen(false)
+    setAddSoftwareError(null)
+    setSelectedSoftware(null)
+    setSoftwareSearchQuery('')
+    setSoftwareEffDate('')
+    setAddingSoftware(false)
+  }
+
+  // Select software from search results
+  const selectSoftwareItem = (sw: Software) => {
+    setSelectedSoftware(sw)
+    setSoftwareSearchQuery('')
+  }
+
+  // Handle add software submit
+  const handleAddSoftware = async () => {
+    if (!token || !id || !selectedSoftware) return
+
+    setAddingSoftware(true)
+    setAddSoftwareError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${id}/software`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sw_id: selectedSoftware.sw_id,
+          eff_date: softwareEffDate,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add software')
+      }
+
+      // Refresh software data
+      await fetchSoftware()
+
+      setSuccessMessage(`Software "${selectedSoftware.sw_number}" added successfully`)
+      closeAddSoftwareModal()
+
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      setAddSoftwareError(err instanceof Error ? err.message : 'Failed to add software')
+    } finally {
+      setAddingSoftware(false)
+    }
+  }
+
+  // Open delete software modal
+  const openDeleteSoftwareModal = (sw: ConfigurationSoftware) => {
+    setSoftwareToDelete(sw)
+    setDeleteSoftwareError(null)
+    setIsDeleteSoftwareModalOpen(true)
+  }
+
+  // Close delete software modal
+  const closeDeleteSoftwareModal = () => {
+    setIsDeleteSoftwareModalOpen(false)
+    setSoftwareToDelete(null)
+    setDeleteSoftwareError(null)
+    setDeletingSoftware(false)
+  }
+
+  // Handle delete software confirm
+  const handleDeleteSoftwareConfirm = async () => {
+    if (!softwareToDelete || !token || !id) return
+
+    setDeletingSoftware(true)
+    setDeleteSoftwareError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${id}/software/${softwareToDelete.cfg_sw_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to remove software')
+      }
+
+      // Refresh software data
+      await fetchSoftware()
+
+      setSuccessMessage(`Software "${softwareToDelete.sw_number}" removed successfully`)
+      closeDeleteSoftwareModal()
+
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      setDeleteSoftwareError(err instanceof Error ? err.message : 'Failed to remove software')
+    } finally {
+      setDeletingSoftware(false)
+    }
+  }
 
   // Format date for display
   const formatDate = (dateString: string | null): string => {
@@ -723,11 +985,11 @@ export default function ConfigurationDetailPage() {
                           <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
                             Part Name
                           </th>
-                          <th scope="col" className="px-3 py-3.5 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
-                            QPA
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                            NHA (Parent)
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
-                            Sort Order
+                            QPA
                           </th>
                           {canEditBom && (
                             <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -737,39 +999,68 @@ export default function ConfigurationDetailPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
-                        {bomData.bom_items.map((item, index) => (
-                          <tr key={item.list_id} className="hover:bg-gray-50">
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6">
-                              {index + 1}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm">
-                              <span className="font-mono text-gray-900">{item.partno_c}</span>
-                            </td>
-                            <td className="px-3 py-4 text-sm text-gray-900">
-                              {item.part_name_c}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
-                              <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {item.qpa}
-                              </span>
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500">
-                              {item.sort_order}
-                            </td>
-                            {canEditBom && (
-                              <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                <button
-                                  onClick={() => openDeleteModal(item)}
-                                  className="text-red-600 hover:text-red-900 inline-flex items-center"
-                                  title="Remove part from BOM"
-                                >
-                                  <TrashIcon className="h-4 w-4 mr-1" />
-                                  Remove
-                                </button>
+                        {bomData.bom_items.map((item, index) => {
+                          // Find NHA parent name if exists
+                          const nhaParent = item.nha_partno_c
+                            ? bomData.bom_items.find(b => b.partno_c === item.nha_partno_c)
+                            : null;
+
+                          return (
+                            <tr key={item.list_id} className={`hover:bg-gray-50 ${item.is_sra ? 'bg-gray-50' : ''}`}>
+                              <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6">
+                                {index + 1}
                               </td>
-                            )}
-                          </tr>
-                        ))}
+                              <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                <div className="flex items-center">
+                                  {item.is_sra && (
+                                    <ArrowUturnRightIcon className="h-4 w-4 text-gray-400 mr-2" title="Sub-Replaceable Assembly (SRA)" />
+                                  )}
+                                  <span className="font-mono text-gray-900">{item.partno_c}</span>
+                                  {!item.is_sra && !item.nha_partno_c && bomData.bom_items.some(b => b.nha_partno_c === item.partno_c) && (
+                                    <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200" title="Next Higher Assembly - has child parts">
+                                      NHA
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-4 text-sm text-gray-900">
+                                {item.part_name_c}
+                              </td>
+                              <td className="px-3 py-4 text-sm">
+                                {item.nha_partno_c ? (
+                                  <div className="flex items-center text-gray-600">
+                                    <ChevronRightIcon className="h-3 w-3 text-gray-400 mr-1" />
+                                    <span className="font-mono text-xs">{item.nha_partno_c}</span>
+                                    {nhaParent && (
+                                      <span className="ml-1 text-xs text-gray-400 truncate max-w-[100px]" title={nhaParent.part_name_c}>
+                                        ({nhaParent.part_name_c})
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400 text-xs">—</span>
+                                )}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
+                                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {item.qpa}
+                                </span>
+                              </td>
+                              {canEditBom && (
+                                <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                  <button
+                                    onClick={() => openDeleteModal(item)}
+                                    className="text-red-600 hover:text-red-900 inline-flex items-center"
+                                    title="Remove part from BOM"
+                                  >
+                                    <TrashIcon className="h-4 w-4 mr-1" />
+                                    Remove
+                                  </button>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

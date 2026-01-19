@@ -3506,50 +3506,539 @@ function initializeConfigurations(): ConfigurationSet[] {
 // Mutable array of configurations
 const configurations: ConfigurationSet[] = initializeConfigurations();
 
-// Initialize BOM (Bill of Materials) mock data
+// Initialize BOM (Bill of Materials) mock data with NHA/SRA hierarchy
 function initializeBOMItems(): BOMItem[] {
   return [
     // Config 1: Camera System X Configuration (cfg_set_id: 1, partno: PN-CAMERA-X)
-    { list_id: 1, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-SENSOR-A', part_name_c: 'Sensor Unit Alpha', sort_order: 1, qpa: 1, active: true },
-    { list_id: 2, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-MOUNT-KIT', part_name_c: 'Universal Mounting Kit', sort_order: 2, qpa: 2, active: true },
-    { list_id: 3, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-CABLE-CAM', part_name_c: 'Camera Cable Assembly', sort_order: 3, qpa: 3, active: true },
+    // NHA hierarchy: PN-SENSOR-A is an NHA (assembly), PN-MOUNT-KIT and PN-CABLE-CAM are SRAs under it
+    { list_id: 1, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-SENSOR-A', part_name_c: 'Sensor Unit Alpha', sort_order: 1, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 2, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-MOUNT-KIT', part_name_c: 'Universal Mounting Kit', sort_order: 2, qpa: 2, active: true, nha_partno_c: 'PN-SENSOR-A', is_sra: true },
+    { list_id: 3, cfg_set_id: 1, partno_p: 'PN-CAMERA-X', partno_c: 'PN-CABLE-CAM', part_name_c: 'Camera Cable Assembly', sort_order: 3, qpa: 3, active: true, nha_partno_c: 'PN-SENSOR-A', is_sra: true },
 
     // Config 2: Radar Unit Configuration (cfg_set_id: 2, partno: PN-RADAR-01)
-    { list_id: 4, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-ANTENNA-RADAR', part_name_c: 'Radar Antenna Assembly', sort_order: 1, qpa: 1, active: true },
-    { list_id: 5, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-PSU-RADAR', part_name_c: 'Radar Power Supply Unit', sort_order: 2, qpa: 1, active: true },
-    { list_id: 6, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-WAVEGUIDE', part_name_c: 'Waveguide Assembly', sort_order: 3, qpa: 2, active: true },
-    { list_id: 7, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-CONTROL-PCB', part_name_c: 'Radar Control Board', sort_order: 4, qpa: 1, active: true },
+    // NHA hierarchy: PN-ANTENNA-RADAR is NHA with PSU and CONTROL-PCB as SRAs
+    { list_id: 4, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-ANTENNA-RADAR', part_name_c: 'Radar Antenna Assembly', sort_order: 1, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 5, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-PSU-RADAR', part_name_c: 'Radar Power Supply Unit', sort_order: 2, qpa: 1, active: true, nha_partno_c: 'PN-ANTENNA-RADAR', is_sra: true },
+    { list_id: 6, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-WAVEGUIDE', part_name_c: 'Waveguide Assembly', sort_order: 3, qpa: 2, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 7, cfg_set_id: 2, partno_p: 'PN-RADAR-01', partno_c: 'PN-CONTROL-PCB', part_name_c: 'Radar Control Board', sort_order: 4, qpa: 1, active: true, nha_partno_c: 'PN-ANTENNA-RADAR', is_sra: true },
 
     // Config 3: Communication System Config (cfg_set_id: 3, partno: PN-COMM-SYS)
-    { list_id: 8, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-RADIO-TX', part_name_c: 'Radio Transmitter Module', sort_order: 1, qpa: 1, active: true },
-    { list_id: 9, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-RADIO-RX', part_name_c: 'Radio Receiver Module', sort_order: 2, qpa: 1, active: true },
-    { list_id: 10, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-ENCRYPT-MOD', part_name_c: 'Encryption Module', sort_order: 3, qpa: 1, active: true },
-    { list_id: 11, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-ANTENNA-COMM', part_name_c: 'Communication Antenna', sort_order: 4, qpa: 2, active: true },
-    { list_id: 12, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-CABLE-COAX', part_name_c: 'Coaxial Cable Assembly', sort_order: 5, qpa: 4, active: true },
+    // NHA hierarchy: PN-RADIO-TX is NHA with ENCRYPT-MOD as SRA
+    { list_id: 8, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-RADIO-TX', part_name_c: 'Radio Transmitter Module', sort_order: 1, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 9, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-RADIO-RX', part_name_c: 'Radio Receiver Module', sort_order: 2, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 10, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-ENCRYPT-MOD', part_name_c: 'Encryption Module', sort_order: 3, qpa: 1, active: true, nha_partno_c: 'PN-RADIO-TX', is_sra: true },
+    { list_id: 11, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-ANTENNA-COMM', part_name_c: 'Communication Antenna', sort_order: 4, qpa: 2, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 12, cfg_set_id: 3, partno_p: 'PN-COMM-SYS', partno_c: 'PN-CABLE-COAX', part_name_c: 'Coaxial Cable Assembly', sort_order: 5, qpa: 4, active: true, nha_partno_c: 'PN-ANTENNA-COMM', is_sra: true },
 
     // Config 4: Navigation Unit Standard (cfg_set_id: 4, partno: PN-NAV-UNIT)
-    { list_id: 13, cfg_set_id: 4, partno_p: 'PN-NAV-UNIT', partno_c: 'PN-GPS-RECV', part_name_c: 'GPS Receiver Module', sort_order: 1, qpa: 1, active: true },
-    { list_id: 14, cfg_set_id: 4, partno_p: 'PN-NAV-UNIT', partno_c: 'PN-INERTIAL-MOD', part_name_c: 'Inertial Navigation Module', sort_order: 2, qpa: 1, active: true },
+    { list_id: 13, cfg_set_id: 4, partno_p: 'PN-NAV-UNIT', partno_c: 'PN-GPS-RECV', part_name_c: 'GPS Receiver Module', sort_order: 1, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 14, cfg_set_id: 4, partno_p: 'PN-NAV-UNIT', partno_c: 'PN-INERTIAL-MOD', part_name_c: 'Inertial Navigation Module', sort_order: 2, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
 
     // Config 5: Targeting System A Config (cfg_set_id: 5, partno: PN-TARGET-A)
-    { list_id: 15, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-LASER-DES', part_name_c: 'Laser Designator Unit', sort_order: 1, qpa: 1, active: true },
-    { list_id: 16, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-OPTICAL-SIGHT', part_name_c: 'Optical Sight Assembly', sort_order: 2, qpa: 1, active: true },
-    { list_id: 17, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-SERVO-MOUNT', part_name_c: 'Servo Mount System', sort_order: 3, qpa: 1, active: true },
-    { list_id: 18, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-CONTROL-UNIT', part_name_c: 'Targeting Control Unit', sort_order: 4, qpa: 1, active: true },
+    // NHA hierarchy: PN-LASER-DES and PN-OPTICAL-SIGHT are NHAs with SERVO-MOUNT as SRA under OPTICAL-SIGHT
+    { list_id: 15, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-LASER-DES', part_name_c: 'Laser Designator Unit', sort_order: 1, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 16, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-OPTICAL-SIGHT', part_name_c: 'Optical Sight Assembly', sort_order: 2, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 17, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-SERVO-MOUNT', part_name_c: 'Servo Mount System', sort_order: 3, qpa: 1, active: true, nha_partno_c: 'PN-OPTICAL-SIGHT', is_sra: true },
+    { list_id: 18, cfg_set_id: 5, partno_p: 'PN-TARGET-A', partno_c: 'PN-CONTROL-UNIT', part_name_c: 'Targeting Control Unit', sort_order: 4, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
 
     // Config 6: Targeting System B Config (cfg_set_id: 6, partno: PN-TARGET-B)
-    { list_id: 19, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-THERMAL-CAM', part_name_c: 'Thermal Imaging Camera', sort_order: 1, qpa: 1, active: true },
-    { list_id: 20, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-IMAGE-PROC', part_name_c: 'Image Processing Unit', sort_order: 2, qpa: 1, active: true },
-    { list_id: 21, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-COOLING-SYS', part_name_c: 'Thermal Cooling System', sort_order: 3, qpa: 1, active: true },
+    // NHA hierarchy: PN-THERMAL-CAM is NHA with IMAGE-PROC and COOLING-SYS as SRAs
+    { list_id: 19, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-THERMAL-CAM', part_name_c: 'Thermal Imaging Camera', sort_order: 1, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 20, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-IMAGE-PROC', part_name_c: 'Image Processing Unit', sort_order: 2, qpa: 1, active: true, nha_partno_c: 'PN-THERMAL-CAM', is_sra: true },
+    { list_id: 21, cfg_set_id: 6, partno_p: 'PN-TARGET-B', partno_c: 'PN-COOLING-SYS', part_name_c: 'Thermal Cooling System', sort_order: 3, qpa: 1, active: true, nha_partno_c: 'PN-THERMAL-CAM', is_sra: true },
 
     // Config 7: Laser Designator Config (cfg_set_id: 7, partno: PN-LASER-SYS)
-    { list_id: 22, cfg_set_id: 7, partno_p: 'PN-LASER-SYS', partno_c: 'PN-LASER-DIODE', part_name_c: 'High-Power Laser Diode', sort_order: 1, qpa: 1, active: true },
-    { list_id: 23, cfg_set_id: 7, partno_p: 'PN-LASER-SYS', partno_c: 'PN-OPTICS-ASM', part_name_c: 'Beam Optics Assembly', sort_order: 2, qpa: 1, active: true },
+    { list_id: 22, cfg_set_id: 7, partno_p: 'PN-LASER-SYS', partno_c: 'PN-LASER-DIODE', part_name_c: 'High-Power Laser Diode', sort_order: 1, qpa: 1, active: true, nha_partno_c: null, is_sra: false },
+    { list_id: 23, cfg_set_id: 7, partno_p: 'PN-LASER-SYS', partno_c: 'PN-OPTICS-ASM', part_name_c: 'Beam Optics Assembly', sort_order: 2, qpa: 1, active: true, nha_partno_c: 'PN-LASER-DIODE', is_sra: true },
   ];
 }
 
 // Mutable array of BOM items
 let bomItems: BOMItem[] = initializeBOMItems();
+
+// =====================================
+// SOFTWARE VERSION TRACKING
+// =====================================
+
+// Software catalog interface
+interface Software {
+  sw_id: number;
+  sw_number: string;
+  sw_type: string;
+  sys_id: string;
+  revision: string;
+  revision_date: string;
+  sw_title: string;
+  sw_desc: string | null;
+  eff_date: string;
+  cpin_flag: boolean;
+  active: boolean;
+  pgm_id: number;
+}
+
+// Configuration-Software association interface
+interface ConfigurationSoftware {
+  cfg_sw_id: number;
+  cfg_set_id: number;
+  sw_id: number;
+  eff_date: string;
+  ins_by: string;
+  ins_date: string;
+}
+
+// Initialize mock software catalog data
+function initializeSoftware(): Software[] {
+  const today = new Date();
+  const subtractDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split('T')[0];
+  };
+
+  return [
+    // CRIIS program software (pgm_id: 1)
+    {
+      sw_id: 1,
+      sw_number: 'SW-CAM-CTRL-001',
+      sw_type: 'FIRMWARE',
+      sys_id: 'CRIIS-CAMERA',
+      revision: '2.1.5',
+      revision_date: subtractDays(30),
+      sw_title: 'Camera Control Software',
+      sw_desc: 'Primary camera control firmware for image capture and processing',
+      eff_date: subtractDays(30),
+      cpin_flag: true,
+      active: true,
+      pgm_id: 1,
+    },
+    {
+      sw_id: 2,
+      sw_number: 'SW-CAM-CTRL-002',
+      sw_type: 'FIRMWARE',
+      sys_id: 'CRIIS-CAMERA',
+      revision: '2.0.8',
+      revision_date: subtractDays(120),
+      sw_title: 'Camera Control Software (Legacy)',
+      sw_desc: 'Previous version of camera control firmware',
+      eff_date: subtractDays(120),
+      cpin_flag: true,
+      active: true,
+      pgm_id: 1,
+    },
+    {
+      sw_id: 3,
+      sw_number: 'SW-RADAR-DSP-001',
+      sw_type: 'DSP',
+      sys_id: 'CRIIS-RADAR',
+      revision: '3.4.2',
+      revision_date: subtractDays(45),
+      sw_title: 'Radar Signal Processing',
+      sw_desc: 'Digital signal processing software for radar systems',
+      eff_date: subtractDays(45),
+      cpin_flag: true,
+      active: true,
+      pgm_id: 1,
+    },
+    {
+      sw_id: 4,
+      sw_number: 'SW-COMM-ENC-001',
+      sw_type: 'APPLICATION',
+      sys_id: 'CRIIS-COMM',
+      revision: '4.0.1',
+      revision_date: subtractDays(15),
+      sw_title: 'Communication Encryption Module',
+      sw_desc: 'Secure communication encryption software',
+      eff_date: subtractDays(15),
+      cpin_flag: true,
+      active: true,
+      pgm_id: 1,
+    },
+    {
+      sw_id: 5,
+      sw_number: 'SW-NAV-GPS-001',
+      sw_type: 'FIRMWARE',
+      sys_id: 'CRIIS-NAV',
+      revision: '1.8.3',
+      revision_date: subtractDays(90),
+      sw_title: 'GPS Navigation Software',
+      sw_desc: 'GPS positioning and navigation algorithms',
+      eff_date: subtractDays(90),
+      cpin_flag: false,
+      active: true,
+      pgm_id: 1,
+    },
+    {
+      sw_id: 6,
+      sw_number: 'SW-NAV-INS-001',
+      sw_type: 'FIRMWARE',
+      sys_id: 'CRIIS-NAV',
+      revision: '2.2.1',
+      revision_date: subtractDays(60),
+      sw_title: 'Inertial Navigation Software',
+      sw_desc: 'Inertial navigation system integration software',
+      eff_date: subtractDays(60),
+      cpin_flag: false,
+      active: true,
+      pgm_id: 1,
+    },
+    // ACTS program software (pgm_id: 2)
+    {
+      sw_id: 7,
+      sw_number: 'SW-TGT-CTRL-001',
+      sw_type: 'APPLICATION',
+      sys_id: 'ACTS-TARGET',
+      revision: '5.1.0',
+      revision_date: subtractDays(20),
+      sw_title: 'Targeting Control Software',
+      sw_desc: 'Primary targeting system control software',
+      eff_date: subtractDays(20),
+      cpin_flag: true,
+      active: true,
+      pgm_id: 2,
+    },
+    {
+      sw_id: 8,
+      sw_number: 'SW-LASER-CAL-001',
+      sw_type: 'FIRMWARE',
+      sys_id: 'ACTS-LASER',
+      revision: '1.3.7',
+      revision_date: subtractDays(75),
+      sw_title: 'Laser Calibration Firmware',
+      sw_desc: 'Laser designator calibration and control firmware',
+      eff_date: subtractDays(75),
+      cpin_flag: true,
+      active: true,
+      pgm_id: 2,
+    },
+    {
+      sw_id: 9,
+      sw_number: 'SW-THERM-IMG-001',
+      sw_type: 'DSP',
+      sys_id: 'ACTS-THERMAL',
+      revision: '2.5.4',
+      revision_date: subtractDays(50),
+      sw_title: 'Thermal Imaging Processor',
+      sw_desc: 'Thermal image processing and enhancement software',
+      eff_date: subtractDays(50),
+      cpin_flag: false,
+      active: true,
+      pgm_id: 2,
+    },
+    // ARDS program software (pgm_id: 3)
+    {
+      sw_id: 10,
+      sw_number: 'SW-RECON-DATA-001',
+      sw_type: 'APPLICATION',
+      sys_id: 'ARDS-RECON',
+      revision: '3.0.2',
+      revision_date: subtractDays(35),
+      sw_title: 'Reconnaissance Data Handler',
+      sw_desc: 'Data handling and transmission software for reconnaissance systems',
+      eff_date: subtractDays(35),
+      cpin_flag: true,
+      active: true,
+      pgm_id: 3,
+    },
+  ];
+}
+
+// Initialize mock configuration-software associations
+function initializeConfigSoftware(): ConfigurationSoftware[] {
+  const today = new Date();
+  const subtractDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.toISOString();
+  };
+
+  return [
+    // Camera System X Configuration (cfg_set_id: 1) has SW-CAM-CTRL-001
+    { cfg_sw_id: 1, cfg_set_id: 1, sw_id: 1, eff_date: subtractDays(30).split('T')[0], ins_by: 'admin', ins_date: subtractDays(30) },
+    // Radar Unit Configuration (cfg_set_id: 2) has SW-RADAR-DSP-001
+    { cfg_sw_id: 2, cfg_set_id: 2, sw_id: 3, eff_date: subtractDays(45).split('T')[0], ins_by: 'admin', ins_date: subtractDays(45) },
+    // Communication System Config (cfg_set_id: 3) has SW-COMM-ENC-001
+    { cfg_sw_id: 3, cfg_set_id: 3, sw_id: 4, eff_date: subtractDays(15).split('T')[0], ins_by: 'depot_mgr', ins_date: subtractDays(15) },
+    // Navigation Unit Standard (cfg_set_id: 4) has SW-NAV-GPS-001 and SW-NAV-INS-001
+    { cfg_sw_id: 4, cfg_set_id: 4, sw_id: 5, eff_date: subtractDays(90).split('T')[0], ins_by: 'admin', ins_date: subtractDays(90) },
+    { cfg_sw_id: 5, cfg_set_id: 4, sw_id: 6, eff_date: subtractDays(60).split('T')[0], ins_by: 'admin', ins_date: subtractDays(60) },
+  ];
+}
+
+// Mutable arrays for software tracking
+const softwareCatalog: Software[] = initializeSoftware();
+let configSoftware: ConfigurationSoftware[] = initializeConfigSoftware();
+let nextCfgSwId = 6; // Next ID for new configuration-software associations
+
+// GET /api/software - List all software for a program (requires authentication)
+app.get('/api/software', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get optional query parameters
+  const programId = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+  const search = req.query.search as string || '';
+  const swType = req.query.type as string || '';
+
+  // Filter software by user's programs and optional filters
+  let filteredSoftware = softwareCatalog.filter(sw => {
+    // Program access check
+    if (user.role === 'ADMIN') {
+      // Admin can see all, but filter by programId if specified
+      if (programId && sw.pgm_id !== programId) return false;
+    } else {
+      if (programId) {
+        if (!userProgramIds.includes(programId) || sw.pgm_id !== programId) return false;
+      } else {
+        if (!userProgramIds.includes(sw.pgm_id)) return false;
+      }
+    }
+
+    // Search filter (case-insensitive)
+    if (search) {
+      const searchLower = search.toLowerCase();
+      const matchesSearch =
+        sw.sw_number.toLowerCase().includes(searchLower) ||
+        sw.sw_title.toLowerCase().includes(searchLower) ||
+        sw.revision.toLowerCase().includes(searchLower) ||
+        (sw.sw_desc && sw.sw_desc.toLowerCase().includes(searchLower));
+      if (!matchesSearch) return false;
+    }
+
+    // Type filter
+    if (swType && sw.sw_type !== swType) return false;
+
+    // Only active software
+    if (!sw.active) return false;
+
+    return true;
+  });
+
+  // Add program info to each software
+  const softwareWithProgram = filteredSoftware.map(sw => {
+    const program = allPrograms.find(p => p.pgm_id === sw.pgm_id);
+    return {
+      ...sw,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    };
+  });
+
+  res.json({
+    software: softwareWithProgram,
+    total: softwareWithProgram.length,
+  });
+});
+
+// GET /api/configurations/:id/software - Get software associations for a configuration
+app.get('/api/configurations/:id/software', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  if (isNaN(configId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID' });
+  }
+
+  // Find the configuration
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Get software associations for this configuration
+  const associations = configSoftware.filter(cs => cs.cfg_set_id === configId);
+
+  // Map associations to include full software details
+  const softwareList = associations.map(assoc => {
+    const sw = softwareCatalog.find(s => s.sw_id === assoc.sw_id);
+    if (!sw) return null;
+    return {
+      cfg_sw_id: assoc.cfg_sw_id,
+      sw_id: sw.sw_id,
+      sw_number: sw.sw_number,
+      sw_type: sw.sw_type,
+      revision: sw.revision,
+      revision_date: sw.revision_date,
+      sw_title: sw.sw_title,
+      sw_desc: sw.sw_desc,
+      cpin_flag: sw.cpin_flag,
+      eff_date: assoc.eff_date,
+      ins_by: assoc.ins_by,
+      ins_date: assoc.ins_date,
+    };
+  }).filter(Boolean);
+
+  res.json({
+    configuration: {
+      cfg_set_id: config.cfg_set_id,
+      cfg_name: config.cfg_name,
+    },
+    software: softwareList,
+    total: softwareList.length,
+  });
+});
+
+// POST /api/configurations/:id/software - Add software to a configuration
+app.post('/api/configurations/:id/software', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can add software associations
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to modify configuration software' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  if (isNaN(configId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID' });
+  }
+
+  // Validate request body
+  const { sw_id, eff_date } = req.body;
+  if (!sw_id || typeof sw_id !== 'number') {
+    return res.status(400).json({ error: 'Software ID is required' });
+  }
+  if (!eff_date) {
+    return res.status(400).json({ error: 'Effective date is required' });
+  }
+
+  // Find the configuration
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Find the software
+  const sw = softwareCatalog.find(s => s.sw_id === sw_id);
+  if (!sw) {
+    return res.status(404).json({ error: 'Software not found' });
+  }
+
+  // Check if association already exists
+  const existingAssoc = configSoftware.find(cs => cs.cfg_set_id === configId && cs.sw_id === sw_id);
+  if (existingAssoc) {
+    return res.status(400).json({ error: 'This software is already associated with this configuration' });
+  }
+
+  // Create new association
+  const newAssociation: ConfigurationSoftware = {
+    cfg_sw_id: nextCfgSwId++,
+    cfg_set_id: configId,
+    sw_id: sw_id,
+    eff_date: eff_date,
+    ins_by: user.username,
+    ins_date: new Date().toISOString(),
+  };
+
+  configSoftware.push(newAssociation);
+
+  console.log(`[CONFIG-SW] Added software "${sw.sw_number}" (${sw.sw_title}) to config "${config.cfg_name}" (ID: ${configId}) by ${user.username}`);
+
+  res.status(201).json({
+    message: 'Software added to configuration successfully',
+    association: {
+      cfg_sw_id: newAssociation.cfg_sw_id,
+      sw_id: sw.sw_id,
+      sw_number: sw.sw_number,
+      sw_type: sw.sw_type,
+      revision: sw.revision,
+      sw_title: sw.sw_title,
+      eff_date: newAssociation.eff_date,
+      ins_by: newAssociation.ins_by,
+      ins_date: newAssociation.ins_date,
+    },
+  });
+});
+
+// DELETE /api/configurations/:id/software/:swAssocId - Remove software from a configuration
+app.delete('/api/configurations/:id/software/:swAssocId', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can remove software associations
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to modify configuration software' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const swAssocId = parseInt(req.params.swAssocId, 10);
+
+  if (isNaN(configId) || isNaN(swAssocId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID or software association ID' });
+  }
+
+  // Find the configuration
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Find the association
+  const assocIndex = configSoftware.findIndex(cs => cs.cfg_sw_id === swAssocId && cs.cfg_set_id === configId);
+  if (assocIndex === -1) {
+    return res.status(404).json({ error: 'Software association not found' });
+  }
+
+  // Get association details before removing
+  const removedAssoc = configSoftware[assocIndex];
+  const sw = softwareCatalog.find(s => s.sw_id === removedAssoc.sw_id);
+
+  // Remove the association
+  configSoftware.splice(assocIndex, 1);
+
+  console.log(`[CONFIG-SW] Removed software "${sw?.sw_number || 'unknown'}" from config "${config.cfg_name}" (ID: ${configId}) by ${user.username}`);
+
+  res.json({
+    message: 'Software removed from configuration successfully',
+    removed: {
+      cfg_sw_id: removedAssoc.cfg_sw_id,
+      sw_id: removedAssoc.sw_id,
+      sw_number: sw?.sw_number,
+      sw_title: sw?.sw_title,
+    },
+  });
+});
 
 // GET /api/configurations - List all configurations for a program (requires authentication)
 app.get('/api/configurations', (req, res) => {
@@ -4073,7 +4562,7 @@ app.post('/api/configurations/:id/bom', (req, res) => {
   }
 
   // Validate request body
-  const { partno_c, part_name_c, qpa, sort_order } = req.body;
+  const { partno_c, part_name_c, qpa, sort_order, nha_partno_c } = req.body;
 
   if (!partno_c || typeof partno_c !== 'string' || partno_c.trim() === '') {
     return res.status(400).json({ error: 'Child part number is required' });
@@ -4089,6 +4578,19 @@ app.post('/api/configurations/:id/bom', (req, res) => {
   }
 
   const sortOrderValue = parseInt(sort_order, 10) || (bomItems.filter(b => b.cfg_set_id === configId).length + 1);
+
+  // Validate NHA parent if provided
+  let validatedNhaPartno: string | null = null;
+  if (nha_partno_c && typeof nha_partno_c === 'string' && nha_partno_c.trim() !== '') {
+    // Check if the NHA parent exists in this configuration's BOM
+    const nhaParent = bomItems.find(
+      item => item.cfg_set_id === configId && item.partno_c === nha_partno_c.trim()
+    );
+    if (!nhaParent) {
+      return res.status(400).json({ error: 'NHA parent part not found in this configuration\'s BOM' });
+    }
+    validatedNhaPartno = nha_partno_c.trim();
+  }
 
   // Check for duplicate part in this configuration
   const existingItem = bomItems.find(
@@ -4111,6 +4613,8 @@ app.post('/api/configurations/:id/bom', (req, res) => {
     sort_order: sortOrderValue,
     qpa: qpaValue,
     active: true,
+    nha_partno_c: validatedNhaPartno,
+    is_sra: validatedNhaPartno !== null,
   };
 
   // Add to bomItems array
@@ -4125,6 +4629,100 @@ app.post('/api/configurations/:id/bom', (req, res) => {
     message: 'Part added to BOM successfully',
     bom_item: newBomItem,
     bom_item_count: config.bom_item_count,
+  });
+});
+
+// PUT /api/configurations/:id/bom/:itemId - Update a BOM item (including NHA relationship)
+app.put('/api/configurations/:id/bom/:itemId', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin and depot_manager can update BOM items
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to modify BOM' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const itemId = parseInt(req.params.itemId, 10);
+
+  if (isNaN(configId) || isNaN(itemId)) {
+    return res.status(400).json({ error: 'Invalid configuration ID or item ID' });
+  }
+
+  // Find the configuration
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Find the BOM item
+  const bomItem = bomItems.find(item => item.list_id === itemId && item.cfg_set_id === configId);
+  if (!bomItem) {
+    return res.status(404).json({ error: 'BOM item not found' });
+  }
+
+  // Extract updatable fields from request body
+  const { nha_partno_c, qpa, sort_order } = req.body;
+
+  // Update NHA relationship if provided
+  if (nha_partno_c !== undefined) {
+    if (nha_partno_c === null || nha_partno_c === '') {
+      // Clear NHA relationship
+      bomItem.nha_partno_c = null;
+      bomItem.is_sra = false;
+    } else {
+      // Check if the NHA parent exists in this configuration's BOM
+      const nhaParent = bomItems.find(
+        item => item.cfg_set_id === configId && item.partno_c === nha_partno_c.trim() && item.list_id !== itemId
+      );
+      if (!nhaParent) {
+        return res.status(400).json({ error: 'NHA parent part not found in this configuration\'s BOM' });
+      }
+      // Prevent circular references - check if the proposed parent is already a child of this item
+      const isCircular = bomItems.some(
+        item => item.cfg_set_id === configId && item.nha_partno_c === bomItem.partno_c && item.partno_c === nha_partno_c.trim()
+      );
+      if (isCircular) {
+        return res.status(400).json({ error: 'Cannot set NHA parent: would create circular reference' });
+      }
+      bomItem.nha_partno_c = nha_partno_c.trim();
+      bomItem.is_sra = true;
+    }
+  }
+
+  // Update QPA if provided
+  if (qpa !== undefined) {
+    const qpaValue = parseInt(qpa, 10);
+    if (isNaN(qpaValue) || qpaValue < 1) {
+      return res.status(400).json({ error: 'Quantity per assembly must be at least 1' });
+    }
+    bomItem.qpa = qpaValue;
+  }
+
+  // Update sort order if provided
+  if (sort_order !== undefined) {
+    const sortOrderValue = parseInt(sort_order, 10);
+    if (!isNaN(sortOrderValue) && sortOrderValue >= 1) {
+      bomItem.sort_order = sortOrderValue;
+    }
+  }
+
+  console.log(`[BOM] Updated item ${itemId} in config "${config.cfg_name}" (ID: ${configId}) by ${user.username}`);
+
+  res.json({
+    message: 'BOM item updated successfully',
+    bom_item: bomItem,
   });
 });
 
