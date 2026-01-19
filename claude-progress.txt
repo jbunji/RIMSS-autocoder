@@ -1,5 +1,61 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #94)
+
+### Completed This Session:
+- Feature #94: Supervisor review flag on repairs - VERIFIED AND PASSING
+
+**Description:** Repairs can be flagged for supervisor review
+
+**Pre-existing Implementation Found:**
+The feature was already fully implemented in the codebase:
+
+**Database Schema (backend/prisma/schema.prisma):**
+- super_review Boolean field on Repair model (default false)
+
+**Backend (backend/src/index.ts):**
+- super_review and super_review_by fields in Repair interface
+- Handled in POST /api/repairs (create repair)
+- Handled in PUT /api/repairs/:id (update repair)
+- Tracks who flagged for supervisor review (super_review_by)
+
+**Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):**
+- Supervisor Review toggle in Add Repair modal
+- Supervisor Review toggle in Edit Repair modal
+- Purple "SUPER REVIEW" badge on repair cards when flagged
+- Purple border/background styling for flagged repairs
+- Tooltip shows who flagged the repair
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Navigate to repair - MX-2024-001, Repair #2
+3. ✅ Toggle supervisor review flag - Clicked "Edit" then toggled "Supervisor Review Required" ON
+4. ✅ Save changes - Clicked "Save Changes" button
+5. ✅ Log in as supervisor - Logged out, logged in as Jane Depot (depot_mgr/depot123)
+6. ✅ Verify repair flagged in list - Purple "SUPER REVIEW" badge visible on Repair #2
+7. ✅ Complete review - Clicked Edit, toggled Supervisor Review OFF, saved
+
+**Additional Verifications:**
+- Purple SUPER REVIEW badge displays correctly with magnifying glass icon
+- Tooltip shows "Supervisor review flagged by field_tech"
+- Purple border/background on repair cards when flagged
+- Badge shows who flagged the repair (super_review_by field)
+- Toggle cleared successfully after supervisor review
+- No console errors detected
+
+**Screenshots:**
+- feature94_edit_repair_modal_before.png - Edit modal before toggle
+- feature94_super_review_toggle_on.png - Toggle enabled
+- feature94_super_review_badge_visible.png - Badge visible on repair card
+- feature94_supervisor_sees_super_review.png - Supervisor view of flagged repair
+- feature94_supervisor_completes_review.png - Supervisor toggle OFF
+- feature94_review_completed.png - Badge removed after review
+
+**Current Status:**
+- Feature #94 marked as PASSING
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #89)
 
 ### Completed This Session:
@@ -7177,3 +7233,189 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 
 [Testing] Session complete - verified feature #40 (no regression found)
 
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #32 'Create new asset' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can create a new asset record
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager or admin - Logged in as admin/admin123 (John Admin)
+2. ✅ Navigate to Assets page - Successfully navigated to /assets
+3. ✅ Click 'Add Asset' button - Modal opened with 'Add New Asset' form
+4. ✅ Fill in part number - Entered 'PN-REGTEST-001'
+5. ✅ Fill in serial number - Entered 'CRIIS-REG-001'
+6. ✅ Select status - Selected 'FMC - Full Mission Capable'
+7. ✅ Select administrative location - Selected 'Depot Alpha'
+8. ✅ Select custodial location - Selected 'Maintenance Bay 1'
+9. ✅ Fill in other required fields - Entered asset name 'Regression Test Asset'
+10. ✅ Click save - Clicked 'Create Asset' button
+11. ✅ Verify asset appears in list - Asset visible on page 2 with all correct details
+12. ✅ Verify success message - Message: 'Asset "CRIIS-REG-001" created successfully!'
+
+**Additional Verifications:**
+- ✅ Asset count updated from 10 to 11 total assets
+- ✅ Pagination updated to show 'Showing 11 to 11 of 11 results' on page 2
+- ✅ All entered data correctly displayed in asset table
+- ✅ View and Delete action buttons available for new asset
+- ✅ Modal closed automatically after successful creation
+
+**Screenshots:**
+- feature32_add_asset_form_filled.png - Add Asset form with all fields filled
+- feature32_form_filled_final.png - Final form state before submission
+- feature32_success_message.png - Success message and updated asset count
+- feature32_asset_created_verified.png - New asset visible on page 2
+
+**Console errors:** Minor vite HMR connection issues (not related to feature functionality)
+
+[Testing] Session complete - verified feature #32 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #39 'Asset column sorting works' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Assets table columns can be sorted
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123 (John Admin)
+2. ✅ Navigate to Assets page with multiple assets - /assets with 11 total assets
+3. ✅ Click serial number column header - Sorted data
+4. ✅ Verify ascending sort applied - CRIIS-001, CRIIS-002, CRIIS-003... with up arrow indicator
+5. ✅ Click again - Changed sort direction
+6. ✅ Verify descending sort applied - CRIIS-REG-001, CRIIS-010, CRIIS-009... with down arrow indicator
+7. ✅ Sort by status column - Clicked Status header
+8. ✅ Verify sort works - Data sorted: CNDM → FMC → NMCM → NMCS → PMC
+
+**Additional Verifications:**
+- ✅ Sort indicators (up/down arrows) display correctly
+- ✅ All column headers are clickable for sorting
+- ✅ UI remains responsive during sort operations
+
+**Screenshots:**
+- .playwright-mcp/feature39_assets_initial.png - Initial assets page
+- .playwright-mcp/feature39_serial_descending.png - Serial number descending sort
+- .playwright-mcp/feature39_serial_ascending.png - Serial number ascending sort
+- .playwright-mcp/feature39_status_sorted.png - Status column sorted
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #39 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #16 'User profile displays correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can view their own profile information
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123 (John Admin)
+2. ✅ Navigate to profile page (user menu) - Clicked John Admin → Your Profile → /profile
+3. ✅ Verify username displays - Username: 'admin' shown in profile details
+4. ✅ Verify email displays - Email: 'admin@example.mil' shown
+5. ✅ Verify name displays - Full Name: 'John Admin' shown (also in header with avatar 'JA')
+6. ✅ Verify role displays - Role: 'Administrator' badge displayed
+7. ✅ Verify assigned programs display - CRIIS (default), ACTS, ARDS, 236 all displayed
+
+**Additional Verifications:**
+- ✅ User avatar with initials 'JA' displays in header
+- ✅ @admin handle displayed under name
+- ✅ User ID #1 displayed
+- ✅ Program Details section shows all 4 programs with full descriptions
+- ✅ Edit Profile button available
+- ✅ Change Password section available
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature16_profile_page.png - Profile page viewport
+- .playwright-mcp/feature16_profile_full.png - Full page screenshot
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #16 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #25 'Dashboard shows recent activity feed' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Dashboard displays recent system activity
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123 (John Admin)
+2. ✅ Navigate to dashboard - Successfully navigated to /dashboard
+3. ✅ Verify recent activity feed displays - 'Recent Activity' section visible with '10 recent activities' count
+4. ✅ Verify activities show timestamp - Each activity shows relative timestamps (5m ago, 12m ago, 25m ago, 45m ago, 1h ago)
+5. ✅ Verify activities show user - Each activity shows user (Bob Field, Jane Depot, John Admin)
+6. ✅ Verify activities show action description - Clear descriptions like 'Created maintenance job MX-2024-011 for Sensor Unit A'
+
+**Key Validations:**
+- ✅ Recent Activity header displays count (10 recent activities)
+- ✅ Activity icons differentiate action types (+ Created, ~ Updated, ↔ Status, ✓ Completed)
+- ✅ Legend at bottom explains activity type icons
+- ✅ Activities are listed in chronological order (most recent first)
+- ✅ Activity descriptions are detailed and informative
+- ✅ User names are prominently displayed
+- ✅ Relative timestamps are user-friendly
+
+**Screenshots:**
+- .playwright-mcp/feature25_recent_activity.png - Dashboard header and widgets
+- .playwright-mcp/feature25_recent_activity_full.png - Recent Activity feed with all entries visible
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #25 (no regression found)
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #6 'User can log in with valid credentials' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can authenticate with valid username and password
+
+**Verification Steps Completed:**
+1. ✅ Navigate to login page - Successfully navigated to /login
+2. ✅ Enter valid username - Entered 'admin'
+3. ✅ Enter valid password - Entered 'admin123'
+4. ✅ Click login button - Clicked 'Sign In' button
+5. ✅ Verify redirect to dashboard - Redirected to /dashboard
+6. ✅ Verify user session is established - Shows 'Welcome, John Admin' with role ADMIN
+7. ✅ Verify JWT token is stored - Token stored in rimss-auth-storage (eyJ... format)
+
+**Key Validations:**
+- ✅ POST /api/auth/login returned 200 OK
+- ✅ GET /api/auth/me returned 200 OK (session validation)
+- ✅ All dashboard API calls authenticated successfully
+- ✅ TokenRefreshManager scheduled refresh in 1500s
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature6_login_page.png - Login page before credentials
+- .playwright-mcp/feature6_dashboard_after_login.png - Dashboard after successful login
+
+**Console errors:** None detected (only React Router future flag warnings)
+
+[Testing] Session complete - verified feature #6 (no regression found)
