@@ -954,3 +954,206 @@ displays correctly regardless of authentication state.
 - Frontend server running on port 5174
 - Backend server running on port 3001
 - Profile page accessible via user menu dropdown "Your Profile"
+
+---
+
+## Testing Session: 2026-01-19 12:12
+
+[Testing] Feature #16 'User profile displays correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Log in as any user - Logged in as field_tech (Bob Field)
+2. ✅ Navigate to profile page (user menu) - Clicked Bob Field dropdown → Your Profile
+3. ✅ Verify username displays - 'field_tech' shown
+4. ✅ Verify email displays - 'field@example.mil' shown
+5. ✅ Verify name displays - 'Bob Field' shown in header and Full Name field
+6. ✅ Verify role displays - 'Depot Manager' shown with styled badge
+7. ✅ Verify assigned programs display - 'CRIIS (default)' shown
+
+**Additional Details Verified:**
+- User avatar with initials 'BF'
+- Username handle '@field_tech'
+- User ID '#3'
+- Program Details section with full program name
+
+**No console errors detected.**
+
+**Screenshot:** .playwright-mcp/feature16_profile_verified.png
+
+[Testing] Session complete - verified feature #16 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 12:13
+
+[Testing] Feature #1 'Application loads without errors' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Navigate to the application URL - http://localhost:5173 loads and redirects to /login
+2. ✅ Verify no console errors appear - No errors (only React DevTools info, React Router warnings)
+3. ✅ Verify login page renders with username and password fields - Form displays correctly
+4. ✅ Verify CUI banner displays in header - 'CUI - Controlled Unclassified Information' shown in cream banner
+5. ✅ Verify CUI marking displays in footer - 'CUI - Controlled Unclassified Information' in footer
+
+**Screenshot:** .playwright-mcp/.playwright-mcp/feature1_regression_test.png
+
+[Testing] Session complete - verified feature #1 (no regression found)
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #15)
+
+### Completed This Session:
+- Feature #15: Admin can assign programs to users - VERIFIED AND PASSING
+
+**Implementation:**
+- Updated backend PUT /api/users/:id to accept default_program_id parameter
+- Backend now properly sets is_default flag based on explicit default_program_id
+- Updated frontend UsersPage.tsx edit modal with "Set as Default" radio buttons
+- Added visual indicator (★) for default program in user list table
+- Default program highlighted with blue styling
+
+**Testing Steps Verified:**
+1. ✅ Log in as admin - admin/admin123
+2. ✅ Navigate to Admin > Users - /admin/users
+3. ✅ Edit existing user - Clicked edit on Jane Depot (depot_mgr)
+4. ✅ Select program assignments (CRIIS, ACTS, ARDS, 236) - Selected CRIIS, ACTS, ARDS
+5. ✅ Set default program - Changed default from CRIIS to ACTS
+6. ✅ Save changes - Clicked "Save Changes"
+7. ✅ Verify program assignments persisted - Refreshed page, ACTS ★ still shown as default
+
+**Screenshots:**
+- .playwright-mcp/feature15_edit_user_programs_default.png - Edit modal showing default program selection
+- .playwright-mcp/feature15_program_assignment_success.png - Success after save
+- .playwright-mcp/feature15_default_program_persisted.png - Verified persistence after refresh
+
+**Technical Details:**
+- Frontend: Radio buttons appear for selected programs to set default
+- Backend: Uses effectiveDefaultId to determine which program gets is_default: true
+- UI: Default program shown with star (★) and blue highlight in user table
+- No console errors detected
+
+### Current Status:
+- Features Passing: 14+ (including Feature #15)
+- Total Features: 372
+- Completion: ~3.8%
+
+### What Was Modified:
+- backend/src/index.ts - Added default_program_id handling in PUT /api/users/:id
+- frontend/src/pages/admin/UsersPage.tsx - Added default program UI (committed by parallel agent)
+
+### Notes:
+- Frontend changes were committed by parallel agent session
+- Feature fully verified through browser automation
+- Program assignment with explicit default selection working correctly
+
+
+---
+
+## Testing Session: 2026-01-19 12:15
+
+[Testing] Feature #12 'Admin can edit existing user' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Log in as admin - Logged in as admin/admin123
+2. ✅ Navigate to Admin > Users - Clicked Users link in sidebar
+3. ✅ Click edit on existing user - Clicked edit on Jane Depot (depot_mgr)
+4. ✅ Modify user details - Changed Last Name from 'Depot' to 'Manager', added ACTS program
+5. ✅ Save changes - Clicked 'Save Changes' button
+6. ✅ Verify changes persist - Refreshed page, changes still displayed (Jane Manager, CRIIS ★ ACTS)
+7. ✅ Verify success message displays - 'User "depot_mgr" updated successfully!' shown
+
+**Additional Testing:**
+- Reverted test data back to original (Jane Depot, CRIIS only)
+- No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature12_edit_user_success.png - Edit success with message
+- .playwright-mcp/feature12_changes_persisted.png - Changes verified after refresh
+
+[Testing] Session complete - verified feature #12 (no regression found)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #17)
+
+### Completed This Session:
+- Feature #17: User can update own profile - VERIFIED AND PASSING
+
+**Implementation:**
+- Added PUT /api/profile endpoint to backend
+  - Authenticates user via JWT token
+  - Allows updating email, first_name, last_name (not username/role/programs)
+  - Validates email format and uniqueness
+  - Returns updated user object
+- Enhanced ProfilePage.tsx with edit functionality
+  - Added "Edit Profile" button
+  - Edit mode shows form with Email, First Name, Last Name fields
+  - Cancel and Save buttons with loading state
+  - Success/error message display
+  - Form pre-populates with current user data
+- User data updates in authStore on save
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as field_tech/field123
+2. ✅ Navigate to profile page - User menu > Your Profile
+3. ✅ Click edit - Clicked "Edit Profile" button, form displayed
+4. ✅ Modify email and name - Changed to bobfield.updated@test.mil, Bobby, FieldUpdated
+5. ✅ Save changes - Clicked "Save Changes", success message shown
+6. ✅ Verify changes persist after refresh - Navigated away and back, data persisted
+
+**Screenshots:**
+- .playwright-mcp/feature17_profile_updated_success.png - Profile after successful update
+- .playwright-mcp/feature17_profile_changes_persisted.png - Profile after page refresh
+
+**No console errors detected.**
+
+**Commit:** 971efd3 - Implement Feature #17: User can update own profile
+
+### Current Status:
+- Feature #17 marked as PASSING
+- Features Passing: 17/372 (4.6%)
+
+### What Was Built:
+- backend/src/index.ts - Added PUT /api/profile endpoint
+- frontend/src/pages/ProfilePage.tsx - Added edit mode with form
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Profile edit only allows changing email, first name, last name
+- Username, role, and program assignments cannot be self-modified (admin-only)
+
+
+---
+
+## Testing Session: 2026-01-19 12:17
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps:**
+1. ✅ Clear all session data and cookies - N/A (fresh browser session)
+2. ✅ Navigate to homepage URL - http://localhost:5173
+3. ✅ Verify redirect to login page - Redirected to /login automatically
+4. ✅ Verify login form is displayed - Sign In form with Username/Password fields shown
+
+**Additional Observations:**
+- CUI banner displayed correctly at top and bottom
+- RIMSS title and description displayed
+- 'Authorized users only' warning displayed
+- No console errors detected
+
+**Screenshot:** .playwright-mcp/feature3_login_redirect_verified.png
+
+[Testing] Session complete - verified feature #3 (no regression found)
+
