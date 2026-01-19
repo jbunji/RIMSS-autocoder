@@ -7,6 +7,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationCircleIcon,
+  ExclamationTriangleIcon,
   ClockIcon,
   CheckCircleIcon,
   PlusIcon,
@@ -31,6 +32,7 @@ interface MaintenanceEvent {
   status: 'open' | 'closed'
   pgm_id: number
   location: string
+  pqdr?: boolean // Product Quality Deficiency Report flag
 }
 
 interface Pagination {
@@ -46,6 +48,7 @@ interface Summary {
   critical: number
   urgent: number
   routine: number
+  pqdr: number
   total: number
 }
 
@@ -79,6 +82,28 @@ interface AssetsResponse {
   }
 }
 
+// Sortie interface
+interface Sortie {
+  sortie_id: number
+  pgm_id: number
+  asset_id: number
+  mission_id: string
+  serno: string
+  ac_tailno: string | null
+  sortie_date: string
+  sortie_effect: string | null
+  current_unit: string | null
+  assigned_unit: string | null
+  range: string | null
+  reason: string | null
+  remarks: string | null
+}
+
+interface SortiesResponse {
+  sorties: Sortie[]
+  total: number
+}
+
 // Form data for new event
 interface NewEventFormData {
   asset_id: string
@@ -88,6 +113,7 @@ interface NewEventFormData {
   start_job: string
   etic: string
   location: string
+  sortie_id: string
 }
 
 // Priority badge colors
@@ -122,7 +148,7 @@ export default function MaintenancePage() {
   // State
   const [events, setEvents] = useState<MaintenanceEvent[]>([])
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, total_pages: 1 })
-  const [summary, setSummary] = useState<Summary>({ open: 0, closed: 0, critical: 0, urgent: 0, routine: 0, total: 0 })
+  const [summary, setSummary] = useState<Summary>({ open: 0, closed: 0, critical: 0, urgent: 0, routine: 0, pqdr: 0, total: 0 })
   const [program, setProgram] = useState<ProgramInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -131,12 +157,15 @@ export default function MaintenancePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('') // '' = all, or specific type
+  const [pqdrFilter, setPqdrFilter] = useState(false) // false = show all, true = only PQDR flagged
   const [activeTab, setActiveTab] = useState(0) // 0 = Backlog (open), 1 = History (closed)
 
   // New Event Modal State
   const [isNewEventModalOpen, setIsNewEventModalOpen] = useState(false)
   const [assets, setAssets] = useState<Asset[]>([])
   const [assetsLoading, setAssetsLoading] = useState(false)
+  const [sorties, setSorties] = useState<Sortie[]>([])
+  const [sortiesLoading, setSortiesLoading] = useState(false)
   const [newEventLoading, setNewEventLoading] = useState(false)
   const [newEventError, setNewEventError] = useState<string | null>(null)
   const [newEventSuccess, setNewEventSuccess] = useState<string | null>(null)
@@ -148,6 +177,7 @@ export default function MaintenancePage() {
     start_job: new Date().toISOString().split('T')[0],
     etic: '',
     location: '',
+    sortie_id: '',
   })
 
   // Delete Event Modal State
@@ -199,6 +229,10 @@ export default function MaintenancePage() {
         params.append('event_type', eventTypeFilter)
       }
 
+      if (pqdrFilter) {
+        params.append('pqdr', 'true')
+      }
+
       const response = await fetch(`http://localhost:3001/api/events?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -219,13 +253,13 @@ export default function MaintenancePage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, debouncedSearch, eventTypeFilter])
+  }, [token, currentProgramId, debouncedSearch, eventTypeFilter, pqdrFilter])
 
   // Fetch events when tab changes, search changes, or event type filter changes
   useEffect(() => {
     const status = activeTab === 0 ? 'open' : 'closed'
     fetchEvents(1, status)
-  }, [fetchEvents, activeTab, debouncedSearch, eventTypeFilter])
+  }, [fetchEvents, activeTab, debouncedSearch, eventTypeFilter, pqdrFilter])
 
   // Refetch when program changes
   useEffect(() => {
@@ -277,6 +311,37 @@ export default function MaintenancePage() {
     }
   }, [token, currentProgramId])
 
+  // Fetch sorties for the dropdown
+  const fetchSorties = useCallback(async () => {
+    if (!token) return
+
+    setSortiesLoading(true)
+    try {
+      const params = new URLSearchParams()
+
+      if (currentProgramId) {
+        params.append('program_id', currentProgramId.toString())
+      }
+
+      const response = await fetch(`http://localhost:3001/api/sorties?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch sorties')
+      }
+
+      const data: SortiesResponse = await response.json()
+      setSorties(data.sorties)
+    } catch (err) {
+      console.error('Error fetching sorties:', err)
+    } finally {
+      setSortiesLoading(false)
+    }
+  }, [token, currentProgramId])
+
   // Open new event modal
   const openNewEventModal = () => {
     setNewEventForm({
@@ -287,10 +352,12 @@ export default function MaintenancePage() {
       start_job: new Date().toISOString().split('T')[0],
       etic: '',
       location: '',
+      sortie_id: '',
     })
     setNewEventError(null)
     setNewEventSuccess(null)
     fetchAssets()
+    fetchSorties()
     setIsNewEventModalOpen(true)
   }
 
@@ -353,6 +420,7 @@ export default function MaintenancePage() {
           start_job: newEventForm.start_job,
           etic: newEventForm.etic || null,
           location: newEventForm.location || null,
+          sortie_id: newEventForm.sortie_id || null,
         }),
       })
 
@@ -560,6 +628,25 @@ export default function MaintenancePage() {
             </svg>
           </div>
         </div>
+
+        {/* PQDR Filter */}
+        <label className={classNames(
+          'flex items-center px-4 py-2 rounded-lg border cursor-pointer transition-colors',
+          pqdrFilter
+            ? 'bg-red-50 border-red-300 text-red-700'
+            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+        )}>
+          <input
+            type="checkbox"
+            checked={pqdrFilter}
+            onChange={(e) => setPqdrFilter(e.target.checked)}
+            className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+          />
+          <ExclamationTriangleIcon className="h-5 w-5 ml-2 mr-1 text-red-500" />
+          <span className="text-sm font-medium whitespace-nowrap">
+            PQDR Only {summary.pqdr > 0 && <span className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{summary.pqdr}</span>}
+          </span>
+        </label>
       </div>
 
       {/* Tabs */}
@@ -762,6 +849,33 @@ export default function MaintenancePage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Auto-filled from asset, or enter custom location"
                 />
+              </div>
+
+              {/* Sortie Selection */}
+              <div>
+                <label htmlFor="sortie_id" className="block text-sm font-medium text-gray-700 mb-1">
+                  Linked Sortie
+                </label>
+                <select
+                  id="sortie_id"
+                  value={newEventForm.sortie_id}
+                  onChange={(e) => handleFormChange('sortie_id', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={sortiesLoading}
+                >
+                  <option value="">No sortie linked (optional)</option>
+                  {sorties.map((sortie) => (
+                    <option key={sortie.sortie_id} value={sortie.sortie_id}>
+                      {sortie.mission_id} - {sortie.serno} ({new Date(sortie.sortie_date).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+                {sortiesLoading && (
+                  <p className="text-sm text-gray-500 mt-1">Loading sorties...</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Optionally link this event to a sortie that caused the discrepancy
+                </p>
               </div>
             </div>
 
@@ -998,13 +1112,23 @@ export default function MaintenancePage() {
                 return (
                   <tr
                     key={event.event_id}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    className={classNames(
+                      'cursor-pointer transition-colors',
+                      event.pqdr ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
+                    )}
                     onClick={() => handleEventClick(event.event_id)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-mono font-semibold text-primary-600">
-                        {event.job_no}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono font-semibold text-primary-600">
+                          {event.job_no}
+                        </span>
+                        {event.pqdr && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-500 text-white" title="Product Quality Deficiency Report">
+                            PQDR
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>

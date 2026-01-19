@@ -1330,6 +1330,166 @@ app.get('/api/pmi/due-soon', (req, res) => {
   });
 });
 
+// Mock Sortie data
+interface Sortie {
+  sortie_id: number;
+  pgm_id: number;
+  asset_id: number;
+  mission_id: string;
+  serno: string;
+  ac_tailno: string | null;
+  sortie_date: string;
+  sortie_effect: string | null;
+  current_unit: string | null;
+  assigned_unit: string | null;
+  range: string | null;
+  reason: string | null;
+  remarks: string | null;
+}
+
+// Persistent storage for sorties
+let sorties: Sortie[] = [];
+
+// Initialize sortie data
+function initializeSorties(): void {
+  const today = new Date();
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  sorties = [
+    // CRIIS program sorties
+    {
+      sortie_id: 1,
+      pgm_id: 1,
+      asset_id: 1,
+      mission_id: 'CRIIS-SORTIE-001',
+      serno: 'CRIIS-001',
+      ac_tailno: 'AC-001',
+      sortie_date: addDays(-5),
+      sortie_effect: 'Full Mission Capable',
+      current_unit: 'Unit Alpha',
+      assigned_unit: 'Unit Alpha',
+      range: 'Range A',
+      reason: 'Operational deployment',
+      remarks: 'Successful reconnaissance mission',
+    },
+    {
+      sortie_id: 2,
+      pgm_id: 1,
+      asset_id: 5,
+      mission_id: 'CRIIS-SORTIE-002',
+      serno: 'CRIIS-005',
+      ac_tailno: 'AC-005',
+      sortie_date: addDays(-3),
+      sortie_effect: 'Partial Mission Capable',
+      current_unit: 'Unit Bravo',
+      assigned_unit: 'Unit Alpha',
+      range: 'Range B',
+      reason: 'Training exercise',
+      remarks: 'Camera system showed intermittent issues',
+    },
+    {
+      sortie_id: 3,
+      pgm_id: 1,
+      asset_id: 6,
+      mission_id: 'CRIIS-SORTIE-003',
+      serno: 'CRIIS-006',
+      ac_tailno: 'AC-006',
+      sortie_date: addDays(-10),
+      sortie_effect: 'Non-Mission Capable',
+      current_unit: 'Unit Alpha',
+      assigned_unit: 'Unit Alpha',
+      range: 'Range A',
+      reason: 'Maintenance check flight',
+      remarks: 'Power supply failure detected during flight',
+    },
+    {
+      sortie_id: 4,
+      pgm_id: 1,
+      asset_id: 3,
+      mission_id: 'CRIIS-SORTIE-004',
+      serno: 'CRIIS-003',
+      ac_tailno: 'AC-003',
+      sortie_date: addDays(-2),
+      sortie_effect: 'Full Mission Capable',
+      current_unit: 'Unit Charlie',
+      assigned_unit: 'Unit Charlie',
+      range: 'Range C',
+      reason: 'Surveillance mission',
+      remarks: 'All systems operational',
+    },
+    // ACTS program sorties
+    {
+      sortie_id: 5,
+      pgm_id: 2,
+      asset_id: 13,
+      mission_id: 'ACTS-SORTIE-001',
+      serno: 'ACTS-001',
+      ac_tailno: 'AC-101',
+      sortie_date: addDays(-4),
+      sortie_effect: 'Partial Mission Capable',
+      current_unit: 'Unit Delta',
+      assigned_unit: 'Unit Delta',
+      range: 'Range D',
+      reason: 'Target acquisition training',
+      remarks: 'Laser designator alignment issue noted',
+    },
+    {
+      sortie_id: 6,
+      pgm_id: 2,
+      asset_id: 14,
+      mission_id: 'ACTS-SORTIE-002',
+      serno: 'ACTS-002',
+      ac_tailno: 'AC-102',
+      sortie_date: addDays(-6),
+      sortie_effect: 'Full Mission Capable',
+      current_unit: 'Unit Echo',
+      assigned_unit: 'Unit Echo',
+      range: 'Range E',
+      reason: 'Certification flight',
+      remarks: 'All targeting subsystems passed certification',
+    },
+    // ARDS program sorties
+    {
+      sortie_id: 7,
+      pgm_id: 3,
+      asset_id: 17,
+      mission_id: 'ARDS-SORTIE-001',
+      serno: 'ARDS-001',
+      ac_tailno: 'AC-201',
+      sortie_date: addDays(-8),
+      sortie_effect: 'Non-Mission Capable',
+      current_unit: 'Unit Foxtrot',
+      assigned_unit: 'Unit Foxtrot',
+      range: 'Range F',
+      reason: 'Data collection mission',
+      remarks: 'Overheating issue during high-altitude operation',
+    },
+    // 236 program sorties
+    {
+      sortie_id: 8,
+      pgm_id: 4,
+      asset_id: 23,
+      mission_id: '236-SORTIE-001',
+      serno: '236-001',
+      ac_tailno: 'AC-301',
+      sortie_date: addDays(-4),
+      sortie_effect: 'Full Mission Capable',
+      current_unit: 'Unit Golf',
+      assigned_unit: 'Unit Golf',
+      range: 'Range G',
+      reason: 'Classified operation',
+      remarks: 'Classified - refer to secure documentation',
+    },
+  ];
+}
+
+// Initialize sorties on startup
+initializeSorties();
+
 // Mock Maintenance Events data
 interface MaintenanceEvent {
   event_id: number;
@@ -1346,6 +1506,8 @@ interface MaintenanceEvent {
   pgm_id: number;
   location: string;
   etic?: string | null; // Estimated Time In Commission
+  sortie_id?: number | null; // Associated sortie (optional)
+  pqdr?: boolean; // Product Quality Deficiency Report flag
   created_by_id?: number;
   created_by_name?: string;
   created_at?: string;
@@ -1385,6 +1547,8 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Depot Alpha',
+      sortie_id: 2, // Linked to CRIIS-SORTIE-002 (Camera system showed intermittent issues)
+      pqdr: true, // Flagged for PQDR - suspected manufacturing defect
     },
     {
       event_id: 2,
@@ -1400,6 +1564,8 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Field Site Bravo',
+      sortie_id: 3, // Linked to CRIIS-SORTIE-003 (Power supply failure detected during flight)
+      pqdr: false,
     },
     {
       event_id: 3,
@@ -1415,6 +1581,8 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Depot Alpha',
+      sortie_id: null, // Not linked to a sortie (routine maintenance)
+      pqdr: false,
     },
     {
       event_id: 4,
@@ -1430,6 +1598,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Field Site Charlie',
+      pqdr: false,
     },
     // Open events - ACTS program
     {
@@ -1446,6 +1615,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 2,
       location: 'Depot Alpha',
+      pqdr: true, // Flagged for PQDR - recurring optical alignment issue
     },
     {
       event_id: 6,
@@ -1461,6 +1631,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 2,
       location: 'Field Site Delta',
+      pqdr: false,
     },
     // Open events - ARDS program
     {
@@ -1477,6 +1648,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 3,
       location: 'Depot Beta',
+      pqdr: false,
     },
     // Closed events (for history)
     {
@@ -1493,6 +1665,7 @@ function initializeMaintenanceEvents(): void {
       status: 'closed',
       pgm_id: 1,
       location: 'Depot Alpha',
+      pqdr: false,
     },
     {
       event_id: 9,
@@ -1508,6 +1681,7 @@ function initializeMaintenanceEvents(): void {
       status: 'closed',
       pgm_id: 2,
       location: 'Depot Alpha',
+      pqdr: false,
     },
     // Program 236 open event
     {
@@ -1524,6 +1698,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 4,
       location: 'Secure Facility',
+      pqdr: false,
     },
   ];
 }
@@ -1903,6 +2078,7 @@ app.get('/api/events', (req, res) => {
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
   const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
   const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
+  const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
   const searchQuery = req.query.search as string | undefined;
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = parseInt(req.query.limit as string, 10) || 10;
@@ -1927,6 +2103,11 @@ app.get('/api/events', (req, res) => {
   const validEventTypes = ['Standard', 'PMI', 'TCTO', 'BIT/PC'];
   if (eventTypeFilter && validEventTypes.includes(eventTypeFilter)) {
     filteredEvents = filteredEvents.filter(event => event.event_type === eventTypeFilter);
+  }
+
+  // Apply PQDR filter if specified
+  if (pqdrFilter === 'true') {
+    filteredEvents = filteredEvents.filter(event => event.pqdr === true);
   }
 
   // Apply search filter if specified
@@ -1962,6 +2143,7 @@ app.get('/api/events', (req, res) => {
     critical: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Critical').length,
     urgent: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Urgent').length,
     routine: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Routine').length,
+    pqdr: filteredEvents.filter(e => e.pqdr === true).length, // Count of PQDR flagged events
     total: filteredEvents.length,
   };
 
@@ -2036,6 +2218,7 @@ app.post('/api/events', (req, res) => {
     start_job,
     etic,
     location,
+    sortie_id,
   } = req.body;
 
   // Validate required fields
@@ -2071,6 +2254,20 @@ app.post('/api/events', (req, res) => {
   const newEventId = maintenanceEventNextId++;
   const newJobNo = generateJobNumber(eventLocation);
 
+  // Validate sortie_id if provided
+  let validSortieId: number | null = null;
+  if (sortie_id) {
+    const sortie = sorties.find(s => s.sortie_id === parseInt(sortie_id, 10));
+    if (!sortie) {
+      return res.status(400).json({ error: 'Selected sortie not found' });
+    }
+    // Verify sortie belongs to same program as asset
+    if (sortie.pgm_id !== asset.pgm_id) {
+      return res.status(400).json({ error: 'Sortie must belong to the same program as the asset' });
+    }
+    validSortieId = sortie.sortie_id;
+  }
+
   // Create the new maintenance event
   const newEvent: MaintenanceEvent = {
     event_id: newEventId,
@@ -2087,6 +2284,7 @@ app.post('/api/events', (req, res) => {
     pgm_id: asset.pgm_id,
     location: eventLocation,
     etic: etic || null,
+    sortie_id: validSortieId,
     created_by_id: user.user_id,
     created_by_name: `${user.first_name} ${user.last_name}`,
     created_at: new Date().toISOString(),
@@ -2144,6 +2342,8 @@ app.put('/api/events/:id', (req, res) => {
     location,
     status,
     stop_job,
+    sortie_id,
+    pqdr,
   } = req.body;
 
   // Update allowed fields
@@ -2167,6 +2367,23 @@ app.put('/api/events/:id', (req, res) => {
     maintenanceEvents[eventIndex].location = location;
   }
 
+  // Handle sortie_id update
+  if (sortie_id !== undefined) {
+    if (sortie_id === null || sortie_id === '') {
+      maintenanceEvents[eventIndex].sortie_id = null;
+    } else {
+      const sortie = sorties.find(s => s.sortie_id === parseInt(sortie_id, 10));
+      if (!sortie) {
+        return res.status(400).json({ error: 'Selected sortie not found' });
+      }
+      // Verify sortie belongs to same program as event
+      if (sortie.pgm_id !== event.pgm_id) {
+        return res.status(400).json({ error: 'Sortie must belong to the same program as the event' });
+      }
+      maintenanceEvents[eventIndex].sortie_id = sortie.sortie_id;
+    }
+  }
+
   // Handle status change to closed
   if (status !== undefined && ['open', 'closed'].includes(status)) {
     maintenanceEvents[eventIndex].status = status;
@@ -2181,6 +2398,12 @@ app.put('/api/events/:id', (req, res) => {
   // Allow explicit stop_job setting
   if (stop_job !== undefined) {
     maintenanceEvents[eventIndex].stop_job = stop_job || null;
+  }
+
+  // Handle PQDR flag update
+  if (pqdr !== undefined) {
+    maintenanceEvents[eventIndex].pqdr = Boolean(pqdr);
+    console.log(`[EVENTS] PQDR flag ${pqdr ? 'enabled' : 'disabled'} for event ${event.job_no}`);
   }
 
   console.log(`[EVENTS] Updated maintenance event ${event.job_no} by ${user.username}`);
@@ -5867,6 +6090,78 @@ app.delete('/api/configurations/:id/bom/:itemId', (req, res) => {
     message: 'Part removed from BOM successfully',
     removed_item: removedItem,
     bom_item_count: config.bom_item_count,
+  });
+});
+
+// ============================================
+// SORTIE ENDPOINTS
+// ============================================
+
+// List sorties (requires authentication)
+app.get('/api/sorties', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get query parameters
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Filter by user's accessible programs
+  let filteredSorties = sorties.filter(s => userProgramIds.includes(s.pgm_id));
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredSorties = filteredSorties.filter(s => s.pgm_id === programIdFilter);
+  }
+
+  // Sort by date descending (newest first)
+  filteredSorties.sort((a, b) => new Date(b.sortie_date).getTime() - new Date(a.sortie_date).getTime());
+
+  console.log(`[SORTIES] List request by ${user.username} - Total: ${filteredSorties.length}`);
+
+  res.json({
+    sorties: filteredSorties,
+    total: filteredSorties.length,
+  });
+});
+
+// Get single sortie by ID
+app.get('/api/sorties/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const sortieId = parseInt(req.params.id, 10);
+  const sortie = sorties.find(s => s.sortie_id === sortieId);
+
+  if (!sortie) {
+    return res.status(404).json({ error: 'Sortie not found' });
+  }
+
+  // Check if user has access to this sortie's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(sortie.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this sortie' });
+  }
+
+  // Get linked maintenance events for this sortie
+  const linkedEvents = maintenanceEvents.filter(e => e.sortie_id === sortieId);
+
+  res.json({
+    sortie,
+    linked_events: linkedEvents,
+    linked_events_count: linkedEvents.length,
   });
 });
 

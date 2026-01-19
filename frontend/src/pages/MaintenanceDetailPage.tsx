@@ -55,6 +55,25 @@ interface MaintenanceEvent {
   pgm_id: number
   location: string
   etic?: string | null
+  sortie_id?: number | null
+  pqdr?: boolean // Product Quality Deficiency Report flag
+}
+
+// Sortie interface
+interface Sortie {
+  sortie_id: number
+  pgm_id: number
+  asset_id: number
+  mission_id: string
+  serno: string
+  ac_tailno: string | null
+  sortie_date: string
+  sortie_effect: string | null
+  current_unit: string | null
+  assigned_unit: string | null
+  range: string | null
+  reason: string | null
+  remarks: string | null
 }
 
 interface EditFormData {
@@ -62,6 +81,8 @@ interface EditFormData {
   etic: string
   priority: 'Routine' | 'Urgent' | 'Critical'
   location: string
+  sortie_id: string
+  pqdr: boolean
 }
 
 // Priority colors
@@ -119,10 +140,17 @@ export default function MaintenanceDetailPage() {
     etic: '',
     priority: 'Routine',
     location: '',
+    sortie_id: '',
+    pqdr: false,
   })
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [editSuccess, setEditSuccess] = useState<string | null>(null)
+
+  // Sorties state for the edit modal
+  const [sorties, setSorties] = useState<Sortie[]>([])
+  const [sortiesLoading, setSortiesLoading] = useState(false)
+  const [linkedSortie, setLinkedSortie] = useState<Sortie | null>(null)
 
   // Repairs state
   const [repairs, setRepairs] = useState<Repair[]>([])
@@ -202,6 +230,60 @@ export default function MaintenanceDetailPage() {
     }
   }, [token, id])
 
+  // Fetch sorties for dropdown
+  const fetchSorties = useCallback(async () => {
+    if (!token || !event) return
+
+    setSortiesLoading(true)
+    try {
+      const params = new URLSearchParams()
+      params.append('program_id', event.pgm_id.toString())
+
+      const response = await fetch(`http://localhost:3001/api/sorties?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch sorties')
+      }
+
+      const data = await response.json()
+      setSorties(data.sorties)
+    } catch (err) {
+      console.error('Error fetching sorties:', err)
+    } finally {
+      setSortiesLoading(false)
+    }
+  }, [token, event])
+
+  // Fetch linked sortie details
+  const fetchLinkedSortie = useCallback(async () => {
+    if (!token || !event?.sortie_id) {
+      setLinkedSortie(null)
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/sorties/${event.sortie_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch linked sortie')
+      }
+
+      const data = await response.json()
+      setLinkedSortie(data.sortie)
+    } catch (err) {
+      console.error('Error fetching linked sortie:', err)
+      setLinkedSortie(null)
+    }
+  }, [token, event?.sortie_id])
+
   useEffect(() => {
     fetchEvent()
   }, [fetchEvent])
@@ -209,8 +291,9 @@ export default function MaintenanceDetailPage() {
   useEffect(() => {
     if (event) {
       fetchRepairs()
+      fetchLinkedSortie()
     }
-  }, [event, fetchRepairs])
+  }, [event, fetchRepairs, fetchLinkedSortie])
 
   // Close a repair
   const handleCloseRepair = async (repairId: number) => {
@@ -306,9 +389,12 @@ export default function MaintenanceDetailPage() {
       etic: event.etic || '',
       priority: event.priority,
       location: event.location,
+      sortie_id: event.sortie_id?.toString() || '',
+      pqdr: event.pqdr || false,
     })
     setEditError(null)
     setEditSuccess(null)
+    fetchSorties()
     setIsEditModalOpen(true)
   }
 
@@ -350,6 +436,8 @@ export default function MaintenanceDetailPage() {
           etic: editForm.etic || null,
           priority: editForm.priority,
           location: editForm.location,
+          sortie_id: editForm.sortie_id || null,
+          pqdr: editForm.pqdr,
         }),
       })
 
@@ -502,14 +590,112 @@ export default function MaintenanceDetailPage() {
                   </p>
                 </div>
               )}
+              {/* PQDR Flag Display */}
+              <div>
+                <label className="text-sm text-gray-500">PQDR Status</label>
+                <p className="mt-1">
+                  {event.pqdr ? (
+                    <span className="inline-flex items-center px-2.5 py-1 text-sm font-medium rounded-full bg-red-100 text-red-800 border border-red-200">
+                      <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+                      PQDR Flagged
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 text-sm">Not flagged</span>
+                  )}
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* PQDR Alert Banner */}
+          {event.pqdr && (
+            <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow">
+              <div className="flex items-center">
+                <ExclamationTriangleIcon className="h-6 w-6 text-red-500 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="text-sm font-semibold text-red-800">Product Quality Deficiency Report (PQDR)</h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    This maintenance event has been flagged for quality deficiency reporting. Review and document any manufacturing or design defects.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Discrepancy */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Discrepancy</h2>
             <p className="text-gray-700 whitespace-pre-wrap">{event.discrepancy}</p>
           </div>
+
+          {/* Linked Sortie */}
+          {linkedSortie && (
+            <div className="bg-white shadow rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Linked Sortie</h2>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-semibold text-blue-900">
+                        {linkedSortie.mission_id}
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                        linkedSortie.sortie_effect === 'Full Mission Capable'
+                          ? 'bg-green-100 text-green-800'
+                          : linkedSortie.sortie_effect === 'Partial Mission Capable'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {linkedSortie.sortie_effect || 'Unknown'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-500">Asset:</span>{' '}
+                        <span className="text-gray-900">{linkedSortie.serno}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Date:</span>{' '}
+                        <span className="text-gray-900">
+                          {new Date(linkedSortie.sortie_date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {linkedSortie.ac_tailno && (
+                        <div>
+                          <span className="text-gray-500">Tail No:</span>{' '}
+                          <span className="text-gray-900">{linkedSortie.ac_tailno}</span>
+                        </div>
+                      )}
+                      {linkedSortie.current_unit && (
+                        <div>
+                          <span className="text-gray-500">Unit:</span>{' '}
+                          <span className="text-gray-900">{linkedSortie.current_unit}</span>
+                        </div>
+                      )}
+                      {linkedSortie.range && (
+                        <div>
+                          <span className="text-gray-500">Range:</span>{' '}
+                          <span className="text-gray-900">{linkedSortie.range}</span>
+                        </div>
+                      )}
+                      {linkedSortie.reason && (
+                        <div className="col-span-2">
+                          <span className="text-gray-500">Reason:</span>{' '}
+                          <span className="text-gray-900">{linkedSortie.reason}</span>
+                        </div>
+                      )}
+                    </div>
+                    {linkedSortie.remarks && (
+                      <div className="mt-3 pt-3 border-t border-blue-200">
+                        <span className="text-sm text-gray-500">Remarks:</span>
+                        <p className="text-sm text-gray-700 mt-1">{linkedSortie.remarks}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Timeline */}
           <div className="bg-white shadow rounded-lg p-6">
@@ -828,6 +1014,52 @@ export default function MaintenanceDetailPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter location..."
                 />
+              </div>
+
+              {/* Linked Sortie */}
+              <div>
+                <label htmlFor="edit_sortie_id" className="block text-sm font-medium text-gray-700 mb-1">
+                  Linked Sortie
+                </label>
+                <select
+                  id="edit_sortie_id"
+                  value={editForm.sortie_id}
+                  onChange={(e) => handleFormChange('sortie_id', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={sortiesLoading}
+                >
+                  <option value="">No sortie linked (optional)</option>
+                  {sorties.map((sortie) => (
+                    <option key={sortie.sortie_id} value={sortie.sortie_id}>
+                      {sortie.mission_id} - {sortie.serno} ({new Date(sortie.sortie_date).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+                {sortiesLoading && (
+                  <p className="text-sm text-gray-500 mt-1">Loading sorties...</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Link this event to a sortie that caused the discrepancy
+                </p>
+              </div>
+
+              {/* PQDR Flag */}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="edit_pqdr"
+                    checked={editForm.pqdr}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, pqdr: e.target.checked }))}
+                    className="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-3">
+                    <span className="text-sm font-medium text-red-800">Flag for PQDR</span>
+                    <span className="block text-xs text-red-600 mt-0.5">
+                      Product Quality Deficiency Report - Mark this event for quality deficiency reporting
+                    </span>
+                  </span>
+                </label>
               </div>
             </div>
 
