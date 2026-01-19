@@ -44,6 +44,35 @@ interface PMIData {
   summary: PMISummary
 }
 
+// Maintenance Event interfaces
+interface MaintenanceEvent {
+  event_id: number
+  asset_id: number
+  asset_sn: string
+  asset_name: string
+  job_no: string
+  discrepancy: string
+  start_job: string
+  stop_job: string | null
+  event_type: 'Standard' | 'PMI' | 'TCTO' | 'BIT/PC'
+  priority: 'Routine' | 'Urgent' | 'Critical'
+  status: 'open' | 'closed'
+  pgm_id: number
+  location: string
+}
+
+interface MaintenanceSummary {
+  critical: number
+  urgent: number
+  routine: number
+  total: number
+}
+
+interface MaintenanceData {
+  events: MaintenanceEvent[]
+  summary: MaintenanceSummary
+}
+
 // Status code colors and styling
 const statusColors: Record<string, { bg: string; text: string; border: string }> = {
   FMC: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-500' },
@@ -85,15 +114,44 @@ function formatDueDate(daysUntilDue: number): string {
   return `Due in ${daysUntilDue} days`
 }
 
+// Priority colors for maintenance events
+function getPriorityColorClass(priority: MaintenanceEvent['priority']): { bg: string; text: string; border: string; dot: string } {
+  switch (priority) {
+    case 'Critical':
+      return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-red-600' }
+    case 'Urgent':
+      return { bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-400', dot: 'bg-orange-500' }
+    case 'Routine':
+    default:
+      return { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-400', dot: 'bg-blue-500' }
+  }
+}
+
+// Calculate days since job start
+function formatDaysSinceStart(startDate: string): string {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const start = new Date(startDate)
+  start.setHours(0, 0, 0, 0)
+  const diffTime = today.getTime() - start.getTime()
+  const days = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  if (days === 0) return 'Started today'
+  if (days === 1) return '1 day open'
+  return `${days} days open`
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate()
   const { user, currentProgramId, token } = useAuthStore()
   const [assetStatus, setAssetStatus] = useState<AssetStatusData | null>(null)
   const [pmiData, setPmiData] = useState<PMIData | null>(null)
+  const [maintenanceData, setMaintenanceData] = useState<MaintenanceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [pmiLoading, setPmiLoading] = useState(true)
+  const [maintenanceLoading, setMaintenanceLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pmiError, setPmiError] = useState<string | null>(null)
+  const [maintenanceError, setMaintenanceError] = useState<string | null>(null)
 
   // Fetch asset status
   useEffect(() => {
@@ -165,9 +223,49 @@ export default function DashboardPage() {
     fetchPMIData()
   }, [token, currentProgramId])
 
+  // Fetch maintenance jobs data
+  useEffect(() => {
+    const fetchMaintenanceData = async () => {
+      if (!token) return
+
+      setMaintenanceLoading(true)
+      setMaintenanceError(null)
+
+      try {
+        const url = currentProgramId
+          ? `http://localhost:3001/api/dashboard/open-maintenance-jobs?program_id=${currentProgramId}`
+          : 'http://localhost:3001/api/dashboard/open-maintenance-jobs'
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch maintenance data')
+        }
+
+        const data = await response.json()
+        setMaintenanceData(data)
+      } catch (err) {
+        setMaintenanceError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setMaintenanceLoading(false)
+      }
+    }
+
+    fetchMaintenanceData()
+  }, [token, currentProgramId])
+
   // Handle PMI item click
   const handlePMIClick = (pmiId: number) => {
     navigate(`/pmi/${pmiId}`)
+  }
+
+  // Handle maintenance event click
+  const handleMaintenanceClick = (eventId: number) => {
+    navigate(`/maintenance/${eventId}`)
   }
 
   return (
@@ -334,10 +432,94 @@ export default function DashboardPage() {
         </div>
 
         {/* Open Maintenance Jobs Widget */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-sm font-medium text-gray-500">Open Maintenance Jobs</h3>
-          <p className="mt-2 text-3xl font-semibold text-gray-900">--</p>
-          <p className="text-xs text-gray-400 mt-1">Coming soon</p>
+        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500">Open Maintenance Jobs</h3>
+            {maintenanceData && (
+              <div className="flex items-center space-x-3 text-xs">
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-red-600 mr-1"></span>
+                  <span className="text-gray-600">{maintenanceData.summary.critical}</span>
+                </span>
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 mr-1"></span>
+                  <span className="text-gray-600">{maintenanceData.summary.urgent}</span>
+                </span>
+                <span className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                  <span className="text-gray-600">{maintenanceData.summary.routine}</span>
+                </span>
+              </div>
+            )}
+          </div>
+
+          {maintenanceLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : maintenanceError ? (
+            <div className="text-red-600 py-4">{maintenanceError}</div>
+          ) : maintenanceData && maintenanceData.events.length > 0 ? (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {maintenanceData.events.map((event) => {
+                const colors = getPriorityColorClass(event.priority)
+                return (
+                  <button
+                    key={event.event_id}
+                    onClick={() => handleMaintenanceClick(event.event_id)}
+                    className={`w-full text-left ${colors.bg} ${colors.text} rounded-lg p-3 border-l-4 ${colors.border} hover:opacity-80 transition-opacity cursor-pointer`}
+                    aria-label={`View maintenance job ${event.job_no}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <span className={`w-2 h-2 rounded-full ${colors.dot} flex-shrink-0`}></span>
+                          <p className="text-sm font-medium truncate">{event.asset_name}</p>
+                        </div>
+                        <p className="text-xs mt-1 opacity-75 truncate">{event.discrepancy}</p>
+                        <p className="text-xs mt-1 font-mono opacity-60">{event.job_no}</p>
+                      </div>
+                      <div className="text-right ml-2 flex-shrink-0">
+                        <p className="text-xs font-semibold">{event.priority}</p>
+                        <p className="text-xs opacity-60 mt-1">{formatDaysSinceStart(event.start_job)}</p>
+                        <p className="text-xs opacity-50 mt-1">{event.event_type}</p>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No open maintenance jobs</p>
+              <p className="text-xs text-gray-300 mt-1">All jobs are closed</p>
+            </div>
+          )}
+
+          {/* Total count and legend */}
+          {maintenanceData && maintenanceData.events.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 rounded-full bg-red-600 mr-1"></span>
+                    Critical
+                  </span>
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 rounded-full bg-orange-500 mr-1"></span>
+                    Urgent
+                  </span>
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                    Routine
+                  </span>
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  Total: {maintenanceData.summary.total}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Parts Awaiting Action Widget */}

@@ -968,6 +968,267 @@ app.get('/api/pmi/due-soon', (req, res) => {
   });
 });
 
+// Mock Maintenance Events data
+interface MaintenanceEvent {
+  event_id: number;
+  asset_id: number;
+  asset_sn: string;
+  asset_name: string;
+  job_no: string;
+  discrepancy: string;
+  start_job: string;
+  stop_job: string | null;
+  event_type: 'Standard' | 'PMI' | 'TCTO' | 'BIT/PC';
+  priority: 'Routine' | 'Urgent' | 'Critical';
+  status: 'open' | 'closed';
+  pgm_id: number;
+  location: string;
+}
+
+// Generate mock maintenance events
+function generateMockMaintenanceEvents(): MaintenanceEvent[] {
+  const today = new Date();
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  return [
+    // Open events - CRIIS program
+    {
+      event_id: 1,
+      asset_id: 5,
+      asset_sn: 'CRIIS-005',
+      asset_name: 'Camera System X',
+      job_no: 'MX-2024-001',
+      discrepancy: 'Intermittent power failure during operation',
+      start_job: addDays(-5),
+      stop_job: null,
+      event_type: 'Standard',
+      priority: 'Critical',
+      status: 'open',
+      pgm_id: 1,
+      location: 'Depot Alpha',
+    },
+    {
+      event_id: 2,
+      asset_id: 6,
+      asset_sn: 'CRIIS-006',
+      asset_name: 'Radar Unit 01',
+      job_no: 'MX-2024-002',
+      discrepancy: 'Awaiting replacement parts - power supply module',
+      start_job: addDays(-10),
+      stop_job: null,
+      event_type: 'Standard',
+      priority: 'Urgent',
+      status: 'open',
+      pgm_id: 1,
+      location: 'Field Site Bravo',
+    },
+    {
+      event_id: 3,
+      asset_id: 3,
+      asset_sn: 'CRIIS-003',
+      asset_name: 'Sensor Unit B',
+      job_no: 'MX-2024-003',
+      discrepancy: 'Scheduled PMI - 90-day calibration',
+      start_job: addDays(-2),
+      stop_job: null,
+      event_type: 'PMI',
+      priority: 'Routine',
+      status: 'open',
+      pgm_id: 1,
+      location: 'Depot Alpha',
+    },
+    {
+      event_id: 4,
+      asset_id: 8,
+      asset_sn: 'CRIIS-008',
+      asset_name: 'Communication System',
+      job_no: 'MX-2024-004',
+      discrepancy: 'Software update required per TCTO 2024-15',
+      start_job: addDays(-1),
+      stop_job: null,
+      event_type: 'TCTO',
+      priority: 'Urgent',
+      status: 'open',
+      pgm_id: 1,
+      location: 'Field Site Charlie',
+    },
+    // Open events - ACTS program
+    {
+      event_id: 5,
+      asset_id: 13,
+      asset_sn: 'ACTS-003',
+      asset_name: 'Targeting System B',
+      job_no: 'MX-2024-005',
+      discrepancy: 'BIT failure code 0x4A2 - optical alignment issue',
+      start_job: addDays(-3),
+      stop_job: null,
+      event_type: 'BIT/PC',
+      priority: 'Critical',
+      status: 'open',
+      pgm_id: 2,
+      location: 'Depot Alpha',
+    },
+    {
+      event_id: 6,
+      asset_id: 15,
+      asset_sn: 'ACTS-005',
+      asset_name: 'Laser System',
+      job_no: 'MX-2024-006',
+      discrepancy: 'NMCS - awaiting laser diode replacement',
+      start_job: addDays(-7),
+      stop_job: null,
+      event_type: 'Standard',
+      priority: 'Urgent',
+      status: 'open',
+      pgm_id: 2,
+      location: 'Field Site Delta',
+    },
+    // Open events - ARDS program
+    {
+      event_id: 7,
+      asset_id: 20,
+      asset_sn: 'ARDS-004',
+      asset_name: 'Reconnaissance Camera',
+      job_no: 'MX-2024-007',
+      discrepancy: 'Lens cleaning and recalibration required',
+      start_job: addDays(-1),
+      stop_job: null,
+      event_type: 'PMI',
+      priority: 'Routine',
+      status: 'open',
+      pgm_id: 3,
+      location: 'Depot Beta',
+    },
+    // Closed events (for history)
+    {
+      event_id: 8,
+      asset_id: 1,
+      asset_sn: 'CRIIS-001',
+      asset_name: 'Sensor Unit A',
+      job_no: 'MX-2024-008',
+      discrepancy: '30-day inspection completed',
+      start_job: addDays(-15),
+      stop_job: addDays(-12),
+      event_type: 'PMI',
+      priority: 'Routine',
+      status: 'closed',
+      pgm_id: 1,
+      location: 'Depot Alpha',
+    },
+    {
+      event_id: 9,
+      asset_id: 11,
+      asset_sn: 'ACTS-001',
+      asset_name: 'Targeting System A',
+      job_no: 'MX-2024-009',
+      discrepancy: 'Annual calibration completed',
+      start_job: addDays(-20),
+      stop_job: addDays(-18),
+      event_type: 'PMI',
+      priority: 'Routine',
+      status: 'closed',
+      pgm_id: 2,
+      location: 'Depot Alpha',
+    },
+    // Program 236 open event
+    {
+      event_id: 10,
+      asset_id: 23,
+      asset_sn: '236-002',
+      asset_name: 'Special Unit 001',
+      job_no: 'MX-2024-010',
+      discrepancy: 'Awaiting parts - classified component',
+      start_job: addDays(-4),
+      stop_job: null,
+      event_type: 'Standard',
+      priority: 'Urgent',
+      status: 'open',
+      pgm_id: 4,
+      location: 'Secure Facility',
+    },
+  ];
+}
+
+// Dashboard: Get open maintenance jobs (requires authentication)
+app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (optional)
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Generate maintenance events
+  const allEvents = generateMockMaintenanceEvents();
+
+  // Filter by user's accessible programs and open status
+  let filteredEvents = allEvents.filter(
+    event => event.status === 'open' && userProgramIds.includes(event.pgm_id)
+  );
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredEvents = filteredEvents.filter(event => event.pgm_id === programIdFilter);
+  }
+
+  // Sort by priority (Critical first, then Urgent, then Routine)
+  const priorityOrder: Record<string, number> = { Critical: 0, Urgent: 1, Routine: 2 };
+  filteredEvents.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  // Calculate summary counts
+  const summary = {
+    critical: filteredEvents.filter(e => e.priority === 'Critical').length,
+    urgent: filteredEvents.filter(e => e.priority === 'Urgent').length,
+    routine: filteredEvents.filter(e => e.priority === 'Routine').length,
+    total: filteredEvents.length,
+  };
+
+  console.log(`[MAINTENANCE] Open jobs request by ${user.username} - Total: ${summary.total}, Critical: ${summary.critical}, Urgent: ${summary.urgent}, Routine: ${summary.routine}`);
+
+  res.json({
+    events: filteredEvents,
+    summary,
+  });
+});
+
+// Get single maintenance event by ID
+app.get('/api/events/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const eventId = parseInt(req.params.id, 10);
+  const allEvents = generateMockMaintenanceEvents();
+  const event = allEvents.find(e => e.event_id === eventId);
+
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  res.json({ event });
+});
+
 // Get single PMI by ID
 app.get('/api/pmi/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -993,6 +1254,325 @@ app.get('/api/pmi/:id', (req, res) => {
   }
 
   res.json({ pmi });
+});
+
+// Mock Parts Order data for testing
+interface PartsOrder {
+  order_id: number;
+  part_no: string;
+  part_name: string;
+  nsn: string;
+  qty_ordered: number;
+  qty_received: number;
+  unit_price: number;
+  order_date: string;
+  status: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled';
+  requestor_id: number;
+  requestor_name: string;
+  asset_sn: string | null;
+  asset_name: string | null;
+  job_no: string | null;
+  priority: 'routine' | 'urgent' | 'critical';
+  pgm_id: number;
+  notes: string;
+  shipping_tracking: string | null;
+  estimated_delivery: string | null;
+}
+
+// Generate mock parts order data
+function generateMockPartsOrders(): PartsOrder[] {
+  const today = new Date();
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  return [
+    // Pending orders (waiting for acknowledgment) - CRIIS
+    {
+      order_id: 1,
+      part_no: 'PN-PSU-001',
+      part_name: 'Power Supply Unit 24V',
+      nsn: '6130-01-555-1234',
+      qty_ordered: 2,
+      qty_received: 0,
+      unit_price: 1250.00,
+      order_date: addDays(-3),
+      status: 'pending',
+      requestor_id: 3,
+      requestor_name: 'Bob Field',
+      asset_sn: 'CRIIS-006',
+      asset_name: 'Radar Unit 01',
+      job_no: 'MX-2024-002',
+      priority: 'urgent',
+      pgm_id: 1,
+      notes: 'Required for NMCS asset - radar power supply failure',
+      shipping_tracking: null,
+      estimated_delivery: null,
+    },
+    {
+      order_id: 2,
+      part_no: 'PN-FLT-002',
+      part_name: 'Air Filter Assembly',
+      nsn: '2940-01-333-5678',
+      qty_ordered: 5,
+      qty_received: 0,
+      unit_price: 89.50,
+      order_date: addDays(-1),
+      status: 'pending',
+      requestor_id: 3,
+      requestor_name: 'Bob Field',
+      asset_sn: null,
+      asset_name: null,
+      job_no: null,
+      priority: 'routine',
+      pgm_id: 1,
+      notes: 'Stock replenishment',
+      shipping_tracking: null,
+      estimated_delivery: null,
+    },
+    // Acknowledged orders (being processed) - CRIIS
+    {
+      order_id: 3,
+      part_no: 'PN-DIODE-003',
+      part_name: 'Laser Diode Module',
+      nsn: '5960-01-444-9876',
+      qty_ordered: 1,
+      qty_received: 0,
+      unit_price: 4500.00,
+      order_date: addDays(-7),
+      status: 'acknowledged',
+      requestor_id: 2,
+      requestor_name: 'Jane Depot',
+      asset_sn: 'ACTS-005',
+      asset_name: 'Laser System',
+      job_no: 'MX-2024-006',
+      priority: 'critical',
+      pgm_id: 2,
+      notes: 'Critical NMCS item - laser diode replacement for targeting system',
+      shipping_tracking: null,
+      estimated_delivery: addDays(5),
+    },
+    {
+      order_id: 4,
+      part_no: 'PN-CAB-004',
+      part_name: 'Coaxial Cable Assembly',
+      nsn: '6145-01-222-4567',
+      qty_ordered: 10,
+      qty_received: 0,
+      unit_price: 45.00,
+      order_date: addDays(-5),
+      status: 'acknowledged',
+      requestor_id: 3,
+      requestor_name: 'Bob Field',
+      asset_sn: null,
+      asset_name: null,
+      job_no: null,
+      priority: 'routine',
+      pgm_id: 1,
+      notes: 'Stock replenishment for field operations',
+      shipping_tracking: null,
+      estimated_delivery: addDays(10),
+    },
+    // Shipped orders - CRIIS
+    {
+      order_id: 5,
+      part_no: 'PN-LENS-005',
+      part_name: 'Optical Lens Kit',
+      nsn: '6650-01-111-2345',
+      qty_ordered: 1,
+      qty_received: 0,
+      unit_price: 2800.00,
+      order_date: addDays(-10),
+      status: 'shipped',
+      requestor_id: 2,
+      requestor_name: 'Jane Depot',
+      asset_sn: 'ARDS-004',
+      asset_name: 'Reconnaissance Camera',
+      job_no: 'MX-2024-007',
+      priority: 'urgent',
+      pgm_id: 3,
+      notes: 'Replacement optics for camera recalibration',
+      shipping_tracking: 'FDX-2024-123456789',
+      estimated_delivery: addDays(2),
+    },
+    // More pending orders - ACTS
+    {
+      order_id: 6,
+      part_no: 'PN-GYRO-006',
+      part_name: 'Gyroscope Stabilizer',
+      nsn: '6615-01-777-8901',
+      qty_ordered: 1,
+      qty_received: 0,
+      unit_price: 3200.00,
+      order_date: addDays(-2),
+      status: 'pending',
+      requestor_id: 3,
+      requestor_name: 'Bob Field',
+      asset_sn: 'ACTS-003',
+      asset_name: 'Targeting System B',
+      job_no: 'MX-2024-005',
+      priority: 'critical',
+      pgm_id: 2,
+      notes: 'Required for optical alignment issue fix',
+      shipping_tracking: null,
+      estimated_delivery: null,
+    },
+    // Acknowledged - Program 236
+    {
+      order_id: 7,
+      part_no: 'PN-CLASS-007',
+      part_name: 'Classified Component Alpha',
+      nsn: '5999-01-999-0001',
+      qty_ordered: 1,
+      qty_received: 0,
+      unit_price: 15000.00,
+      order_date: addDays(-8),
+      status: 'acknowledged',
+      requestor_id: 2,
+      requestor_name: 'Jane Depot',
+      asset_sn: '236-002',
+      asset_name: 'Special Unit 001',
+      job_no: 'MX-2024-010',
+      priority: 'urgent',
+      pgm_id: 4,
+      notes: 'Classified component - special handling required',
+      shipping_tracking: null,
+      estimated_delivery: addDays(14),
+    },
+    // Received orders (for history)
+    {
+      order_id: 8,
+      part_no: 'PN-SEAL-008',
+      part_name: 'O-Ring Seal Kit',
+      nsn: '5330-01-666-3456',
+      qty_ordered: 20,
+      qty_received: 20,
+      unit_price: 12.50,
+      order_date: addDays(-15),
+      status: 'received',
+      requestor_id: 3,
+      requestor_name: 'Bob Field',
+      asset_sn: null,
+      asset_name: null,
+      job_no: null,
+      priority: 'routine',
+      pgm_id: 1,
+      notes: 'Stock replenishment - received complete',
+      shipping_tracking: 'UPS-2024-987654321',
+      estimated_delivery: addDays(-5),
+    },
+    // More pending items for CRIIS
+    {
+      order_id: 9,
+      part_no: 'PN-BATT-009',
+      part_name: 'Lithium Battery Pack',
+      nsn: '6140-01-888-7654',
+      qty_ordered: 4,
+      qty_received: 0,
+      unit_price: 650.00,
+      order_date: addDays(-1),
+      status: 'pending',
+      requestor_id: 3,
+      requestor_name: 'Bob Field',
+      asset_sn: 'CRIIS-005',
+      asset_name: 'Camera System X',
+      job_no: 'MX-2024-001',
+      priority: 'urgent',
+      pgm_id: 1,
+      notes: 'Battery replacement for intermittent power issue',
+      shipping_tracking: null,
+      estimated_delivery: null,
+    },
+  ];
+}
+
+// Dashboard: Get parts awaiting action (requires authentication)
+app.get('/api/dashboard/parts-awaiting-action', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (optional)
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Generate parts orders
+  const allOrders = generateMockPartsOrders();
+
+  // Filter by user's accessible programs and only show pending/acknowledged items
+  let filteredOrders = allOrders.filter(
+    order => (order.status === 'pending' || order.status === 'acknowledged') && userProgramIds.includes(order.pgm_id)
+  );
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredOrders = filteredOrders.filter(order => order.pgm_id === programIdFilter);
+  }
+
+  // Sort by priority (critical first, then urgent, then routine)
+  const priorityOrder: Record<string, number> = { critical: 0, urgent: 1, routine: 2 };
+  filteredOrders.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+  // Calculate summary counts
+  const summary = {
+    pending: filteredOrders.filter(o => o.status === 'pending').length,
+    acknowledged: filteredOrders.filter(o => o.status === 'acknowledged').length,
+    critical: filteredOrders.filter(o => o.priority === 'critical').length,
+    urgent: filteredOrders.filter(o => o.priority === 'urgent').length,
+    routine: filteredOrders.filter(o => o.priority === 'routine').length,
+    total: filteredOrders.length,
+  };
+
+  console.log(`[PARTS] Awaiting action request by ${user.username} - Total: ${summary.total}, Pending: ${summary.pending}, Acknowledged: ${summary.acknowledged}`);
+
+  res.json({
+    orders: filteredOrders,
+    summary,
+  });
+});
+
+// Get single parts order by ID
+app.get('/api/parts-orders/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const orderId = parseInt(req.params.id, 10);
+  const allOrders = generateMockPartsOrders();
+  const order = allOrders.find(o => o.order_id === orderId);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Parts order not found' });
+  }
+
+  // Check if user has access to this order's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(order.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this parts order' });
+  }
+
+  // Add program info for display
+  const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
+
+  res.json({
+    order: {
+      ...order,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    }
+  });
 });
 
 // Start server
