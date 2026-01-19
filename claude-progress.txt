@@ -2592,3 +2592,107 @@ The quick navigation links were already implemented (by concurrent agent work in
 - Edit functionality respects role-based access control
 - Audit trail integrated with dashboard Recent Activity feed
 - All changes tracked with detailed descriptions
+
+
+---
+
+## Testing Session: 2026-01-19 12:50
+
+[Testing] Feature #4 'CUI banner displays correctly in header' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Navigate to any authenticated page - Logged in as admin/admin123, navigated to /dashboard
+2. ✅ Verify yellow CUI banner in header - CUI banner visible at top of page
+3. ✅ Verify banner text reads 'CUI' or 'Controlled Unclassified Information' - Shows 'CUI - Controlled Unclassified Information'
+4. ✅ Verify banner uses yellow background (#FEF3C7) - Confirmed via JS: rgb(254, 243, 199) = #FEF3C7
+5. ✅ Verify banner text is black - Confirmed via JS: rgb(0, 0, 0) = black
+
+**Banner Position Verified:**
+- Header banner: top of page (y=0), full width (1280px)
+- Footer banner: bottom of page with same styling
+
+**Screenshots:**
+- .playwright-mcp/feature4_regression_login_cui_banner.png - Login page with CUI banner
+- .playwright-mcp/feature4_regression_dashboard_cui_banner.png - Dashboard with CUI banner
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #4 (no regression found)
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #32)
+
+### Completed This Session:
+- Feature #32: Create new asset - VERIFIED AND PASSING
+
+**Implementation:**
+
+**Backend Changes (backend/src/index.ts):**
+- Added POST /api/assets endpoint for creating new assets
+- Added GET /api/reference/locations endpoint for fetching location data
+- Added GET /api/reference/asset-statuses endpoint for fetching status codes
+- Fixed critical bug: newly created assets were pushed to `mockAssets` array but GET endpoint was using `generateDetailedAssets()` which returned hardcoded data
+- Solution: Now push new assets to `detailedAssets` array which GET endpoint uses
+- Added proper validation for required fields, status codes, and locations
+- Added duplicate serial number check within same program
+
+**Frontend Changes (frontend/src/pages/AssetsPage.tsx):**
+- Added "Add Asset" button (visible to ADMIN and DEPOT_MANAGER roles only)
+- Added modal dialog with HeadlessUI Dialog/Transition
+- Added form fields:
+  - Part Number (required, alphanumeric with dashes/underscores)
+  - Serial Number (required)
+  - Asset Name (optional, auto-generated if empty)
+  - Status (dropdown with FMC, PMC, NMCM, NMCS, CNDM options)
+  - Administrative Location (dropdown)
+  - Custodial Location (dropdown)
+  - Notes (optional)
+- Added Zod validation schema for form data
+- Added success message display after creation
+- Added form reset and modal close on success
+- Added fetchReferenceData function to populate dropdowns
+
+**Testing Steps Verified:**
+1. ✅ Log in as depot manager or admin - Logged in as admin/admin123
+2. ✅ Navigate to Assets page - Navigated to /assets
+3. ✅ Click 'Add Asset' button - Button visible and clicked
+4. ✅ Fill in part number - PN-TEST-NEW
+5. ✅ Fill in serial number - TEST-VERIFY-32
+6. ✅ Select status - FMC - Full Mission Capable
+7. ✅ Select administrative location - Depot Alpha
+8. ✅ Select custodial location - Maintenance Bay 1
+9. ✅ Fill in other required fields - Notes: "Created for feature 32 verification"
+10. ✅ Click save - Clicked "Create Asset" button
+11. ✅ Verify asset appears in list - New asset visible in table at bottom
+12. ✅ Verify success message - "Asset "TEST-VERIFY-32" created successfully!"
+
+**Screenshots:**
+- .playwright-mcp/feature-32-asset-created.png - Assets page with Add Asset button
+- .playwright-mcp/feature-32-new-asset-in-list.png - Newly created asset in list
+
+### Current Status:
+- Feature #32 marked as PASSING
+- Features Passing: ~32/374
+
+### What Was Built:
+- backend/src/index.ts - Added POST /api/assets, GET /api/reference/locations, GET /api/reference/asset-statuses
+- frontend/src/pages/AssetsPage.tsx - Added Add Asset button, modal form, and create functionality
+
+### Key Bug Fix:
+The original implementation had a bug where:
+- POST /api/assets pushed new assets to `mockAssets` array
+- GET /api/assets used `generateDetailedAssets()` which returned hardcoded static data
+- Result: newly created assets never appeared in the list
+
+Fixed by:
+- Changed GET /api/assets to use `detailedAssets` (mutable array initialized once)
+- Modified POST /api/assets to also push to `detailedAssets` array
+- This ensures newly created assets appear immediately in the list
+
+### Notes:
+- Role-based access: Only ADMIN and DEPOT_MANAGER can see the Add Asset button
+- Form validation prevents invalid data submission
+- All dropdowns populated from backend reference data
