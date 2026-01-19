@@ -1,0 +1,31 @@
+{
+  "name": "rimss",
+  "version": "0.1.0",
+  "description": "Remote Independent Maintenance Status System - Military Aviation Maintenance Tracking",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
+    "build": "pnpm --filter backend build && pnpm --filter frontend build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:migrate": "pnpm --filter backend prisma migrate dev",
+    "db:generate": "pnpm --filter backend prisma generate",
+    "db:studio": "pnpm --filter backend prisma studio",
+    "db:seed": "pnpm --filter backend prisma db seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.6"
+}
