@@ -36,6 +36,7 @@ const addBomItemSchema = z.object({
     .min(1, 'Quantity must be at least 1'),
   sort_order: z.number({ invalid_type_error: 'Sort order is required' })
     .min(1, 'Sort order must be at least 1'),
+  nha_partno_c: z.string().optional(),
 })
 
 type AddBomItemFormData = z.infer<typeof addBomItemSchema>
@@ -486,6 +487,7 @@ export default function ConfigurationDetailPage() {
           part_name_c: data.part_name_c,
           qpa: data.qpa,
           sort_order: data.sort_order,
+          nha_partno_c: data.nha_partno_c || null,
         }),
       })
 
@@ -1902,6 +1904,34 @@ export default function ConfigurationDetailPage() {
                           <p className="mt-1 text-xs text-gray-500">
                             Determines the order in which parts appear in the BOM
                           </p>
+                        </div>
+
+                        {/* NHA Parent Selection */}
+                        <div>
+                          <label htmlFor="nha_partno_c" className="block text-sm font-medium text-gray-700">
+                            NHA Parent (Optional)
+                          </label>
+                          <select
+                            id="nha_partno_c"
+                            {...registerAdd('nha_partno_c')}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                            disabled={configuration?.cfg_type === 'COMPONENT'}
+                          >
+                            <option value="">-- No Parent (Top-level part) --</option>
+                            {bomData?.bom_items?.map((item) => (
+                              <option key={item.list_id} value={item.partno_c}>
+                                {item.partno_c} - {item.part_name_c}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="mt-1 text-xs text-gray-500">
+                            Select an existing BOM part to make this a child (SRA) of that part
+                          </p>
+                          {configuration?.cfg_type === 'COMPONENT' && (
+                            <p className="mt-1 text-xs text-amber-600">
+                              ⚠️ NHA parent relationships are not available for COMPONENT configurations
+                            </p>
+                          )}
                         </div>
 
                         {/* Form Actions */}
