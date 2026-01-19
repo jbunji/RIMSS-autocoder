@@ -647,9 +647,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Dashboard widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         {/* Asset Status Summary Widget */}
-        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <h3 className="text-sm font-medium text-gray-500 mb-4">Asset Status Summary</h3>
 
           {loading ? (
@@ -675,20 +675,17 @@ export default function DashboardPage() {
               </div>
 
               {/* Status Breakdown */}
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1 md:gap-2">
                 {assetStatus.status_summary.map((status) => {
                   const colors = statusColors[status.status_cd] || statusColors.CNDM
                   return (
                     <div
                       key={status.status_cd}
-                      className={`${colors.bg} ${colors.text} rounded-lg p-3 text-center border-l-4 ${colors.border}`}
+                      className={`${colors.bg} ${colors.text} rounded-lg p-2 md:p-3 text-center border-l-4 ${colors.border}`}
                       title={status.description}
                     >
                       <p className="text-xs font-medium opacity-75">{status.status_cd}</p>
-                      <p className="text-2xl font-bold">{status.count}</p>
-                      <p className="text-xs truncate" title={status.status_name}>
-                        {status.status_name.split(' ').slice(0, 2).join(' ')}
-                      </p>
+                      <p className="text-lg md:text-2xl font-bold">{status.count}</p>
                     </div>
                   )
                 })}
@@ -705,7 +702,7 @@ export default function DashboardPage() {
         </div>
 
         {/* PMI Due Soon Widget */}
-        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">PMI Due Soon</h3>
             {pmiData && (
@@ -792,7 +789,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Open Maintenance Jobs Widget */}
-        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Open Maintenance Jobs</h3>
             {maintenanceData && (
@@ -883,7 +880,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Parts Awaiting Action Widget */}
-        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Parts Awaiting Action</h3>
             {partsData && (
@@ -973,7 +970,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity Feed Widget */}
-        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Recent Activity</h3>
             {activityData && (
