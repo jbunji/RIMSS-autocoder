@@ -6,6 +6,8 @@ import {
   MagnifyingGlassIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
@@ -14,6 +16,10 @@ import {
   XMarkIcon,
   TrashIcon,
   FunnelIcon,
+  QueueListIcon,
+  Squares2X2Icon,
+  CalendarIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -158,7 +164,14 @@ export default function MaintenancePage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('') // '' = all, or specific type
   const [pqdrFilter, setPqdrFilter] = useState(false) // false = show all, true = only PQDR flagged
+  const [dateFromFilter, setDateFromFilter] = useState<string>('') // Date range start (YYYY-MM-DD)
+  const [dateToFilter, setDateToFilter] = useState<string>('') // Date range end (YYYY-MM-DD)
   const [activeTab, setActiveTab] = useState(0) // 0 = Backlog (open), 1 = History (closed)
+
+  // View mode for Backlog tab: 'list' or 'grouped'
+  const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
+  // Expanded configuration groups in grouped view (key = asset_name)
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
   // New Event Modal State
   const [isNewEventModalOpen, setIsNewEventModalOpen] = useState(false)
@@ -233,6 +246,14 @@ export default function MaintenancePage() {
         params.append('pqdr', 'true')
       }
 
+      if (dateFromFilter) {
+        params.append('date_from', dateFromFilter)
+      }
+
+      if (dateToFilter) {
+        params.append('date_to', dateToFilter)
+      }
+
       const response = await fetch(`http://localhost:3001/api/events?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -253,13 +274,13 @@ export default function MaintenancePage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, debouncedSearch, eventTypeFilter, pqdrFilter])
+  }, [token, currentProgramId, debouncedSearch, eventTypeFilter, pqdrFilter, dateFromFilter, dateToFilter])
 
   // Fetch events when tab changes, search changes, or event type filter changes
   useEffect(() => {
     const status = activeTab === 0 ? 'open' : 'closed'
     fetchEvents(1, status)
-  }, [fetchEvents, activeTab, debouncedSearch, eventTypeFilter, pqdrFilter])
+  }, [fetchEvents, activeTab, debouncedSearch, eventTypeFilter, pqdrFilter, dateFromFilter, dateToFilter])
 
   // Refetch when program changes
   useEffect(() => {
@@ -517,6 +538,47 @@ export default function MaintenancePage() {
     return diffDays
   }
 
+  // Group events by configuration (asset_name)
+  const groupEventsByConfiguration = (eventsToGroup: MaintenanceEvent[]) => {
+    const grouped: Map<string, MaintenanceEvent[]> = new Map()
+    eventsToGroup.forEach(event => {
+      const key = event.asset_name
+      const existing = grouped.get(key) || []
+      grouped.set(key, [...existing, event])
+    })
+    // Sort groups by total number of events (descending), then alphabetically
+    return Array.from(grouped.entries()).sort((a, b) => {
+      if (b[1].length !== a[1].length) {
+        return b[1].length - a[1].length
+      }
+      return a[0].localeCompare(b[0])
+    })
+  }
+
+  // Toggle expanded state for a configuration group
+  const toggleGroup = (configName: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(configName)) {
+        newSet.delete(configName)
+      } else {
+        newSet.add(configName)
+      }
+      return newSet
+    })
+  }
+
+  // Expand all groups
+  const expandAllGroups = () => {
+    const allGroups = new Set(events.map(e => e.asset_name))
+    setExpandedGroups(allGroups)
+  }
+
+  // Collapse all groups
+  const collapseAllGroups = () => {
+    setExpandedGroups(new Set())
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -595,58 +657,102 @@ export default function MaintenancePage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        {/* Search */}
-        <div className="relative flex-1">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by job number, asset, discrepancy, or location..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          />
-        </div>
+      <div className="mb-6 space-y-4">
+        {/* Row 1: Search and Event Type */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Search */}
+          <div className="relative flex-1">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by job number, asset, discrepancy, or location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
 
-        {/* Event Type Filter */}
-        <div className="relative sm:w-56">
-          <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <select
-            value={eventTypeFilter}
-            onChange={(e) => setEventTypeFilter(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white"
-          >
-            <option value="">All Event Types</option>
-            <option value="Standard">Standard</option>
-            <option value="PMI">PMI (Periodic Maintenance)</option>
-            <option value="TCTO">TCTO (Time Compliance)</option>
-            <option value="BIT/PC">BIT/PC (Built-In Test)</option>
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-            </svg>
+          {/* Event Type Filter */}
+          <div className="relative sm:w-56">
+            <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <select
+              value={eventTypeFilter}
+              onChange={(e) => setEventTypeFilter(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white"
+            >
+              <option value="">All Event Types</option>
+              <option value="Standard">Standard</option>
+              <option value="PMI">PMI (Periodic Maintenance)</option>
+              <option value="TCTO">TCTO (Time Compliance)</option>
+              <option value="BIT/PC">BIT/PC (Built-In Test)</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+              </svg>
+            </div>
           </div>
         </div>
 
-        {/* PQDR Filter */}
-        <label className={classNames(
-          'flex items-center px-4 py-2 rounded-lg border cursor-pointer transition-colors',
-          pqdrFilter
-            ? 'bg-red-50 border-red-300 text-red-700'
-            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-        )}>
-          <input
-            type="checkbox"
-            checked={pqdrFilter}
-            onChange={(e) => setPqdrFilter(e.target.checked)}
-            className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-          />
-          <ExclamationTriangleIcon className="h-5 w-5 ml-2 mr-1 text-red-500" />
-          <span className="text-sm font-medium whitespace-nowrap">
-            PQDR Only {summary.pqdr > 0 && <span className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{summary.pqdr}</span>}
-          </span>
-        </label>
+        {/* Row 2: Date Range, PQDR, and Clear All Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          {/* Date Range Filter */}
+          <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2">
+            <CalendarIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+            <span className="text-sm text-gray-500 whitespace-nowrap">Date Range:</span>
+            <input
+              type="date"
+              value={dateFromFilter}
+              onChange={(e) => setDateFromFilter(e.target.value)}
+              className="border-0 p-0 text-sm focus:ring-0 w-32 bg-transparent"
+              placeholder="From"
+            />
+            <span className="text-gray-400">—</span>
+            <input
+              type="date"
+              value={dateToFilter}
+              onChange={(e) => setDateToFilter(e.target.value)}
+              className="border-0 p-0 text-sm focus:ring-0 w-32 bg-transparent"
+              placeholder="To"
+            />
+          </div>
+
+          {/* PQDR Filter */}
+          <label className={classNames(
+            'flex items-center px-4 py-2 rounded-lg border cursor-pointer transition-colors',
+            pqdrFilter
+              ? 'bg-red-50 border-red-300 text-red-700'
+              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+          )}>
+            <input
+              type="checkbox"
+              checked={pqdrFilter}
+              onChange={(e) => setPqdrFilter(e.target.checked)}
+              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+            />
+            <ExclamationTriangleIcon className="h-5 w-5 ml-2 mr-1 text-red-500" />
+            <span className="text-sm font-medium whitespace-nowrap">
+              PQDR Only {summary.pqdr > 0 && <span className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{summary.pqdr}</span>}
+            </span>
+          </label>
+
+          {/* Clear All Filters Button */}
+          {(searchQuery || eventTypeFilter || pqdrFilter || dateFromFilter || dateToFilter) && (
+            <button
+              onClick={() => {
+                setSearchQuery('')
+                setEventTypeFilter('')
+                setPqdrFilter(false)
+                setDateFromFilter('')
+                setDateToFilter('')
+              }}
+              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <ArrowPathIcon className="h-4 w-4 mr-2" />
+              Clear All Filters
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -683,7 +789,61 @@ export default function MaintenancePage() {
         <Tab.Panels>
           {/* Backlog Tab */}
           <Tab.Panel>
-            {renderEventsTable()}
+            {/* View Mode Toggle - Only for Backlog */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">View:</span>
+                <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={classNames(
+                      'flex items-center gap-1 px-3 py-1.5 text-sm font-medium transition-colors',
+                      viewMode === 'list'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    )}
+                    title="List View"
+                  >
+                    <QueueListIcon className="h-4 w-4" />
+                    List
+                  </button>
+                  <button
+                    onClick={() => setViewMode('grouped')}
+                    className={classNames(
+                      'flex items-center gap-1 px-3 py-1.5 text-sm font-medium transition-colors',
+                      viewMode === 'grouped'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    )}
+                    title="Grouped by Configuration"
+                  >
+                    <Squares2X2Icon className="h-4 w-4" />
+                    Grouped
+                  </button>
+                </div>
+              </div>
+
+              {/* Expand/Collapse All - Only visible in grouped view */}
+              {viewMode === 'grouped' && events.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={expandAllGroups}
+                    className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                  >
+                    Expand All
+                  </button>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    onClick={collapseAllGroups}
+                    className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                  >
+                    Collapse All
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {viewMode === 'list' ? renderEventsTable() : renderGroupedView()}
           </Tab.Panel>
 
           {/* History Tab */}
@@ -1275,6 +1435,220 @@ export default function MaintenancePage() {
         {pagination.total_pages <= 1 && (
           <div className="bg-white px-4 py-3 border-t border-gray-200">
             <p className="text-sm text-gray-500">{pagination.total} total events</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  function renderGroupedView() {
+    if (loading) {
+      return (
+        <div className="bg-white shadow rounded-lg p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600">{error}</p>
+          <button
+            onClick={() => fetchEvents(1, 'open')}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      )
+    }
+
+    if (events.length === 0) {
+      return (
+        <div className="bg-white shadow rounded-lg p-8 text-center">
+          <WrenchScrewdriverIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">No open maintenance events found.</p>
+        </div>
+      )
+    }
+
+    const groupedEvents = groupEventsByConfiguration(events)
+    const totalGroups = groupedEvents.length
+
+    return (
+      <div className="space-y-3">
+        {/* Group Summary */}
+        <div className="bg-gray-50 rounded-lg px-4 py-2 text-sm text-gray-600">
+          {totalGroups} configuration{totalGroups !== 1 ? 's' : ''} with {events.length} open event{events.length !== 1 ? 's' : ''}
+        </div>
+
+        {/* Configuration Groups */}
+        {groupedEvents.map(([configName, configEvents]) => {
+          const isExpanded = expandedGroups.has(configName)
+          const criticalCount = configEvents.filter(e => e.priority === 'Critical').length
+          const urgentCount = configEvents.filter(e => e.priority === 'Urgent').length
+          const routineCount = configEvents.filter(e => e.priority === 'Routine').length
+          const pqdrCount = configEvents.filter(e => e.pqdr).length
+
+          // Get unique serial numbers for this configuration
+          const serialNumbers = [...new Set(configEvents.map(e => e.asset_sn))]
+
+          return (
+            <div key={configName} className="bg-white shadow rounded-lg overflow-hidden">
+              {/* Group Header (Accordion Toggle) */}
+              <button
+                onClick={() => toggleGroup(configName)}
+                className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors border-b border-gray-200"
+              >
+                <div className="flex items-center gap-4">
+                  {/* Expand/Collapse Icon */}
+                  {isExpanded ? (
+                    <ChevronUpIcon className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                  )}
+
+                  {/* Configuration Name */}
+                  <div className="text-left">
+                    <div className="text-lg font-semibold text-gray-900">{configName}</div>
+                    <div className="text-sm text-gray-500">
+                      {serialNumbers.length} unit{serialNumbers.length !== 1 ? 's' : ''}: {serialNumbers.slice(0, 3).join(', ')}
+                      {serialNumbers.length > 3 && ` +${serialNumbers.length - 3} more`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Priority Summary Badges */}
+                <div className="flex items-center gap-3">
+                  {pqdrCount > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-500 text-white">
+                      {pqdrCount} PQDR
+                    </span>
+                  )}
+                  {criticalCount > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      {criticalCount} Critical
+                    </span>
+                  )}
+                  {urgentCount > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      {urgentCount} Urgent
+                    </span>
+                  )}
+                  {routineCount > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {routineCount} Routine
+                    </span>
+                  )}
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold bg-primary-100 text-primary-800">
+                    {configEvents.length} event{configEvents.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </button>
+
+              {/* Expanded Events List */}
+              {isExpanded && (
+                <div className="divide-y divide-gray-100">
+                  {configEvents.map((event) => {
+                    const priorityStyle = priorityColors[event.priority] || priorityColors.Routine
+                    const eventTypeStyle = eventTypeColors[event.event_type] || eventTypeColors.Standard
+                    const daysOpen = calculateDaysOpen(event.start_job, event.stop_job)
+
+                    return (
+                      <div
+                        key={event.event_id}
+                        className={classNames(
+                          'px-6 py-4 cursor-pointer transition-colors',
+                          event.pqdr ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
+                        )}
+                        onClick={() => handleEventClick(event.event_id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-1">
+                              {/* Job Number */}
+                              <span className="text-sm font-mono font-semibold text-primary-600">
+                                {event.job_no}
+                              </span>
+                              {/* Serial Number */}
+                              <span className="text-sm font-mono text-gray-500">
+                                {event.asset_sn}
+                              </span>
+                              {/* PQDR Badge */}
+                              {event.pqdr && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-500 text-white">
+                                  PQDR
+                                </span>
+                              )}
+                            </div>
+                            {/* Discrepancy */}
+                            <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+                              {event.discrepancy}
+                            </p>
+                            {/* Metadata Row */}
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <ClockIcon className="h-3.5 w-3.5" />
+                                {formatDate(event.start_job)}
+                              </span>
+                              <span className={classNames(
+                                'font-medium',
+                                daysOpen > 7 ? 'text-red-600' : daysOpen > 3 ? 'text-orange-600' : 'text-gray-600'
+                              )}>
+                                {daysOpen} day{daysOpen !== 1 ? 's' : ''} open
+                              </span>
+                              <span>{event.location}</span>
+                            </div>
+                          </div>
+                          {/* Right Side: Badges and Actions */}
+                          <div className="flex items-center gap-3 ml-4">
+                            {/* Event Type Badge */}
+                            <span className={classNames(
+                              'px-2 py-1 text-xs font-medium rounded-full border',
+                              eventTypeStyle.bg,
+                              eventTypeStyle.text,
+                              eventTypeStyle.border
+                            )}>
+                              {event.event_type}
+                            </span>
+                            {/* Priority Badge */}
+                            <span className={classNames(
+                              'px-2 py-1 text-xs font-medium rounded-full border',
+                              priorityStyle.bg,
+                              priorityStyle.text,
+                              priorityStyle.border
+                            )}>
+                              {event.priority}
+                            </span>
+                            {/* Delete Button (Admin only) */}
+                            {canDeleteEvent && (
+                              <button
+                                onClick={(e) => openDeleteModal(event, e)}
+                                className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
+                                title={`Delete ${event.job_no}`}
+                              >
+                                <TrashIcon className="h-5 w-5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        {/* Pagination note for grouped view */}
+        {pagination.total > events.length && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-800">
+            <strong>Note:</strong> Showing {events.length} of {pagination.total} total events.
+            Switch to List View for full pagination controls.
           </div>
         )}
       </div>
