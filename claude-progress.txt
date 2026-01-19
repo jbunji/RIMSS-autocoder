@@ -523,3 +523,74 @@ displays correctly regardless of authentication state.
 - Frontend server running on port 5173
 - Activity tracking successfully resets timer on user interaction
 - Session expiration message clears after user logs back in
+
+## Testing Session: 2026-01-19 12:00
+
+[Testing] Feature #6 'User can log in with valid credentials' verified - still PASSING
+  - Navigated to login page at http://localhost:5173/login
+  - Entered valid username: 'admin'
+  - Entered valid password: 'admin123'
+  - Clicked Sign In button
+  - Verified redirect to dashboard (/dashboard) ✅
+  - Verified user session established: 'Welcome, John Admin', role 'ADMIN' ✅
+  - Verified JWT token stored in localStorage under 'rimss-auth-storage' ✅
+  - No console errors detected
+  - Screenshot saved: .playwright-mcp/regression_feature6_login_success_verified.png
+
+[Testing] Session complete - verified feature #6 (still passing)
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #10)
+
+### Completed This Session:
+- Feature #10: JWT token refresh works correctly - VERIFIED AND PASSING
+
+**Implementation:**
+- Added POST /api/auth/refresh endpoint to backend
+  - Validates existing token
+  - Returns new token with extended expiration
+  - Logs refresh events
+- Created TokenRefreshManager component on frontend
+  - Schedules automatic token refresh 5 minutes before expiration
+  - Handles visibility change (tab switching) scenarios
+  - Supports test override via localStorage: 'rimss-token-refresh-override'
+  - Dispatches 'token-refreshed' custom event for other components
+- Integrated TokenRefreshManager in App.tsx
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Logged in as admin/admin123
+2. ✅ Wait for token to approach expiration - Used 5000ms test override
+3. ✅ Verify refresh token request is made - Console: "[TokenRefreshManager] Initiating token refresh..."
+4. ✅ Verify new access token is received - Console: "[TokenRefreshManager] Token refreshed successfully"
+   - Initial token: eyJ1c2VySWQiOjEsImlhdCI6MTc2ODg0MjAzNDU4MCwiZXhwIjoxNzY4ODQzODM0NTgwfQ==
+   - Refreshed token: eyJ1c2VySWQiOjEsImlhdCI6MTc2ODg0MjA0NDYwOSwiZXhwIjoxNzY4ODQzODQ0NjA5fQ==
+   - tokensAreDifferent: true
+5. ✅ Verify session continues without interruption - User remains logged in on dashboard
+
+**Network Verification:**
+- Multiple POST /api/auth/refresh => 200 OK
+- All GET /api/auth/me => 200 OK
+- No console errors
+
+**Screenshots:**
+- .playwright-mcp/feature10_jwt_refresh_verified.png - Dashboard after multiple token refreshes
+
+**Commit:** 8e5fb01 - Implement Feature #10: JWT token refresh works correctly
+
+### Current Status:
+- Features Passing: 8 (Features #1, #2, #3, #4, #5, #6, #9, #10)
+- Total Features: 372
+- Completion: ~2.2%
+
+### What Was Built:
+- backend/src/index.ts - Added /api/auth/refresh endpoint
+- frontend/src/components/TokenRefreshManager.tsx - New component for automatic token refresh
+- Updated frontend/src/App.tsx - Integrated TokenRefreshManager
+
+### Notes:
+- Token refresh happens automatically 5 minutes before 30-minute expiration
+- For testing, set localStorage 'rimss-token-refresh-override' to a number (ms) for faster refresh
+- Backend logs all refresh events for debugging
+- Component handles edge cases: visibility change, concurrent refresh prevention
+
