@@ -3065,3 +3065,39 @@ The filtering functionality was already implemented in both backend and frontend
 - No code changes required - feature was already fully implemented
 - Filtering works correctly with all 5 status codes
 
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #36)
+
+### Completed This Session:
+- Feature #36: Asset status transitions validate correctly - VERIFIED AND PASSING
+
+**Feature Description:** Asset status changes follow business rules
+
+**Implementation:**
+
+1. **Status Transition Rules** - Added `statusTransitionRules` constant defining valid transitions:
+   - FMC: Can transition to PMC, NMCM, NMCS, CNDM (asset can degrade)
+   - PMC: Can transition to FMC, NMCM, NMCS, CNDM (can improve or degrade)
+   - NMCM: Can transition to FMC, PMC, NMCS, CNDM (maintenance complete or awaiting parts)
+   - NMCS: Can transition to FMC, PMC, NMCM, CNDM (parts arrived)
+   - CNDM: Can ONLY transition to NMCM or NMCS (must go through maintenance first)
+
+2. **isValidStatusTransition() Function** - Validates transitions and returns detailed error messages
+
+3. **PUT /api/assets/:id Update** - Added transition validation before allowing status change
+
+4. **GET /api/reference/asset-statuses** - Now returns transitionRules alongside status codes
+
+**Testing Steps Verified:**
+1. Log in as depot manager - depot_mgr/depot123
+2. Test valid transition FMC->NMCM - Allowed
+3. Test invalid transition CNDM->FMC - Blocked with error message
+4. Verified error message displays in UI
+
+**Commit:** 05888a5 - Implement Feature #36: Asset status transitions validate correctly
+
+### Current Status:
+- Feature #36 marked as PASSING
+
