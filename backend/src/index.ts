@@ -1939,8 +1939,8 @@ app.get('/api/assets', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this program' });
   }
 
-  // Get detailed assets
-  const allAssets = generateDetailedAssets();
+  // Get detailed assets from mutable array
+  const allAssets = detailedAssets;
 
   // Filter by program
   let filteredAssets = allAssets.filter(asset => asset.pgm_id === programIdFilter);
@@ -2005,31 +2005,25 @@ app.get('/api/assets/:id', (req, res) => {
 
   const assetId = parseInt(req.params.id, 10);
 
-  // Get the raw asset from mockAssets for editable fields
-  const rawAsset = mockAssets.find(a => a.asset_id === assetId);
+  // Get the asset from detailedAssets
+  const asset = detailedAssets.find(a => a.asset_id === assetId);
 
-  if (!rawAsset) {
+  if (!asset) {
     return res.status(404).json({ error: 'Asset not found' });
   }
 
   // Check if user has access to this asset's program
   const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(rawAsset.pgm_id) && user.role !== 'ADMIN') {
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Access denied to this asset' });
   }
 
-  // Get program and location info for display
-  const program = allPrograms.find(p => p.pgm_id === rawAsset.pgm_id);
-  const adminLocInfo = adminLocations.find(l => l.loc_cd === rawAsset.admin_loc);
-  const custLocInfo = custodialLocations.find(l => l.loc_cd === rawAsset.cust_loc);
-  const statusInfo = assetStatusCodes.find(s => s.status_cd === rawAsset.status_cd);
+  // Get program info for display
+  const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
 
   res.json({
     asset: {
-      ...rawAsset,
-      status_name: statusInfo?.status_name || rawAsset.status_cd,
-      admin_loc_name: adminLocInfo?.loc_name || rawAsset.admin_loc,
-      cust_loc_name: custLocInfo?.loc_name || rawAsset.cust_loc,
+      ...asset,
       program_cd: program?.pgm_cd || 'UNKNOWN',
       program_name: program?.pgm_name || 'Unknown Program',
     }
@@ -2234,10 +2228,14 @@ app.post('/api/assets', (req, res) => {
     return res.status(400).json({ error: 'Invalid custodial location' });
   }
 
-  // Check for duplicate serial number (within same program)
-  const existingAsset = mockAssets.find(a => a.serno.toLowerCase() === serno.toLowerCase() && a.pgm_id === pgm_id);
+  // Check for duplicate serial number + part number combination (within same program)
+  const existingAsset = mockAssets.find(a =>
+    a.serno.toLowerCase() === serno.toLowerCase() &&
+    a.partno.toLowerCase() === partno.toLowerCase() &&
+    a.pgm_id === pgm_id
+  );
   if (existingAsset) {
-    return res.status(400).json({ error: 'An asset with this serial number already exists in this program' });
+    return res.status(400).json({ error: `An asset with serial number '${serno}' and part number '${partno}' already exists in this program` });
   }
 
   // Generate new asset ID
@@ -2266,6 +2264,27 @@ app.post('/api/assets', (req, res) => {
   const adminLocInfo = adminLocations.find(l => l.loc_cd === admin_loc);
   const custLocInfo = custodialLocations.find(l => l.loc_cd === cust_loc);
   const statusInfo = assetStatusCodes.find(s => s.status_cd === status_cd);
+
+  // Also add to detailedAssets for GET endpoint to show the new asset
+  const newDetailedAsset: AssetDetails = {
+    asset_id: newAssetId,
+    serno,
+    partno,
+    part_name: name || `${partno} - ${serno}`,
+    pgm_id,
+    status_cd,
+    status_name: statusInfo?.status_name || status_cd,
+    active: true,
+    location: adminLocInfo?.loc_name || admin_loc,
+    loc_type: adminLocInfo?.loc_type as 'depot' | 'field' || 'depot',
+    in_transit: false,
+    bad_actor: false,
+    last_maint_date: null,
+    next_pmi_date: null,
+    eti_hours: 0,
+    remarks: notes || null,
+  };
+  detailedAssets.push(newDetailedAsset);
 
   console.log(`[ASSETS] New asset created by ${user.username}: ${serno} (ID: ${newAssetId}, Program: ${program?.pgm_cd})`);
 
@@ -2298,13 +2317,13 @@ app.delete('/api/assets/:id', (req, res) => {
   }
 
   const assetId = parseInt(req.params.id, 10);
-  const assetIndex = mockAssets.findIndex(a => a.asset_id === assetId);
+  const assetIndex = detailedAssets.findIndex(a => a.asset_id === assetId);
 
   if (assetIndex === -1) {
     return res.status(404).json({ error: 'Asset not found' });
   }
 
-  const asset = mockAssets[assetIndex];
+  const asset = detailedAssets[assetIndex];
 
   // Check if user has access to this asset's program
   const userProgramIds = user.programs.map(p => p.pgm_id);
@@ -2317,12 +2336,12 @@ app.delete('/api/assets/:id', (req, res) => {
     asset_id: asset.asset_id,
     serno: asset.serno,
     partno: asset.partno,
-    name: asset.name,
+    name: asset.part_name,
     pgm_id: asset.pgm_id,
   };
 
   // Remove the asset from the array
-  mockAssets.splice(assetIndex, 1);
+  detailedAssets.splice(assetIndex, 1);
 
   // Log the deletion
   console.log(`[ASSETS] Asset deleted by ${user.username}: ${deletedAssetInfo.serno} (ID: ${assetId})`);

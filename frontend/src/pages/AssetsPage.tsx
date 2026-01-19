@@ -9,6 +9,8 @@ import {
   XMarkIcon,
   CheckIcon,
   CubeIcon,
+  TrashIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -99,6 +101,8 @@ export default function AssetsPage() {
 
   // Check if user can create assets
   const canCreateAsset = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
+  // Check if user can delete assets (only admins)
+  const canDeleteAsset = user && user.role === 'ADMIN'
 
   // State
   const [assets, setAssets] = useState<Asset[]>([])
@@ -111,6 +115,12 @@ export default function AssetsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [modalError, setModalError] = useState<string | null>(null)
+
+  // Delete confirmation modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   // Reference data for form
   const [adminLocations, setAdminLocations] = useState<Location[]>([])
@@ -188,15 +198,141 @@ export default function AssetsPage() {
     }
   }, [token, currentProgramId, statusFilter, debouncedSearch])
 
+  // Fetch reference data for form
+  const fetchReferenceData = useCallback(async () => {
+    if (!token) return
+
+    try {
+      const [locResponse, statusResponse] = await Promise.all([
+        fetch('http://localhost:3001/api/reference/locations', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+        fetch('http://localhost:3001/api/reference/asset-statuses', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+      ])
+
+      if (locResponse.ok) {
+        const locData = await locResponse.json()
+        setAdminLocations(locData.admin_locations || [])
+        setCustodialLocations(locData.custodial_locations || [])
+      }
+
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json()
+        setAssetStatuses(statusData.statuses || [])
+      }
+    } catch (err) {
+      console.error('Error fetching reference data:', err)
+    }
+  }, [token])
+
   // Fetch on mount and when dependencies change
   useEffect(() => {
     fetchAssets(1)
-  }, [fetchAssets])
+    fetchReferenceData()
+  }, [fetchAssets, fetchReferenceData])
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.total_pages) {
       fetchAssets(newPage)
+    }
+  }
+
+  // Handle form submission
+  const onSubmit = async (data: CreateAssetFormData) => {
+    try {
+      setModalError(null)
+      const response = await fetch('http://localhost:3001/api/assets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...data,
+          pgm_id: currentProgramId || 1,
+        }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setSuccessMessage(`Asset "${result.asset.serno}" created successfully!`)
+        setIsModalOpen(false)
+        reset()
+        fetchAssets(1) // Refresh the asset list
+
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccessMessage(null), 5000)
+      } else {
+        const errorData = await response.json()
+        setModalError(errorData.error || 'Failed to create asset')
+      }
+    } catch (err) {
+      setModalError('Failed to create asset. Please try again.')
+      console.error('Error creating asset:', err)
+    }
+  }
+
+  // Modal handlers
+  const openModal = () => {
+    reset()
+    setModalError(null)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    reset()
+    setModalError(null)
+  }
+
+  // Delete modal handlers
+  const openDeleteModal = (asset: Asset) => {
+    setAssetToDelete(asset)
+    setDeleteError(null)
+    setIsDeleteModalOpen(true)
+  }
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setAssetToDelete(null)
+    setDeleteError(null)
+  }
+
+  const handleDeleteAsset = async () => {
+    if (!assetToDelete || !token) return
+
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${assetToDelete.asset_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setSuccessMessage(result.message || `Asset "${assetToDelete.serno}" deleted successfully!`)
+        closeDeleteModal()
+        fetchAssets(pagination.page) // Refresh the list
+
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccessMessage(null), 5000)
+      } else {
+        const errorData = await response.json()
+        setDeleteError(errorData.error || 'Failed to delete asset')
+      }
+    } catch (err) {
+      setDeleteError('Failed to delete asset. Please try again.')
+      console.error('Error deleting asset:', err)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -231,12 +367,36 @@ export default function AssetsPage() {
             {program ? `Viewing assets for ${program.pgm_cd} - ${program.pgm_name}` : 'Loading...'}
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex items-center gap-4">
           <span className="text-sm text-gray-500">
             {pagination.total} total asset{pagination.total !== 1 ? 's' : ''}
           </span>
+          {canCreateAsset && (
+            <button
+              type="button"
+              onClick={openModal}
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              Add Asset
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="rounded-md bg-green-50 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <CheckIcon className="h-5 w-5 text-green-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-4">
@@ -415,12 +575,24 @@ export default function AssetsPage() {
                         {formatDate(asset.next_pmi_date)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => navigate(`/assets/${asset.asset_id}`)}
-                          className="text-primary-600 hover:text-primary-900"
-                        >
-                          View
-                        </button>
+                        <div className="flex items-center justify-end space-x-3">
+                          <button
+                            onClick={() => navigate(`/assets/${asset.asset_id}`)}
+                            className="text-primary-600 hover:text-primary-900"
+                          >
+                            View
+                          </button>
+                          {canDeleteAsset && (
+                            <button
+                              onClick={() => openDeleteModal(asset)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Delete asset"
+                            >
+                              <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                              <span className="sr-only">Delete {asset.serno}</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -538,6 +710,349 @@ export default function AssetsPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Asset Modal */}
+      <Transition appear show={isModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 flex items-center"
+                  >
+                    <CubeIcon className="h-6 w-6 mr-2 text-primary-600" />
+                    Add New Asset
+                  </Dialog.Title>
+
+                  <button
+                    type="button"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+                    onClick={closeModal}
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+
+                  <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+                    {/* Error display inside modal */}
+                    {modalError && (
+                      <div className="rounded-md bg-red-50 p-3">
+                        <p className="text-sm text-red-800">{modalError}</p>
+                      </div>
+                    )}
+
+                    {/* Part Number */}
+                    <div>
+                      <label htmlFor="partno" className="block text-sm font-medium text-gray-700">
+                        Part Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="partno"
+                        {...register('partno')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.partno
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                        placeholder="PN-SENSOR-A"
+                      />
+                      {errors.partno && (
+                        <p className="mt-1 text-sm text-red-600">{errors.partno.message}</p>
+                      )}
+                    </div>
+
+                    {/* Serial Number */}
+                    <div>
+                      <label htmlFor="serno" className="block text-sm font-medium text-gray-700">
+                        Serial Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="serno"
+                        {...register('serno')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.serno
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                        placeholder="CRIIS-011"
+                      />
+                      {errors.serno && (
+                        <p className="mt-1 text-sm text-red-600">{errors.serno.message}</p>
+                      )}
+                    </div>
+
+                    {/* Asset Name (optional) */}
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                        Asset Name <span className="text-gray-400">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        {...register('name')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.name
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                        placeholder="Sensor Unit A-3"
+                      />
+                      {errors.name && (
+                        <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                      )}
+                      <p className="mt-1 text-xs text-gray-500">
+                        If not provided, a name will be generated from the part and serial number.
+                      </p>
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                      <label htmlFor="status_cd" className="block text-sm font-medium text-gray-700">
+                        Status <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="status_cd"
+                        {...register('status_cd')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.status_cd
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                      >
+                        <option value="">Select a status...</option>
+                        {assetStatuses.map((status) => (
+                          <option key={status.status_cd} value={status.status_cd}>
+                            {status.status_cd} - {status.status_name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.status_cd && (
+                        <p className="mt-1 text-sm text-red-600">{errors.status_cd.message}</p>
+                      )}
+                    </div>
+
+                    {/* Administrative Location */}
+                    <div>
+                      <label htmlFor="admin_loc" className="block text-sm font-medium text-gray-700">
+                        Administrative Location <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="admin_loc"
+                        {...register('admin_loc')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.admin_loc
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                      >
+                        <option value="">Select administrative location...</option>
+                        {adminLocations.map((loc) => (
+                          <option key={loc.loc_cd} value={loc.loc_cd}>
+                            {loc.loc_name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.admin_loc && (
+                        <p className="mt-1 text-sm text-red-600">{errors.admin_loc.message}</p>
+                      )}
+                    </div>
+
+                    {/* Custodial Location */}
+                    <div>
+                      <label htmlFor="cust_loc" className="block text-sm font-medium text-gray-700">
+                        Custodial Location <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="cust_loc"
+                        {...register('cust_loc')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.cust_loc
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                      >
+                        <option value="">Select custodial location...</option>
+                        {custodialLocations.map((loc) => (
+                          <option key={loc.loc_cd} value={loc.loc_cd}>
+                            {loc.loc_name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.cust_loc && (
+                        <p className="mt-1 text-sm text-red-600">{errors.cust_loc.message}</p>
+                      )}
+                    </div>
+
+                    {/* Notes */}
+                    <div>
+                      <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+                        Notes <span className="text-gray-400">(optional)</span>
+                      </label>
+                      <textarea
+                        id="notes"
+                        rows={3}
+                        {...register('notes')}
+                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                          errors.notes
+                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                        }`}
+                        placeholder="Any additional notes about this asset..."
+                      />
+                      {errors.notes && (
+                        <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
+                      )}
+                    </div>
+
+                    {/* Form Actions */}
+                    <div className="mt-6 flex justify-end space-x-3">
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? 'Creating...' : 'Create Asset'}
+                      </button>
+                    </div>
+                  </form>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Delete Confirmation Modal */}
+      <Transition appear show={isDeleteModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={closeDeleteModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                        <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <Dialog.Title
+                        as="h3"
+                        className="text-lg font-medium leading-6 text-gray-900"
+                      >
+                        Delete Asset
+                      </Dialog.Title>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Are you sure you want to delete this asset? This action cannot be undone.
+                        </p>
+                        {assetToDelete && (
+                          <div className="mt-3 bg-gray-50 rounded-md p-3">
+                            <dl className="text-sm">
+                              <div className="flex justify-between py-1">
+                                <dt className="font-medium text-gray-500">Serial Number:</dt>
+                                <dd className="text-gray-900">{assetToDelete.serno}</dd>
+                              </div>
+                              <div className="flex justify-between py-1">
+                                <dt className="font-medium text-gray-500">Part Number:</dt>
+                                <dd className="text-gray-900">{assetToDelete.partno}</dd>
+                              </div>
+                              <div className="flex justify-between py-1">
+                                <dt className="font-medium text-gray-500">Name:</dt>
+                                <dd className="text-gray-900">{assetToDelete.part_name}</dd>
+                              </div>
+                              <div className="flex justify-between py-1">
+                                <dt className="font-medium text-gray-500">Status:</dt>
+                                <dd className="text-gray-900">{assetToDelete.status_cd}</dd>
+                              </div>
+                            </dl>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Error display */}
+                      {deleteError && (
+                        <div className="mt-3 rounded-md bg-red-50 p-3">
+                          <p className="text-sm text-red-800">{deleteError}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={closeDeleteModal}
+                      disabled={isDeleting}
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteAsset}
+                      disabled={isDeleting}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete Asset'}
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   )
 }
