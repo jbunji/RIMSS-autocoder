@@ -5266,3 +5266,72 @@ This is expected UX behavior - hiding pagination when unnecessary.
 
 [Testing] Session complete - verified feature #6 (no regression found)
 
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #64)
+
+### Completed This Session:
+- Feature #64: Part relationship validation - VERIFIED AND PASSING
+
+**Description:** System validates part relationships for consistency
+
+**Implementation:**
+
+**Backend (backend/src/index.ts) - Already Present:**
+The backend validation was already implemented in previous commits. The validation includes:
+1. **VALIDATION 1: Configuration Type Compatibility**
+   - COMPONENT type configurations cannot have NHA parent relationships
+   - Returns error: "Incompatible part type: COMPONENT configurations cannot have NHA parent relationships"
+   
+2. **VALIDATION 2: Circular Reference Detection**
+   - Checks if proposed parent is already a child of the new part
+   - Uses recursive `checkCircularReference()` function to detect cycles
+   - Uses `checkAncestors()` function to verify ancestor relationships
+   - Returns error: "Circular reference detected: Cannot set X as parent of Y..."
+
+**Frontend (frontend/src/pages/ConfigurationDetailPage.tsx):**
+- Updated Zod schema `addBomItemSchema` to include optional `nha_partno_c` field
+- Updated `onAddSubmit` to include `nha_partno_c` in API request body
+- Added NHA Parent dropdown to Add Part modal with:
+  - Lists all existing BOM items as selectable parents
+  - "-- No Parent (Top-level part) --" as default option
+  - Disabled state for COMPONENT configurations
+  - Warning message: "⚠️ NHA parent relationships are not available for COMPONENT configurations"
+  - Helper text: "Select an existing BOM part to make this a child (SRA) of that part"
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as depot_mgr/depot123
+2. ✅ Navigate to configuration BOM - Navigated to Configuration #1 (Camera System X - ASSEMBLY)
+3. ✅ Attempt to add part that creates circular reference:
+   - Entered PN-SENSOR-A with PN-MOUNT-KIT as NHA parent
+   - PN-MOUNT-KIT is already a child of PN-SENSOR-A
+4. ✅ Verify error message:
+   - Error displayed: "Circular reference detected: Cannot set 'PN-MOUNT-KIT' as parent of 'PN-SENSOR-A' because it would create a circular dependency in the assembly hierarchy."
+5. ✅ Attempt to add incompatible part type:
+   - Navigated to Configuration #4 (Navigation Unit Standard - COMPONENT)
+   - NHA Parent dropdown was DISABLED
+6. ✅ Verify validation message:
+   - Warning displayed: "⚠️ NHA parent relationships are not available for COMPONENT configurations"
+7. ✅ Add valid part:
+   - Added PN-TEST-VALID-PART without NHA parent to ASSEMBLY configuration
+8. ✅ Verify success:
+   - BOM count increased from 3 to 4
+   - Success message: "Part 'PN-TEST-VALID-PART' added to BOM successfully"
+   - (Test data cleaned up after verification)
+
+**Screenshots:**
+- .playwright-mcp/feature64_component_nha_disabled.png - COMPONENT config with disabled NHA dropdown
+- .playwright-mcp/feature64_circular_reference_error.png - Circular reference error message
+- .playwright-mcp/feature64_valid_part_added.png - Valid part successfully added
+- .playwright-mcp/feature64_bom_with_valid_part.png - BOM tab showing 4 parts
+
+**Console errors:** None (400 response from validation test is expected behavior)
+
+### Current Status:
+- Feature #64 marked as PASSING
+- Commit: a790a14 "Implement Feature #64: Part relationship validation"
+
+### Files Modified:
+- frontend/src/pages/ConfigurationDetailPage.tsx - Added NHA parent dropdown to Add Part modal
