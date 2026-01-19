@@ -1573,3 +1573,73 @@ displays correctly regardless of authentication state.
 - PMI data is dynamically generated based on current date
 - Color coding follows spec: Red (#DC2626) for 0-7 days, Yellow (#F59E0B) for 8-30 days, Green (#10B981) for 30+ days
 - Other agents also working in parallel (noticed MaintenanceDetailPage added by another agent)
+
+
+---
+
+## Session: 2026-01-19 (Agent working on Feature #23)
+
+### Completed This Session:
+- Feature #23: Dashboard shows open maintenance jobs widget - VERIFIED AND PASSING
+
+**Feature Description:** Dashboard displays count and list of open maintenance events
+
+**Implementation:**
+- Added mock maintenance events data to backend (10 events across programs)
+- Created /api/dashboard/open-maintenance-jobs endpoint with program filtering
+- Created /api/events/:id endpoint for single event retrieval  
+- Updated DashboardPage.tsx with interactive Open Maintenance Jobs widget
+- Created MaintenanceDetailPage.tsx for click navigation
+
+**Testing Steps Verified:**
+1. ✅ Log in as any user - Tested with admin/admin123 and field_tech/field123
+2. ✅ Navigate to dashboard - http://localhost:5173/dashboard
+3. ✅ Verify open jobs widget displays - Widget shows with header 'Open Maintenance Jobs'
+4. ✅ Verify count reflects real open jobs - Total: 4 for CRIIS program
+   - 1 Critical (Camera System X - MX-2024-001)
+   - 2 Urgent (Radar Unit 01 - MX-2024-002, Communication System - MX-2024-004)
+   - 1 Routine (Sensor Unit B - MX-2024-003)
+5. ✅ Click on job to navigate to maintenance detail - Clicking 'Camera System X' navigates to /maintenance/1
+
+**Widget Features:**
+- Priority color-coding: Critical (red), Urgent (orange), Routine (blue)
+- Summary counts in widget header
+- Clickable job cards showing: asset name, discrepancy, job number, priority, days open, event type
+- Color legend at bottom
+- Total count display
+
+**Maintenance Detail Page Features:**
+- Job Information: job number, event type badge, priority badge, location
+- Discrepancy description
+- Timeline showing job start date and current status
+- Asset Information: name, serial number, asset ID
+- Quick Actions: Return to Dashboard, Print Details buttons
+- Event ID display
+
+**Screenshots:**
+- .playwright-mcp/feature23_dashboard_maintenance_widget.png - Full dashboard view
+- .playwright-mcp/feature23_maintenance_widget_visible.png - Maintenance widget scrolled into view
+- .playwright-mcp/feature23_maintenance_detail_page.png - Maintenance event detail page
+- .playwright-mcp/feature23_field_tech_dashboard.png - Field technician view
+
+**No console errors detected.**
+
+**Commit:** ce774cd - Implement Feature #23: Dashboard shows open maintenance jobs widget
+
+### Current Status:
+- Feature #23 marked as PASSING
+- Features Passing: ~21/374 (5.6%)
+
+### What Was Built:
+- backend/src/index.ts - Added mock maintenance events, /api/dashboard/open-maintenance-jobs, /api/events/:id
+- frontend/src/pages/DashboardPage.tsx - Updated with Open Maintenance Jobs widget
+- frontend/src/pages/MaintenanceDetailPage.tsx - New detail page for click navigation
+- frontend/src/App.tsx - Added /maintenance/:id route
+
+### Notes:
+- Backend server running on port 3001
+- Frontend server running on port 5173
+- Widget displays open jobs filtered by user's accessible programs
+- Click navigation to maintenance detail page working
+- Back to Dashboard button in detail page functional
+
