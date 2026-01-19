@@ -1799,6 +1799,9 @@ function generateMockActivityLog(): ActivityLogEntry[] {
   ];
 }
 
+// Mutable activity log to store new activities (e.g., from asset updates)
+const dynamicActivityLog: ActivityLogEntry[] = [];
+
 // Dashboard: Get recent activity (requires authentication)
 app.get('/api/dashboard/recent-activity', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -1815,8 +1818,8 @@ app.get('/api/dashboard/recent-activity', (req, res) => {
   // Get optional limit from query string (default to 10)
   const limit = Math.min(parseInt(req.query.limit as string, 10) || 10, 50);
 
-  // Generate activity log
-  const allActivity = generateMockActivityLog();
+  // Generate activity log (static + dynamic entries)
+  const allActivity = [...generateMockActivityLog(), ...dynamicActivityLog];
 
   // Filter activity by user's accessible programs (null pgm_id entries are global and visible to all)
   const filteredActivity = allActivity.filter(
@@ -1856,8 +1859,8 @@ interface AssetDetails {
   remarks: string | null;
 }
 
-// Generate detailed asset data
-function generateDetailedAssets(): AssetDetails[] {
+// Generate detailed asset data - initialize once and make mutable
+function initializeDetailedAssets(): AssetDetails[] {
   const today = new Date();
   const addDays = (days: number): string => {
     const date = new Date(today);
@@ -1905,6 +1908,9 @@ function generateDetailedAssets(): AssetDetails[] {
     { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(50), next_pmi_date: addDays(40), eti_hours: 340, remarks: null },
   ];
 }
+
+// Mutable array of detailed assets - initialized once, persists modifications
+const detailedAssets: AssetDetails[] = initializeDetailedAssets();
 
 // GET /api/assets - List all assets for a program (requires authentication)
 app.get('/api/assets', (req, res) => {
@@ -1998,12 +2004,61 @@ app.get('/api/assets/:id', (req, res) => {
   }
 
   const assetId = parseInt(req.params.id, 10);
-  const allAssets = generateDetailedAssets();
-  const asset = allAssets.find(a => a.asset_id === assetId);
 
-  if (!asset) {
+  // Get the raw asset from mockAssets for editable fields
+  const rawAsset = mockAssets.find(a => a.asset_id === assetId);
+
+  if (!rawAsset) {
     return res.status(404).json({ error: 'Asset not found' });
   }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(rawAsset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get program and location info for display
+  const program = allPrograms.find(p => p.pgm_id === rawAsset.pgm_id);
+  const adminLocInfo = adminLocations.find(l => l.loc_cd === rawAsset.admin_loc);
+  const custLocInfo = custodialLocations.find(l => l.loc_cd === rawAsset.cust_loc);
+  const statusInfo = assetStatusCodes.find(s => s.status_cd === rawAsset.status_cd);
+
+  res.json({
+    asset: {
+      ...rawAsset,
+      status_name: statusInfo?.status_name || rawAsset.status_cd,
+      admin_loc_name: adminLocInfo?.loc_name || rawAsset.admin_loc,
+      cust_loc_name: custLocInfo?.loc_name || rawAsset.cust_loc,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    }
+  });
+});
+
+// PUT /api/assets/:id - Update an existing asset (requires authentication and depot_manager/admin role)
+app.put('/api/assets/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN and DEPOT_MANAGER can update assets
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to modify assets' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const assetIndex = mockAssets.findIndex(a => a.asset_id === assetId);
+
+  if (assetIndex === -1) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  const asset = mockAssets[assetIndex];
 
   // Check if user has access to this asset's program
   const userProgramIds = user.programs.map(p => p.pgm_id);
@@ -2011,15 +2066,125 @@ app.get('/api/assets/:id', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this asset' });
   }
 
-  // Get program info
+  const { partno, serno, name, status_cd, admin_loc, cust_loc, notes, active } = req.body;
+
+  // Track changes for audit log
+  const changes: string[] = [];
+  const oldAsset = { ...asset };
+
+  // Validate and apply changes
+  if (partno !== undefined && partno !== asset.partno) {
+    if (!partno) {
+      return res.status(400).json({ error: 'Part number cannot be empty' });
+    }
+    changes.push(`Part Number: ${asset.partno} → ${partno}`);
+    asset.partno = partno;
+  }
+
+  if (serno !== undefined && serno !== asset.serno) {
+    if (!serno) {
+      return res.status(400).json({ error: 'Serial number cannot be empty' });
+    }
+    // Check for duplicate serial number (within same program)
+    const existingAsset = mockAssets.find(a => a.serno.toLowerCase() === serno.toLowerCase() && a.pgm_id === asset.pgm_id && a.asset_id !== assetId);
+    if (existingAsset) {
+      return res.status(400).json({ error: 'An asset with this serial number already exists in this program' });
+    }
+    changes.push(`Serial Number: ${asset.serno} → ${serno}`);
+    asset.serno = serno;
+  }
+
+  if (name !== undefined && name !== asset.name) {
+    changes.push(`Name: ${asset.name} → ${name}`);
+    asset.name = name || `${asset.partno} - ${asset.serno}`;
+  }
+
+  if (status_cd !== undefined && status_cd !== asset.status_cd) {
+    const validStatuses = assetStatusCodes.map(s => s.status_cd);
+    if (!validStatuses.includes(status_cd)) {
+      return res.status(400).json({ error: 'Invalid status code' });
+    }
+    const oldStatus = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
+    const newStatus = assetStatusCodes.find(s => s.status_cd === status_cd);
+    changes.push(`Status: ${oldStatus?.status_name || asset.status_cd} → ${newStatus?.status_name || status_cd}`);
+    asset.status_cd = status_cd;
+  }
+
+  if (admin_loc !== undefined && admin_loc !== asset.admin_loc) {
+    const validAdminLocs = adminLocations.map(l => l.loc_cd);
+    if (!validAdminLocs.includes(admin_loc)) {
+      return res.status(400).json({ error: 'Invalid administrative location' });
+    }
+    const oldLoc = adminLocations.find(l => l.loc_cd === asset.admin_loc);
+    const newLoc = adminLocations.find(l => l.loc_cd === admin_loc);
+    changes.push(`Admin Location: ${oldLoc?.loc_name || asset.admin_loc} → ${newLoc?.loc_name || admin_loc}`);
+    asset.admin_loc = admin_loc;
+  }
+
+  if (cust_loc !== undefined && cust_loc !== asset.cust_loc) {
+    const validCustLocs = custodialLocations.map(l => l.loc_cd);
+    if (!validCustLocs.includes(cust_loc)) {
+      return res.status(400).json({ error: 'Invalid custodial location' });
+    }
+    const oldLoc = custodialLocations.find(l => l.loc_cd === asset.cust_loc);
+    const newLoc = custodialLocations.find(l => l.loc_cd === cust_loc);
+    changes.push(`Custodial Location: ${oldLoc?.loc_name || asset.cust_loc} → ${newLoc?.loc_name || cust_loc}`);
+    asset.cust_loc = cust_loc;
+  }
+
+  if (notes !== undefined && notes !== asset.notes) {
+    changes.push(`Notes: "${asset.notes || '(empty)'}" → "${notes || '(empty)'}"`);
+    asset.notes = notes;
+  }
+
+  if (active !== undefined && active !== asset.active) {
+    changes.push(`Active: ${asset.active ? 'Yes' : 'No'} → ${active ? 'Yes' : 'No'}`);
+    asset.active = active;
+  }
+
+  if (changes.length === 0) {
+    return res.status(400).json({ error: 'No changes provided' });
+  }
+
+  // Get program and location info for response
   const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
+  const adminLocInfo = adminLocations.find(l => l.loc_cd === asset.admin_loc);
+  const custLocInfo = custodialLocations.find(l => l.loc_cd === asset.cust_loc);
+  const statusInfo = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
+
+  // Log the update
+  console.log(`[ASSETS] Asset updated by ${user.username}: ${asset.serno} (ID: ${assetId})`);
+  console.log(`[ASSETS] Changes: ${changes.join(', ')}`);
+
+  // Add to activity log (audit trail)
+  const now = new Date();
+  const newActivity: ActivityLogEntry = {
+    activity_id: 1000 + dynamicActivityLog.length + 1,
+    timestamp: now.toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    action_type: 'update',
+    entity_type: 'asset',
+    entity_id: assetId,
+    entity_name: asset.serno,
+    description: `Updated asset ${asset.serno}: ${changes.join('; ')}`,
+    pgm_id: asset.pgm_id,
+  };
+  dynamicActivityLog.push(newActivity);
 
   res.json({
+    message: 'Asset updated successfully',
     asset: {
       ...asset,
       program_cd: program?.pgm_cd || 'UNKNOWN',
       program_name: program?.pgm_name || 'Unknown Program',
-    }
+      admin_loc_name: adminLocInfo?.loc_name || asset.admin_loc,
+      cust_loc_name: custLocInfo?.loc_name || asset.cust_loc,
+      status_name: statusInfo?.status_name || asset.status_cd,
+    },
+    changes,
+    audit: newActivity,
   });
 });
 
@@ -2114,6 +2279,75 @@ app.post('/api/assets', (req, res) => {
       cust_loc_name: custLocInfo?.loc_name || cust_loc,
       status_name: statusInfo?.status_name || status_cd,
     }
+  });
+});
+
+// DELETE /api/assets/:id - Delete an asset (requires authentication and admin role)
+app.delete('/api/assets/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN can delete assets
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only administrators can delete assets' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const assetIndex = mockAssets.findIndex(a => a.asset_id === assetId);
+
+  if (assetIndex === -1) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  const asset = mockAssets[assetIndex];
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Store asset info before deletion for logging
+  const deletedAssetInfo = {
+    asset_id: asset.asset_id,
+    serno: asset.serno,
+    partno: asset.partno,
+    name: asset.name,
+    pgm_id: asset.pgm_id,
+  };
+
+  // Remove the asset from the array
+  mockAssets.splice(assetIndex, 1);
+
+  // Log the deletion
+  console.log(`[ASSETS] Asset deleted by ${user.username}: ${deletedAssetInfo.serno} (ID: ${assetId})`);
+
+  // Add to activity log (audit trail)
+  const now = new Date();
+  const newActivity: ActivityLogEntry = {
+    activity_id: 1000 + dynamicActivityLog.length + 1,
+    timestamp: now.toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    action_type: 'delete',
+    entity_type: 'asset',
+    entity_id: assetId,
+    entity_name: deletedAssetInfo.serno,
+    description: `Deleted asset ${deletedAssetInfo.serno} (${deletedAssetInfo.name})`,
+    pgm_id: deletedAssetInfo.pgm_id,
+  };
+  dynamicActivityLog.push(newActivity);
+
+  res.json({
+    message: `Asset "${deletedAssetInfo.serno}" deleted successfully`,
+    deleted_asset: deletedAssetInfo,
+    audit: newActivity,
   });
 });
 
