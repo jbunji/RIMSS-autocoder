@@ -1,9 +1,58 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
 
 // Load environment variables
 dotenv.config()
+
+// Configure uploads directory
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads')
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true })
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, UPLOADS_DIR)
+  },
+  filename: (_req, file, cb) => {
+    // Generate unique filename with timestamp and original extension
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    const ext = path.extname(file.originalname)
+    cb(null, `attachment-${uniqueSuffix}${ext}`)
+  }
+})
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (_req, file, cb) => {
+    // Allow common document and image types
+    const allowedMimeTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+    ]
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Invalid file type. Only PDF, images, Word, Excel, and text files are allowed.'))
+    }
+  }
+})
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -43,6 +92,9 @@ app.use(cors({
   credentials: true,
 }))
 app.use(express.json())
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(UPLOADS_DIR))
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
@@ -1986,6 +2038,25 @@ function initializeRepairs(): void {
 // Initialize repairs on server start
 initializeRepairs();
 
+// Attachment interface for maintenance event attachments
+interface Attachment {
+  attachment_id: number;
+  event_id: number;
+  filename: string;
+  original_filename: string;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
+  uploaded_by: number;
+  uploaded_by_name: string;
+  uploaded_at: string;
+  description: string | null;
+}
+
+// Persistent storage for attachments
+let attachments: Attachment[] = [];
+let attachmentNextId = 1;
+
 // Helper function to generate location prefix from location name
 function getLocationPrefix(location: string): string {
   // Create a short prefix from the location name
@@ -2640,6 +2711,254 @@ app.put('/api/repairs/:id', (req, res) => {
   res.json({
     message: 'Repair updated successfully',
     repair: repairs[repairIndex],
+  });
+});
+
+// ============================================
+// ATTACHMENT ENDPOINTS
+// ============================================
+
+// Get attachments for a maintenance event
+app.get('/api/events/:eventId/attachments', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const eventId = parseInt(req.params.eventId, 10);
+  const event = maintenanceEvents.find(e => e.event_id === eventId);
+
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  // Get attachments for this event
+  const eventAttachments = attachments.filter(a => a.event_id === eventId);
+
+  console.log(`[ATTACHMENTS] Fetched ${eventAttachments.length} attachments for event ${event.job_no} by ${user.username}`);
+
+  res.json({
+    attachments: eventAttachments,
+    total: eventAttachments.length,
+  });
+});
+
+// Upload attachment to a maintenance event
+app.post('/api/events/:eventId/attachments', upload.single('file'), (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can upload
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to upload attachments.' });
+  }
+
+  const eventId = parseInt(req.params.eventId, 10);
+  const event = maintenanceEvents.find(e => e.event_id === eventId);
+
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event' });
+  }
+
+  // Check if file was uploaded
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const { description } = req.body;
+
+  const newAttachment: Attachment = {
+    attachment_id: attachmentNextId++,
+    event_id: eventId,
+    filename: req.file.filename,
+    original_filename: req.file.originalname,
+    file_path: req.file.path,
+    file_size: req.file.size,
+    mime_type: req.file.mimetype,
+    uploaded_by: user.user_id,
+    uploaded_by_name: `${user.first_name} ${user.last_name}`,
+    uploaded_at: new Date().toISOString(),
+    description: description || null,
+  };
+
+  attachments.push(newAttachment);
+
+  console.log(`[ATTACHMENTS] Uploaded attachment ${newAttachment.attachment_id} (${newAttachment.original_filename}) for event ${event.job_no} by ${user.username}`);
+
+  res.status(201).json({
+    message: 'Attachment uploaded successfully',
+    attachment: newAttachment,
+  });
+});
+
+// Download/serve an attachment
+app.get('/api/attachments/:id/download', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const attachmentId = parseInt(req.params.id, 10);
+  const attachment = attachments.find(a => a.attachment_id === attachmentId);
+
+  if (!attachment) {
+    return res.status(404).json({ error: 'Attachment not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === attachment.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this attachment' });
+  }
+
+  // Check if file exists
+  if (!fs.existsSync(attachment.file_path)) {
+    return res.status(404).json({ error: 'File not found on server' });
+  }
+
+  console.log(`[ATTACHMENTS] Serving attachment ${attachmentId} (${attachment.original_filename}) to ${user.username}`);
+
+  // Set appropriate headers for download
+  res.setHeader('Content-Type', attachment.mime_type);
+  res.setHeader('Content-Disposition', `attachment; filename="${attachment.original_filename}"`);
+  res.setHeader('Content-Length', attachment.file_size);
+
+  // Stream the file
+  const fileStream = fs.createReadStream(attachment.file_path);
+  fileStream.pipe(res);
+});
+
+// Serve attachment for inline viewing (images)
+app.get('/api/attachments/:id/view', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const attachmentId = parseInt(req.params.id, 10);
+  const attachment = attachments.find(a => a.attachment_id === attachmentId);
+
+  if (!attachment) {
+    return res.status(404).json({ error: 'Attachment not found' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === attachment.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this attachment' });
+  }
+
+  // Check if file exists
+  if (!fs.existsSync(attachment.file_path)) {
+    return res.status(404).json({ error: 'File not found on server' });
+  }
+
+  console.log(`[ATTACHMENTS] Viewing attachment ${attachmentId} (${attachment.original_filename}) by ${user.username}`);
+
+  // Set appropriate headers for inline viewing
+  res.setHeader('Content-Type', attachment.mime_type);
+  res.setHeader('Content-Disposition', `inline; filename="${attachment.original_filename}"`);
+  res.setHeader('Content-Length', attachment.file_size);
+
+  // Stream the file
+  const fileStream = fs.createReadStream(attachment.file_path);
+  fileStream.pipe(res);
+});
+
+// Delete an attachment
+app.delete('/api/attachments/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER can delete (or the user who uploaded)
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER'];
+
+  const attachmentId = parseInt(req.params.id, 10);
+  const attachmentIndex = attachments.findIndex(a => a.attachment_id === attachmentId);
+
+  if (attachmentIndex === -1) {
+    return res.status(404).json({ error: 'Attachment not found' });
+  }
+
+  const attachment = attachments[attachmentIndex];
+
+  // Allow delete if: admin, depot_manager, or the uploader
+  if (!allowedRoles.includes(user.role) && attachment.uploaded_by !== user.user_id) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to delete this attachment.' });
+  }
+
+  // Get the associated event to check program access
+  const event = maintenanceEvents.find(e => e.event_id === attachment.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this attachment' });
+  }
+
+  // Delete the file from disk
+  if (fs.existsSync(attachment.file_path)) {
+    fs.unlinkSync(attachment.file_path);
+  }
+
+  // Remove from array
+  attachments.splice(attachmentIndex, 1);
+
+  console.log(`[ATTACHMENTS] Deleted attachment ${attachmentId} (${attachment.original_filename}) by ${user.username}`);
+
+  res.json({
+    message: 'Attachment deleted successfully',
+    deleted_attachment: {
+      attachment_id: attachment.attachment_id,
+      original_filename: attachment.original_filename,
+    },
   });
 });
 
