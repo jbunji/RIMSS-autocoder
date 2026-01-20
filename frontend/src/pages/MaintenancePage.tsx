@@ -232,10 +232,32 @@ export default function MaintenancePage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null)
 
+  // New PMI Modal State
+  interface NewPMIFormData {
+    asset_id: string
+    pmi_type: string
+    next_due_date: string
+    wuc_cd: string
+    interval_days: string
+  }
+
+  const [isNewPMIModalOpen, setIsNewPMIModalOpen] = useState(false)
+  const [newPMILoading, setNewPMILoading] = useState(false)
+  const [newPMIError, setNewPMIError] = useState<string | null>(null)
+  const [newPMISuccess, setNewPMISuccess] = useState<string | null>(null)
+  const [newPMIForm, setNewPMIForm] = useState<NewPMIFormData>({
+    asset_id: '',
+    pmi_type: '',
+    next_due_date: '',
+    wuc_cd: '',
+    interval_days: '',
+  })
+
   // Get user info from token to check role
   const { user } = useAuthStore()
   const canCreateEvent = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
   const canDeleteEvent = user && user.role === 'ADMIN'
+  const canCreatePMI = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
 
   // Debounce search input
   useEffect(() => {
@@ -460,6 +482,93 @@ export default function MaintenancePage() {
     setIsNewEventModalOpen(false)
     setNewEventError(null)
     setNewEventSuccess(null)
+  }
+
+  // Open new PMI modal
+  const openNewPMIModal = () => {
+    setNewPMIForm({
+      asset_id: '',
+      pmi_type: '',
+      next_due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default to 30 days from now
+      wuc_cd: '',
+      interval_days: '30',
+    })
+    setNewPMIError(null)
+    setNewPMISuccess(null)
+    fetchAssets()
+    setIsNewPMIModalOpen(true)
+  }
+
+  // Close new PMI modal
+  const closeNewPMIModal = () => {
+    setIsNewPMIModalOpen(false)
+    setNewPMIError(null)
+    setNewPMISuccess(null)
+  }
+
+  // Handle PMI form input changes
+  const handlePMIFormChange = (field: keyof typeof newPMIForm, value: string) => {
+    setNewPMIForm(prev => ({ ...prev, [field]: value }))
+    setNewPMIError(null)
+  }
+
+  // Handle PMI creation
+  const handleCreatePMI = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validate required fields
+    if (!newPMIForm.asset_id) {
+      setNewPMIError('Please select an asset')
+      return
+    }
+    if (!newPMIForm.pmi_type.trim()) {
+      setNewPMIError('Please enter a PMI type')
+      return
+    }
+    if (!newPMIForm.next_due_date) {
+      setNewPMIError('Please select a due date')
+      return
+    }
+
+    setNewPMILoading(true)
+    setNewPMIError(null)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/pmi', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          asset_id: parseInt(newPMIForm.asset_id, 10),
+          pmi_type: newPMIForm.pmi_type.trim(),
+          next_due_date: newPMIForm.next_due_date,
+          wuc_cd: newPMIForm.wuc_cd.trim() || undefined,
+          interval_days: newPMIForm.interval_days ? parseInt(newPMIForm.interval_days, 10) : undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create PMI record')
+      }
+
+      const data = await response.json()
+      setNewPMISuccess(`PMI record "${data.pmi.pmi_type}" created successfully for asset ${data.pmi.asset_sn}`)
+
+      // Refresh PMI data after successful creation
+      fetchPMI()
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        closeNewPMIModal()
+      }, 1500)
+    } catch (err) {
+      setNewPMIError(err instanceof Error ? err.message : 'Failed to create PMI record')
+    } finally {
+      setNewPMILoading(false)
+    }
   }
 
   // Handle form input changes
@@ -1609,6 +1718,171 @@ export default function MaintenancePage() {
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* New PMI Modal */}
+      <Dialog open={isNewPMIModalOpen} onClose={closeNewPMIModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Create New PMI Schedule Entry
+              </Dialog.Title>
+              <button
+                onClick={closeNewPMIModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleCreatePMI} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              {/* Success Message */}
+              {newPMISuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{newPMISuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {newPMIError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{newPMIError}</p>
+                </div>
+              )}
+
+              {/* Asset Selection */}
+              <div>
+                <label htmlFor="pmi_asset_id" className="block text-sm font-medium text-gray-700 mb-1">
+                  Asset <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="pmi_asset_id"
+                  value={newPMIForm.asset_id}
+                  onChange={(e) => handlePMIFormChange('asset_id', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                  disabled={assetsLoading}
+                >
+                  <option value="">Select an asset...</option>
+                  {assets.map((asset) => (
+                    <option key={asset.asset_id} value={asset.asset_id}>
+                      {asset.serno} - {asset.name}
+                    </option>
+                  ))}
+                </select>
+                {assetsLoading && (
+                  <p className="text-sm text-gray-500 mt-1">Loading assets...</p>
+                )}
+              </div>
+
+              {/* PMI Type */}
+              <div>
+                <label htmlFor="pmi_type" className="block text-sm font-medium text-gray-700 mb-1">
+                  PMI Type <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="pmi_type"
+                  value={newPMIForm.pmi_type}
+                  onChange={(e) => handlePMIFormChange('pmi_type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="e.g., 30-Day Inspection, 90-Day Calibration"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Describe the type of periodic maintenance (e.g., 30-Day Inspection, Annual Service)
+                </p>
+              </div>
+
+              {/* Due Date */}
+              <div>
+                <label htmlFor="pmi_due_date" className="block text-sm font-medium text-gray-700 mb-1">
+                  Due Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="pmi_due_date"
+                  value={newPMIForm.next_due_date}
+                  onChange={(e) => handlePMIFormChange('next_due_date', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  required
+                />
+              </div>
+
+              {/* WUC (Work Unit Code) */}
+              <div>
+                <label htmlFor="pmi_wuc" className="block text-sm font-medium text-gray-700 mb-1">
+                  WUC (Work Unit Code)
+                </label>
+                <input
+                  type="text"
+                  id="pmi_wuc"
+                  value={newPMIForm.wuc_cd}
+                  onChange={(e) => handlePMIFormChange('wuc_cd', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="e.g., 14AAA"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional work unit code for maintenance tracking
+                </p>
+              </div>
+
+              {/* Interval Days */}
+              <div>
+                <label htmlFor="pmi_interval" className="block text-sm font-medium text-gray-700 mb-1">
+                  Interval (Days)
+                </label>
+                <input
+                  type="number"
+                  id="pmi_interval"
+                  value={newPMIForm.interval_days}
+                  onChange={(e) => handlePMIFormChange('interval_days', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="e.g., 30, 90, 365"
+                  min="1"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Recurring interval in days for this PMI
+                </p>
+              </div>
+            </form>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeNewPMIModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={newPMILoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreatePMI}
+                disabled={newPMILoading || !!newPMISuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {newPMILoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Create PMI
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   )
 
@@ -2109,9 +2383,32 @@ export default function MaintenancePage() {
 
     if (pmiRecords.length === 0) {
       return (
-        <div className="bg-white shadow rounded-lg p-8 text-center">
-          <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No PMI schedule entries found for the current program.</p>
+        <div className="space-y-6">
+          {/* Add PMI Button */}
+          {canCreatePMI && (
+            <div className="flex justify-end">
+              <button
+                onClick={openNewPMIModal}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              >
+                <PlusIcon className="h-5 w-5" />
+                Add PMI
+              </button>
+            </div>
+          )}
+          <div className="bg-white shadow rounded-lg p-8 text-center">
+            <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No PMI schedule entries found for the current program.</p>
+            {canCreatePMI && (
+              <button
+                onClick={openNewPMIModal}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                <PlusIcon className="h-5 w-5" />
+                Create First PMI
+              </button>
+            )}
+          </div>
         </div>
       )
     }
@@ -2132,6 +2429,19 @@ export default function MaintenancePage() {
 
     return (
       <div className="space-y-6">
+        {/* Add PMI Button */}
+        {canCreatePMI && (
+          <div className="flex justify-end">
+            <button
+              onClick={openNewPMIModal}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Add PMI
+            </button>
+          </div>
+        )}
+
         {/* PMI Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white rounded-lg shadow p-4">
