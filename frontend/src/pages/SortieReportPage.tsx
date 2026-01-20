@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
-import { DocumentArrowDownIcon, CalendarIcon } from '@heroicons/react/24/outline'
+import { DocumentArrowDownIcon, CalendarIcon, PrinterIcon } from '@heroicons/react/24/outline'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -140,6 +140,10 @@ export default function SortieReportPage() {
     const month = String(now.getUTCMonth() + 1).padStart(2, '0')
     const day = String(now.getUTCDate()).padStart(2, '0')
     return `${year}${month}${day}`
+  }
+
+  const handlePrint = () => {
+    window.print()
   }
 
   const exportToPDF = () => {
