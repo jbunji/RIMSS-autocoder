@@ -1885,6 +1885,381 @@ export default function MaintenancePage() {
     XLSX.writeFile(wb, filename)
   }
 
+  // Export TCTO records to PDF with CUI markings
+  const exportTCTOToPdf = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+
+      // Timestamp on footer
+      doc.text(`Generated: ${zuluTimestamp}`, 15, pageHeight - 5, { align: 'left' })
+    }
+
+    // Helper to get status info with color
+    const getTCTOStatusInfo = (daysUntilDeadline: number, status: string): { label: string; color: [number, number, number]; bgColor: [number, number, number] } => {
+      if (status === 'closed') {
+        return { label: 'COMPLETED', color: [22, 101, 52], bgColor: [220, 252, 231] } // green-800, green-100
+      }
+      if (daysUntilDeadline < 0) {
+        return { label: 'OVERDUE', color: [153, 27, 27], bgColor: [254, 226, 226] } // red-800, red-100
+      }
+      if (daysUntilDeadline <= 7) {
+        return { label: 'DUE SOON', color: [153, 27, 27], bgColor: [254, 226, 226] } // red-800, red-100
+      }
+      if (daysUntilDeadline <= 30) {
+        return { label: 'UPCOMING', color: [133, 77, 14], bgColor: [254, 249, 195] } // yellow-800, yellow-100
+      }
+      return { label: 'ON TRACK', color: [22, 101, 52], bgColor: [220, 252, 231] } // green-800, green-100
+    }
+
+    // Add title section after header
+    const addTitle = () => {
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(30, 64, 175) // Primary blue
+      doc.text('RIMSS TCTO Report', pageWidth / 2, 20, { align: 'center' })
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(55, 65, 81) // Gray
+      const programText = program ? `Program: ${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'
+      doc.text(programText, pageWidth / 2, 27, { align: 'center' })
+
+      doc.setFontSize(9)
+      doc.text(`Report generated: ${zuluTimestamp}`, pageWidth / 2, 33, { align: 'center' })
+
+      // Summary stats
+      doc.text(`Total TCTO Records: ${tctoRecords.length}`, pageWidth / 2, 38, { align: 'center' })
+
+      // Add filter info if applied
+      const filters: string[] = []
+      if (debouncedTctoSearch) filters.push(`Search: "${debouncedTctoSearch}"`)
+      if (tctoPriorityFilter) filters.push(`Priority: ${tctoPriorityFilter}`)
+      if (tctoStatusFilter) filters.push(`Status: ${tctoStatusFilter}`)
+
+      if (filters.length > 0) {
+        doc.setFontSize(8)
+        doc.setTextColor(107, 114, 128)
+        doc.text(`Filters: ${filters.join(', ')}`, pageWidth / 2, 43, { align: 'center' })
+      }
+
+      // Add status legend
+      const legendY = filters.length > 0 ? 48 : 43
+      doc.setFontSize(7)
+      doc.setTextColor(107, 114, 128)
+      doc.text('Status Legend:', 15, legendY)
+
+      // Overdue (red)
+      doc.setFillColor(254, 226, 226)
+      doc.roundedRect(40, legendY - 3, 20, 5, 1, 1, 'F')
+      doc.setTextColor(153, 27, 27)
+      doc.text('OVERDUE', 42, legendY)
+
+      // Due Soon (red)
+      doc.setFillColor(254, 226, 226)
+      doc.roundedRect(65, legendY - 3, 20, 5, 1, 1, 'F')
+      doc.setTextColor(153, 27, 27)
+      doc.text('DUE SOON', 66, legendY)
+
+      // Upcoming (yellow)
+      doc.setFillColor(254, 249, 195)
+      doc.roundedRect(90, legendY - 3, 22, 5, 1, 1, 'F')
+      doc.setTextColor(133, 77, 14)
+      doc.text('UPCOMING', 92, legendY)
+
+      // On Track (green)
+      doc.setFillColor(220, 252, 231)
+      doc.roundedRect(117, legendY - 3, 23, 5, 1, 1, 'F')
+      doc.setTextColor(22, 101, 52)
+      doc.text('ON TRACK', 119, legendY)
+
+      // Completed (green)
+      doc.setFillColor(220, 252, 231)
+      doc.roundedRect(145, legendY - 3, 25, 5, 1, 1, 'F')
+      doc.setTextColor(22, 101, 52)
+      doc.text('COMPLETED', 147, legendY)
+    }
+
+    // Prepare table data with status color info
+    const tableData = tctoRecords.map(tcto => {
+      const statusInfo = getTCTOStatusInfo(tcto.days_until_deadline, tcto.status)
+      return {
+        data: [
+          statusInfo.label,
+          tcto.tcto_no,
+          tcto.title,
+          tcto.priority,
+          formatDateForExport(tcto.effective_date),
+          formatDateForExport(tcto.compliance_deadline),
+          tcto.status === 'closed' ? '-' :
+            tcto.days_until_deadline < 0
+              ? `${Math.abs(tcto.days_until_deadline)} days overdue`
+              : `${tcto.days_until_deadline} days`,
+          `${tcto.compliance_percentage}%`,
+          `${tcto.compliant_assets.length}/${tcto.affected_assets.length}`
+        ],
+        statusInfo
+      }
+    })
+
+    // Add header to first page
+    addCuiHeader()
+    addTitle()
+
+    // Calculate start Y position based on filters
+    const filters: string[] = []
+    if (debouncedTctoSearch) filters.push(`Search: "${debouncedTctoSearch}"`)
+    if (tctoPriorityFilter) filters.push(`Priority: ${tctoPriorityFilter}`)
+    if (tctoStatusFilter) filters.push(`Status: ${tctoStatusFilter}`)
+    const startY = filters.length > 0 ? 53 : 48
+
+    // Generate table with autoTable - with color coding preserved
+    autoTable(doc, {
+      startY: startY,
+      head: [['Status', 'TCTO Number', 'Title', 'Priority', 'Effective Date', 'Deadline', 'Days Until', 'Compliance', 'Assets']],
+      body: tableData.map(row => row.data),
+      theme: 'striped',
+      headStyles: {
+        fillColor: [30, 64, 175], // Primary blue
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 8
+      },
+      bodyStyles: {
+        fontSize: 7,
+        textColor: [55, 65, 81]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251] // Light gray
+      },
+      margin: { top: 15, bottom: 15, left: 5, right: 5 },
+      didDrawPage: () => {
+        // Add CUI header on each page
+        addCuiHeader()
+      },
+      // Style specific columns
+      columnStyles: {
+        0: { cellWidth: 22 },  // Status
+        1: { cellWidth: 28 },  // TCTO Number
+        2: { cellWidth: 60 },  // Title
+        3: { cellWidth: 20 },  // Priority
+        4: { cellWidth: 25 },  // Effective Date
+        5: { cellWidth: 25 },  // Deadline
+        6: { cellWidth: 25 },  // Days Until
+        7: { cellWidth: 20 },  // Compliance
+        8: { cellWidth: 20 },  // Assets
+      },
+      // Apply color coding to status column
+      didParseCell: (data) => {
+        if (data.section === 'body') {
+          const rowIndex = data.row.index
+          const colIndex = data.column.index
+          const rowData = tableData[rowIndex]
+
+          // Status column (0) - apply color coding
+          if (colIndex === 0 && rowData) {
+            data.cell.styles.fillColor = rowData.statusInfo.bgColor
+            data.cell.styles.textColor = rowData.statusInfo.color
+            data.cell.styles.fontStyle = 'bold'
+          }
+
+          // Days Until column (6) - apply color coding
+          if (colIndex === 6 && rowData) {
+            data.cell.styles.textColor = rowData.statusInfo.color
+            data.cell.styles.fontStyle = 'bold'
+          }
+        }
+      }
+    })
+
+    // Get total pages and add footers
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addCuiFooter(i, totalPages)
+    }
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_TCTO_Report_${getZuluDateForFilename()}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  // Export TCTO records to Excel with CUI markings
+  const exportTCTOToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Helper to get status label
+    const getTCTOStatusLabel = (daysUntilDeadline: number, status: string): string => {
+      if (status === 'closed') return 'COMPLETED'
+      if (daysUntilDeadline < 0) return 'OVERDUE'
+      if (daysUntilDeadline <= 7) return 'DUE SOON'
+      if (daysUntilDeadline <= 30) return 'UPCOMING'
+      return 'ON TRACK'
+    }
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = [`RIMSS TCTO Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total TCTO Records: ${tctoRecords.length}`]
+
+    // Summary row
+    const summaryRow = [`Summary: ${tctoSummary.open} Open | ${tctoSummary.closed} Completed | ${tctoSummary.overdue} Overdue | ${tctoSummary.critical} Critical | ${tctoSummary.urgent} Urgent | ${tctoSummary.routine} Routine`]
+
+    // Filter info
+    const filters: string[] = []
+    if (debouncedTctoSearch) filters.push(`Search: "${debouncedTctoSearch}"`)
+    if (tctoPriorityFilter) filters.push(`Priority: ${tctoPriorityFilter}`)
+    if (tctoStatusFilter) filters.push(`Status: ${tctoStatusFilter}`)
+    const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
+
+    // Table header row
+    const headerRow = ['Status', 'TCTO Number', 'Title', 'Description', 'Priority', 'Effective Date (ZULU)', 'Compliance Deadline (ZULU)', 'Days Until Deadline', 'Compliance %', 'Compliant Assets', 'Total Assets', 'Status Color']
+
+    // Data rows
+    const dataRows = tctoRecords.map(tcto => {
+      const statusLabel = getTCTOStatusLabel(tcto.days_until_deadline, tcto.status)
+      // Format dates in ZULU
+      const effectiveDateZulu = tcto.effective_date ? new Date(tcto.effective_date).toISOString().split('T')[0] + 'Z' : ''
+      const deadlineZulu = tcto.compliance_deadline ? new Date(tcto.compliance_deadline).toISOString().split('T')[0] + 'Z' : ''
+
+      // Color indicator for accessibility
+      let colorIndicator = ''
+      if (tcto.status === 'closed') colorIndicator = 'GREEN - Completed'
+      else if (tcto.days_until_deadline < 0) colorIndicator = 'RED - Overdue'
+      else if (tcto.days_until_deadline <= 7) colorIndicator = 'RED - Due within 7 days'
+      else if (tcto.days_until_deadline <= 30) colorIndicator = 'YELLOW - Due within 30 days'
+      else colorIndicator = 'GREEN - More than 30 days'
+
+      return [
+        statusLabel,
+        tcto.tcto_no,
+        tcto.title,
+        tcto.description,
+        tcto.priority,
+        effectiveDateZulu,
+        deadlineZulu,
+        tcto.status === 'closed' ? '-' :
+          tcto.days_until_deadline < 0 ? `${Math.abs(tcto.days_until_deadline)} overdue` : `${tcto.days_until_deadline}`,
+        `${tcto.compliance_percentage}%`,
+        tcto.compliant_assets.length.toString(),
+        tcto.affected_assets.length.toString(),
+        colorIndicator
+      ]
+    })
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      summaryRow,
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 12 },  // Status
+      { wch: 18 },  // TCTO Number
+      { wch: 35 },  // Title
+      { wch: 45 },  // Description
+      { wch: 12 },  // Priority
+      { wch: 20 },  // Effective Date (ZULU)
+      { wch: 25 },  // Compliance Deadline (ZULU)
+      { wch: 20 },  // Days Until Deadline
+      { wch: 12 },  // Compliance %
+      { wch: 15 },  // Compliant Assets
+      { wch: 12 },  // Total Assets
+      { wch: 25 },  // Status Color
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    const headerRowIndex = filterRow.length ? 8 : 7
+
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total records
+      { s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } }, // Summary
+      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
+    ]
+
+    // Add filter merge if applicable
+    if (filterRow.length) {
+      ws['!merges']!.push({ s: { r: 6, c: 0 }, e: { r: 6, c: numCols - 1 } })
+    }
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'TCTO_Report')
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_TCTO_Report_${getZuluDateForFilename()}.xlsx`
+
+    // Write the file and trigger download
+    XLSX.writeFile(wb, filename)
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -4370,6 +4745,24 @@ export default function MaintenancePage() {
 
         {/* Actions Row */}
         <div className="flex justify-end gap-2">
+          {/* Export PDF Button */}
+          <button
+            onClick={exportTCTOToPdf}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            title="Export to PDF with CUI markings"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4" />
+            Export PDF
+          </button>
+          {/* Export Excel Button */}
+          <button
+            onClick={exportTCTOToExcel}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            title="Export to Excel with CUI markings"
+          >
+            <DocumentArrowDownIcon className="h-4 w-4" />
+            Export Excel
+          </button>
           <button
             onClick={fetchTCTO}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
