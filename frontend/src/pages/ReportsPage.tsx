@@ -36,7 +36,7 @@ const reports: ReportCard[] = [
     description: 'Preventive Maintenance Inspection (PMI) schedule showing upcoming, due, and overdue inspections.',
     icon: CalendarDaysIcon,
     category: 'Maintenance',
-    route: '/pmi',
+    route: '/reports/pmi-schedule',
     available: true,
   },
   {
@@ -45,7 +45,7 @@ const reports: ReportCard[] = [
     description: 'Parts requisition status report including requested, acknowledged, filled, and shipped orders.',
     icon: TruckIcon,
     category: 'Supply',
-    route: '/parts-ordered',
+    route: '/reports/parts-ordered',
     available: true,
   },
 ]

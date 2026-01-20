@@ -1,0 +1,272 @@
+### Page state
+- Page URL: http://localhost:5173/reports/pmi-schedule
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]: CUI - Controlled Unclassified Information
+  - navigation [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - button "Toggle sidebar" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - generic [ref=e14]: RIMSS
+          - generic [ref=e15]: Remote Independent Maintenance Status System
+      - generic [ref=e16]:
+        - link "View notifications" [ref=e17] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e18]
+          - generic [ref=e20]: "4"
+        - 'button "Program: CRIIS" [ref=e22] [cursor=pointer]':
+          - generic [ref=e23]: "Program:"
+          - generic [ref=e24]: CRIIS
+          - img [ref=e25]
+        - button "John Admin" [ref=e28] [cursor=pointer]:
+          - img [ref=e29]
+          - generic [ref=e31]: John Admin
+          - img [ref=e32]
+  - generic [ref=e36]:
+    - navigation [ref=e37]:
+      - generic [ref=e38]:
+        - link "Dashboard" [ref=e39] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e40]
+          - text: Dashboard
+        - link "Assets" [ref=e42] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e43]
+          - text: Assets
+        - link "Configurations" [ref=e45] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e46]
+          - text: Configurations
+        - link "Maintenance" [ref=e49] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e50]
+          - text: Maintenance
+        - link "Sorties" [ref=e52] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e53]
+          - text: Sorties
+        - link "Spares" [ref=e55] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e56]
+          - text: Spares
+        - link "Parts Ordered" [ref=e58] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e59]
+          - text: Parts Ordered
+        - link "Software" [ref=e61] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e62]
+          - text: Software
+        - link "Notifications" [ref=e64] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e65]
+          - text: Notifications
+        - link "Reports" [ref=e67] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e68]
+          - text: Reports
+      - generic [ref=e70]:
+        - paragraph [ref=e71]: Administration
+        - link "Users" [ref=e72] [cursor=pointer]:
+          - /url: /admin/users
+          - img [ref=e73]
+          - text: Users
+    - paragraph [ref=e76]: RIMSS v0.1.0
+  - main [ref=e78]:
+    - generic [ref=e80]:
+      - generic [ref=e81]:
+        - heading "PMI Schedule Report" [level=1] [ref=e82]
+        - paragraph [ref=e83]: "Generated: Jan 20, 2026"
+      - generic [ref=e84]:
+        - generic [ref=e87]:
+          - img [ref=e89]
+          - generic [ref=e92]:
+            - term [ref=e93]: Overdue
+            - definition [ref=e94]:
+              - generic [ref=e95]: "1"
+        - generic [ref=e98]:
+          - img [ref=e100]
+          - generic [ref=e103]:
+            - term [ref=e104]: Due Soon
+            - definition [ref=e105]:
+              - generic [ref=e106]: "3"
+        - generic [ref=e109]:
+          - img [ref=e111]
+          - generic [ref=e114]:
+            - term [ref=e115]: Upcoming
+            - definition [ref=e116]:
+              - generic [ref=e117]: "6"
+        - generic [ref=e120]:
+          - img [ref=e122]
+          - generic [ref=e125]:
+            - term [ref=e126]: Completed
+            - definition [ref=e127]:
+              - generic [ref=e128]: "0"
+      - generic [ref=e129]:
+        - generic [ref=e130]:
+          - button "Overdue PMIs (1)" [ref=e131] [cursor=pointer]:
+            - generic [ref=e132]:
+              - img [ref=e133]
+              - heading "Overdue PMIs (1)" [level=2] [ref=e135]
+            - img [ref=e136]
+          - table [ref=e139]:
+            - rowgroup [ref=e140]:
+              - row "Asset PMI Type WUC Due Date Days Overdue Status" [ref=e141]:
+                - columnheader "Asset" [ref=e142]
+                - columnheader "PMI Type" [ref=e143]
+                - columnheader "WUC" [ref=e144]
+                - columnheader "Due Date" [ref=e145]
+                - columnheader "Days Overdue" [ref=e146]
+                - columnheader "Status" [ref=e147]
+            - rowgroup [ref=e148]:
+              - row "CRIIS-001 Sensor Unit A 30-Day Inspection 14AAA Jan 17, 2026 3 days overdue OVERDUE" [ref=e149]:
+                - cell "CRIIS-001 Sensor Unit A" [ref=e150]:
+                  - generic [ref=e151]: CRIIS-001
+                  - generic [ref=e152]: Sensor Unit A
+                - cell "30-Day Inspection" [ref=e153]
+                - cell "14AAA" [ref=e154]
+                - cell "Jan 17, 2026" [ref=e155]
+                - cell "3 days overdue" [ref=e156]:
+                  - generic [ref=e157]: 3 days overdue
+                - cell "OVERDUE" [ref=e158]:
+                  - generic [ref=e159]: OVERDUE
+        - generic [ref=e160]:
+          - button "Due Soon (Within 7 Days) (3)" [ref=e161] [cursor=pointer]:
+            - generic [ref=e162]:
+              - img [ref=e163]
+              - heading "Due Soon (Within 7 Days) (3)" [level=2] [ref=e165]
+            - img [ref=e166]
+          - table [ref=e169]:
+            - rowgroup [ref=e170]:
+              - row "Asset PMI Type WUC Due Date Days Until Due Status" [ref=e171]:
+                - columnheader "Asset" [ref=e172]
+                - columnheader "PMI Type" [ref=e173]
+                - columnheader "WUC" [ref=e174]
+                - columnheader "Due Date" [ref=e175]
+                - columnheader "Days Until Due" [ref=e176]
+                - columnheader "Status" [ref=e177]
+            - rowgroup [ref=e178]:
+              - row "CRIIS-003 Sensor Unit B 90-Day Calibration 23BBB Jan 22, 2026 2 days DUE SOON" [ref=e179]:
+                - cell "CRIIS-003 Sensor Unit B" [ref=e180]:
+                  - generic [ref=e181]: CRIIS-003
+                  - generic [ref=e182]: Sensor Unit B
+                - cell "90-Day Calibration" [ref=e183]
+                - cell "23BBB" [ref=e184]
+                - cell "Jan 22, 2026" [ref=e185]
+                - cell "2 days" [ref=e186]:
+                  - generic [ref=e187]: 2 days
+                - cell "DUE SOON" [ref=e188]:
+                  - generic [ref=e189]: DUE SOON
+              - row "ACTS-004 Laser System 60-Day Check 33JJJ Jan 24, 2026 4 days DUE SOON" [ref=e190]:
+                - cell "ACTS-004 Laser System" [ref=e191]:
+                  - generic [ref=e192]: ACTS-004
+                  - generic [ref=e193]: Laser System
+                - cell "60-Day Check" [ref=e194]
+                - cell "33JJJ" [ref=e195]
+                - cell "Jan 24, 2026" [ref=e196]
+                - cell "4 days" [ref=e197]:
+                  - generic [ref=e198]: 4 days
+                - cell "DUE SOON" [ref=e199]:
+                  - generic [ref=e200]: DUE SOON
+              - row "CRIIS-004 Camera System X 60-Day Check 41CCC Jan 26, 2026 6 days DUE SOON" [ref=e201]:
+                - cell "CRIIS-004 Camera System X" [ref=e202]:
+                  - generic [ref=e203]: CRIIS-004
+                  - generic [ref=e204]: Camera System X
+                - cell "60-Day Check" [ref=e205]
+                - cell "41CCC" [ref=e206]
+                - cell "Jan 26, 2026" [ref=e207]
+                - cell "6 days" [ref=e208]:
+                  - generic [ref=e209]: 6 days
+                - cell "DUE SOON" [ref=e210]:
+                  - generic [ref=e211]: DUE SOON
+        - generic [ref=e212]:
+          - button "Upcoming PMIs (6)" [ref=e213] [cursor=pointer]:
+            - generic [ref=e214]:
+              - img [ref=e215]
+              - heading "Upcoming PMIs (6)" [level=2] [ref=e217]
+            - img [ref=e218]
+          - table [ref=e221]:
+            - rowgroup [ref=e222]:
+              - row "Asset PMI Type WUC Due Date Days Until Due Status" [ref=e223]:
+                - columnheader "Asset" [ref=e224]
+                - columnheader "PMI Type" [ref=e225]
+                - columnheader "WUC" [ref=e226]
+                - columnheader "Due Date" [ref=e227]
+                - columnheader "Days Until Due" [ref=e228]
+                - columnheader "Status" [ref=e229]
+            - rowgroup [ref=e230]:
+              - row "CRIIS-006 Radar Unit 01 180-Day Service 74DDD Jan 31, 2026 11 days UPCOMING" [ref=e231]:
+                - cell "CRIIS-006 Radar Unit 01" [ref=e232]:
+                  - generic [ref=e233]: CRIIS-006
+                  - generic [ref=e234]: Radar Unit 01
+                - cell "180-Day Service" [ref=e235]
+                - cell "74DDD" [ref=e236]
+                - cell "Jan 31, 2026" [ref=e237]
+                - cell "11 days" [ref=e238]:
+                  - generic [ref=e239]: 11 days
+                - cell "UPCOMING" [ref=e240]:
+                  - generic [ref=e241]: UPCOMING
+              - row "CRIIS-008 Communication System 365-Day Overhaul 62EEE Feb 9, 2026 20 days UPCOMING" [ref=e242]:
+                - cell "CRIIS-008 Communication System" [ref=e243]:
+                  - generic [ref=e244]: CRIIS-008
+                  - generic [ref=e245]: Communication System
+                - cell "365-Day Overhaul" [ref=e246]
+                - cell "62EEE" [ref=e247]
+                - cell "Feb 9, 2026" [ref=e248]
+                - cell "20 days" [ref=e249]:
+                  - generic [ref=e250]: 20 days
+                - cell "UPCOMING" [ref=e251]:
+                  - generic [ref=e252]: UPCOMING
+              - row "ACTS-001 Targeting System A 30-Day Inspection 71FFF Feb 16, 2026 27 days UPCOMING" [ref=e253]:
+                - cell "ACTS-001 Targeting System A" [ref=e254]:
+                  - generic [ref=e255]: ACTS-001
+                  - generic [ref=e256]: Targeting System A
+                - cell "30-Day Inspection" [ref=e257]
+                - cell "71FFF" [ref=e258]
+                - cell "Feb 16, 2026" [ref=e259]
+                - cell "27 days" [ref=e260]:
+                  - generic [ref=e261]: 27 days
+                - cell "UPCOMING" [ref=e262]:
+                  - generic [ref=e263]: UPCOMING
+              - row "CRIIS-004 Camera System X 90-Day Calibration 13GGG Mar 5, 2026 44 days UPCOMING" [ref=e264]:
+                - cell "CRIIS-004 Camera System X" [ref=e265]:
+                  - generic [ref=e266]: CRIIS-004
+                  - generic [ref=e267]: Camera System X
+                - cell "90-Day Calibration" [ref=e268]
+                - cell "13GGG" [ref=e269]
+                - cell "Mar 5, 2026" [ref=e270]
+                - cell "44 days" [ref=e271]:
+                  - generic [ref=e272]: 44 days
+                - cell "UPCOMING" [ref=e273]:
+                  - generic [ref=e274]: UPCOMING
+              - row "ARDS-001 Data Processing System 180-Day Service 25HHH Apr 19, 2026 89 days UPCOMING" [ref=e275]:
+                - cell "ARDS-001 Data Processing System" [ref=e276]:
+                  - generic [ref=e277]: ARDS-001
+                  - generic [ref=e278]: Data Processing System
+                - cell "180-Day Service" [ref=e279]
+                - cell "25HHH" [ref=e280]
+                - cell "Apr 19, 2026" [ref=e281]
+                - cell "89 days" [ref=e282]:
+                  - generic [ref=e283]: 89 days
+                - cell "UPCOMING" [ref=e284]:
+                  - generic [ref=e285]: UPCOMING
+              - row "CRIIS-010 Navigation Unit 365-Day Overhaul 52III May 19, 2026 119 days UPCOMING" [ref=e286]:
+                - cell "CRIIS-010 Navigation Unit" [ref=e287]:
+                  - generic [ref=e288]: CRIIS-010
+                  - generic [ref=e289]: Navigation Unit
+                - cell "365-Day Overhaul" [ref=e290]
+                - cell "52III" [ref=e291]
+                - cell "May 19, 2026" [ref=e292]
+                - cell "119 days" [ref=e293]:
+                  - generic [ref=e294]: 119 days
+                - cell "UPCOMING" [ref=e295]:
+                  - generic [ref=e296]: UPCOMING
+      - button "Export Report" [ref=e298] [cursor=pointer]:
+        - img [ref=e299]
+        - text: Export Report
+  - contentinfo [ref=e301]: CUI - Controlled Unclassified Information
+```

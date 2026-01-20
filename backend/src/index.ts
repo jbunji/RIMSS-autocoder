@@ -13528,8 +13528,11 @@ app.get('/api/reports/pmi-schedule', (req, res) => {
     const userRole = (req.user as User)?.role;
     const isAdmin = userRole === 'ADMIN';
 
-    // Get all PMI records with program filtering
-    let allPMIs = [...generatedPMIRecords, ...customPMIRecords];
+    // Get all PMI records - generated + custom
+    const generatedPMI = generateMockPMIData();
+    const customPMIIds = new Set(customPMIRecords.map(p => p.pmi_id));
+    const filteredGeneratedPMI = generatedPMI.filter(p => !customPMIIds.has(p.pmi_id));
+    let allPMIs = [...filteredGeneratedPMI, ...customPMIRecords];
 
     // Filter by program unless admin
     if (!isAdmin && userPrograms.length > 0) {
@@ -13569,7 +13572,7 @@ app.get('/api/reports/pmi-schedule', (req, res) => {
 
     // Get program info for display
     const programIds = [...new Set(pmiData.map((p) => p.pgm_id))];
-    const programs = programIds.map((id) => mockPrograms.find((p) => p.pgm_id === id)).filter(Boolean);
+    const programs = programIds.map((id) => allPrograms.find((p) => p.pgm_id === id)).filter(Boolean);
 
     res.json({
       program: programs.length === 1 ? programs[0] : null,
