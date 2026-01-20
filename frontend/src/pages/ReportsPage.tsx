@@ -1,4 +1,4 @@
-import { DocumentChartBarIcon, CubeIcon, WrenchScrewdriverIcon, CalendarDaysIcon, TruckIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { DocumentChartBarIcon, CubeIcon, WrenchScrewdriverIcon, CalendarDaysIcon, TruckIcon, CheckCircleIcon, RocketLaunchIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from 'react-router-dom'
 
 interface ReportCard {
@@ -46,6 +46,15 @@ const reports: ReportCard[] = [
     icon: TruckIcon,
     category: 'Supply',
     route: '/reports/parts-ordered',
+    available: true,
+  },
+  {
+    id: 'sorties',
+    name: 'Sortie Report',
+    description: 'Sortie activity report showing mission effectiveness, asset utilization, and flight operations data.',
+    icon: RocketLaunchIcon,
+    category: 'Operations',
+    route: '/reports/sorties',
     available: true,
   },
 ]

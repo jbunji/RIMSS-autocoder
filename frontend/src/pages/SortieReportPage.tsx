@@ -93,10 +93,19 @@ export default function SortieReportPage() {
       const sortieList = data.sorties || []
       const summary: SortieSummary = {
         total_sorties: sortieList.length,
-        fmc_count: sortieList.filter((s: Sortie) => s.sortie_effect === 'FMC').length,
-        pmc_count: sortieList.filter((s: Sortie) => s.sortie_effect === 'PMC').length,
-        nmcm_count: sortieList.filter((s: Sortie) => s.sortie_effect === 'NMCM').length,
-        nmcs_count: sortieList.filter((s: Sortie) => s.sortie_effect === 'NMCS').length,
+        fmc_count: sortieList.filter((s: Sortie) =>
+          s.sortie_effect === 'FMC' || s.sortie_effect === 'Full Mission Capable'
+        ).length,
+        pmc_count: sortieList.filter((s: Sortie) =>
+          s.sortie_effect === 'PMC' || s.sortie_effect === 'Partial Mission Capable'
+        ).length,
+        nmcm_count: sortieList.filter((s: Sortie) =>
+          s.sortie_effect === 'NMCM' || s.sortie_effect === 'Non-Mission Capable Maintenance' ||
+          s.sortie_effect === 'Non-Mission Capable'
+        ).length,
+        nmcs_count: sortieList.filter((s: Sortie) =>
+          s.sortie_effect === 'NMCS' || s.sortie_effect === 'Non-Mission Capable Supply'
+        ).length,
         date_range: {
           start: startDate,
           end: endDate,
@@ -130,18 +139,21 @@ export default function SortieReportPage() {
   }
 
   const getEffectBadgeColor = (effect: string | null) => {
-    switch (effect) {
-      case 'FMC':
-        return 'bg-green-100 text-green-800'
-      case 'PMC':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'NMCM':
-        return 'bg-orange-100 text-orange-800'
-      case 'NMCS':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+    if (!effect) return 'bg-gray-100 text-gray-800'
+
+    if (effect === 'FMC' || effect === 'Full Mission Capable') {
+      return 'bg-green-100 text-green-800'
     }
+    if (effect === 'PMC' || effect === 'Partial Mission Capable') {
+      return 'bg-yellow-100 text-yellow-800'
+    }
+    if (effect === 'NMCM' || effect.includes('Non-Mission Capable')) {
+      return 'bg-orange-100 text-orange-800'
+    }
+    if (effect === 'NMCS' || effect === 'Non-Mission Capable Supply') {
+      return 'bg-red-100 text-red-800'
+    }
+    return 'bg-gray-100 text-gray-800'
   }
 
   if (loading && !sorties.length) {
