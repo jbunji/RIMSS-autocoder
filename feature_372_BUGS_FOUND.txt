@@ -1,0 +1,17 @@
+FEATURE #372 - CRITICAL BUGS PREVENT COMPLETION
+
+Status: CANNOT MARK AS PASSING
+Reason: Backend API endpoints missing/broken
+
+BLOCKER BUGS:
+1. GET /api/events/:id/available-assets - Returns 404
+   - Prevents adding installed parts (Step 5)
+
+2. GET /api/repairs/:id - Returns 404
+   - Prevents closing repairs (Step 6)
+   - Blocks entire workflow completion
+
+WORKING: 33% (Steps 1-4)
+BLOCKED: 67% (Steps 5-12)
+
+See feature_372_session_report.txt for full details.
