@@ -255,10 +255,16 @@ type TabType = 'details' | 'history' | 'eti' | 'meters' | 'maintenance' | 'pmi' 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { token, user } = useAuthStore()
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<TabType>('details')
+  // Tab state - initialize from URL or default to 'details'
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const tabParam = searchParams.get('tab') as TabType | null
+    return tabParam && ['details', 'history', 'eti', 'meters', 'maintenance', 'pmi', 'software'].includes(tabParam)
+      ? tabParam
+      : 'details'
+  })
 
   // Data state
   const [asset, setAsset] = useState<Asset | null>(null)
@@ -358,6 +364,12 @@ export default function AssetDetailPage() {
 
   // Check if user can replace meter (only ADMIN and DEPOT_MANAGER)
   const canReplaceMeter = user?.role === 'ADMIN' || user?.role === 'DEPOT_MANAGER'
+
+  // Function to change tabs and update URL
+  const changeTab = (tab: TabType) => {
+    setActiveTab(tab)
+    setSearchParams({ tab })
+  }
 
   // Fetch asset data
   useEffect(() => {
@@ -1158,7 +1170,7 @@ export default function AssetDetailPage() {
       <div className="mb-6 border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => setActiveTab('details')}
+            onClick={() => changeTab('details')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'details'
                 ? 'border-blue-500 text-blue-600'
@@ -1168,7 +1180,7 @@ export default function AssetDetailPage() {
             Details
           </button>
           <button
-            onClick={() => setActiveTab('history')}
+            onClick={() => changeTab('history')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'history'
                 ? 'border-blue-500 text-blue-600'
@@ -1178,7 +1190,7 @@ export default function AssetDetailPage() {
             History
           </button>
           <button
-            onClick={() => setActiveTab('eti')}
+            onClick={() => changeTab('eti')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'eti'
                 ? 'border-blue-500 text-blue-600'
@@ -1188,7 +1200,7 @@ export default function AssetDetailPage() {
             ETI Tracking
           </button>
           <button
-            onClick={() => setActiveTab('meters')}
+            onClick={() => changeTab('meters')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'meters'
                 ? 'border-blue-500 text-blue-600'
@@ -1198,7 +1210,7 @@ export default function AssetDetailPage() {
             Meter History
           </button>
           <button
-            onClick={() => setActiveTab('maintenance')}
+            onClick={() => changeTab('maintenance')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'maintenance'
                 ? 'border-blue-500 text-blue-600'
@@ -1208,7 +1220,7 @@ export default function AssetDetailPage() {
             Maintenance Events
           </button>
           <button
-            onClick={() => setActiveTab('pmi')}
+            onClick={() => changeTab('pmi')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'pmi'
                 ? 'border-blue-500 text-blue-600'
@@ -1218,7 +1230,7 @@ export default function AssetDetailPage() {
             PMI History
           </button>
           <button
-            onClick={() => setActiveTab('software')}
+            onClick={() => changeTab('software')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'software'
                 ? 'border-blue-500 text-blue-600'
