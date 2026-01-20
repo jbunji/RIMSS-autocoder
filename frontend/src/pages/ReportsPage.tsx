@@ -27,7 +27,7 @@ const reports: ReportCard[] = [
     description: 'Current maintenance backlog including open jobs, repair status, labor hours, and overdue items.',
     icon: WrenchScrewdriverIcon,
     category: 'Maintenance',
-    route: '/maintenance',
+    route: '/reports/maintenance-backlog',
     available: true,
   },
   {

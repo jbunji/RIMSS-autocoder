@@ -13412,6 +13412,111 @@ app.delete('/api/spares/:id', async (req, res) => {
   }
 });
 
+// GET /api/reports/inventory - Inventory report grouped by system type
+app.get('/api/reports/inventory', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string or use user's default
+  let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  if (!programIdFilter) {
+    const defaultProgram = user.programs.find(p => p.is_default);
+    programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+  }
+
+  // Check if user has access to this program
+  if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Get all assets for the program (both in config and spares)
+  const allAssets = detailedAssets.filter(asset =>
+    asset.pgm_id === programIdFilter &&
+    asset.active === true
+  );
+
+  // Helper function to extract system type from part name
+  const extractSystemType = (partName: string): string => {
+    const nameLower = partName.toLowerCase();
+
+    // Match common system types
+    if (nameLower.includes('sensor')) return 'Sensor Systems';
+    if (nameLower.includes('camera') || nameLower.includes('optical')) return 'Camera/Optical Systems';
+    if (nameLower.includes('radar')) return 'Radar Systems';
+    if (nameLower.includes('communication') || nameLower.includes('comm')) return 'Communication Systems';
+    if (nameLower.includes('navigation') || nameLower.includes('nav')) return 'Navigation Systems';
+    if (nameLower.includes('targeting') || nameLower.includes('target')) return 'Targeting Systems';
+    if (nameLower.includes('laser')) return 'Laser Systems';
+    if (nameLower.includes('data') || nameLower.includes('processor')) return 'Data Processing Systems';
+    if (nameLower.includes('reconnaissance') || nameLower.includes('recon')) return 'Reconnaissance Systems';
+    if (nameLower.includes('link')) return 'Data Link Systems';
+    if (nameLower.includes('special')) return 'Special Systems';
+
+    return 'Other Systems';
+  };
+
+  // Group assets by system type
+  const groupedBySystemType: Record<string, {
+    system_type: string;
+    total_count: number;
+    status_breakdown: Record<string, number>;
+    assets: AssetDetails[];
+  }> = {};
+
+  allAssets.forEach(asset => {
+    const systemType = extractSystemType(asset.part_name);
+
+    if (!groupedBySystemType[systemType]) {
+      groupedBySystemType[systemType] = {
+        system_type: systemType,
+        total_count: 0,
+        status_breakdown: {},
+        assets: [],
+      };
+    }
+
+    groupedBySystemType[systemType].total_count++;
+    groupedBySystemType[systemType].assets.push(asset);
+
+    // Track status breakdown
+    const status = asset.status_name;
+    if (!groupedBySystemType[systemType].status_breakdown[status]) {
+      groupedBySystemType[systemType].status_breakdown[status] = 0;
+    }
+    groupedBySystemType[systemType].status_breakdown[status]++;
+  });
+
+  // Convert to array and sort by system type name
+  const systemTypeGroups = Object.values(groupedBySystemType).sort((a, b) =>
+    a.system_type.localeCompare(b.system_type)
+  );
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === programIdFilter);
+
+  console.log(`[REPORTS] Inventory report by ${user.username} - Program: ${program?.pgm_cd}, Total assets: ${allAssets.length}, System types: ${systemTypeGroups.length}`);
+
+  res.json({
+    program: {
+      pgm_id: programIdFilter,
+      pgm_cd: program?.pgm_cd || 'UNKNOWN',
+      pgm_name: program?.pgm_name || 'Unknown Program',
+    },
+    total_assets: allAssets.length,
+    system_types: systemTypeGroups,
+    generated_at: new Date().toISOString(),
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`

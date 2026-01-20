@@ -27,6 +27,7 @@ import SoftwarePage from './pages/SoftwarePage'
 import NotificationsPage from './pages/NotificationsPage'
 import ReportsPage from './pages/ReportsPage'
 import InventoryReportPage from './pages/InventoryReportPage'
+import MaintenanceBacklogReportPage from './pages/MaintenanceBacklogReportPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -105,6 +106,7 @@ function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/reports/inventory" element={<InventoryReportPage />} />
+          <Route path="/reports/maintenance-backlog" element={<MaintenanceBacklogReportPage />} />
           <Route path="/admin" element={<PlaceholderPage title="Admin" />} />
           <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
