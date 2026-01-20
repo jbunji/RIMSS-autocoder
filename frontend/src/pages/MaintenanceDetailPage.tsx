@@ -517,6 +517,7 @@ export default function MaintenanceDetailPage() {
     start_date: new Date().toISOString().split('T')[0],
     stop_date: '',
     corrective: '',
+    bit_log: '',
   })
   const [addLaborLoading, setAddLaborLoading] = useState(false)
   const [addLaborError, setAddLaborError] = useState<string | null>(null)
@@ -543,6 +544,7 @@ export default function MaintenanceDetailPage() {
     start_date: '',
     stop_date: '',
     corrective: '',
+    bit_log: '',
   })
   const [editLaborLoading, setEditLaborLoading] = useState(false)
   const [editLaborError, setEditLaborError] = useState<string | null>(null)
@@ -1121,6 +1123,7 @@ export default function MaintenanceDetailPage() {
       start_date: new Date().toISOString().split('T')[0],
       stop_date: '',
       corrective: '',
+      bit_log: '',
     })
     setAddLaborError(null)
     setAddLaborSuccess(null)
@@ -1139,6 +1142,11 @@ export default function MaintenanceDetailPage() {
 
     if (!addLaborForm.crew_chief.trim()) {
       setAddLaborError('Crew chief name is required')
+      return
+    }
+
+    if (!addLaborForm.corrective.trim()) {
+      setAddLaborError('Corrective action narrative is required')
       return
     }
 
@@ -1163,6 +1171,7 @@ export default function MaintenanceDetailPage() {
             start_date: addLaborForm.start_date,
             stop_date: addLaborForm.stop_date || null,
             corrective: addLaborForm.corrective || null,
+            bit_log: addLaborForm.bit_log || null,
           }),
         }
       )
@@ -1260,6 +1269,7 @@ export default function MaintenanceDetailPage() {
       start_date: labor.start_date || '',
       stop_date: labor.stop_date || '',
       corrective: labor.corrective || '',
+      bit_log: labor.bit_log || '',
     })
     setEditLaborError(null)
     setEditLaborSuccess(null)
@@ -1280,6 +1290,7 @@ export default function MaintenanceDetailPage() {
       start_date: '',
       stop_date: '',
       corrective: '',
+      bit_log: '',
     })
     setEditLaborError(null)
     setEditLaborSuccess(null)
@@ -1288,6 +1299,11 @@ export default function MaintenanceDetailPage() {
   // Handle editing labor record
   const handleEditLabor = async () => {
     if (!token || !editLaborRecord) return
+
+    if (!editLaborForm.corrective.trim()) {
+      setEditLaborError('Corrective action narrative is required')
+      return
+    }
 
     setEditLaborLoading(true)
     setEditLaborError(null)
@@ -1310,6 +1326,7 @@ export default function MaintenanceDetailPage() {
             start_date: editLaborForm.start_date || null,
             stop_date: editLaborForm.stop_date || null,
             corrective: editLaborForm.corrective || null,
+            bit_log: editLaborForm.bit_log || null,
           }),
         }
       )
@@ -2885,6 +2902,17 @@ export default function MaintenanceDetailPage() {
                                       <p className="ml-6 text-xs text-gray-600 mt-1 italic line-clamp-2">
                                         {labor.corrective}
                                       </p>
+                                    )}
+                                    {labor.bit_log && (
+                                      <div className="ml-6 mt-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded text-xs">
+                                        <span className="font-medium text-blue-700 flex items-center gap-1">
+                                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                                          </svg>
+                                          BIT Log:
+                                        </span>
+                                        <span className="text-blue-600 ml-1">{labor.bit_log}</span>
+                                      </div>
                                     )}
                                   </div>
                                   <div className="flex items-center">
@@ -5365,6 +5393,26 @@ export default function MaintenanceDetailPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                 />
               </div>
+
+              {/* BIT Log Section */}
+              <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+                <label className="block text-sm font-medium text-blue-700 mb-1 flex items-center">
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  BIT Log (Built-In Test Results)
+                </label>
+                <textarea
+                  value={addLaborForm.bit_log}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, bit_log: e.target.value }))}
+                  placeholder="Enter BIT test results, codes, pass/fail status..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-white"
+                />
+                <p className="mt-1 text-xs text-blue-600">
+                  Record Built-In Test diagnostics, error codes, or test pass/fail results
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 sticky bottom-0">
@@ -5549,6 +5597,26 @@ export default function MaintenanceDetailPage() {
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                 />
+              </div>
+
+              {/* BIT Log Section */}
+              <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+                <label className="block text-sm font-medium text-blue-700 mb-1 flex items-center">
+                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  BIT Log (Built-In Test Results)
+                </label>
+                <textarea
+                  value={editLaborForm.bit_log}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, bit_log: e.target.value }))}
+                  placeholder="Enter BIT test results, codes, pass/fail status..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-white"
+                />
+                <p className="mt-1 text-xs text-blue-600">
+                  Record Built-In Test diagnostics, error codes, or test pass/fail results
+                </p>
               </div>
             </div>
 
