@@ -36727,3 +36727,33 @@ NO ISSUES FOUND - Excel export with CUI markings works correctly.
 ================================================================================
 [2026-01-20 11:39 UTC] Feature #48 regression test complete - PASSING
 ================================================================================
+
+
+================================================================================
+[2026-01-20 06:50 UTC] Feature #287 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #287: Date pickers default to sensible dates - VERIFIED AND PASSING
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #287
+Session Type: Single-feature implementation mode
+
+FEATURE DESCRIPTION:
+Date fields do not default to 1970. When users open forms with date pickers,
+the dates should default to sensible values (typically todays date) rather
+than empty strings that could cause browsers to show 1970 or other unexpected
+default values.
+
+IMPLEMENTATION:
+Updated SortiesPage.tsx to initialize sortie_date with current date:
+- Line 84: Changed sortie_date empty string to new Date ISO string split T 0
+- Line 226: Already had correct default in openAddModal function
+
+TEST EXECUTION - All 7 Steps PASSED
+Result: Feature #287 marked as PASSING
+Progress: 285/374 features passing (76.2%)
+Git Commit: dcd356e
+
+================================================================================
+[2026-01-20 06:50 UTC] Feature #287 session complete - PARALLEL SESSION
+================================================================================
