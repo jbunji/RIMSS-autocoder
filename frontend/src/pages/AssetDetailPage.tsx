@@ -23,6 +23,7 @@ interface Asset {
   remarks?: string | null
   active: boolean
   created_date: string
+  modified_date?: string | null
   program_cd?: string
   program_name?: string
   // Additional fields for asset detail view
@@ -1862,9 +1863,15 @@ export default function AssetDetailPage() {
                 <p className="mt-1 text-gray-900">{asset.asset_id}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500">Created Date</label>
-                <p className="mt-1 text-gray-900">{formatDate(asset.created_date)}</p>
+                <label className="block text-sm font-medium text-gray-500">Created At</label>
+                <p className="mt-1 text-gray-900">{formatDateTime(asset.created_date)}</p>
               </div>
+              {asset.modified_date && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Last Modified At</label>
+                  <p className="mt-1 text-gray-900">{formatDateTime(asset.modified_date)}</p>
+                </div>
+              )}
             </div>
           </div>
 
