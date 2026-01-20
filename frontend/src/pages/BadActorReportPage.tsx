@@ -167,6 +167,11 @@ export default function BadActorReportPage() {
 
   return (
     <div>
+      {/* Print-only CUI Header */}
+      <div className="print-only print-cui-header" style={{ display: 'none' }}>
+        CONTROLLED UNCLASSIFIED INFORMATION (CUI)
+      </div>
+
       {/* CUI Header Banner */}
       <div className="bg-purple-900 text-white text-center py-1 text-xs font-semibold mb-4">
         CUI//SP-CTI - CONTROLLED UNCLASSIFIED INFORMATION
@@ -392,6 +397,11 @@ export default function BadActorReportPage() {
       {/* CUI Footer Banner */}
       <div className="bg-purple-900 text-white text-center py-1 text-xs font-semibold mt-6">
         CUI//SP-CTI - CONTROLLED UNCLASSIFIED INFORMATION
+      </div>
+
+      {/* Print-only CUI Footer */}
+      <div className="print-only print-cui-footer print-footer" style={{ display: 'none' }}>
+        CUI - CONTROLLED UNCLASSIFIED INFORMATION
       </div>
     </div>
   )
