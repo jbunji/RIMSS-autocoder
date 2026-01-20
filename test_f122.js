@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 async function testFeature122() {
   console.log('=== Feature #122 Regression Test: TCTO Number Unique Per Program ===\n');
 

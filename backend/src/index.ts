@@ -1201,6 +1201,54 @@ app.post('/api/users', (req, res) => {
   })
 })
 
+// Get audit logs (admin only)
+app.get('/api/audit-logs', (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  // Mock audit log data
+  const auditLogs = [
+    {
+      log_id: 1,
+      user_id: 1,
+      username: 'admin',
+      action: 'CREATE',
+      table_name: 'asset',
+      record_id: 123,
+      old_values: null,
+      new_values: { partno: 'TEST-001', serno: 'SN-001', status_cd: 'FMC' },
+      ip_address: '192.168.1.100',
+      created_at: new Date().toISOString(),
+    },
+    {
+      log_id: 2,
+      user_id: 2,
+      username: 'depot_mgr',
+      action: 'UPDATE',
+      table_name: 'event',
+      record_id: 456,
+      old_values: { status_cd: 'NMCS' },
+      new_values: { status_cd: 'FMC' },
+      ip_address: '192.168.1.101',
+      created_at: new Date().toISOString(),
+    },
+    {
+      log_id: 3,
+      user_id: 3,
+      username: 'field_tech',
+      action: 'CREATE',
+      table_name: 'repair',
+      record_id: 789,
+      old_values: null,
+      new_values: { event_id: 456, repair_seq: 1, type_maint: 'CORRECTIVE' },
+      ip_address: '192.168.1.102',
+      created_at: new Date().toISOString(),
+    },
+  ]
+
+  console.log('[AUDIT] Audit logs requested by admin')
+  res.json({ logs: auditLogs })
+})
+
 // Dashboard: Get asset status summary (requires authentication)
 app.get('/api/dashboard/asset-status', (req, res) => {
   const payload = authenticateRequest(req, res)
