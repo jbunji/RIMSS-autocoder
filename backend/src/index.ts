@@ -8707,6 +8707,64 @@ app.post('/api/assets/:id/software', (req, res) => {
   });
 });
 
+// DELETE /api/assets/:id/software/:assocId - Remove software association from an asset
+app.delete('/api/assets/:id/software/:assocId', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN and DEPOT_MANAGER can remove software associations
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to remove software associations' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const assocId = parseInt(req.params.assocId, 10);
+
+  if (isNaN(assetId) || isNaN(assocId)) {
+    return res.status(400).json({ error: 'Invalid asset ID or association ID' });
+  }
+
+  const asset = mockAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Find the association
+  const assocIndex = assetSoftware.findIndex(
+    assoc => assoc.assoc_id === assocId && assoc.asset_id === assetId
+  );
+
+  if (assocIndex === -1) {
+    return res.status(404).json({ error: 'Software association not found' });
+  }
+
+  // Get association details before removing
+  const removedAssoc = assetSoftware[assocIndex];
+  const software = softwareCatalog.find(sw => sw.sw_id === removedAssoc.sw_id);
+
+  // Remove the association
+  assetSoftware.splice(assocIndex, 1);
+
+  console.log(`[ASSETS] Software association removed by ${user.username} for asset ${asset.serno}: ${software?.sw_title || 'Unknown'} (assoc_id: ${assocId})`);
+
+  res.json({
+    message: 'Software association removed successfully',
+    assoc_id: assocId,
+  });
+});
+
 // PUT /api/assets/:id - Update an existing asset (requires authentication and depot_manager/admin role)
 app.put('/api/assets/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -10681,6 +10739,310 @@ let configSoftware: ConfigurationSoftware[] = initializeConfigSoftware();
 let nextCfgSwId = 6; // Next ID for new configuration-software associations
 let configurationMeters: ConfigurationMeter[] = initializeConfigurationMeters();
 let nextCfgMeterId = 3; // Next ID for new configuration meter entries
+
+// ============================================================================
+// NOTIFICATIONS API
+// ============================================================================
+
+// Notification interface
+interface Notification {
+  msg_id: number;
+  pgm_id: number;
+  loc_id: number | null;
+  msg_text: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  start_date: string;
+  stop_date: string | null;
+  from_user: string | null;
+  to_user: string | null;
+  acknowledged: boolean;
+  ack_by: string | null;
+  ack_date: string | null;
+  active: boolean;
+  ins_by: string;
+  ins_date: string;
+}
+
+// Initialize mock notifications data
+function initializeNotifications(): Notification[] {
+  const today = new Date();
+  const subtractDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.toISOString();
+  };
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString();
+  };
+
+  return [
+    {
+      msg_id: 1,
+      pgm_id: 1, // CRIIS
+      loc_id: null,
+      msg_text: 'System maintenance scheduled for January 25th, 2026 from 02:00-04:00 UTC. System will be unavailable during this period.',
+      priority: 'HIGH',
+      start_date: subtractDays(2),
+      stop_date: addDays(5),
+      from_user: 'admin',
+      to_user: null, // Broadcast to all users
+      acknowledged: false,
+      ack_by: null,
+      ack_date: null,
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(2),
+    },
+    {
+      msg_id: 2,
+      pgm_id: 1, // CRIIS
+      loc_id: null,
+      msg_text: 'New PMI requirements effective immediately. All Camera System X units must undergo additional inspection. See Technical Order 1A-CR-001.',
+      priority: 'CRITICAL',
+      start_date: subtractDays(5),
+      stop_date: addDays(30),
+      from_user: 'depot_mgr',
+      to_user: null,
+      acknowledged: false,
+      ack_by: null,
+      ack_date: null,
+      active: true,
+      ins_by: 'depot_mgr',
+      ins_date: subtractDays(5),
+    },
+    {
+      msg_id: 3,
+      pgm_id: 2, // ACTS
+      loc_id: null,
+      msg_text: 'Parts ordering system updated with new tracking features. You can now view real-time shipment status.',
+      priority: 'MEDIUM',
+      start_date: subtractDays(10),
+      stop_date: addDays(10),
+      from_user: 'admin',
+      to_user: null,
+      acknowledged: true,
+      ack_by: 'depot_mgr',
+      ack_date: subtractDays(8),
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(10),
+    },
+    {
+      msg_id: 4,
+      pgm_id: 1, // CRIIS
+      loc_id: null,
+      msg_text: 'Reminder: All field technicians must complete annual safety training by end of month.',
+      priority: 'MEDIUM',
+      start_date: subtractDays(15),
+      stop_date: addDays(15),
+      from_user: 'admin',
+      to_user: null,
+      acknowledged: false,
+      ack_by: null,
+      ack_date: null,
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(15),
+    },
+    {
+      msg_id: 5,
+      pgm_id: 3, // ARDS
+      loc_id: null,
+      msg_text: 'New software version 3.0.0 available for Radar Signal Processing units. Update at next maintenance opportunity.',
+      priority: 'LOW',
+      start_date: subtractDays(20),
+      stop_date: addDays(60),
+      from_user: 'depot_mgr',
+      to_user: null,
+      acknowledged: false,
+      ack_by: null,
+      ack_date: null,
+      active: true,
+      ins_by: 'depot_mgr',
+      ins_date: subtractDays(20),
+    },
+  ];
+}
+
+// Mutable array for notifications tracking
+let notifications: Notification[] = initializeNotifications();
+let nextMsgId = 6; // Next ID for new notifications
+
+// GET /api/notifications - List all notifications for user's program(s)
+app.get('/api/notifications', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Filter notifications by program access and active status
+  const now = new Date().toISOString();
+  let userNotifications = notifications.filter(n => {
+    // Check program access
+    const hasAccess = userProgramIds.includes(n.pgm_id) || user.role === 'ADMIN';
+    if (!hasAccess) return false;
+
+    // Check active status
+    if (!n.active) return false;
+
+    // Check date range (only show if current date is within start_date and stop_date)
+    const isInDateRange = n.start_date <= now && (n.stop_date === null || n.stop_date >= now);
+    if (!isInDateRange) return false;
+
+    return true;
+  });
+
+  // Sort by priority (CRITICAL > HIGH > MEDIUM > LOW) then by date (newest first)
+  const priorityOrder: Record<string, number> = {
+    CRITICAL: 4,
+    HIGH: 3,
+    MEDIUM: 2,
+    LOW: 1,
+  };
+
+  userNotifications.sort((a, b) => {
+    const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+    if (priorityDiff !== 0) return priorityDiff;
+    return new Date(b.start_date).getTime() - new Date(a.start_date).getTime();
+  });
+
+  // Add program name to each notification
+  const notificationsWithProgram = userNotifications.map(n => {
+    const program = mockPrograms.find(p => p.pgm_id === n.pgm_id);
+    return {
+      ...n,
+      program_cd: program?.pgm_cd,
+      program_name: program?.pgm_name,
+    };
+  });
+
+  console.log(`[NOTIFICATIONS] Retrieved ${notificationsWithProgram.length} notifications for user ${user.username}`);
+  res.json(notificationsWithProgram);
+});
+
+// POST /api/notifications - Create a new notification (admin only)
+app.post('/api/notifications', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check authorization - only admin can create notifications
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Insufficient permissions to create notifications' });
+  }
+
+  const { pgm_id, msg_text, priority, start_date, stop_date, to_user } = req.body;
+
+  // Validate required fields
+  if (!pgm_id || !msg_text || !priority || !start_date) {
+    return res.status(400).json({ error: 'Missing required fields: pgm_id, msg_text, priority, start_date' });
+  }
+
+  // Validate priority
+  if (!['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(priority)) {
+    return res.status(400).json({ error: 'Invalid priority. Must be: LOW, MEDIUM, HIGH, or CRITICAL' });
+  }
+
+  // Validate program exists
+  const program = mockPrograms.find(p => p.pgm_id === pgm_id);
+  if (!program) {
+    return res.status(404).json({ error: 'Program not found' });
+  }
+
+  // Create new notification
+  const newNotification: Notification = {
+    msg_id: nextMsgId++,
+    pgm_id,
+    loc_id: null,
+    msg_text,
+    priority,
+    start_date,
+    stop_date: stop_date || null,
+    from_user: user.username,
+    to_user: to_user || null,
+    acknowledged: false,
+    ack_by: null,
+    ack_date: null,
+    active: true,
+    ins_by: user.username,
+    ins_date: new Date().toISOString(),
+  };
+
+  notifications.push(newNotification);
+
+  console.log(`[NOTIFICATIONS] Created notification #${newNotification.msg_id} by ${user.username} for program ${program.pgm_cd}`);
+
+  res.status(201).json({
+    message: 'Notification created successfully',
+    notification: {
+      ...newNotification,
+      program_cd: program.pgm_cd,
+      program_name: program.pgm_name,
+    },
+  });
+});
+
+// PUT /api/notifications/:id/acknowledge - Acknowledge a notification
+app.put('/api/notifications/:id/acknowledge', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const msgId = parseInt(req.params.id, 10);
+  if (isNaN(msgId)) {
+    return res.status(400).json({ error: 'Invalid notification ID' });
+  }
+
+  // Find the notification
+  const notification = notifications.find(n => n.msg_id === msgId);
+  if (!notification) {
+    return res.status(404).json({ error: 'Notification not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(notification.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this notification' });
+  }
+
+  // Check if already acknowledged
+  if (notification.acknowledged) {
+    return res.status(400).json({ error: 'Notification already acknowledged' });
+  }
+
+  // Acknowledge the notification
+  notification.acknowledged = true;
+  notification.ack_by = user.username;
+  notification.ack_date = new Date().toISOString();
+
+  console.log(`[NOTIFICATIONS] Notification #${msgId} acknowledged by ${user.username}`);
+
+  const program = mockPrograms.find(p => p.pgm_id === notification.pgm_id);
+  res.json({
+    message: 'Notification acknowledged successfully',
+    notification: {
+      ...notification,
+      program_cd: program?.pgm_cd,
+      program_name: program?.pgm_name,
+    },
+  });
+});
 
 // GET /api/software - List all software for a program (requires authentication)
 app.get('/api/software', (req, res) => {

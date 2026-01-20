@@ -947,6 +947,44 @@ export default function AssetDetailPage() {
     }
   }
 
+  // Handle remove software association
+  const handleRemoveSoftware = async (assocId: number) => {
+    if (!token || !id) return
+
+    if (!confirm('Are you sure you want to remove this software association?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${id}/software/${assocId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to remove software association')
+      }
+
+      // Refresh software associations list
+      const listResponse = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (listResponse.ok) {
+        const listData = await listResponse.json()
+        setSoftwareAssociations(listData.associations)
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to remove software association')
+    }
+  }
+
   // Status badge component
   const StatusBadge = ({ status, statusName }: { status: string; statusName?: string }) => {
     const colors = statusColors[status] || statusColors.CNDM
