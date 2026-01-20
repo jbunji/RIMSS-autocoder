@@ -1,0 +1,63 @@
+================================================================================
+REGRESSION TEST SUMMARY - Feature #81
+================================================================================
+
+Feature: Maintenance event export with CUI
+Category: Functional
+Test Date: 2026-01-20 10:56 UTC
+Test Result: ✅ PASSING (No regressions found)
+
+--------------------------------------------------------------------------------
+VERIFICATION CHECKLIST
+--------------------------------------------------------------------------------
+
+✅ Step 1: Log in as any user
+✅ Step 2: Navigate to Maintenance page  
+✅ Step 3: Click Export PDF
+✅ Step 4: Verify CUI header/footer on each page
+✅ Step 5: Verify ZULU timestamps
+✅ Step 6: Export Excel
+✅ Step 7: Verify CUI markings in Excel
+
+ALL STEPS PASSED ✅
+
+--------------------------------------------------------------------------------
+KEY FINDINGS
+--------------------------------------------------------------------------------
+
+PDF Export:
+- CUI header: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)" ✅
+- CUI footer: "CUI - CONTROLLED UNCLASSIFIED INFORMATION" ✅
+- ZULU timestamp: 2026-01-20 10:53:45Z ✅
+- Tan/beige banner styling ✅
+- File size: 16.4KB ✅
+
+Excel Export:
+- CUI header row implemented ✅
+- CUI footer row implemented ✅
+- ZULU timestamps in date columns ✅
+- Proper cell merging for banners ✅
+- File size: 19KB ✅
+
+Quality:
+- Zero console errors ✅
+- All 4 maintenance events exported ✅
+- Data integrity maintained ✅
+- CUI compliance verified ✅
+
+--------------------------------------------------------------------------------
+CONCLUSION
+--------------------------------------------------------------------------------
+
+Feature #81 is functioning correctly with no regressions detected.
+Both PDF and Excel exports properly include CUI markings and ZULU timestamps
+as required by military documentation standards.
+
+Recommendation: Feature remains PASSING ✅
+Action Required: None - feature working as designed
+
+================================================================================
+Testing Agent: Claude Sonnet 4.5
+Session Duration: ~15 minutes
+Files Generated: 3 (PDF, Excel, screenshot)
+================================================================================
