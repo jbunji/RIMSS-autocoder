@@ -2597,6 +2597,12 @@ const locationJobSeqMap: Map<string, number> = new Map();
 
 // Initialize maintenance events on startup
 function initializeMaintenanceEvents(): void {
+  // Only initialize if array is empty (prevent data loss on hot reload)
+  if (maintenanceEvents.length > 0) {
+    console.log('[MAINTENANCE] Events already initialized, skipping seed data');
+    return;
+  }
+
   const today = new Date();
   const addDays = (days: number): string => {
     const date = new Date(today);
