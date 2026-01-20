@@ -1195,9 +1195,11 @@ export default function AssetsPage() {
                             : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
                         }`}
                         placeholder="PN-SENSOR-A"
+                        aria-invalid={errors.partno ? 'true' : 'false'}
+                        aria-describedby={errors.partno ? 'partno-error' : undefined}
                       />
                       {errors.partno && (
-                        <p className="mt-1 text-sm text-red-600">{errors.partno.message}</p>
+                        <p id="partno-error" className="mt-1 text-sm text-red-600" role="alert">{errors.partno.message}</p>
                       )}
                     </div>
 
@@ -1216,9 +1218,11 @@ export default function AssetsPage() {
                             : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
                         }`}
                         placeholder="CRIIS-011"
+                        aria-invalid={errors.serno ? 'true' : 'false'}
+                        aria-describedby={errors.serno ? 'serno-error' : undefined}
                       />
                       {errors.serno && (
-                        <p className="mt-1 text-sm text-red-600">{errors.serno.message}</p>
+                        <p id="serno-error" className="mt-1 text-sm text-red-600" role="alert">{errors.serno.message}</p>
                       )}
                     </div>
 
@@ -1237,9 +1241,11 @@ export default function AssetsPage() {
                             : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
                         }`}
                         placeholder="Sensor Unit A-3"
+                        aria-invalid={errors.name ? 'true' : 'false'}
+                        aria-describedby={errors.name ? 'name-error' : undefined}
                       />
                       {errors.name && (
-                        <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                        <p id="name-error" className="mt-1 text-sm text-red-600" role="alert">{errors.name.message}</p>
                       )}
                       <p className="mt-1 text-xs text-gray-500">
                         If not provided, a name will be generated from the part and serial number.
@@ -1259,6 +1265,8 @@ export default function AssetsPage() {
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                             : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
                         }`}
+                        aria-invalid={errors.status_cd ? 'true' : 'false'}
+                        aria-describedby={errors.status_cd ? 'status_cd-error' : undefined}
                       >
                         <option value="">Select a status...</option>
                         {assetStatuses.map((status) => (
@@ -1268,7 +1276,7 @@ export default function AssetsPage() {
                         ))}
                       </select>
                       {errors.status_cd && (
-                        <p className="mt-1 text-sm text-red-600">{errors.status_cd.message}</p>
+                        <p id="status_cd-error" className="mt-1 text-sm text-red-600" role="alert">{errors.status_cd.message}</p>
                       )}
                     </div>
 
@@ -1285,6 +1293,8 @@ export default function AssetsPage() {
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                             : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
                         }`}
+                        aria-invalid={errors.admin_loc ? 'true' : 'false'}
+                        aria-describedby={errors.admin_loc ? 'admin_loc-error' : undefined}
                       >
                         <option value="">Select administrative location...</option>
                         {adminLocations.map((loc) => (
@@ -1294,7 +1304,7 @@ export default function AssetsPage() {
                         ))}
                       </select>
                       {errors.admin_loc && (
-                        <p className="mt-1 text-sm text-red-600">{errors.admin_loc.message}</p>
+                        <p id="admin_loc-error" className="mt-1 text-sm text-red-600" role="alert">{errors.admin_loc.message}</p>
                       )}
                     </div>
 
@@ -1311,6 +1321,8 @@ export default function AssetsPage() {
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                             : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
                         }`}
+                        aria-invalid={errors.cust_loc ? 'true' : 'false'}
+                        aria-describedby={errors.cust_loc ? 'cust_loc-error' : undefined}
                       >
                         <option value="">Select custodial location...</option>
                         {custodialLocations.map((loc) => (
@@ -1320,7 +1332,7 @@ export default function AssetsPage() {
                         ))}
                       </select>
                       {errors.cust_loc && (
-                        <p className="mt-1 text-sm text-red-600">{errors.cust_loc.message}</p>
+                        <p id="cust_loc-error" className="mt-1 text-sm text-red-600" role="alert">{errors.cust_loc.message}</p>
                       )}
                     </div>
 
@@ -1339,9 +1351,11 @@ export default function AssetsPage() {
                             : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
                         }`}
                         placeholder="Any additional notes about this asset..."
+                        aria-invalid={errors.notes ? 'true' : 'false'}
+                        aria-describedby={errors.notes ? 'notes-error' : undefined}
                       />
                       {errors.notes && (
-                        <p className="mt-1 text-sm text-red-600">{errors.notes.message}</p>
+                        <p id="notes-error" className="mt-1 text-sm text-red-600" role="alert">{errors.notes.message}</p>
                       )}
                     </div>
 
