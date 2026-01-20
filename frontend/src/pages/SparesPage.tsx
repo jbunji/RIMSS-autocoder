@@ -61,24 +61,24 @@ interface Spare {
 
 // Zod schema for editing spare
 const editSpareSchema = z.object({
-  status_cd: z.string().min(1, 'Status is required'),
-  admin_loc: z.string().min(1, 'Administrative location is required'),
-  cust_loc: z.string().min(1, 'Custodial location is required'),
-  notes: z.string().max(500, 'Notes must be at most 500 characters').optional(),
+  status_cd: z.string().trim().min(1, 'Status is required'),
+  admin_loc: z.string().trim().min(1, 'Administrative location is required'),
+  cust_loc: z.string().trim().min(1, 'Custodial location is required'),
+  notes: z.string().trim().max(500, 'Notes must be at most 500 characters').optional().or(z.literal('')),
 })
 
 type EditSpareFormData = z.infer<typeof editSpareSchema>
 
 // Zod schema for creating spare
 const createSpareSchema = z.object({
-  partno: z.string().min(1, 'Part number is required').max(50, 'Part number must be at most 50 characters'),
-  serno: z.string().min(1, 'Serial number is required').max(50, 'Serial number must be at most 50 characters'),
-  status: z.string().optional(),
-  loc_id: z.string().optional(),
-  warranty_exp: z.string().optional(),
-  mfg_date: z.string().optional(),
-  unit_price: z.string().optional(),
-  remarks: z.string().max(500, 'Remarks must be at most 500 characters').optional(),
+  partno: z.string().trim().min(1, 'Part number is required').max(50, 'Part number must be at most 50 characters'),
+  serno: z.string().trim().min(1, 'Serial number is required').max(50, 'Serial number must be at most 50 characters'),
+  status: z.string().trim().optional().or(z.literal('')),
+  loc_id: z.string().trim().optional().or(z.literal('')),
+  warranty_exp: z.string().trim().optional().or(z.literal('')),
+  mfg_date: z.string().trim().optional().or(z.literal('')),
+  unit_price: z.string().trim().optional().or(z.literal('')),
+  remarks: z.string().trim().max(500, 'Remarks must be at most 500 characters').optional().or(z.literal('')),
 })
 
 type CreateSpareFormData = z.infer<typeof createSpareSchema>

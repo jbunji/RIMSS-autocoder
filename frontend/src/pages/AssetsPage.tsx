@@ -37,19 +37,23 @@ interface AssetStatus {
 // Zod schema for asset creation
 const createAssetSchema = z.object({
   partno: z.string()
+    .trim()
     .min(1, 'Part number is required')
     .max(50, 'Part number must be at most 50 characters')
     .regex(/^[A-Za-z0-9\-_]+$/, 'Part number can only contain letters, numbers, hyphens, and underscores'),
   serno: z.string()
+    .trim()
     .min(1, 'Serial number is required')
     .max(50, 'Serial number must be at most 50 characters'),
   name: z.string()
+    .trim()
     .max(100, 'Name must be at most 100 characters')
-    .optional(),
-  status_cd: z.string().min(1, 'Status is required'),
-  admin_loc: z.string().min(1, 'Administrative location is required'),
-  cust_loc: z.string().min(1, 'Custodial location is required'),
-  notes: z.string().max(500, 'Notes must be at most 500 characters').optional(),
+    .optional()
+    .or(z.literal('')),
+  status_cd: z.string().trim().min(1, 'Status is required'),
+  admin_loc: z.string().trim().min(1, 'Administrative location is required'),
+  cust_loc: z.string().trim().min(1, 'Custodial location is required'),
+  notes: z.string().trim().max(500, 'Notes must be at most 500 characters').optional().or(z.literal('')),
 })
 
 type CreateAssetFormData = z.infer<typeof createAssetSchema>

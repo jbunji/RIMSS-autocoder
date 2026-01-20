@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { handleError, UserFriendlyError } from '../utils/errorHandler'
+import { ErrorDisplay } from '../components/ErrorDisplay'
 
 interface StatusItem {
   status_cd: string
@@ -292,11 +294,11 @@ export default function DashboardPage() {
   const [partsLoading, setPartsLoading] = useState(true)
   const [activityData, setActivityData] = useState<ActivityData | null>(null)
   const [activityLoading, setActivityLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [pmiError, setPmiError] = useState<string | null>(null)
-  const [maintenanceError, setMaintenanceError] = useState<string | null>(null)
-  const [partsError, setPartsError] = useState<string | null>(null)
-  const [activityError, setActivityError] = useState<string | null>(null)
+  const [error, setError] = useState<UserFriendlyError | null>(null)
+  const [pmiError, setPmiError] = useState<UserFriendlyError | null>(null)
+  const [maintenanceError, setMaintenanceError] = useState<UserFriendlyError | null>(null)
+  const [partsError, setPartsError] = useState<UserFriendlyError | null>(null)
+  const [activityError, setActivityError] = useState<UserFriendlyError | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshCount, setRefreshCount] = useState(0) // Used to trigger re-fetches
@@ -342,7 +344,7 @@ export default function DashboardPage() {
         const data = await response.json()
         setAssetStatus(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        setError(handleError(err, 'loading asset status'))
       } finally {
         setLoading(false)
       }
@@ -377,7 +379,7 @@ export default function DashboardPage() {
         const data = await response.json()
         setPmiData(data)
       } catch (err) {
-        setPmiError(err instanceof Error ? err.message : 'An error occurred')
+        setPmiError(handleError(err, 'loading PMI data'))
       } finally {
         setPmiLoading(false)
       }
@@ -412,7 +414,7 @@ export default function DashboardPage() {
         const data = await response.json()
         setMaintenanceData(data)
       } catch (err) {
-        setMaintenanceError(err instanceof Error ? err.message : 'An error occurred')
+        setMaintenanceError(handleError(err, 'loading maintenance data'))
       } finally {
         setMaintenanceLoading(false)
       }
@@ -447,7 +449,7 @@ export default function DashboardPage() {
         const data = await response.json()
         setPartsData(data)
       } catch (err) {
-        setPartsError(err instanceof Error ? err.message : 'An error occurred')
+        setPartsError(handleError(err, 'loading parts data'))
       } finally {
         setPartsLoading(false)
       }

@@ -35,13 +35,14 @@ interface Part {
 // Zod schema for creating configuration
 const createConfigSchema = z.object({
   cfg_name: z.string()
+    .trim()
     .min(1, 'Configuration name is required')
     .max(100, 'Name must be at most 100 characters'),
   cfg_type: z.enum(['ASSEMBLY', 'SYSTEM', 'COMPONENT'], {
     errorMap: () => ({ message: 'Please select a valid configuration type' }),
   }),
-  partno_id: z.string().optional(),
-  description: z.string().max(500, 'Description must be at most 500 characters').optional().nullable(),
+  partno_id: z.string().trim().optional().or(z.literal('')),
+  description: z.string().trim().max(500, 'Description must be at most 500 characters').optional().nullable().or(z.literal('')),
 })
 
 type CreateConfigFormData = z.infer<typeof createConfigSchema>
@@ -49,12 +50,13 @@ type CreateConfigFormData = z.infer<typeof createConfigSchema>
 // Zod schema for editing configuration
 const editConfigSchema = z.object({
   cfg_name: z.string()
+    .trim()
     .min(1, 'Configuration name is required')
     .max(100, 'Name must be at most 100 characters'),
   cfg_type: z.enum(['ASSEMBLY', 'SYSTEM', 'COMPONENT'], {
     errorMap: () => ({ message: 'Please select a valid configuration type' }),
   }),
-  description: z.string().max(500, 'Description must be at most 500 characters').optional().nullable(),
+  description: z.string().trim().max(500, 'Description must be at most 500 characters').optional().nullable().or(z.literal('')),
   active: z.boolean(),
 })
 

@@ -34,12 +34,13 @@ const PROGRAMS = [
 // Zod schema for user creation
 const createUserSchema = z.object({
   username: z.string()
+    .trim()
     .min(3, 'Username must be at least 3 characters')
     .max(50, 'Username must be at most 50 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  email: z.string().email('Invalid email address'),
-  first_name: z.string().min(1, 'First name is required').max(50, 'First name must be at most 50 characters'),
-  last_name: z.string().min(1, 'Last name is required').max(50, 'Last name must be at most 50 characters'),
+  email: z.string().trim().email('Invalid email address'),
+  first_name: z.string().trim().min(1, 'First name is required').max(50, 'First name must be at most 50 characters'),
+  last_name: z.string().trim().min(1, 'Last name is required').max(50, 'Last name must be at most 50 characters'),
   role: z.enum(['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN', 'VIEWER'], {
     errorMap: () => ({ message: 'Please select a role' })
   }),
@@ -55,12 +56,13 @@ const createUserSchema = z.object({
 // Zod schema for user editing (password is optional, admin_password required when role changes)
 const editUserSchema = z.object({
   username: z.string()
+    .trim()
     .min(3, 'Username must be at least 3 characters')
     .max(50, 'Username must be at most 50 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  email: z.string().email('Invalid email address'),
-  first_name: z.string().min(1, 'First name is required').max(50, 'First name must be at most 50 characters'),
-  last_name: z.string().min(1, 'Last name is required').max(50, 'Last name must be at most 50 characters'),
+  email: z.string().trim().email('Invalid email address'),
+  first_name: z.string().trim().min(1, 'First name is required').max(50, 'First name must be at most 50 characters'),
+  last_name: z.string().trim().min(1, 'Last name is required').max(50, 'Last name must be at most 50 characters'),
   role: z.enum(['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN', 'VIEWER'], {
     errorMap: () => ({ message: 'Please select a role' })
   }),

@@ -1042,6 +1042,30 @@ app.put('/api/users/:id', (req, res) => {
     return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' })
   }
 
+  // Validate username length (must match frontend: min 3, max 50)
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Username must be at least 3 characters' })
+  }
+  if (username.length > 50) {
+    return res.status(400).json({ error: 'Username must be at most 50 characters' })
+  }
+
+  // Validate email format (must match frontend)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' })
+  }
+
+  // Validate first_name length (must match frontend: max 50)
+  if (first_name.length > 50) {
+    return res.status(400).json({ error: 'First name must be at most 50 characters' })
+  }
+
+  // Validate last_name length (must match frontend: max 50)
+  if (last_name.length > 50) {
+    return res.status(400).json({ error: 'Last name must be at most 50 characters' })
+  }
+
   // Check for duplicate username (excluding current user)
   if (mockUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.user_id !== userId)) {
     return res.status(400).json({ error: 'Username already exists' })
@@ -1172,6 +1196,30 @@ app.post('/api/users', (req, res) => {
   // Validate username format
   if (!/^[a-zA-Z0-9_]+$/.test(username)) {
     return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' })
+  }
+
+  // Validate username length (must match frontend: min 3, max 50)
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Username must be at least 3 characters' })
+  }
+  if (username.length > 50) {
+    return res.status(400).json({ error: 'Username must be at most 50 characters' })
+  }
+
+  // Validate email format (must match frontend)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' })
+  }
+
+  // Validate first_name length (must match frontend: max 50)
+  if (first_name.length > 50) {
+    return res.status(400).json({ error: 'First name must be at most 50 characters' })
+  }
+
+  // Validate last_name length (must match frontend: max 50)
+  if (last_name.length > 50) {
+    return res.status(400).json({ error: 'Last name must be at most 50 characters' })
   }
 
   // Check for duplicate username

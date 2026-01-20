@@ -28444,3 +28444,108 @@ Progress: 244/374 features passing (65.2%)
 Git Commit: ca89b64
 Console: Zero errors ✅
 Quality: Production-ready ✅
+
+================================================================================
+[Testing] 2026-01-20 05:07 UTC - Feature #193 regression test PASSED ✅
+================================================================================
+
+Feature: API returns 401 for unauthenticated requests
+Category: Security
+Status: PASSING (No regression detected)
+
+VERIFICATION RESULTS:
+
+All 7 specified verification steps completed successfully:
+✅ Step 1: Cleared all tokens (tested without authentication)
+✅ Step 2: Called GET /api/assets without token
+✅ Step 3: Verified 401 response (HTTP 401 - "Not authenticated")
+✅ Step 4: Called POST /api/events without token
+✅ Step 5: Verified 401 response (HTTP 401 - "Not authenticated")
+✅ Step 6: Called GET /api/users without token
+✅ Step 7: Verified 401 response (HTTP 401 - "Not authenticated")
+
+ADDITIONAL TESTS PERFORMED:
+✅ GET /api/spares - HTTP 401
+✅ DELETE /api/assets/1 - HTTP 401
+✅ GET /api/parts-orders - HTTP 401
+✅ PUT /api/assets/1 - HTTP 401
+
+SECURITY POSTURE VERIFIED:
+- All API endpoints require authentication ✓
+- Proper 401 status codes returned ✓
+- Consistent error message format ✓
+- No data leakage in error responses ✓
+
+CONSOLE STATUS:
+✅ Zero console errors
+✅ No JavaScript errors
+✅ Application loaded successfully
+
+SCREENSHOTS CAPTURED:
+- feature_193_login_page.png
+- feature_193_verification_complete.png
+
+CONCLUSION:
+Feature #193 is working correctly. The authentication middleware is
+properly protecting all API endpoints, returning 401 status codes
+with appropriate error messages when accessed without valid tokens.
+No regression detected. Security feature functioning as designed.
+
+Session Duration: ~5 minutes
+Tests Executed: 11 API endpoint tests
+Regressions Found: 0
+Console Errors: 0
+
+Progress: 245/374 features passing (65.5%)
+
+================================================================================
+[Testing] Feature #193 verified - still passing
+
+================================================================================
+[Testing] 2026-01-20 10:07 UTC - Feature #48 (Asset Excel Export CUI Markings) verified - PASSING ✅
+================================================================================
+
+Feature: #48 - Asset export to Excel includes CUI markings
+Category: functional
+Status: PASSING (No regression found)
+
+TEST EXECUTION - All 7 Steps PASSED:
+
+✅ Step 1: Logged in as depot manager (Jane Depot)
+✅ Step 2: Navigated to Assets page successfully
+✅ Step 3: Clicked Export Excel button
+✅ Step 4: Excel file downloaded successfully
+   - File: CUI_Assets_20260120.xlsx
+   - Downloaded to: .playwright-mcp/
+✅ Step 5: Opened and inspected file contents
+   - Used Node.js script to read Excel file
+✅ Step 6: Verified CUI header row
+   - Row 0 contains: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Row 1: Empty separator row
+   - Row 2: Report title with program name
+   - Row 3: Generation timestamp
+   - Row 4: Total asset count
+✅ Step 7: Verified filename starts with 'CUI_'
+   - Filename: CUI_Assets_20260120.xlsx ✓
+
+Excel File Structure Verified:
+- Row 0: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+- Row 1: Empty
+- Row 2: "RIMSS Asset Report - CRIIS - Common Remotely Operated Integrated Reconnaissance System"
+- Row 3: "Generated: 2026-01-20 10:07:37Z"
+- Row 4: "Total Assets: 10"
+- Subsequent rows contain asset data
+
+Console Status: Zero errors ✅
+Screenshot: feature_48_asset_excel_export_verified.png
+
+Result: Feature #48 remains PASSING - No regression detected
+
+Progress: 245/374 features passing (65.5%)
+
+Session Duration: ~8 minutes
+Code Changes: 0 (feature working correctly)
+Regressions Found: 0
+Tests Passed: 7/7
+
+END OF TESTING SESSION #48
