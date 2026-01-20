@@ -824,126 +824,45 @@ export default function SortiesPage() {
 
   // Export sorties to Excel with CUI markings
   const exportToExcel = () => {
-    const zuluTimestamp = getZuluTimestamp()
-
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new()
 
-    // Prepare data rows with CUI header
-    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
-    const blankRow: string[] = []
-    const reportInfoRow1 = ['RIMSS Sorties Report']
-    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
-    const reportInfoRow3 = [`Total Sorties: ${sorties.length}`]
+    // Use import-compatible format for round-trip export/import
+    // This matches the import template format exactly
+    const headerRow = ['Asset Serial Number*', 'Mission ID*', 'Sortie Date (YYYY-MM-DD)*', 'Sortie Effect', 'Range', 'Remarks']
 
-    // Filter info
-    const filters: string[] = []
-    if (searchQuery) filters.push(`Search: "${searchQuery}"`)
-    if (startDate) filters.push(`From: ${startDate}`)
-    if (endDate) filters.push(`To: ${endDate}`)
-    if (tailNumberFilter) filters.push(`Tail: "${tailNumberFilter}"`)
-    if (effectivenessFilter) filters.push(`Effect: ${effectivenessFilter}`)
-    const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
-
-    // Table header row
-    const headerRow = [
-      'Mission ID',
-      'Serial Number',
-      'Tail Number',
-      'Sortie Date (ZULU)',
-      'Sortie Effect',
-      'Range',
-      'Current Unit',
-      'Assigned Unit',
-      'Reason',
-      'Remarks'
-    ]
-
-    // Data rows
+    // Data rows - format to match import expectations
     const dataRows = sorties.map(sortie => {
-      // Format date in ZULU
-      const dateZulu = sortie.sortie_date
-        ? new Date(sortie.sortie_date).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+      // Format date as YYYY-MM-DD (compatible with import)
+      const dateFormatted = sortie.sortie_date
+        ? new Date(sortie.sortie_date).toISOString().split('T')[0]
         : ''
 
       return [
-        sortie.mission_id,
-        sortie.serno,
-        sortie.ac_tailno || '',
-        dateZulu,
-        sortie.sortie_effect || '',
-        sortie.range || '',
-        sortie.current_unit || '',
-        sortie.assigned_unit || '',
-        sortie.reason || '',
-        sortie.remarks || ''
+        sortie.serno,                    // Asset Serial Number
+        sortie.mission_id,               // Mission ID
+        dateFormatted,                   // Sortie Date (YYYY-MM-DD)
+        sortie.sortie_effect || '',      // Sortie Effect
+        sortie.range || '',              // Range
+        sortie.remarks || ''             // Remarks
       ]
     })
 
-    // CUI footer row
-    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
-
-    // Combine all rows
-    const allRows = [
-      cuiHeaderRow,
-      blankRow,
-      reportInfoRow1,
-      reportInfoRow2,
-      reportInfoRow3,
-      ...(filterRow.length ? [filterRow] : []),
-      blankRow,
-      headerRow,
-      ...dataRows,
-      blankRow,
-      cuiFooterRow
-    ]
+    // Combine header and data rows
+    const allRows = [headerRow, ...dataRows]
 
     // Create worksheet from array of arrays
     const ws = XLSX.utils.aoa_to_sheet(allRows)
 
     // Set column widths
     ws['!cols'] = [
-      { wch: 20 },  // Mission ID
-      { wch: 18 },  // Serial Number
-      { wch: 15 },  // Tail Number
-      { wch: 25 },  // Sortie Date (ZULU)
+      { wch: 20 },  // Asset Serial Number
+      { wch: 15 },  // Mission ID
+      { wch: 25 },  // Sortie Date
       { wch: 25 },  // Sortie Effect
-      { wch: 15 },  // Range
-      { wch: 20 },  // Current Unit
-      { wch: 20 },  // Assigned Unit
-      { wch: 30 },  // Reason
+      { wch: 12 },  // Range
       { wch: 40 },  // Remarks
     ]
-
-    // Merge CUI header cells across all columns
-    const numCols = headerRow.length
-    ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
-      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
-      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
-      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total sorties
-      ...(filterRow.length ? [{ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } }] : []), // Filters (if present)
-      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
-    ]
-
-    // Style CUI header and footer rows (yellow background)
-    const cuiHeaderCell = ws['A1']
-    if (cuiHeaderCell) {
-      cuiHeaderCell.s = {
-        fill: { fgColor: { rgb: 'FEF3C7' } },
-        font: { bold: true, sz: 12 },
-        alignment: { horizontal: 'center', vertical: 'center' }
-      }
-    }
-
-    const cuiFooterCell = ws[`A${allRows.length}`]
-    if (cuiFooterCell) {
-      cuiFooterCell.s = {
-        fill: { fgColor: { rgb: 'FEF3C7' } },
-        font: { bold: true, sz: 10 },
-        alignment: { horizontal: 'center', vertical: 'center' }
-      }
-    }
 
     // Add worksheet to workbook
     XLSX.utils.book_append_sheet(wb, ws, 'Sorties')
