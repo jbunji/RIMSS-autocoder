@@ -184,6 +184,23 @@ interface PMIHistorySummary {
   upcoming: number
 }
 
+// Sortie interface
+interface Sortie {
+  sortie_id: number
+  pgm_id: number
+  asset_id: number
+  mission_id: string
+  serno: string
+  ac_tailno: string | null
+  sortie_date: string
+  sortie_effect: string | null
+  current_unit: string | null
+  assigned_unit: string | null
+  range: string | null
+  reason: string | null
+  remarks: string | null
+}
+
 // Tab type
 type TabType = 'details' | 'history' | 'eti' | 'maintenance' | 'pmi'
 
@@ -237,6 +254,11 @@ export default function AssetDetailPage() {
   const [pmiHistorySummary, setPmiHistorySummary] = useState<PMIHistorySummary | null>(null)
   const [pmiHistoryLoading, setPmiHistoryLoading] = useState(false)
   const [pmiHistoryError, setPmiHistoryError] = useState<string | null>(null)
+
+  // Sorties state
+  const [sorties, setSorties] = useState<Sortie[]>([])
+  const [sortiesLoading, setSortiesLoading] = useState(false)
+  const [sortiesError, setSortiesError] = useState<string | null>(null)
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false)
@@ -320,6 +342,40 @@ export default function AssetDetailPage() {
     }
 
     fetchHierarchy()
+  }, [token, id])
+
+  // Fetch sorties for this asset
+  useEffect(() => {
+    const fetchSorties = async () => {
+      if (!token || !id) return
+
+      setSortiesLoading(true)
+      setSortiesError(null)
+
+      try {
+        const response = await fetch('http://localhost:3001/api/sorties', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch sorties')
+        }
+
+        const data = await response.json()
+        // Filter sorties for this specific asset
+        const assetSorties = data.sorties.filter((s: Sortie) => s.asset_id === parseInt(id, 10))
+        setSorties(assetSorties)
+      } catch (err) {
+        console.error('Failed to fetch sorties:', err)
+        setSortiesError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setSortiesLoading(false)
+      }
+    }
+
+    fetchSorties()
   }, [token, id])
 
   // Fetch history when History tab is selected
@@ -1322,6 +1378,71 @@ export default function AssetDetailPage() {
               </div>
             </>
           )}
+
+          {/* Sorties Section */}
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <h2 className="text-lg font-medium text-gray-900">Sorties</h2>
+          </div>
+          <div className="px-6 py-4">
+            {sortiesLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              </div>
+            ) : sortiesError ? (
+              <div className="text-red-600 text-sm">{sortiesError}</div>
+            ) : sorties.length === 0 ? (
+              <p className="text-gray-500 text-sm italic">No sorties recorded for this asset</p>
+            ) : (
+              <div className="space-y-3">
+                {sorties.map((sortie) => (
+                  <button
+                    key={sortie.sortie_id}
+                    onClick={() => navigate('/sorties')}
+                    className="w-full text-left p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-indigo-900">
+                          {sortie.mission_id}
+                        </p>
+                        <p className="text-sm text-indigo-700">
+                          {new Date(sortie.sortie_date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </p>
+                        {sortie.sortie_effect && (
+                          <p className="text-xs text-indigo-600 mt-1">
+                            Effect: {sortie.sortie_effect}
+                          </p>
+                        )}
+                        {sortie.range && (
+                          <p className="text-xs text-indigo-600">
+                            Range: {sortie.range}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          sortie.sortie_effect === 'Full Mission Capable'
+                            ? 'bg-green-100 text-green-800'
+                            : sortie.sortie_effect === 'Partial Mission Capable'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {sortie.sortie_effect || 'N/A'}
+                        </span>
+                        <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Metadata */}
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">

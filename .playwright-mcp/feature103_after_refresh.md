@@ -1,0 +1,370 @@
+### Page state
+- Page URL: http://localhost:5173/maintenance/1
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]: CUI - Controlled Unclassified Information
+  - navigation [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - button "Toggle sidebar" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - generic [ref=e14]: RIMSS
+          - generic [ref=e15]: Remote Independent Maintenance Status System
+      - generic [ref=e16]:
+        - 'button "Program: CRIIS" [ref=e18] [cursor=pointer]':
+          - generic [ref=e19]: "Program:"
+          - generic [ref=e20]: CRIIS
+          - img [ref=e21]
+        - button "Bob Field" [ref=e24] [cursor=pointer]:
+          - img [ref=e25]
+          - generic [ref=e27]: Bob Field
+          - img [ref=e28]
+  - generic [ref=e32]:
+    - navigation [ref=e33]:
+      - generic [ref=e34]:
+        - link "Dashboard" [ref=e35] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e36]
+          - text: Dashboard
+        - link "Assets" [ref=e38] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e39]
+          - text: Assets
+        - link "Configurations" [ref=e41] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e42]
+          - text: Configurations
+        - link "Maintenance" [ref=e45] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e46]
+          - text: Maintenance
+        - link "Sorties" [ref=e48] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e49]
+          - text: Sorties
+        - link "Spares" [ref=e51] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e52]
+          - text: Spares
+        - link "Parts Ordered" [ref=e54] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e55]
+          - text: Parts Ordered
+        - link "Notifications" [ref=e57] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e58]
+          - text: Notifications
+        - link "Reports" [ref=e60] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e61]
+          - text: Reports
+    - paragraph [ref=e64]: RIMSS v0.1.0
+  - main [ref=e66]:
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - button "Back to Maintenance" [ref=e72] [cursor=pointer]:
+          - img [ref=e73]
+          - text: Back to Maintenance
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - img [ref=e77]
+            - generic [ref=e79]:
+              - heading "Maintenance Event Details" [level=1] [ref=e80]
+              - paragraph [ref=e81]: "Job #MX-2024-001"
+          - generic [ref=e82]:
+            - button "Edit Event" [ref=e83] [cursor=pointer]:
+              - img [ref=e84]
+              - text: Edit Event
+            - generic [ref=e86]: OPEN
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - heading "Job Information" [level=2] [ref=e90]
+            - generic [ref=e91]:
+              - generic [ref=e92]:
+                - text: Job Number
+                - paragraph [ref=e93]: MX-2024-001
+              - generic [ref=e94]:
+                - text: Event Type
+                - paragraph [ref=e95]: Standard
+              - generic [ref=e96]:
+                - text: Priority
+                - paragraph [ref=e97]: Critical
+              - generic [ref=e98]:
+                - generic [ref=e99]:
+                  - img [ref=e100]
+                  - text: Location
+                - paragraph [ref=e103]: Depot Alpha
+              - generic [ref=e104]:
+                - text: PQDR Status
+                - paragraph [ref=e105]:
+                  - generic [ref=e106]:
+                    - img [ref=e107]
+                    - text: PQDR Flagged
+          - generic [ref=e110]:
+            - img [ref=e111]
+            - generic [ref=e113]:
+              - heading "Product Quality Deficiency Report (PQDR)" [level=3] [ref=e114]
+              - paragraph [ref=e115]: This maintenance event has been flagged for quality deficiency reporting. Review and document any manufacturing or design defects.
+          - generic [ref=e116]:
+            - heading "Discrepancy" [level=2] [ref=e117]
+            - paragraph [ref=e118]: Intermittent power failure during operation
+          - generic [ref=e119]:
+            - heading "Linked Sortie" [level=2] [ref=e120]
+            - generic [ref=e123]:
+              - generic [ref=e124]:
+                - generic [ref=e125]: CRIIS-SORTIE-002
+                - generic [ref=e126]: Partial Mission Capable
+              - generic [ref=e127]:
+                - generic [ref=e128]: "Asset: CRIIS-005"
+                - generic [ref=e129]: "Date: 1/16/2026"
+                - generic [ref=e130]: "Tail No: AC-005"
+                - generic [ref=e131]: "Unit: Unit Bravo"
+                - generic [ref=e132]: "Range: Range B"
+                - generic [ref=e133]: "Reason: Training exercise"
+              - generic [ref=e134]:
+                - text: "Remarks:"
+                - paragraph [ref=e135]: Camera system showed intermittent issues
+          - generic [ref=e136]:
+            - heading "Timeline" [level=2] [ref=e137]
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - img [ref=e141]
+                - generic [ref=e143]:
+                  - paragraph [ref=e144]: Job Started
+                  - paragraph [ref=e145]: Wednesday, January 14, 2026
+              - generic [ref=e146]:
+                - img [ref=e148]
+                - generic [ref=e150]:
+                  - paragraph [ref=e151]: In Progress
+                  - paragraph [ref=e152]: Job is currently open
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - heading "Repairs(2 total, 1 open, 1 closed)" [level=2] [ref=e155]:
+                - text: Repairs
+                - generic [ref=e156]: (2 total, 1 open, 1 closed)
+              - generic [ref=e157]:
+                - button "Repeat/Recur Only 1" [ref=e158] [cursor=pointer]:
+                  - img [ref=e159]
+                  - text: Repeat/Recur Only
+                  - generic [ref=e161]: "1"
+                - button "Add Repair" [ref=e162] [cursor=pointer]:
+                  - img [ref=e163]
+                  - text: Add Repair
+            - generic [ref=e165]:
+              - generic [ref=e168]:
+                - generic [ref=e169]:
+                  - generic [ref=e170]: "Repair #1"
+                  - generic [ref=e171]: CLOSED
+                  - generic [ref=e172]: Corrective
+                  - generic [ref=e173]: "Action: R"
+                - paragraph [ref=e174]: Replaced faulty power supply connector. Tested - intermittent fault no longer present.
+                - generic [ref=e175]:
+                  - generic [ref=e176]: "Started: 1/14/2026"
+                  - generic [ref=e177]: "Completed: 1/15/2026"
+                  - generic [ref=e178]: "Tag: TAG-001"
+                  - generic [ref=e179]: "Doc: DOC-2024-001"
+                  - generic [ref=e180]: "By: Bob Field"
+                - generic [ref=e181]:
+                  - generic [ref=e182]: "ETI In: 780.5 hrs"
+                  - generic [ref=e183]: "ETI Out: 782 hrs"
+                  - generic [ref=e184]: "ETI Delta: 1.5 hrs"
+                - generic [ref=e186]:
+                  - img [ref=e187]
+                  - generic [ref=e189]:
+                    - paragraph [ref=e190]: TCTO Completion
+                    - paragraph [ref=e191]: This repair was performed to complete a Time Compliance Technical Order (TCTO).
+                    - generic [ref=e193]:
+                      - generic [ref=e194]:
+                        - paragraph [ref=e195]: TCTO-2024-001
+                        - paragraph [ref=e196]: Sensor Firmware Update v2.3.1
+                        - generic [ref=e197]:
+                          - generic [ref=e198]: Urgent
+                          - generic [ref=e199]: open
+                          - generic [ref=e200]: "Completed: 1/18/2026"
+                      - button "View TCTO" [ref=e201] [cursor=pointer]
+                - generic [ref=e202]:
+                  - heading "Installed Parts (1)" [level=4] [ref=e204]:
+                    - img [ref=e205]
+                    - text: Installed Parts
+                    - generic [ref=e207]: (1)
+                  - generic [ref=e210]:
+                    - generic [ref=e211]:
+                      - img [ref=e212]
+                      - generic [ref=e214]: CRIIS-002
+                      - generic [ref=e215]: (PN-PWR-001)
+                    - generic [ref=e216]:
+                      - text: Power Supply Unit•
+                      - generic [ref=e217]: "Installed: 1/15/2026"
+                      - text: •
+                      - generic [ref=e218]: "By: Bob Field"
+                    - paragraph [ref=e219]: Replaced faulty PSU connector with spare unit
+                - generic [ref=e220]:
+                  - heading "Removed Parts (1)" [level=4] [ref=e222]:
+                    - img [ref=e223]
+                    - text: Removed Parts
+                    - generic [ref=e225]: (1)
+                  - generic [ref=e228]:
+                    - generic [ref=e229]:
+                      - img [ref=e230]
+                      - generic [ref=e232]: CRIIS-003
+                      - generic [ref=e233]: (PN-SENSOR-B)
+                      - generic [ref=e234]: FAILED
+                      - generic [ref=e235]: → NMCM
+                    - generic [ref=e236]:
+                      - text: Sensor Unit B•
+                      - generic [ref=e237]: "Removed: 1/14/2026"
+                      - text: •
+                      - generic [ref=e238]: "By: Bob Field"
+                    - paragraph [ref=e239]: Faulty power connector caused sensor failure. Removed for depot repair.
+                - generic [ref=e240]:
+                  - heading "Labor Records (1)" [level=4] [ref=e242]:
+                    - img [ref=e243]
+                    - text: Labor Records
+                    - generic [ref=e245]: (1)
+                  - generic [ref=e248]:
+                    - generic [ref=e249]:
+                      - img [ref=e250]
+                      - generic [ref=e252]: "Labor #1"
+                      - generic [ref=e253]: R
+                      - generic [ref=e254]: "Cat: R"
+                      - generic [ref=e255]: 4.5 hrs
+                    - generic [ref=e256]:
+                      - generic [ref=e257]: "Chief: Bob Field"
+                      - text: •
+                      - generic [ref=e258]: "Crew: 2"
+                      - text: •
+                      - generic [ref=e259]: "Start: 1/14/2026"
+                      - text: •
+                      - generic [ref=e260]: "Stop: 1/15/2026"
+                    - paragraph [ref=e261]: Replaced faulty power connector. Tested system functionality.
+                    - button "Parts Tracking" [ref=e263] [cursor=pointer]:
+                      - img [ref=e264]
+                      - img [ref=e266]
+                      - text: Parts Tracking
+              - generic [ref=e269]:
+                - generic [ref=e270]:
+                  - generic [ref=e271]:
+                    - generic [ref=e272]: "Repair #2"
+                    - generic [ref=e273]: OPEN
+                    - generic [ref=e274]: Corrective
+                    - generic "Repeat/Recur issue flagged by bob_field" [ref=e275]:
+                      - img [ref=e276]
+                      - text: REPEAT/RECUR
+                  - paragraph [ref=e278]: Additional power fault found. Investigating main circuit board.
+                  - generic [ref=e279]:
+                    - generic [ref=e280]: "Started: 1/16/2026"
+                    - generic [ref=e281]: "Tag: TAG-002"
+                    - generic [ref=e282]: "By: Bob Field"
+                  - generic [ref=e284]: "ETI In: 782 hrs"
+                  - generic [ref=e285]:
+                    - generic [ref=e286]:
+                      - heading "Installed Parts (0)" [level=4] [ref=e287]:
+                        - img [ref=e288]
+                        - text: Installed Parts
+                        - generic [ref=e290]: (0)
+                      - button "Add Part" [ref=e291] [cursor=pointer]:
+                        - img [ref=e292]
+                        - text: Add Part
+                    - paragraph [ref=e294]: No parts installed
+                  - generic [ref=e295]:
+                    - generic [ref=e296]:
+                      - heading "Removed Parts (0)" [level=4] [ref=e297]:
+                        - img [ref=e298]
+                        - text: Removed Parts
+                        - generic [ref=e300]: (0)
+                      - button "Add Removed Part" [ref=e301] [cursor=pointer]:
+                        - img [ref=e302]
+                        - text: Add Removed Part
+                    - paragraph [ref=e304]: No parts removed
+                  - generic [ref=e305]:
+                    - generic [ref=e306]:
+                      - heading "Labor Records (1)" [level=4] [ref=e307]:
+                        - img [ref=e308]
+                        - text: Labor Records
+                        - generic [ref=e310]: (1)
+                      - button "Add Labor" [ref=e311] [cursor=pointer]:
+                        - img [ref=e312]
+                        - text: Add Labor
+                    - generic [ref=e315]:
+                      - generic [ref=e316]:
+                        - generic [ref=e317]:
+                          - img [ref=e318]
+                          - generic [ref=e320]: "Labor #1"
+                          - generic [ref=e321]: I
+                          - generic [ref=e322]: "Cat: I"
+                          - generic [ref=e323]: 2 hrs
+                        - generic [ref=e324]:
+                          - generic [ref=e325]: "Chief: Bob Field"
+                          - text: •
+                          - generic [ref=e326]: "Crew: 1"
+                          - text: •
+                          - generic [ref=e327]: "Start: 1/16/2026"
+                        - paragraph [ref=e328]: Initial inspection complete. Pending additional diagnostics.
+                        - generic [ref=e329]:
+                          - generic [ref=e330]:
+                            - img [ref=e331]
+                            - text: "BIT Log:"
+                          - text: BIT passed all tests
+                        - button "Parts Tracking" [ref=e334] [cursor=pointer]:
+                          - img [ref=e335]
+                          - img [ref=e337]
+                          - text: Parts Tracking
+                      - button "Edit labor record" [ref=e340] [cursor=pointer]:
+                        - img [ref=e341]
+                - generic [ref=e343]:
+                  - button "Edit" [ref=e344] [cursor=pointer]:
+                    - img [ref=e345]
+                    - text: Edit
+                  - button "Close Repair" [ref=e347] [cursor=pointer]:
+                    - img [ref=e348]
+                    - text: Close Repair
+          - generic [ref=e350]:
+            - generic [ref=e351]:
+              - heading "Attachments (0 files)" [level=2] [ref=e352]:
+                - img [ref=e353]
+                - text: Attachments
+                - generic [ref=e355]: (0 files)
+              - button "Upload" [ref=e356] [cursor=pointer]:
+                - img [ref=e357]
+                - text: Upload
+            - generic [ref=e359]:
+              - img [ref=e360]
+              - paragraph [ref=e362]: No attachments uploaded
+              - button "Upload your first attachment" [ref=e363] [cursor=pointer]
+        - generic [ref=e364]:
+          - generic [ref=e365]:
+            - heading "Asset Information" [level=2] [ref=e366]
+            - generic [ref=e367]:
+              - generic [ref=e368]:
+                - text: Asset Name
+                - paragraph [ref=e369]: Camera System X
+              - generic [ref=e370]:
+                - text: Serial Number
+                - paragraph [ref=e371]: CRIIS-005
+              - generic [ref=e372]:
+                - text: Asset ID
+                - paragraph [ref=e373]: "#5"
+          - generic [ref=e374]:
+            - heading "Quick Actions" [level=2] [ref=e375]
+            - generic [ref=e376]:
+              - button "Edit Event" [ref=e377] [cursor=pointer]:
+                - img [ref=e378]
+                - text: Edit Event
+              - button "Close Event" [ref=e380] [cursor=pointer]:
+                - img [ref=e381]
+                - text: Close Event
+              - button "Return to Maintenance" [ref=e383] [cursor=pointer]:
+                - img [ref=e384]
+                - text: Return to Maintenance
+              - button "Print Details" [ref=e386] [cursor=pointer]:
+                - img [ref=e387]
+                - text: Print Details
+          - generic [ref=e389]:
+            - paragraph [ref=e390]: Event ID
+            - paragraph [ref=e391]: "#1"
+  - contentinfo [ref=e71]: CUI - Controlled Unclassified Information
+```

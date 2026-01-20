@@ -3587,6 +3587,7 @@ app.get('/api/events', (req, res) => {
   const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
   const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
   const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
+  const sortieIdFilter = req.query.sortie_id ? parseInt(req.query.sortie_id as string, 10) : null; // Filter by linked sortie
   const searchQuery = req.query.search as string | undefined;
   const dateFrom = req.query.date_from as string | undefined; // Filter events starting from this date (YYYY-MM-DD)
   const dateTo = req.query.date_to as string | undefined; // Filter events up to this date (YYYY-MM-DD)
@@ -3618,6 +3619,11 @@ app.get('/api/events', (req, res) => {
   // Apply PQDR filter if specified
   if (pqdrFilter === 'true') {
     filteredEvents = filteredEvents.filter(event => event.pqdr === true);
+  }
+
+  // Apply sortie filter if specified
+  if (sortieIdFilter) {
+    filteredEvents = filteredEvents.filter(event => event.sortie_id === sortieIdFilter);
   }
 
   // Apply search filter if specified

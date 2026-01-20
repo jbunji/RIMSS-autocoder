@@ -8,10 +8,13 @@ import {
   XMarkIcon,
   PencilIcon,
   TrashIcon,
+  ArrowUpTrayIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
 import { Dialog } from '@headlessui/react'
 import { useAuthStore } from '../stores/authStore'
+import * as XLSX from 'xlsx'
 
 // Sortie interface matching backend
 interface Sortie {
@@ -96,6 +99,14 @@ export default function SortiesPage() {
   const [sortieToDelete, setSortieToDelete] = useState<Sortie | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  // Import Modal State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importPreview, setImportPreview] = useState<any[]>([])
+  const [importErrors, setImportErrors] = useState<string[]>([])
+  const [importing, setImporting] = useState(false)
+  const [importSuccess, setImportSuccess] = useState<string | null>(null)
 
   // Fetch sorties
   useEffect(() => {
@@ -434,6 +445,167 @@ export default function SortiesPage() {
     })
   }
 
+  // Download Excel template
+  const handleDownloadTemplate = () => {
+    const wb = XLSX.utils.book_new()
+
+    // Template header row
+    const headerRow = ['Asset Serial Number*', 'Mission ID*', 'Sortie Date (YYYY-MM-DD)*', 'Sortie Effect', 'Range', 'Remarks']
+
+    // Example data rows
+    const exampleRows = [
+      ['CRIIS-001', 'MISSION-001', '2026-01-20', 'Full Mission Capable', 'Range A', 'Example sortie'],
+      ['CRIIS-002', 'MISSION-002', '2026-01-21', 'Partial Mission Capable', 'Range B', 'Another example'],
+    ]
+
+    const allRows = [headerRow, ...exampleRows]
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 20 },  // Asset Serial Number
+      { wch: 15 },  // Mission ID
+      { wch: 25 },  // Sortie Date
+      { wch: 25 },  // Sortie Effect
+      { wch: 12 },  // Range
+      { wch: 40 },  // Remarks
+    ]
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Sorties')
+    XLSX.writeFile(wb, 'sortie_import_template.xlsx')
+  }
+
+  // Handle file selection
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImportFile(file)
+    setImportErrors([])
+    setImportSuccess(null)
+
+    try {
+      const data = await file.arrayBuffer()
+      const workbook = XLSX.read(data)
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+
+      // Skip header row and parse data
+      const rows = jsonData.slice(1) as any[]
+      const errors: string[] = []
+      const preview: any[] = []
+
+      rows.forEach((row, index) => {
+        const rowNum = index + 2 // +2 because index starts at 0 and we skipped header
+
+        // Skip empty rows
+        if (!row || row.length === 0 || !row[0]) return
+
+        const [serno, mission_id, sortie_date, sortie_effect, range, remarks] = row
+
+        // Validate required fields
+        if (!serno) {
+          errors.push(`Row ${rowNum}: Asset Serial Number is required`)
+        }
+        if (!mission_id) {
+          errors.push(`Row ${rowNum}: Mission ID is required`)
+        }
+        if (!sortie_date) {
+          errors.push(`Row ${rowNum}: Sortie Date is required`)
+        }
+
+        // Validate date format
+        if (sortie_date) {
+          const dateStr = String(sortie_date)
+          const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+          if (!dateRegex.test(dateStr)) {
+            errors.push(`Row ${rowNum}: Sortie Date must be in YYYY-MM-DD format`)
+          }
+        }
+
+        preview.push({
+          row: rowNum,
+          serno: serno || '',
+          mission_id: mission_id || '',
+          sortie_date: sortie_date || '',
+          sortie_effect: sortie_effect || '',
+          range: range || '',
+          remarks: remarks || '',
+        })
+      })
+
+      setImportPreview(preview)
+      setImportErrors(errors)
+    } catch (err) {
+      console.error('Error parsing Excel file:', err)
+      setImportErrors(['Failed to parse Excel file. Please check the file format.'])
+    }
+  }
+
+  // Handle import confirmation
+  const handleConfirmImport = async () => {
+    if (importErrors.length > 0) {
+      return // Don't allow import if there are validation errors
+    }
+
+    setImporting(true)
+    setImportSuccess(null)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/sorties/bulk-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          sorties: importPreview.map(item => ({
+            serno: item.serno,
+            mission_id: item.mission_id,
+            sortie_date: item.sortie_date,
+            sortie_effect: item.sortie_effect || null,
+            range: item.range || null,
+            remarks: item.remarks || null,
+          })),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to import sorties')
+      }
+
+      const result = await response.json()
+      setImportSuccess(`Successfully imported ${result.imported} sortie(s)`)
+
+      // Refresh sorties list
+      fetchSorties()
+
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setIsImportModalOpen(false)
+        setImportFile(null)
+        setImportPreview([])
+        setImportErrors([])
+        setImportSuccess(null)
+      }, 2000)
+    } catch (err) {
+      console.error('Error importing sorties:', err)
+      setImportErrors([err instanceof Error ? err.message : 'Failed to import sorties'])
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  // Close import modal
+  const closeImportModal = () => {
+    setIsImportModalOpen(false)
+    setImportFile(null)
+    setImportPreview([])
+    setImportErrors([])
+    setImportSuccess(null)
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -466,13 +638,22 @@ export default function SortiesPage() {
             Track sortie missions and aircraft operations
           </p>
         </div>
-        <button
-          onClick={openAddModal}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-        >
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Sortie
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+            Import
+          </button>
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Add Sortie
+          </button>
+        </div>
       </div>
 
       {/* Search bar */}
@@ -959,6 +1140,152 @@ export default function SortiesPage() {
                 disabled={deleting}
               >
                 {deleting ? 'Deleting...' : 'Delete Sortie'}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Import Sorties Modal */}
+      <Dialog open={isImportModalOpen} onClose={closeImportModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-4xl w-full bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Import Sorties from Excel
+              </Dialog.Title>
+            </div>
+
+            <div className="px-6 py-4 space-y-4">
+              {/* Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">Import Instructions</h4>
+                <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                  <li>Download the Excel template below</li>
+                  <li>Fill in your sortie data (required fields marked with *)</li>
+                  <li>Upload the completed file</li>
+                  <li>Review the preview and fix any validation errors</li>
+                  <li>Click "Import Sorties" to complete the import</li>
+                </ol>
+              </div>
+
+              {/* Download Template Button */}
+              <div>
+                <button
+                  onClick={handleDownloadTemplate}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                  Download Template
+                </button>
+              </div>
+
+              {/* File Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Excel File
+                </label>
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileSelect}
+                  className="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-primary-50 file:text-primary-700
+                    hover:file:bg-primary-100
+                    cursor-pointer"
+                />
+                {importFile && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Selected: {importFile.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Validation Errors */}
+              {importErrors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div className="flex items-start gap-2">
+                    <ExclamationCircleIcon className="h-5 w-5 text-red-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-red-900 mb-2">
+                        Validation Errors ({importErrors.length})
+                      </h4>
+                      <ul className="text-sm text-red-800 space-y-1 list-disc list-inside max-h-40 overflow-y-auto">
+                        {importErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Message */}
+              {importSuccess && (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                  <p className="text-sm text-green-800">{importSuccess}</p>
+                </div>
+              )}
+
+              {/* Preview Table */}
+              {importPreview.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                    Preview ({importPreview.length} sortie{importPreview.length !== 1 ? 's' : ''})
+                  </h4>
+                  <div className="border border-gray-200 rounded-md overflow-hidden">
+                    <div className="overflow-x-auto max-h-64">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Row</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Serial Number</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mission ID</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sortie Date</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Effect</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Range</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {importPreview.map((item, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 text-sm text-gray-900">{item.row}</td>
+                              <td className="px-3 py-2 text-sm text-gray-900">{item.serno}</td>
+                              <td className="px-3 py-2 text-sm text-gray-900">{item.mission_id}</td>
+                              <td className="px-3 py-2 text-sm text-gray-900">{item.sortie_date}</td>
+                              <td className="px-3 py-2 text-sm text-gray-900">{item.sortie_effect || '-'}</td>
+                              <td className="px-3 py-2 text-sm text-gray-900">{item.range || '-'}</td>
+                              <td className="px-3 py-2 text-sm text-gray-900 max-w-xs truncate">{item.remarks || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={closeImportModal}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                disabled={importing}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmImport}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={importing || importPreview.length === 0 || importErrors.length > 0}
+              >
+                {importing ? 'Importing...' : 'Import Sorties'}
               </button>
             </div>
           </Dialog.Panel>

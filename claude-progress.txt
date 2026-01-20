@@ -10883,3 +10883,80 @@ Frontend changes (frontend/src/pages/SortiesPage.tsx):
 [Feature] Feature #130 marked as PASSING
 
 **Current Progress:** 130/374 features passing (34.8%)
+[Testing] Feature #21 verified - Dashboard shows asset status summary widget - still passing
+[Testing] Session complete - Feature #21 regression test PASSED ✅
+[Testing] Feature #101 'Labor sequence tracking' - VERIFIED AND PASSING
+
+Regression Test Results:
+✅ Logged in as field technician (Bob Field)
+✅ Navigated to maintenance event MX-2024-001
+✅ Found Repair #2 with existing Labor #1 (sequence = 1)
+✅ Created second labor record with required fields
+✅ Verified Labor #2 was assigned sequence = 2
+✅ Both labor records display correctly in UI
+✅ No console errors related to labor tracking
+
+Test Details:
+- Repair #2 already had Labor #1 (Inspection, 2 hrs)
+- Added Labor #2 (Repair, 3.5 hrs, circuit board testing)
+- System correctly assigned sequence number 2
+- Labor Records heading updated from (1) to (2)
+- Both labor records visible with correct sequence numbers
+
+Feature Status: PASSING (no regression detected)
+Screenshot: feature101_labor_sequence_tracking_verified.png
+Date: Mon Jan 19 23:22:45 EST 2026
+
+[Testing] Feature #103 (Labor parts tracking) - VERIFIED AND PASSING
+
+Verification Steps Completed:
+✓ Log in as field technician (Bob Field)
+✓ Navigate to labor record (Maintenance Event #1, Repair #2, Labor #1)
+✓ Add part worked on (WORKED: PN-TEST-001, SN-TEST-12345)
+✓ Add part removed (REMOVED: PN-REMOVED-002, SN-FAIL-67890)
+✓ Add part installed (INSTALLED: PN-INSTALL-003, SN-NEW-99999)
+✓ Save changes - All parts added successfully
+✓ Verify all parts tracked - Parts Tracking counter shows 3
+✓ Verify part actions categorized correctly:
+  - WORKED parts displayed in blue
+  - REMOVED parts displayed in red
+  - INSTALLED parts displayed in green
+✓ Data persistence verified - All parts retained after page refresh
+✓ Zero console errors (only expected React Router warnings)
+
+Feature Status: PASSING - No regressions found
+Testing Date: Mon Jan 19 23:22:45 EST 2026
+
+
+========================================
+REGRESSION TEST SUMMARY - Feature #103
+========================================
+
+Feature: Labor parts tracking
+Status: ✅ PASSING (No regression found)
+
+Test Results:
+-------------
+✓ All 8 verification steps passed
+✓ Parts tracking modal opens correctly
+✓ All three part action types work (WORKED, REMOVED, INSTALLED)
+✓ Parts are properly categorized with color coding
+✓ Part counter updates correctly (0 → 1 → 2 → 3)
+✓ Data persists after page refresh
+✓ Zero console errors
+✓ UI displays parts clearly with all details (action, part number, serial number)
+
+Screenshots Captured:
+---------------------
+- feature103_add_part_worked_filled.png
+- feature103_all_parts_tracked.png
+- feature103_data_persisted.png
+
+Conclusion:
+-----------
+Feature #103 is working correctly with no regressions detected.
+The feature continues to meet all requirements.
+
+Testing completed: Mon Jan 19 23:22:53 EST 2026
+========================================
+
