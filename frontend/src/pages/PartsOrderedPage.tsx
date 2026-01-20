@@ -9,8 +9,12 @@ import {
   FunnelIcon,
   XMarkIcon,
   ExclamationTriangleIcon,
+  DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 // Parts order interface matching backend
 interface PartsOrder {
@@ -177,6 +181,311 @@ export default function PartsOrderedPage() {
     }
   }
 
+  // Helper function to get ZULU timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Helper function to get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  // Export parts orders to PDF with CUI markings
+  const exportToPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+    }
+
+    // Add header
+    addCuiHeader()
+
+    // Title
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text('RIMSS Parts Orders Report', pageWidth / 2, 20, { align: 'center' })
+
+    // Metadata
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
+    doc.text(`Total Orders: ${orders.length}`, 14, 33)
+    if (user?.program_cd && user?.program_name) {
+      doc.text(`Program: ${user.program_cd} - ${user.program_name}`, 14, 38)
+    }
+
+    // Filters info
+    let yPos = user?.program_cd ? 43 : 38
+    const hasActiveFilters = searchQuery || statusFilter || priorityFilter || pqdrFilter || startDate || endDate
+    if (hasActiveFilters) {
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'italic')
+      const filters: string[] = []
+      if (searchQuery) filters.push(`Search: "${searchQuery}"`)
+      if (statusFilter) filters.push(`Status: ${statusFilter}`)
+      if (priorityFilter) filters.push(`Priority: ${priorityFilter}`)
+      if (pqdrFilter) filters.push('PQDR Only')
+      if (startDate && endDate) filters.push(`Date Range: ${startDate} to ${endDate}`)
+      doc.text(`Filters: ${filters.join(', ')}`, 14, yPos)
+      yPos += 5
+    }
+
+    // Prepare table data
+    const tableHeaders = [
+      'Order Date',
+      'Part Number',
+      'Part Name',
+      'Qty',
+      'Status',
+      'Priority',
+      'Requestor',
+      'Asset S/N'
+    ]
+
+    const tableData = sortedOrders.map(order => [
+      formatDate(order.order_date),
+      order.part_no,
+      order.part_name.substring(0, 30), // Truncate for space
+      order.qty_ordered.toString(),
+      order.status.charAt(0).toUpperCase() + order.status.slice(1),
+      order.priority.charAt(0).toUpperCase() + order.priority.slice(1),
+      order.requestor_name,
+      order.asset_sn || '-'
+    ])
+
+    // Generate table
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: yPos + 5,
+      margin: { left: 14, right: 14, top: 15, bottom: 15 },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246], // primary-600
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251], // gray-50
+      },
+      didDrawPage: (data: any) => {
+        const pageCount = (doc as any).internal.pages.length - 1
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+
+        // Add CUI footer to each page
+        addCuiFooter(currentPage, pageCount)
+      },
+    })
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Parts-Orders-${zuluDate}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  // Export parts orders to Excel with CUI markings
+  const exportToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = ['RIMSS Parts Orders Report']
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total Orders: ${orders.length}`]
+    const reportInfoRow4 = user?.program_cd ? [`Program: ${user.program_cd} - ${user.program_name}`] : []
+
+    // Filter info
+    const filters: string[] = []
+    if (searchQuery) filters.push(`Search: "${searchQuery}"`)
+    if (statusFilter) filters.push(`Status: ${statusFilter}`)
+    if (priorityFilter) filters.push(`Priority: ${priorityFilter}`)
+    if (pqdrFilter) filters.push('PQDR Only')
+    if (startDate && endDate) filters.push(`Date Range: ${startDate} to ${endDate}`)
+    const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
+
+    // Table header row
+    const headerRow = [
+      'Order ID',
+      'Order Date',
+      'Request Date',
+      'Part Number',
+      'Part Name',
+      'NSN',
+      'Qty Ordered',
+      'Qty Received',
+      'Unit Price',
+      'Status',
+      'Priority',
+      'Requestor',
+      'Asset S/N',
+      'Asset Name',
+      'Job No',
+      'Tracking Number',
+      'Est. Delivery',
+      'PQDR',
+      'Notes'
+    ]
+
+    // Data rows
+    const dataRows = sortedOrders.map(order => [
+      order.order_id.toString(),
+      formatDate(order.order_date),
+      formatDate(order.request_date),
+      order.part_no,
+      order.part_name,
+      order.nsn || '',
+      order.qty_ordered.toString(),
+      order.qty_received.toString(),
+      formatCurrency(order.unit_price),
+      order.status.charAt(0).toUpperCase() + order.status.slice(1),
+      order.priority.charAt(0).toUpperCase() + order.priority.slice(1),
+      order.requestor_name,
+      order.asset_sn || '',
+      order.asset_name || '',
+      order.job_no || '',
+      order.shipping_tracking || '',
+      order.estimated_delivery ? formatDate(order.estimated_delivery) : '',
+      order.pqdr ? 'Yes' : 'No',
+      order.notes || ''
+    ])
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      ...(reportInfoRow4.length ? [reportInfoRow4] : []),
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 10 },  // Order ID
+      { wch: 12 },  // Order Date
+      { wch: 12 },  // Request Date
+      { wch: 18 },  // Part Number
+      { wch: 30 },  // Part Name
+      { wch: 15 },  // NSN
+      { wch: 12 },  // Qty Ordered
+      { wch: 12 },  // Qty Received
+      { wch: 12 },  // Unit Price
+      { wch: 12 },  // Status
+      { wch: 12 },  // Priority
+      { wch: 20 },  // Requestor
+      { wch: 15 },  // Asset S/N
+      { wch: 25 },  // Asset Name
+      { wch: 12 },  // Job No
+      { wch: 20 },  // Tracking Number
+      { wch: 12 },  // Est. Delivery
+      { wch: 8 },   // PQDR
+      { wch: 40 },  // Notes
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    const headerRowIdx = reportInfoRow4.length ? 8 : 7
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total orders
+    ]
+
+    // Add program row merge if present
+    if (reportInfoRow4.length) {
+      ws['!merges'].push({ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } })
+    }
+
+    // Add filters row merge if present
+    if (filterRow.length) {
+      const filterRowIdx = reportInfoRow4.length ? 6 : 5
+      ws['!merges'].push({ s: { r: filterRowIdx, c: 0 }, e: { r: filterRowIdx, c: numCols - 1 } })
+    }
+
+    // Add footer merge
+    const footerRowIdx = allRows.length - 1
+    ws['!merges'].push({ s: { r: footerRowIdx, c: 0 }, e: { r: footerRowIdx, c: numCols - 1 } })
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Parts Orders')
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Parts-Orders-${zuluDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(wb, filename)
+  }
+
   // Sort orders client-side
   const sortedOrders = [...orders].sort((a, b) => {
     let aVal: any = a[sortField]
@@ -250,6 +559,24 @@ export default function PartsOrderedPage() {
             <p className="mt-1 text-sm text-gray-600">
               {pagination.total} {pagination.total === 1 ? 'order' : 'orders'} found
             </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={exportToPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              title="Export to PDF"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              Export PDF
+            </button>
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              title="Export to Excel"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              Export Excel
+            </button>
           </div>
         </div>
       </div>
