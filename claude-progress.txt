@@ -20279,3 +20279,9 @@ Test Scripts:
 Next: Session complete - Feature #204 verified and committed
 
 ================================================================================
+[Testing] 2026-01-20 06:57 UTC - Feature #77 regression test completed successfully - All steps PASSED
+[Testing] 2026-01-20 06:57 UTC - Feature #73 Regression Test BLOCKED
+BLOCKER: Database file (backend/prisma/dev.db) is empty (0 bytes)
+Issue: Cannot authenticate any user - database has no seeded data
+Attempted: field_tech, admin with documented passwords - all returned 401
+Action needed: Database must be reinitialized with test data before regression testing can continue
