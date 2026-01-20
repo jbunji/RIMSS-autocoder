@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import Breadcrumbs from '../components/Breadcrumbs'
+import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
+import { UnsavedChangesDialog } from '../components/UnsavedChangesDialog'
 
 // Asset interface matching backend response
 interface Asset {
@@ -361,6 +363,35 @@ export default function AssetDetailPage() {
 
   // Check if user can update ETI (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
   const canUpdateETI = user?.role === 'ADMIN' || user?.role === 'DEPOT_MANAGER' || user?.role === 'FIELD_TECHNICIAN'
+
+  // Detect if form has unsaved changes
+  const isFormDirty = useMemo(() => {
+    if (!isEditing || !asset) return false
+
+    // Compare relevant fields that can be edited
+    const editableFields: (keyof Asset)[] = [
+      'serno', 'partno', 'name', 'status_cd', 'active', 'bad_actor',
+      'admin_loc', 'cust_loc', 'in_transit', 'carrier', 'tracking_number',
+      'ship_date', 'notes'
+    ]
+
+    return editableFields.some(field => {
+      const originalValue = asset[field]
+      const editedValue = editForm[field]
+
+      // Handle undefined/null/empty string equivalence
+      const normalizedOriginal = originalValue === null || originalValue === undefined ? '' : String(originalValue)
+      const normalizedEdited = editedValue === null || editedValue === undefined ? '' : String(editedValue)
+
+      return normalizedOriginal !== normalizedEdited
+    })
+  }, [isEditing, asset, editForm])
+
+  // Use unsaved changes warning hook
+  const unsavedChangesWarning = useUnsavedChangesWarning(
+    isFormDirty,
+    'You have unsaved changes to this asset. Are you sure you want to leave? Your changes will be lost.'
+  )
 
   // Check if user can replace meter (only ADMIN and DEPOT_MANAGER)
   const canReplaceMeter = user?.role === 'ADMIN' || user?.role === 'DEPOT_MANAGER'
