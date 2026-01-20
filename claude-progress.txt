@@ -36973,3 +36973,138 @@ SECURITY NOTES:
 ================================================================================
 [Testing] Session complete - Feature #199 verified PASSING - no regression found
 ================================================================================
+
+================================================================================
+[2026-01-20 06:42 UTC] Feature #289 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #289: Reset button clears to defaults not empty - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #289
+Session Type: Single-feature implementation mode
+
+FEATURE DESCRIPTION:
+Form reset restores defaults. When users click a Reset button on a form with
+default values, the form should restore those defaults rather than just clearing
+everything to empty/blank fields.
+
+IMPLEMENTATION:
+Added Reset button to Assets form (frontend/src/pages/AssetsPage.tsx):
+- Positioned between Cancel and Create Asset buttons
+- Calls reset() from react-hook-form
+- Restores defaultValues defined in useForm configuration
+
+Default Values Configured:
+- status_cd: 'FMC' (Full Mission Capable)
+- admin_loc: 'DEPOT-A' (Depot Alpha)
+- cust_loc: 'MAINT-BAY-1' (Maintenance Bay 1)
+- Text fields: Empty strings (cleared, ready for input)
+
+TEST EXECUTION - All 7 Steps PASSED:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as admin user (has depot manager permissions)
+   - Successfully authenticated and redirected to dashboard
+
+✅ Step 2: Navigate to form with defaults
+   - Clicked Assets navigation link
+   - Clicked "Add Asset" button
+   - Form dialog opened with default values pre-selected
+
+✅ Step 3: Fill in various fields
+   - Part Number: Changed to "PN-TEST-289"
+   - Serial Number: Changed to "CRIIS-F289"
+   - Status: Changed from FMC to NMCM (Not Mission Capable Maintenance)
+   - Admin Location: Changed from Depot Alpha to Depot Beta
+   - Custodial Location: Changed from Maintenance Bay 1 to Storage Area A
+
+✅ Step 4: Click Reset button
+   - Reset button visible between Cancel and Create Asset
+   - Clicked Reset button
+   - Form immediately updated (no delays)
+
+✅ Step 5: Verify default values restored
+   - Status: Restored to "FMC - Full Mission Capable" ✅
+   - Administrative Location: Restored to "Depot Alpha" ✅
+   - Custodial Location: Restored to "Maintenance Bay 1" ✅
+   - Part Number: Cleared to empty ✅
+   - Serial Number: Cleared to empty ✅
+
+✅ Step 6: Verify not just empty/blank
+   - Status dropdown: Shows "FMC - Full Mission Capable" SELECTED
+   - Admin Location dropdown: Shows "Depot Alpha" SELECTED
+   - Custodial Location dropdown: Shows "Maintenance Bay 1" SELECTED
+   - NOT showing "Select..." placeholder options
+   - Dropdowns have meaningful defaults, not empty state
+
+✅ Step 7: Verify ready for new entry
+   - Form is in clean state with sensible defaults
+   - User can immediately start entering Part Number and Serial Number
+   - No need to select status/locations for common cases (FMC at depot)
+   - Reduces clicks from 5 required fields to 2 required fields
+
+KEY BEHAVIOR VERIFIED:
+The critical distinction is that Reset does NOT clear dropdowns to empty/unselected:
+- WRONG (just clearing): Status = "Select a status..." (no selection)
+- RIGHT (restoring defaults): Status = "FMC - Full Mission Capable" (selected)
+
+This matches the feature intent: defaults should be RESTORED, not removed.
+
+USER EXPERIENCE:
+Before Reset button: Users had to re-select all dropdowns if they made mistakes
+After Reset button: One click restores sensible defaults, ready for quick entry
+Common use case: Creating multiple FMC assets at Depot Alpha requires minimal input
+
+QUALITY VERIFICATION:
+✅ Console Output:
+   - Only expected warnings (React Router future flags, React DevTools)
+   - Zero JavaScript errors during testing
+
+✅ Visual Design:
+   - Reset button matches Cancel button styling
+   - Positioned logically between Cancel and primary action
+   - Professional appearance consistent with app design
+
+✅ Functionality:
+   - Instant response (no loading delays)
+   - All default values correctly restored
+   - Works with react-hook-form validation system
+   - No side effects on other form state
+
+✅ Code Quality:
+   - Simple implementation using built-in reset() function
+   - No custom logic needed - leverages react-hook-form defaults
+   - Maintainable and follows existing patterns
+
+SCREENSHOTS CAPTURED:
+1. feature_289_step1_initial_defaults.png - Form opened with defaults
+2. feature_289_step2_fields_modified.png - After changing all fields
+3. feature_289_step3_after_reset_defaults_restored.png - After clicking Reset
+
+Files Modified:
+- frontend/src/pages/AssetsPage.tsx (added Reset button, lines 1348-1354)
+
+Result: Feature #289 marked as PASSING ✅
+Progress: 287/374 features passing (76.7%)
+
+Session Type: PARALLEL SESSION - Single Feature Mode
+Session Duration: ~30 minutes
+Implementation: Added Reset button functionality
+Testing Method: Full end-to-end browser automation with visual verification
+Quality: Production-ready reset functionality with proper defaults ✅
+
+Git Commit: deeb143
+
+Feature Status: PASSING ✅
+Reset Button: Added and functional ✅
+Default Restoration: Working correctly ✅
+User Experience: Significantly improved ✅
+Code Quality: Clean implementation ✅
+
+NO ISSUES FOUND - Reset button correctly restores form defaults rather than
+just clearing to empty. Dropdowns maintain meaningful default selections (FMC,
+Depot Alpha, Maintenance Bay 1), making form entry faster and more user-friendly.
+
+================================================================================
+[2026-01-20 06:42 UTC] Feature #289 session complete - PARALLEL SESSION
+================================================================================
