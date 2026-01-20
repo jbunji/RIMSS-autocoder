@@ -108,43 +108,44 @@ export default function SortiesPage() {
   const [importing, setImporting] = useState(false)
   const [importSuccess, setImportSuccess] = useState<string | null>(null)
 
-  // Fetch sorties
-  useEffect(() => {
-    const fetchSorties = async () => {
-      if (!token) return
+  // Fetch sorties function
+  const fetchSorties = async () => {
+    if (!token) return
 
-      setLoading(true)
-      setError(null)
+    setLoading(true)
+    setError(null)
 
-      try {
-        const url = new URL('http://localhost:3001/api/sorties')
+    try {
+      const url = new URL('http://localhost:3001/api/sorties')
 
-        // Apply program filter
-        if (currentProgramId) {
-          url.searchParams.append('program_id', currentProgramId.toString())
-        }
-
-        const response = await fetch(url.toString(), {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-
-        const data: SortiesResponse = await response.json()
-        setSorties(data.sorties)
-        setTotal(data.total)
-      } catch (err) {
-        console.error('Error fetching sorties:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load sorties')
-      } finally {
-        setLoading(false)
+      // Apply program filter
+      if (currentProgramId) {
+        url.searchParams.append('program_id', currentProgramId.toString())
       }
-    }
 
+      const response = await fetch(url.toString(), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data: SortiesResponse = await response.json()
+      setSorties(data.sorties)
+      setTotal(data.total)
+    } catch (err) {
+      console.error('Error fetching sorties:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load sorties')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch sorties on mount and when token/program changes
+  useEffect(() => {
     fetchSorties()
   }, [token, currentProgramId])
 
