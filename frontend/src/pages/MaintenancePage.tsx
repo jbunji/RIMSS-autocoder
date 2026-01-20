@@ -2081,4 +2081,219 @@ export default function MaintenancePage() {
       </div>
     )
   }
+
+  function renderPMITable() {
+    if (pmiLoading) {
+      return (
+        <div className="bg-white shadow rounded-lg p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        </div>
+      )
+    }
+
+    if (pmiError) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600">{pmiError}</p>
+          <button
+            onClick={fetchPMI}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      )
+    }
+
+    if (pmiRecords.length === 0) {
+      return (
+        <div className="bg-white shadow rounded-lg p-8 text-center">
+          <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">No PMI schedule entries found for the current program.</p>
+        </div>
+      )
+    }
+
+    // PMI status color helpers
+    const getPMIStatusStyle = (status: string, daysUntilDue: number) => {
+      if (status === 'overdue' || daysUntilDue < 0) {
+        return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', label: 'OVERDUE' }
+      }
+      if (daysUntilDue <= 7) {
+        return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', label: 'DUE SOON' }
+      }
+      if (daysUntilDue <= 30) {
+        return { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200', label: 'UPCOMING' }
+      }
+      return { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', label: 'SCHEDULED' }
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* PMI Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <ExclamationCircleIcon className="h-8 w-8 text-red-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Overdue</p>
+                <p className="text-2xl font-bold text-red-600">{pmiSummary.overdue}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <ClockIcon className="h-8 w-8 text-red-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Due Soon (7 days)</p>
+                <p className="text-2xl font-bold text-red-600">{pmiSummary.red}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <ClockIcon className="h-8 w-8 text-yellow-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Upcoming (30 days)</p>
+                <p className="text-2xl font-bold text-yellow-600">{pmiSummary.yellow}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <CheckCircleIcon className="h-8 w-8 text-green-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Scheduled</p>
+                <p className="text-2xl font-bold text-green-600">{pmiSummary.green}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <CalendarIcon className="h-8 w-8 text-primary-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Total PMI</p>
+                <p className="text-2xl font-bold text-primary-600">{pmiSummary.total}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PMI Table */}
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Asset
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    PMI Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    WUC
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Next Due Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Days Until Due
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pmiRecords.map((pmi) => {
+                  const statusStyle = getPMIStatusStyle(pmi.status, pmi.days_until_due)
+
+                  return (
+                    <tr
+                      key={pmi.pmi_id}
+                      className={classNames(
+                        'cursor-pointer transition-colors',
+                        pmi.days_until_due < 0 ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'
+                      )}
+                      onClick={() => navigate(`/pmi/${pmi.pmi_id}`)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={classNames(
+                          'px-2 py-1 text-xs font-medium rounded-full border',
+                          statusStyle.bg,
+                          statusStyle.text,
+                          statusStyle.border
+                        )}>
+                          {statusStyle.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{pmi.asset_name}</div>
+                          <div className="text-sm text-gray-500 font-mono">{pmi.asset_sn}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900">{pmi.pmi_type}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-mono text-gray-600">{pmi.wuc_cd}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600">{formatDate(pmi.next_due_date)}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={classNames(
+                          'text-sm font-medium',
+                          pmi.days_until_due < 0 ? 'text-red-600' :
+                          pmi.days_until_due <= 7 ? 'text-red-600' :
+                          pmi.days_until_due <= 30 ? 'text-yellow-600' : 'text-green-600'
+                        )}>
+                          {pmi.days_until_due < 0
+                            ? `${Math.abs(pmi.days_until_due)} day${Math.abs(pmi.days_until_due) !== 1 ? 's' : ''} overdue`
+                            : `${pmi.days_until_due} day${pmi.days_until_due !== 1 ? 's' : ''}`
+                          }
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Total count */}
+          <div className="bg-white px-4 py-3 border-t border-gray-200">
+            <p className="text-sm text-gray-500">{pmiRecords.length} total PMI schedule entries</p>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">PMI Status Legend</h4>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-red-100 text-red-800 border-red-200">OVERDUE</span>
+              <span className="text-xs text-gray-600">Past due date</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-red-100 text-red-800 border-red-200">DUE SOON</span>
+              <span className="text-xs text-gray-600">Within 7 days</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-yellow-100 text-yellow-800 border-yellow-200">UPCOMING</span>
+              <span className="text-xs text-gray-600">8-30 days</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-green-100 text-green-800 border-green-200">SCHEDULED</span>
+              <span className="text-xs text-gray-600">More than 30 days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 }

@@ -1382,6 +1382,128 @@ app.get('/api/pmi/due-soon', (req, res) => {
   });
 });
 
+// Custom PMI records storage (for user-created PMIs)
+let customPMIRecords: PMIRecord[] = [];
+let nextCustomPMIId = 100; // Start custom IDs at 100 to avoid conflicts
+
+// Get all PMI records (for PMI list page)
+app.get('/api/pmi', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's accessible program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (optional)
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Get both generated and custom PMI data
+  const generatedPMI = generateMockPMIData();
+  const allPMI = [...generatedPMI, ...customPMIRecords];
+
+  // Filter PMI records by user's accessible programs
+  let filteredPMI = allPMI.filter(pmi => userProgramIds.includes(pmi.pgm_id));
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredPMI = filteredPMI.filter(pmi => pmi.pgm_id === programIdFilter);
+  }
+
+  // Update days_until_due and status dynamically
+  filteredPMI = filteredPMI.map(pmi => {
+    const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
+    return {
+      ...pmi,
+      days_until_due: daysUntilDue,
+      status: pmi.completed_date ? 'completed' as const : getPMIStatus(daysUntilDue),
+    };
+  });
+
+  // Sort by days_until_due (most urgent first)
+  filteredPMI.sort((a, b) => a.days_until_due - b.days_until_due);
+
+  console.log(`[PMI] List request by ${user.username} - Total: ${filteredPMI.length}`);
+
+  res.json({
+    pmi: filteredPMI,
+    total: filteredPMI.length,
+  });
+});
+
+// Create new PMI record
+app.post('/api/pmi', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check permissions - only depot_manager and admin can create PMI
+  if (!['DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Only depot managers and admins can create PMI records' });
+  }
+
+  const { asset_id, pmi_type, next_due_date, wuc_cd, interval_days } = req.body;
+
+  // Validate required fields
+  if (!asset_id) {
+    return res.status(400).json({ error: 'Asset is required' });
+  }
+  if (!pmi_type || pmi_type.trim() === '') {
+    return res.status(400).json({ error: 'PMI type is required' });
+  }
+  if (!next_due_date) {
+    return res.status(400).json({ error: 'Due date is required' });
+  }
+
+  // Get asset details
+  const assets = generateAssetData();
+  const asset = assets.find(a => a.asset_id === parseInt(asset_id, 10));
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Calculate days until due
+  const daysUntilDue = calculateDaysUntilDue(next_due_date);
+
+  // Create new PMI record
+  const newPMI: PMIRecord = {
+    pmi_id: nextCustomPMIId++,
+    asset_id: asset.asset_id,
+    asset_sn: asset.serno,
+    asset_name: asset.part_name || asset.partno || 'Unknown',
+    pmi_type: pmi_type.trim(),
+    wuc_cd: wuc_cd?.trim() || '',
+    next_due_date: next_due_date,
+    days_until_due: daysUntilDue,
+    completed_date: null,
+    pgm_id: asset.pgm_id,
+    status: getPMIStatus(daysUntilDue),
+  };
+
+  customPMIRecords.push(newPMI);
+
+  console.log(`[PMI] Created PMI #${newPMI.pmi_id} by ${user.username} - Type: ${newPMI.pmi_type}, Asset: ${newPMI.asset_sn}`);
+
+  res.status(201).json({
+    message: 'PMI record created successfully',
+    pmi: newPMI,
+  });
+});
+
 // Mock Sortie data
 interface Sortie {
   sortie_id: number;
