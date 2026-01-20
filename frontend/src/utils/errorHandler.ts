@@ -86,19 +86,31 @@ export function handleError(error: unknown, context?: string): UserFriendlyError
 }
 
 /**
- * Enhanced fetch wrapper that provides better error handling
+ * Enhanced fetch wrapper that provides better error handling with timeout support
  * @param url - The URL to fetch
  * @param options - Fetch options
  * @param context - Optional context about what operation is being performed
+ * @param timeoutMs - Timeout in milliseconds (default: 30000 / 30 seconds)
  * @returns Promise that resolves to the response data or rejects with UserFriendlyError
  */
 export async function fetchWithErrorHandling<T = any>(
   url: string,
   options?: RequestInit,
-  context?: string
+  context?: string,
+  timeoutMs: number = 30000
 ): Promise<T> {
+  // Create AbortController for timeout
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
   try {
-    const response = await fetch(url, options)
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+
+    // Clear timeout on successful response
+    clearTimeout(timeoutId)
 
     // Handle HTTP error responses
     if (!response.ok) {
@@ -120,6 +132,23 @@ export async function fetchWithErrorHandling<T = any>(
     const data = await response.json()
     return data
   } catch (error) {
+    // Clear timeout on error
+    clearTimeout(timeoutId)
+
+    // Handle abort/timeout specifically
+    if (error instanceof Error && error.name === 'AbortError') {
+      const timeoutError: UserFriendlyError = {
+        message: 'The request took too long to complete. The server may be busy. Please try again.',
+        type: 'network',
+        canRetry: true,
+        technicalDetails: `Request timed out after ${timeoutMs}ms`,
+      }
+      const enhancedError = new Error(timeoutError.message)
+      enhancedError.name = 'TimeoutError'
+      Object.assign(enhancedError, timeoutError)
+      throw enhancedError
+    }
+
     // Convert to user-friendly error and rethrow
     const friendlyError = handleError(error, context)
     // Attach the friendly error properties to the error object

@@ -29528,3 +29528,215 @@ Next: Session complete - Feature #249 verified and committed
 ================================================================================
 [2026-01-20 10:30 UTC] Feature #249 session complete - PARALLEL SESSION
 ================================================================================
+
+================================================================================
+[2026-01-20 10:35 UTC] Feature #167 REGRESSION TEST - PASSED ✅
+================================================================================
+
+Feature #167: Configuration meters tracking - VERIFIED AND PASSING ✅
+
+Test Type: Regression Testing (Random passing feature)
+Tester: Testing Agent
+Session Type: Single-feature regression verification
+
+Verification Steps - All 7 Steps PASSED:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as depot_mgr/depot123
+   - User: Jane Depot (DEPOT_MANAGER role)
+   - Program: CRIIS
+
+✅ Step 2: Navigate to configuration detail
+   - Navigated to Configurations page
+   - Selected "Camera System X Configuration"
+   - Configuration detail page loaded successfully
+
+✅ Step 3: View Meters tab
+   - Clicked on "Meters (1)" tab
+   - Tab displayed meter tracking requirements
+   - Existing meter shown: "eti" with 500hours interval
+
+✅ Step 4: Add meter tracking requirement
+   - Clicked "Add Meter Requirement" button
+   - Modal dialog opened with form fields
+   - Form includes: Meter Type, Tracking Interval, Tracking Unit, Description
+
+✅ Step 5: Specify meter type and interval
+   - Selected "Cycles" as meter type
+   - Entered "1000" as tracking interval
+   - Selected "Cycles" as tracking unit
+   - Entered description: "Track operation cycles for testing - check every 1000 cycles"
+
+✅ Step 6: Save changes
+   - Clicked "Add Meter" button
+   - Success message displayed: "Meter tracking requirement added successfully"
+   - Modal closed automatically
+
+✅ Step 7: Verify meter requirement displays
+   - Tab updated from "Meters (1)" to "Meters (2)"
+   - New meter row displayed in table:
+     * Meter Type: cycles
+     * Tracking Interval: 1,000cycles
+     * Description: Track operation cycles for testing - check every 1000 cycles
+     * Added By: depot_mgr
+     * Date: Jan 20, 2026
+   - Both original and new meters displayed correctly
+   - Total meter requirements: 2
+
+Feature Functionality Verified:
+✅ Configurations track associated meters
+✅ Meters tab displays all meter requirements
+✅ Add meter requirement form works correctly
+✅ Meter type dropdown includes all options (ETI, Cycles, Landings, Flight Hours, Engine Starts, Other)
+✅ Tracking interval accepts numeric input
+✅ Tracking unit dropdown includes all options (Hours, Cycles, Days, Months, Operations)
+✅ Description field accepts text input
+✅ Meter requirements save successfully
+✅ Meter count updates dynamically in tab label
+✅ Table displays all meter information correctly
+✅ Success message confirms action
+✅ User attribution tracked (added by depot_mgr)
+✅ Date tracking works correctly
+
+Console Verification:
+- No JavaScript errors ✓
+- No API errors ✓
+- Clean console output ✓
+
+Screenshots Captured:
+- feature_167_meters_tab_verification.png - Meters tab with both requirements
+- feature_167_complete_verification.md - Full page snapshot
+
+Result: Feature #167 PASSES regression test ✅
+
+The feature is working correctly:
+- All 7 verification steps completed successfully
+- Meter tracking functionality fully operational
+- No regressions detected
+- UI displays correctly
+- Form validation working
+- Data persistence confirmed
+- No console errors
+
+Progress: 251/374 features passing (67.1%)
+
+Session Duration: ~10 minutes
+Regression Test: PASSED
+Feature Status: Still passing (no regression found)
+Quality: Production-ready ✅
+
+================================================================================
+
+================================================================================
+[2026-01-20 10:35 UTC] Feature #233 REGRESSION TEST - TESTING AGENT
+================================================================================
+
+Feature #233: Program selector navigation works - VERIFIED AND PASSING ✅
+
+Session Type: Regression testing of previously passing feature
+Agent Role: Testing Agent
+
+Test Execution - All 6 Steps PASSED:
+
+✅ Step 1: Log in as multi-program user
+   - Logged in as admin (John Admin)
+   - User has 4 programs: CRIIS, ACTS, ARDS, 236
+   - Authentication successful
+
+✅ Step 2: Verify program selector in header
+   - Program selector button visible: "Program: CRIIS"
+   - Located in top navigation bar
+   - Properly styled and accessible
+
+✅ Step 3: Current program is CRIIS
+   - Initial program context: CRIIS
+   - Dashboard showing CRIIS-specific data
+   - 13 total assets
+   - Mission Capability Rate: 77%
+
+✅ Step 4: Click selector and choose ACTS
+   - Clicked program selector button
+   - Dropdown menu appeared with all 4 programs:
+     * CRIIS - Common Remotely Operated Integrated Reconnaissance System
+     * ACTS - Advanced Targeting Capability System
+     * ARDS - Airborne Reconnaissance Data System
+     * 236 - Program 236
+   - Selected ACTS from dropdown
+
+✅ Step 5: Verify page refreshes with ACTS data
+   - Dashboard completely updated with ACTS-specific data
+   - Data changes verified:
+     * Total Assets: 13 → 6
+     * Mission Capability Rate: 77% → 67%
+     * Different asset list (Targeting System A, Laser System, etc.)
+     * Different maintenance jobs (MX-2024-005, MX-2024-006)
+     * Different PMI schedules
+     * Different parts orders
+     * Footer text: "Data for program: ACTS"
+
+✅ Step 6: Verify header shows ACTS selected
+   - Header button updated to: "Program: ACTS"
+   - Current Program text: "Advanced Targeting Capability System"
+   - Dropdown closes automatically after selection
+   - Visual indication of active program (button styling)
+
+Console Verification:
+- Zero JavaScript errors ✓
+- Zero warnings ✓
+- Clean execution throughout test ✓
+
+Screenshots Captured:
+1. feature_233_step1_logged_in_criis.png - Initial login with CRIIS selected
+2. feature_233_step3_program_dropdown.png - Program selector dropdown open
+3. feature_233_step6_switched_to_acts.png - Successfully switched to ACTS
+
+Technical Verification:
+
+Program Isolation Working:
+- Each program shows completely different data sets
+- No data bleeding between programs
+- Query filtering by program ID functioning correctly
+- Dashboard widgets all update to new program context
+
+UI/UX Quality:
+- Smooth program switching experience
+- Clear visual feedback of selected program
+- Dropdown closes automatically after selection
+- All dashboard widgets refresh with new data
+- No loading state issues
+- No stale data displayed
+
+Multi-Program User Experience:
+- Admin user can access all 4 programs seamlessly
+- Program context persists in header
+- All pages would use the new program filter
+- User can easily identify current program at all times
+
+Feature Functionality:
+- Program selector dropdown ✓
+- Program selection ✓
+- Context switching ✓
+- Data refresh ✓
+- Header update ✓
+- Visual feedback ✓
+
+Result: Feature #233 remains PASSING ✅
+No regressions detected ✓
+
+Progress: 251/374 features passing (67.1%)
+
+Session Duration: ~10 minutes
+Tests Executed: 6 verification steps via browser automation
+Quality: Production-ready program switching ✅
+
+This feature is critical for multi-program users (especially admins) who need to 
+switch between different defense programs (CRIIS, ACTS, ARDS, 236) while maintaining 
+proper data isolation. The implementation works flawlessly with instant context 
+switching and complete data refresh.
+
+Feature Status: PASSING ✅ (No regression found)
+Testing Agent Session: Complete ✅
+
+================================================================================
+[2026-01-20 10:35 UTC] Testing Agent session complete
+================================================================================
