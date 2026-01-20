@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { BellIcon, CheckCircleIcon, ExclamationTriangleIcon, ExclamationCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, Fragment } from 'react';
+import { BellIcon, CheckCircleIcon, ExclamationTriangleIcon, ExclamationCircleIcon, InformationCircleIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Dialog, Transition } from '@headlessui/react';
+import { useAuthStore } from '../stores/authStore';
 
 interface Notification {
   msg_id: number;
@@ -21,29 +23,68 @@ interface Notification {
   program_name?: string;
 }
 
+interface Program {
+  pgm_id: number;
+  pgm_cd: string;
+  pgm_name: string;
+}
+
 export default function NotificationsPage() {
+  const { token, user } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [acknowledgingIds, setAcknowledgingIds] = useState<Set<number>>(new Set());
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [programs, setPrograms] = useState<Program[]>([]);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    msg_text: '',
+    priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
+    pgm_id: user?.programs?.[0]?.pgm_id || 1,
+    start_date: new Date().toISOString().split('T')[0],
+    stop_date: '',
+  });
+
+  const isAdmin = user?.role === 'ADMIN';
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchNotifications();
-  }, []);
+    if (isAdmin) {
+      fetchPrograms();
+    }
+  }, [token, isAdmin]);
+
+  const fetchPrograms = () => {
+    // For admins, fetch all programs from a static list
+    // For now, use the programs available in the system
+    const allPrograms = [
+      { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System' },
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System' },
+      { pgm_id: 3, pgm_cd: 'ARDS', pgm_name: 'Airborne Reconnaissance Data System' },
+      { pgm_id: 4, pgm_cd: '236', pgm_name: 'Program 236' },
+    ];
+    setPrograms(allPrograms);
+  };
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('token');
       if (!token) {
         setError('Not authenticated');
         return;
       }
 
-      const response = await fetch('http://localhost:3000/api/notifications', {
+      const response = await fetch('http://localhost:3001/api/notifications', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -62,18 +103,68 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleCreateNotification = async () => {
+    setSaving(true);
+    setSaveError(null);
+
+    try {
+      const payload = {
+        msg_text: formData.msg_text,
+        priority: formData.priority,
+        pgm_id: formData.pgm_id,
+        start_date: new Date(formData.start_date).toISOString(),
+        stop_date: formData.stop_date ? new Date(formData.stop_date).toISOString() : null,
+      };
+
+      const response = await fetch('http://localhost:3001/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create notification');
+      }
+
+      // Success
+      setSuccessMessage('Notification created successfully');
+      setTimeout(() => {
+        setShowAddModal(false);
+        setSuccessMessage(null);
+        setFormData({
+          msg_text: '',
+          priority: 'MEDIUM',
+          pgm_id: user?.programs?.[0]?.pgm_id || 1,
+          start_date: new Date().toISOString().split('T')[0],
+          stop_date: '',
+        });
+      }, 1500);
+
+      // Refresh notifications list
+      fetchNotifications();
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error creating notification:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleAcknowledge = async (msgId: number) => {
     try {
       setAcknowledgingIds(prev => new Set(prev).add(msgId));
       setError(null);
 
-      const token = localStorage.getItem('token');
       if (!token) {
         setError('Not authenticated');
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/api/notifications/${msgId}/acknowledge`, {
+      const response = await fetch(`http://localhost:3001/api/notifications/${msgId}/acknowledge`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -174,11 +265,20 @@ export default function NotificationsPage() {
               System notifications and announcements
             </p>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="flex items-center gap-3">
             {unacknowledgedCount > 0 && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                 {unacknowledgedCount} unread
               </span>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add Notification
+              </button>
             )}
           </div>
         </div>
@@ -316,6 +416,184 @@ export default function NotificationsPage() {
           )}
         </div>
       )}
+
+      {/* Add Notification Modal */}
+      <Transition.Root show={showAddModal} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={setShowAddModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+                  <div className="absolute right-0 top-0 pr-4 pt-4">
+                    <button
+                      type="button"
+                      className="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                      onClick={() => setShowAddModal(false)}
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <div className="sm:flex sm:items-start">
+                    <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <BellIcon className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left flex-1">
+                      <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+                        Create Notification
+                      </Dialog.Title>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-4">
+                    {/* Notification Text */}
+                    <div>
+                      <label htmlFor="msg_text" className="block text-sm font-medium text-gray-700">
+                        Notification Text *
+                      </label>
+                      <textarea
+                        id="msg_text"
+                        rows={4}
+                        value={formData.msg_text}
+                        onChange={(e) => setFormData({ ...formData, msg_text: e.target.value })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        placeholder="Enter notification message..."
+                      />
+                    </div>
+
+                    {/* Priority Level */}
+                    <div>
+                      <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+                        Priority Level *
+                      </label>
+                      <select
+                        id="priority"
+                        value={formData.priority}
+                        onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      >
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="CRITICAL">Critical</option>
+                      </select>
+                    </div>
+
+                    {/* Target Program */}
+                    <div>
+                      <label htmlFor="pgm_id" className="block text-sm font-medium text-gray-700">
+                        Target Program *
+                      </label>
+                      <select
+                        id="pgm_id"
+                        value={formData.pgm_id}
+                        onChange={(e) => setFormData({ ...formData, pgm_id: parseInt(e.target.value) })}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      >
+                        {programs.map((program) => (
+                          <option key={program.pgm_id} value={program.pgm_id}>
+                            {program.pgm_cd} - {program.pgm_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
+                          Start Date *
+                        </label>
+                        <input
+                          type="date"
+                          id="start_date"
+                          value={formData.start_date}
+                          onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="stop_date" className="block text-sm font-medium text-gray-700">
+                          Stop Date
+                        </label>
+                        <input
+                          type="date"
+                          id="stop_date"
+                          value={formData.stop_date}
+                          onChange={(e) => setFormData({ ...formData, stop_date: e.target.value })}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Error message */}
+                    {saveError && (
+                      <div className="rounded-md bg-red-50 p-4">
+                        <div className="flex">
+                          <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
+                          <div className="ml-3">
+                            <p className="text-sm text-red-800">{saveError}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Success message */}
+                    {saving === false && successMessage && showAddModal && (
+                      <div className="rounded-md bg-green-50 p-4">
+                        <div className="flex">
+                          <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                          <div className="ml-3">
+                            <p className="text-sm text-green-800">Notification created successfully!</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddModal(false)}
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCreateNotification}
+                      disabled={saving || !formData.msg_text || !formData.start_date}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? 'Creating...' : 'Create Notification'}
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </div>
   );
 }

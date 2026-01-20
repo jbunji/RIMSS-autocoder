@@ -10916,7 +10916,7 @@ app.get('/api/notifications', (req, res) => {
 
   // Add program name to each notification
   const notificationsWithProgram = userNotifications.map(n => {
-    const program = mockPrograms.find(p => p.pgm_id === n.pgm_id);
+    const program = allPrograms.find(p => p.pgm_id === n.pgm_id);
     return {
       ...n,
       program_cd: program?.pgm_cd,
@@ -10956,7 +10956,7 @@ app.post('/api/notifications', (req, res) => {
   }
 
   // Validate program exists
-  const program = mockPrograms.find(p => p.pgm_id === pgm_id);
+  const program = allPrograms.find(p => p.pgm_id === pgm_id);
   if (!program) {
     return res.status(404).json({ error: 'Program not found' });
   }
@@ -11033,7 +11033,7 @@ app.put('/api/notifications/:id/acknowledge', (req, res) => {
 
   console.log(`[NOTIFICATIONS] Notification #${msgId} acknowledged by ${user.username}`);
 
-  const program = mockPrograms.find(p => p.pgm_id === notification.pgm_id);
+  const program = allPrograms.find(p => p.pgm_id === notification.pgm_id);
   res.json({
     message: 'Notification acknowledged successfully',
     notification: {
@@ -13176,7 +13176,7 @@ app.post('/api/spares', async (req, res) => {
 
   // Get location details
   const location = mockLocations.find(l => l.loc_id === parseInt(loc_id || '0'));
-  const program = mockPrograms.find(p => p.pgm_id === programId);
+  const program = allPrograms.find(p => p.pgm_id === programId);
 
   // Create new asset in mockAssets
   const newAsset = {

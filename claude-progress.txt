@@ -15819,3 +15819,32 @@ No regression detected.
 
 Tested: Tue Jan 20 00:58:09 EST 2026
 
+
+================================================================================
+Testing Session: Feature #99 REGRESSION TEST
+================================================================================
+
+Feature #99: Delete labor record - VERIFIED AS PASSING
+
+All 7 verification steps completed successfully
+
+Step 1: Logged in as depot manager (Jane Depot)
+Step 2: Navigated to repair with labor (MX-2024-001, Repair #2)
+Step 3: Clicked delete on labor record
+Step 4: Verified confirmation dialog appeared
+Step 5: Confirmed deletion
+Step 6: Verified labor removed from Repair #2
+Step 7: Verified repair totals updated (Labor Records: 0)
+
+Technical Verification:
+- Zero JavaScript console errors
+- Confirmation dialog properly displayed
+- Labor deletion successful
+- UI updated immediately
+- No impact on other repairs
+
+Regression Result: NO REGRESSION DETECTED
+
+Feature #99 remains PASSING
+
+[Testing] Session complete - verified feature #99 (no regression)
