@@ -995,8 +995,42 @@ app.put('/api/users/:id', (req, res) => {
     return res.status(404).json({ error: 'User not found' })
   }
 
-  const { username, email, first_name, last_name, role, password, program_ids, default_program_id, active } = req.body
+  const { username, email, first_name, last_name, role, password, program_ids, default_program_id, active, admin_password } = req.body
   const existingUser = mockUsers[userIndex]
+
+  // Check if role is being changed
+  const roleChanged = existingUser.role !== role
+
+  // If role is being changed, require admin password re-authentication
+  if (roleChanged) {
+    if (!admin_password) {
+      return res.status(403).json({ error: 'Admin password is required when changing user roles' })
+    }
+
+    // Get the admin user's info from the token
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' })
+    }
+
+    const tokenData = parseMockToken(token)
+    if (!tokenData) {
+      return res.status(401).json({ error: 'Invalid or expired token' })
+    }
+
+    const adminUser = mockUsers.find(u => u.user_id === tokenData.userId)
+    if (!adminUser) {
+      return res.status(401).json({ error: 'Admin user not found' })
+    }
+
+    // Verify admin password
+    const adminStoredPassword = mockPasswords[adminUser.username]
+    if (adminStoredPassword !== admin_password) {
+      return res.status(403).json({ error: 'Incorrect admin password' })
+    }
+
+    console.log(`[SECURITY] Admin ${adminUser.username} verified password for role change: ${existingUser.username} from ${existingUser.role} to ${role}`)
+  }
 
   // Validate required fields
   if (!username || !email || !first_name || !last_name || !role || !program_ids) {

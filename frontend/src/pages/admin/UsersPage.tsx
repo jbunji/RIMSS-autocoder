@@ -52,7 +52,7 @@ const createUserSchema = z.object({
   program_ids: z.array(z.number()).min(1, 'At least one program must be selected'),
 })
 
-// Zod schema for user editing (password is optional)
+// Zod schema for user editing (password is optional, admin_password required when role changes)
 const editUserSchema = z.object({
   username: z.string()
     .min(3, 'Username must be at least 3 characters')
@@ -73,6 +73,7 @@ const editUserSchema = z.object({
     .optional(),
   program_ids: z.array(z.number()).min(1, 'At least one program must be selected'),
   default_program_id: z.number().optional(),
+  admin_password: z.string().optional(),
 })
 
 type CreateUserFormData = z.infer<typeof createUserSchema>
@@ -109,6 +110,8 @@ export default function UsersPage() {
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([])
   const [editSelectedPrograms, setEditSelectedPrograms] = useState<number[]>([])
   const [editDefaultProgramId, setEditDefaultProgramId] = useState<number | null>(null)
+  const [originalRole, setOriginalRole] = useState<string | null>(null)
+  const [isRoleChanged, setIsRoleChanged] = useState(false)
 
   const {
     register,
@@ -259,6 +262,8 @@ export default function UsersPage() {
   const openEditModal = (user: User) => {
     setEditingUser(user)
     setError(null)
+    setOriginalRole(user.role)
+    setIsRoleChanged(false)
     // Find the default program
     const defaultProgram = user.programs?.find(p => p.is_default)
     const defaultProgramId = defaultProgram?.pgm_id || (user.programs?.[0]?.pgm_id ?? null)
@@ -272,6 +277,7 @@ export default function UsersPage() {
       password: '',
       program_ids: user.programs?.map(p => p.pgm_id) || [],
       default_program_id: defaultProgramId ?? undefined,
+      admin_password: '',
     })
     setEditSelectedPrograms(user.programs?.map(p => p.pgm_id) || [])
     setEditDefaultProgramId(defaultProgramId)
@@ -284,6 +290,8 @@ export default function UsersPage() {
     resetEdit()
     setEditSelectedPrograms([])
     setEditDefaultProgramId(null)
+    setOriginalRole(null)
+    setIsRoleChanged(false)
     setError(null)
   }
 
@@ -336,6 +344,15 @@ export default function UsersPage() {
   const onEditSubmit = async (data: EditUserFormData) => {
     if (!editingUser) return
 
+    // Check if role is being changed
+    const roleChanged = originalRole !== data.role
+
+    // If role is being changed, require admin password
+    if (roleChanged && (!data.admin_password || data.admin_password.trim() === '')) {
+      setError('Admin password is required when changing user roles')
+      return
+    }
+
     try {
       setError(null)
       const payload: Record<string, unknown> = {
@@ -351,6 +368,11 @@ export default function UsersPage() {
       // Only include password if provided
       if (data.password && data.password.length > 0) {
         payload.password = data.password
+      }
+
+      // Include admin password if role is being changed
+      if (roleChanged && data.admin_password) {
+        payload.admin_password = data.admin_password
       }
 
       const response = await fetch(`http://localhost:3001/api/users/${editingUser.user_id}`, {
@@ -369,6 +391,8 @@ export default function UsersPage() {
         setEditingUser(null)
         resetEdit()
         setEditSelectedPrograms([])
+        setOriginalRole(null)
+        setIsRoleChanged(false)
         fetchUsers() // Refresh the user list
 
         // Clear success message after 5 seconds
@@ -949,7 +973,11 @@ export default function UsersPage() {
                       </label>
                       <select
                         id="edit_role"
-                        {...registerEdit('role')}
+                        {...registerEdit('role', {
+                          onChange: (e) => {
+                            setIsRoleChanged(e.target.value !== originalRole)
+                          }
+                        })}
                         className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
                           errorsEdit.role
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
@@ -967,6 +995,45 @@ export default function UsersPage() {
                         <p className="mt-1 text-sm text-red-600">{errorsEdit.role.message}</p>
                       )}
                     </div>
+
+                    {/* Admin Password Confirmation (required when changing role) */}
+                    {isRoleChanged && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3 flex-1">
+                            <h3 className="text-sm font-medium text-yellow-800">Security Verification Required</h3>
+                            <p className="text-sm text-yellow-700 mt-1">
+                              You are changing this user's role. Please enter your admin password to confirm this action.
+                            </p>
+                            <div className="mt-3">
+                              <label htmlFor="admin_password" className="block text-sm font-medium text-gray-700">
+                                Your Admin Password <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="password"
+                                id="admin_password"
+                                {...registerEdit('admin_password')}
+                                className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+                                  errorsEdit.admin_password
+                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                                }`}
+                                placeholder="Enter your admin password"
+                                autoComplete="current-password"
+                              />
+                              {errorsEdit.admin_password && (
+                                <p className="mt-1 text-sm text-red-600">{errorsEdit.admin_password.message}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Program Assignments */}
                     <div>
