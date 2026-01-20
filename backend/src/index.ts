@@ -7801,6 +7801,159 @@ app.get('/api/assets/:id/events', (req, res) => {
   });
 });
 
+// GET /api/assets/:id/software - Get software associations for an asset
+app.get('/api/assets/:id/software', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = mockAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Find all software associations for this asset
+  const associations = assetSoftware
+    .filter(assoc => assoc.asset_id === assetId)
+    .map(assoc => {
+      const software = softwareCatalog.find(sw => sw.sw_id === assoc.sw_id);
+      return {
+        assoc_id: assoc.assoc_id,
+        asset_id: assoc.asset_id,
+        sw_version_id: assoc.sw_id,
+        sw_version: software?.revision || 'Unknown',
+        sw_name: software?.sw_title || 'Unknown Software',
+        sw_number: software?.sw_number || '',
+        sw_type: software?.sw_type || '',
+        effective_date: assoc.effective_date,
+        end_date: assoc.end_date,
+        created_by: assoc.created_by,
+        created_date: assoc.created_date,
+      };
+    })
+    .sort((a, b) => new Date(b.effective_date).getTime() - new Date(a.effective_date).getTime());
+
+  console.log(`[ASSETS] Software associations request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${associations.length} associations`);
+
+  res.json({
+    asset_id: assetId,
+    serno: asset.serno,
+    associations,
+    total: associations.length,
+  });
+});
+
+// POST /api/assets/:id/software - Add software association to an asset
+app.post('/api/assets/:id/software', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN and DEPOT_MANAGER can add software associations
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to add software associations' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = mockAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  const { sw_version_id, effective_date } = req.body;
+
+  // Validate input
+  if (!sw_version_id || !effective_date) {
+    return res.status(400).json({ error: 'Software version and effective date are required' });
+  }
+
+  const swId = parseInt(sw_version_id, 10);
+  const software = softwareCatalog.find(sw => sw.sw_id === swId);
+
+  if (!software) {
+    return res.status(404).json({ error: 'Software version not found' });
+  }
+
+  // Check if asset's program matches software's program (unless admin)
+  if (asset.pgm_id !== software.pgm_id && user.role !== 'ADMIN') {
+    return res.status(400).json({ error: 'Software version is not compatible with this asset\'s program' });
+  }
+
+  // Check if association already exists (active)
+  const existingAssoc = assetSoftware.find(
+    assoc => assoc.asset_id === assetId && assoc.sw_id === swId && assoc.end_date === null
+  );
+
+  if (existingAssoc) {
+    return res.status(400).json({ error: 'This software version is already associated with this asset' });
+  }
+
+  // Create new association
+  const newAssociation: AssetSoftware = {
+    assoc_id: nextAssetSwId++,
+    asset_id: assetId,
+    sw_id: swId,
+    effective_date: effective_date,
+    end_date: null,
+    created_by: user.username,
+    created_date: new Date().toISOString().split('T')[0],
+  };
+
+  assetSoftware.push(newAssociation);
+
+  // Log activity
+  activities.unshift({
+    activity_id: nextActivityId++,
+    activity_type: 'asset_software_added',
+    user: user.username,
+    description: `Added software "${software.sw_title}" (${software.revision}) to asset ${asset.serno}`,
+    timestamp: new Date().toISOString(),
+    icon: 'software',
+  });
+
+  console.log(`[ASSETS] Software association added by ${user.username} for asset ${asset.serno}: ${software.sw_title} (${software.revision})`);
+
+  res.status(201).json({
+    message: 'Software association added successfully',
+    association: {
+      assoc_id: newAssociation.assoc_id,
+      asset_id: newAssociation.asset_id,
+      sw_version_id: newAssociation.sw_id,
+      sw_version: software.revision,
+      sw_name: software.sw_title,
+      sw_number: software.sw_number,
+      sw_type: software.sw_type,
+      effective_date: newAssociation.effective_date,
+      end_date: newAssociation.end_date,
+      created_by: newAssociation.created_by,
+      created_date: newAssociation.created_date,
+    },
+  });
+});
+
 // PUT /api/assets/:id - Update an existing asset (requires authentication and depot_manager/admin role)
 app.put('/api/assets/:id', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -8352,6 +8505,61 @@ app.get('/api/reference/asset-statuses', (req, res) => {
   res.json({
     statuses: assetStatusCodes,
     transitionRules: statusTransitionRules,
+  });
+});
+
+// GET /api/reference/software-versions - Get available software versions for a program
+app.get('/api/reference/software-versions', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get program ID from query parameter
+  const programId = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Filter software by user's programs
+  let filteredSoftware = softwareCatalog.filter(sw => {
+    // Check program access
+    if (user.role === 'ADMIN') {
+      // Admin can see all, but filter by programId if specified
+      if (programId !== null) {
+        return sw.pgm_id === programId && sw.active;
+      }
+      return sw.active;
+    } else {
+      // Non-admin users only see software for their assigned programs
+      if (programId !== null) {
+        return sw.pgm_id === programId && userProgramIds.includes(sw.pgm_id) && sw.active;
+      }
+      return userProgramIds.includes(sw.pgm_id) && sw.active;
+    }
+  });
+
+  // Sort by revision date (newest first)
+  filteredSoftware.sort((a, b) => new Date(b.revision_date).getTime() - new Date(a.revision_date).getTime());
+
+  // Map to simplified format for dropdowns
+  const versions = filteredSoftware.map(sw => ({
+    sw_version_id: sw.sw_id,
+    sw_version: sw.revision,
+    sw_name: sw.sw_title,
+    sw_number: sw.sw_number,
+    sw_type: sw.sw_type,
+    description: sw.sw_desc,
+    active: sw.active,
+    pgm_id: sw.pgm_id,
+  }));
+
+  res.json({
+    versions,
+    total: versions.length,
   });
 });
 
@@ -8929,8 +9137,74 @@ function initializeConfigSoftware(): ConfigurationSoftware[] {
   ];
 }
 
+// Asset-Software association interface
+interface AssetSoftware {
+  assoc_id: number;
+  asset_id: number;
+  sw_id: number;
+  effective_date: string;
+  end_date: string | null;
+  created_by: string;
+  created_date: string;
+}
+
+// Initialize mock asset-software associations
+function initializeAssetSoftware(): AssetSoftware[] {
+  const today = new Date().toISOString().split('T')[0];
+  const subtractDays = (days: number): string => {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split('T')[0];
+  };
+
+  return [
+    // CRIIS-001 (Sensor Unit A) has Camera Control Software
+    {
+      assoc_id: 1,
+      asset_id: 1,
+      sw_id: 1, // Camera Control Software 2.1.5
+      effective_date: subtractDays(30),
+      end_date: null,
+      created_by: 'admin',
+      created_date: subtractDays(30),
+    },
+    // CRIIS-003 (Sensor Unit B) has legacy Camera Control Software
+    {
+      assoc_id: 2,
+      asset_id: 3,
+      sw_id: 2, // Camera Control Software (Legacy) 2.0.8
+      effective_date: subtractDays(120),
+      end_date: null,
+      created_by: 'admin',
+      created_date: subtractDays(120),
+    },
+    // CRIIS-007 (Radar Unit 01) has Radar Signal Processing
+    {
+      assoc_id: 3,
+      asset_id: 7,
+      sw_id: 3, // Radar Signal Processing 3.4.2
+      effective_date: subtractDays(45),
+      end_date: null,
+      created_by: 'depot_mgr',
+      created_date: subtractDays(45),
+    },
+    // CRIIS-008 (Communication System) has Communication Encryption Module
+    {
+      assoc_id: 4,
+      asset_id: 8,
+      sw_id: 4, // Communication Encryption Module 4.0.1
+      effective_date: subtractDays(15),
+      end_date: null,
+      created_by: 'depot_mgr',
+      created_date: subtractDays(15),
+    },
+  ];
+}
+
 // Mutable arrays for software tracking
 const softwareCatalog: Software[] = initializeSoftware();
+let assetSoftware: AssetSoftware[] = initializeAssetSoftware();
+let nextAssetSwId = 5; // Next ID for new asset-software associations
 let configSoftware: ConfigurationSoftware[] = initializeConfigSoftware();
 let nextCfgSwId = 6; // Next ID for new configuration-software associations
 
@@ -10530,6 +10804,14 @@ app.get('/api/spares', (req, res) => {
     filteredSpares = filteredSpares.filter(spare => spare.status_cd === statusFilter);
   }
 
+  // Apply optional location filter
+  const locationFilter = req.query.location as string;
+  if (locationFilter) {
+    filteredSpares = filteredSpares.filter(spare =>
+      spare.location.toLowerCase().includes(locationFilter.toLowerCase())
+    );
+  }
+
   // Apply optional search filter (searches serno, partno, part_name)
   const searchQuery = (req.query.search as string)?.toLowerCase();
   if (searchQuery) {
@@ -10634,71 +10916,97 @@ app.post('/api/spares', async (req, res) => {
     return res.status(403).json({ error: 'Insufficient permissions' });
   }
 
-  try {
-    const { partno, serno, status, loc_id, warranty_exp, mfg_date, unit_price, remarks, pgm_id } = req.body;
+  const { partno, serno, status, loc_id, warranty_exp, mfg_date, unit_price, remarks, pgm_id } = req.body;
 
-    // Validation
-    if (!partno || !serno) {
-      return res.status(400).json({ error: 'Part number and serial number are required' });
-    }
-
-    // Use user's current program if not specified
-    const programId = pgm_id || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id;
-
-    // Check if spare with same partno+serno already exists
-    const existingSpare = await prisma.spare.findFirst({
-      where: {
-        partno,
-        serno,
-        active: true,
-      },
-    });
-
-    if (existingSpare) {
-      return res.status(409).json({ error: 'A spare with this part number and serial number already exists' });
-    }
-
-    // Create spare
-    const newSpare = await prisma.spare.create({
-      data: {
-        partno,
-        serno,
-        status: status || 'AVAILABLE',
-        loc_id: loc_id ? parseInt(loc_id) : null,
-        warranty_exp: warranty_exp ? new Date(warranty_exp) : null,
-        mfg_date: mfg_date ? new Date(mfg_date) : null,
-        unit_price: unit_price ? parseFloat(unit_price) : null,
-        remarks,
-        pgm_id: programId,
-        ins_by: user.username,
-      },
-      include: {
-        program: true,
-        location: true,
-      },
-    });
-
-    console.log(`[SPARES] Created spare ${newSpare.spare_id} by ${user.username}`);
-
-    res.status(201).json({
-      spare_id: newSpare.spare_id,
-      partno: newSpare.partno,
-      serno: newSpare.serno,
-      status: newSpare.status,
-      location: newSpare.location?.display_name || 'No Location',
-      loc_id: newSpare.loc_id,
-      warranty_exp: newSpare.warranty_exp?.toISOString() || null,
-      mfg_date: newSpare.mfg_date?.toISOString() || null,
-      unit_price: newSpare.unit_price ? parseFloat(newSpare.unit_price.toString()) : null,
-      remarks: newSpare.remarks,
-      pgm_id: newSpare.pgm_id,
-      active: newSpare.active,
-      ins_date: newSpare.ins_date.toISOString(),
-    });
-  } catch (error) {
-    console.error('[SPARES] Error creating spare:', error);
-    res.status(500).json({ error: 'Failed to create spare' });
+  // Validation
+  if (!partno || !serno) {
+    return res.status(400).json({ error: 'Part number and serial number are required' });
   }
+
+  // Use user's current program if not specified
+  const programId = pgm_id || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id;
+
+  // Check if spare with same partno+serno already exists in mock data
+  const existingAsset = mockAssets.find(a => a.partno === partno && a.serno === serno && a.active);
+  const existingDetailed = detailedAssets.find(a => a.partno === partno && a.serno === serno && a.active);
+
+  if (existingAsset || existingDetailed) {
+    return res.status(409).json({ error: 'A spare with this part number and serial number already exists' });
+  }
+
+  // Generate new asset ID
+  const newAssetId = Math.max(...mockAssets.map(a => a.asset_id), ...detailedAssets.map(a => a.asset_id)) + 1;
+
+  // Get location details
+  const location = mockLocations.find(l => l.loc_id === parseInt(loc_id || '0'));
+  const program = mockPrograms.find(p => p.pgm_id === programId);
+
+  // Create new asset in mockAssets
+  const newAsset = {
+    asset_id: newAssetId,
+    partno,
+    serno,
+    status_cd: status || 'FMC',
+    loc_ida: loc_id ? parseInt(loc_id) : null,
+    loc_idc: loc_id ? parseInt(loc_id) : null,
+    admin_loc: location?.loc_cd || null,
+    cust_loc: location?.loc_cd || null,
+    active: true,
+    valid: false,
+    bad_actor: false,
+    remarks: remarks || null,
+    ins_by: user.username,
+    ins_date: new Date().toISOString(),
+    chg_by: null,
+    chg_date: null,
+  };
+
+  // Create detailed asset record
+  const newDetailedAsset = {
+    asset_id: newAssetId,
+    partno,
+    serno,
+    part_name: `Spare Part ${partno}`,
+    pgm_id: programId,
+    pgm_cd: program?.pgm_cd || 'UNKNOWN',
+    pgm_name: program?.pgm_name || 'Unknown Program',
+    status_cd: status || 'FMC',
+    status_name: status === 'PMC' ? 'Partial Mission Capable' : status === 'NMCM' ? 'Not Mission Capable Maintenance' : status === 'NMCS' ? 'Not Mission Capable Supply' : status === 'CNDM' ? 'Cannot Determine Mission' : 'Full Mission Capable',
+    active: true,
+    location: location?.display_name || 'No Location',
+    loc_type: 'depot' as 'depot' | 'field',
+    admin_loc: location?.loc_cd || '',
+    cust_loc: location?.loc_cd || '',
+    notes: remarks || null,
+    in_transit: false,
+    bad_actor: false,
+    uii: null,
+    mfg_date: mfg_date || null,
+    remarks: remarks || null,
+  };
+
+  // Add to mock arrays
+  mockAssets.push(newAsset);
+  detailedAssets.push(newDetailedAsset);
+
+  console.log(`[SPARES] Created spare ${newAssetId} (${partno}/${serno}) by ${user.username}`);
+
+  res.status(201).json({
+    spare_id: newAssetId,
+    asset_id: newAssetId,
+    partno,
+    serno,
+    status: status || 'AVAILABLE',
+    location: location?.display_name || 'No Location',
+    loc_id: loc_id ? parseInt(loc_id) : null,
+    warranty_exp: warranty_exp || null,
+    mfg_date: mfg_date || null,
+    unit_price: unit_price ? parseFloat(unit_price) : null,
+    remarks: remarks || null,
+    pgm_id: programId,
+    active: true,
+    ins_date: new Date().toISOString(),
+  });
 });
 
 // PUT /api/spares/:id - Update a spare part record

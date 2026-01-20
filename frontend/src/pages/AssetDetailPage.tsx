@@ -201,8 +201,30 @@ interface Sortie {
   remarks: string | null
 }
 
+// Software association interface
+interface SoftwareAssociation {
+  assoc_id: number
+  asset_id: number
+  sw_version_id: number
+  sw_version: string
+  sw_name: string
+  effective_date: string
+  end_date: string | null
+  created_by: string
+  created_date: string
+}
+
+// Software version reference data
+interface SoftwareVersion {
+  sw_version_id: number
+  sw_version: string
+  sw_name: string
+  description: string | null
+  active: boolean
+}
+
 // Tab type
-type TabType = 'details' | 'history' | 'eti' | 'maintenance' | 'pmi'
+type TabType = 'details' | 'history' | 'eti' | 'maintenance' | 'pmi' | 'software'
 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -259,6 +281,19 @@ export default function AssetDetailPage() {
   const [sorties, setSorties] = useState<Sortie[]>([])
   const [sortiesLoading, setSortiesLoading] = useState(false)
   const [sortiesError, setSortiesError] = useState<string | null>(null)
+
+  // Software associations state
+  const [softwareAssociations, setSoftwareAssociations] = useState<SoftwareAssociation[]>([])
+  const [softwareLoading, setSoftwareLoading] = useState(false)
+  const [softwareError, setSoftwareError] = useState<string | null>(null)
+  const [showAddSoftwareModal, setShowAddSoftwareModal] = useState(false)
+  const [softwareVersions, setSoftwareVersions] = useState<SoftwareVersion[]>([])
+  const [addSoftwareForm, setAddSoftwareForm] = useState({
+    sw_version_id: '',
+    effective_date: new Date().toISOString().split('T')[0], // Today's date
+  })
+  const [addingSoftware, setAddingSoftware] = useState(false)
+  const [addSoftwareError, setAddSoftwareError] = useState<string | null>(null)
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false)
@@ -504,6 +539,61 @@ export default function AssetDetailPage() {
     fetchPMIHistory()
   }, [token, id, activeTab])
 
+  // Fetch software associations when Software tab is selected
+  useEffect(() => {
+    const fetchSoftwareAssociations = async () => {
+      if (!token || !id || activeTab !== 'software') return
+
+      setSoftwareLoading(true)
+      setSoftwareError(null)
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch software associations')
+        }
+
+        const data = await response.json()
+        setSoftwareAssociations(data.associations)
+      } catch (err) {
+        setSoftwareError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setSoftwareLoading(false)
+      }
+    }
+
+    fetchSoftwareAssociations()
+  }, [token, id, activeTab])
+
+  // Fetch available software versions for the program
+  useEffect(() => {
+    const fetchSoftwareVersions = async () => {
+      if (!token || !asset) return
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/reference/software-versions?program_id=${asset.pgm_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setSoftwareVersions(data.versions || [])
+        }
+      } catch (err) {
+        console.error('Failed to fetch software versions:', err)
+      }
+    }
+
+    fetchSoftwareVersions()
+  }, [token, asset])
+
   // Handle ETI update form submission
   const handleETIUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -664,6 +754,55 @@ export default function AssetDetailPage() {
       setSaveError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setSaving(false)
+    }
+  }
+
+  // Handle add software association
+  const handleAddSoftware = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!token || !id || !asset) return
+
+    setAddingSoftware(true)
+    setAddSoftwareError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(addSoftwareForm),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add software association')
+      }
+
+      // Refresh software associations list
+      const listResponse = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (listResponse.ok) {
+        const listData = await listResponse.json()
+        setSoftwareAssociations(listData.associations)
+      }
+
+      // Close modal and reset form
+      setShowAddSoftwareModal(false)
+      setAddSoftwareForm({
+        sw_version_id: '',
+        effective_date: new Date().toISOString().split('T')[0],
+      })
+    } catch (err) {
+      setAddSoftwareError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setAddingSoftware(false)
     }
   }
 
@@ -879,6 +1018,16 @@ export default function AssetDetailPage() {
             }`}
           >
             PMI History
+          </button>
+          <button
+            onClick={() => setActiveTab('software')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'software'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Software
           </button>
         </nav>
       </div>
@@ -2021,7 +2170,196 @@ export default function AssetDetailPage() {
             </div>
           )}
         </div>
+      ) : activeTab === 'software' ? (
+        /* Software Tab */
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <h2 className="text-lg font-medium text-gray-900">Software Associations</h2>
+            {canEdit && (
+              <button
+                onClick={() => setShowAddSoftwareModal(true)}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Add Software
+              </button>
+            )}
+          </div>
+
+          {softwareLoading ? (
+            <div className="px-6 py-12 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-sm text-gray-500">Loading software associations...</p>
+            </div>
+          ) : softwareError ? (
+            <div className="px-6 py-4">
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+                <p className="text-sm">{softwareError}</p>
+              </div>
+            </div>
+          ) : softwareAssociations.length === 0 ? (
+            <div className="px-6 py-12 text-center text-gray-500">
+              <p>No software associations found for this asset.</p>
+              {canEdit && (
+                <p className="mt-2 text-sm">Click "Add Software" to associate software versions with this asset.</p>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Software Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Version
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Software Number
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Effective Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {softwareAssociations.map((assoc) => (
+                    <tr key={assoc.assoc_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{assoc.sw_name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{assoc.sw_version}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{assoc.sw_number}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {assoc.sw_type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatDate(assoc.effective_date)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {assoc.end_date ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            Inactive
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       ) : null}
+
+      {/* Add Software Modal */}
+      {showAddSoftwareModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+              onClick={() => setShowAddSoftwareModal(false)}
+            />
+
+            {/* Modal panel */}
+            <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Add Software Association</h3>
+                <button
+                  onClick={() => setShowAddSoftwareModal(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {addSoftwareError && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+                  <p className="text-sm">{addSoftwareError}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleAddSoftware}>
+                <div className="space-y-4">
+                  {/* Software Version Dropdown */}
+                  <div>
+                    <label htmlFor="sw_version_id" className="block text-sm font-medium text-gray-700">
+                      Software Version *
+                    </label>
+                    <select
+                      id="sw_version_id"
+                      value={addSoftwareForm.sw_version_id}
+                      onChange={(e) => setAddSoftwareForm(prev => ({ ...prev, sw_version_id: e.target.value }))}
+                      required
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    >
+                      <option value="">Select software version</option>
+                      {softwareVersions.map((version) => (
+                        <option key={version.sw_version_id} value={version.sw_version_id}>
+                          {version.sw_name} (v{version.sw_version}) - {version.sw_number}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Effective Date */}
+                  <div>
+                    <label htmlFor="effective_date" className="block text-sm font-medium text-gray-700">
+                      Effective Date *
+                    </label>
+                    <input
+                      type="date"
+                      id="effective_date"
+                      value={addSoftwareForm.effective_date}
+                      onChange={(e) => setAddSoftwareForm(prev => ({ ...prev, effective_date: e.target.value }))}
+                      required
+                      className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddSoftwareModal(false)}
+                    disabled={addingSoftware}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={addingSoftware}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {addingSoftware ? 'Adding...' : 'Add Software'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ETI Update Modal */}
       {showEtiUpdateModal && (

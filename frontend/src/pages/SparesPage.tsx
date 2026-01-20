@@ -65,6 +65,20 @@ const editSpareSchema = z.object({
 
 type EditSpareFormData = z.infer<typeof editSpareSchema>
 
+// Zod schema for creating spare
+const createSpareSchema = z.object({
+  partno: z.string().min(1, 'Part number is required').max(50, 'Part number must be at most 50 characters'),
+  serno: z.string().min(1, 'Serial number is required').max(50, 'Serial number must be at most 50 characters'),
+  status: z.string().optional(),
+  loc_id: z.string().optional(),
+  warranty_exp: z.string().optional(),
+  mfg_date: z.string().optional(),
+  unit_price: z.string().optional(),
+  remarks: z.string().max(500, 'Remarks must be at most 500 characters').optional(),
+})
+
+type CreateSpareFormData = z.infer<typeof createSpareSchema>
+
 interface Pagination {
   page: number
   limit: number
@@ -109,10 +123,12 @@ export default function SparesPage() {
 
   // Modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedSpare, setSelectedSpare] = useState<Spare | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [modalError, setModalError] = useState<string | null>(null)
+  const [createModalError, setCreateModalError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   // Reference data for form
@@ -123,6 +139,7 @@ export default function SparesPage() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [locationFilter, setLocationFilter] = useState<string>('')
   const [showDeleted, setShowDeleted] = useState(false)
 
   // Sorting
@@ -131,7 +148,7 @@ export default function SparesPage() {
   const [sortBy, setSortBy] = useState<SortColumn>('partno')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
-  // Form setup
+  // Form setup for editing
   const {
     register,
     handleSubmit,
@@ -139,6 +156,16 @@ export default function SparesPage() {
     formState: { errors, isSubmitting },
   } = useForm<EditSpareFormData>({
     resolver: zodResolver(editSpareSchema),
+  })
+
+  // Form setup for creating
+  const {
+    register: registerCreate,
+    handleSubmit: handleSubmitCreate,
+    reset: resetCreate,
+    formState: { errors: createErrors, isSubmitting: isCreating },
+  } = useForm<CreateSpareFormData>({
+    resolver: zodResolver(createSpareSchema),
   })
 
   // Fetch reference data
@@ -200,6 +227,10 @@ export default function SparesPage() {
         queryParams.append('status', statusFilter)
       }
 
+      if (locationFilter) {
+        queryParams.append('location', locationFilter)
+      }
+
       if (showDeleted) {
         queryParams.append('show_deleted', 'true')
       }
@@ -226,7 +257,7 @@ export default function SparesPage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, pagination.page, pagination.limit, sortBy, sortOrder, searchQuery, statusFilter, showDeleted])
+  }, [token, currentProgramId, pagination.page, pagination.limit, sortBy, sortOrder, searchQuery, statusFilter, locationFilter, showDeleted])
 
   useEffect(() => {
     fetchSpares()
@@ -271,6 +302,67 @@ export default function SparesPage() {
   const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value)
     setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  // Handle location filter
+  const handleLocationFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLocationFilter(e.target.value)
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSearchQuery('')
+    setStatusFilter('')
+    setLocationFilter('')
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  // Handle create spare button click
+  const handleCreateClick = () => {
+    setCreateModalError(null)
+    resetCreate({
+      partno: '',
+      serno: '',
+      status: 'AVAILABLE',
+      loc_id: '',
+      warranty_exp: '',
+      mfg_date: '',
+      unit_price: '',
+      remarks: '',
+    })
+    setIsCreateModalOpen(true)
+  }
+
+  // Handle create spare form submission
+  const onCreateSubmit = async (data: CreateSpareFormData) => {
+    if (!token) return
+
+    setCreateModalError(null)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/spares', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create spare')
+      }
+
+      // Success - close modal and refresh list
+      setIsCreateModalOpen(false)
+      setSuccessMessage('Spare created successfully!')
+      setTimeout(() => setSuccessMessage(null), 3000)
+      fetchSpares()
+    } catch (err) {
+      setCreateModalError(err instanceof Error ? err.message : 'Failed to create spare')
+    }
   }
 
   // Handle edit spare
@@ -438,7 +530,7 @@ export default function SparesPage() {
           </div>
           {canEditSpare && !showDeleted && (
             <button
-              onClick={() => alert('Add Spare feature: Click Add Spare button')}
+              onClick={handleCreateClick}
               className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               <PlusIcon className="h-5 w-5" />
@@ -446,9 +538,9 @@ export default function SparesPage() {
             </button>
           )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
-          <div>
+          <div className="md:col-span-3">
             <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
               Search
             </label>
@@ -485,6 +577,38 @@ export default function SparesPage() {
               <option value="NMCS">NMCS - Not Mission Capable Supply</option>
               <option value="CNDM">CNDM - Cannot Determine Mission</option>
             </select>
+          </div>
+
+          {/* Location Filter */}
+          <div>
+            <label htmlFor="location-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Location
+            </label>
+            <select
+              id="location-filter"
+              value={locationFilter}
+              onChange={handleLocationFilterChange}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            >
+              <option value="">All Locations</option>
+              <option value="Depot Alpha">Depot Alpha</option>
+              <option value="Depot Bravo">Depot Bravo</option>
+              <option value="In Transit">In Transit</option>
+            </select>
+          </div>
+
+          {/* Clear Filters Button */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              &nbsp;
+            </label>
+            <button
+              onClick={handleClearFilters}
+              disabled={!searchQuery && !statusFilter && !locationFilter}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Clear All
+            </button>
           </div>
         </div>
       </div>
@@ -697,6 +821,215 @@ export default function SparesPage() {
           )}
         </div>
       )}
+
+      {/* Create Spare Modal */}
+      <Transition.Root show={isCreateModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={setIsCreateModalOpen}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <div className="absolute right-0 top-0 pr-4 pt-4">
+                    <button
+                      type="button"
+                      className="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                      onClick={() => setIsCreateModalOpen(false)}
+                    >
+                      <span className="sr-only">Close</span>
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <div className="sm:flex sm:items-start">
+                    <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                      <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+                        Create New Spare Part
+                      </Dialog.Title>
+                      <p className="mt-2 text-sm text-gray-500">
+                        Add a new spare part to the inventory
+                      </p>
+
+                      {createModalError && (
+                        <div className="mt-4 rounded-md bg-red-50 p-4">
+                          <p className="text-sm text-red-800">{createModalError}</p>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleSubmitCreate(onCreateSubmit)} className="mt-6 space-y-4">
+                        {/* Part Number */}
+                        <div>
+                          <label htmlFor="partno" className="block text-sm font-medium text-gray-700">
+                            Part Number *
+                          </label>
+                          <input
+                            type="text"
+                            id="partno"
+                            {...registerCreate('partno')}
+                            placeholder="e.g., PN001"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          />
+                          {createErrors.partno && (
+                            <p className="mt-1 text-sm text-red-600">{createErrors.partno.message}</p>
+                          )}
+                        </div>
+
+                        {/* Serial Number */}
+                        <div>
+                          <label htmlFor="serno" className="block text-sm font-medium text-gray-700">
+                            Serial Number *
+                          </label>
+                          <input
+                            type="text"
+                            id="serno"
+                            {...registerCreate('serno')}
+                            placeholder="e.g., SN123"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          />
+                          {createErrors.serno && (
+                            <p className="mt-1 text-sm text-red-600">{createErrors.serno.message}</p>
+                          )}
+                        </div>
+
+                        {/* Status */}
+                        <div>
+                          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                            Status
+                          </label>
+                          <select
+                            id="status"
+                            {...registerCreate('status')}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          >
+                            <option value="AVAILABLE">Available</option>
+                            <option value="IN_USE">In Use</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                            <option value="RETIRED">Retired</option>
+                          </select>
+                        </div>
+
+                        {/* Location */}
+                        <div>
+                          <label htmlFor="loc_id" className="block text-sm font-medium text-gray-700">
+                            Location
+                          </label>
+                          <select
+                            id="loc_id"
+                            {...registerCreate('loc_id')}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          >
+                            <option value="">Select location (optional)</option>
+                            {adminLocations.map((loc) => (
+                              <option key={loc.loc_id} value={loc.loc_id.toString()}>
+                                {loc.loc_name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Warranty Expiration */}
+                        <div>
+                          <label htmlFor="warranty_exp" className="block text-sm font-medium text-gray-700">
+                            Warranty Expiration
+                          </label>
+                          <input
+                            type="date"
+                            id="warranty_exp"
+                            {...registerCreate('warranty_exp')}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          />
+                        </div>
+
+                        {/* Manufacturing Date */}
+                        <div>
+                          <label htmlFor="mfg_date" className="block text-sm font-medium text-gray-700">
+                            Manufacturing Date
+                          </label>
+                          <input
+                            type="date"
+                            id="mfg_date"
+                            {...registerCreate('mfg_date')}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          />
+                        </div>
+
+                        {/* Unit Price */}
+                        <div>
+                          <label htmlFor="unit_price" className="block text-sm font-medium text-gray-700">
+                            Unit Price
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            id="unit_price"
+                            {...registerCreate('unit_price')}
+                            placeholder="0.00"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                          />
+                        </div>
+
+                        {/* Remarks */}
+                        <div>
+                          <label htmlFor="remarks" className="block text-sm font-medium text-gray-700">
+                            Remarks
+                          </label>
+                          <textarea
+                            id="remarks"
+                            {...registerCreate('remarks')}
+                            rows={3}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                            placeholder="Additional notes..."
+                          />
+                          {createErrors.remarks && (
+                            <p className="mt-1 text-sm text-red-600">{createErrors.remarks.message}</p>
+                          )}
+                        </div>
+
+                        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+                          <button
+                            type="submit"
+                            disabled={isCreating}
+                            className="inline-flex w-full justify-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
+                          >
+                            {isCreating ? 'Creating...' : 'Create Spare'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsCreateModalOpen(false)}
+                            disabled={isCreating}
+                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed sm:mt-0 sm:w-auto"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
 
       {/* Edit Spare Modal */}
       <Transition.Root show={isEditModalOpen} as={Fragment}>
