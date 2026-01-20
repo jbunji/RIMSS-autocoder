@@ -840,6 +840,7 @@ export default function MaintenancePage() {
     setIsNewEventModalOpen(false)
     setNewEventError(null)
     setNewEventSuccess(null)
+    setNewEventFieldErrors({})
   }
 
   // Open new PMI modal
