@@ -4,9 +4,13 @@ import dotenv from 'dotenv'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
+import { PrismaClient } from '@prisma/client'
 
 // Load environment variables
 dotenv.config()
+
+// Initialize Prisma Client
+const prisma = new PrismaClient()
 
 // Configure uploads directory
 const UPLOADS_DIR = path.join(process.cwd(), 'uploads')
@@ -963,6 +967,58 @@ function requireAdmin(req: express.Request, res: express.Response): boolean {
   return true
 }
 
+// Helper function to get client IP address
+function getClientIP(req: express.Request): string {
+  // Check X-Forwarded-For header (if behind proxy)
+  const forwardedFor = req.headers['x-forwarded-for']
+  if (forwardedFor) {
+    // X-Forwarded-For can be a comma-separated list, take the first one
+    const ips = typeof forwardedFor === 'string' ? forwardedFor.split(',') : forwardedFor
+    return ips[0].trim()
+  }
+
+  // Check X-Real-IP header
+  const realIp = req.headers['x-real-ip']
+  if (realIp && typeof realIp === 'string') {
+    return realIp
+  }
+
+  // Fall back to socket address
+  return req.socket.remoteAddress || 'unknown'
+}
+
+// Audit logging helper function
+async function logAuditAction(
+  userId: number,
+  action: 'CREATE' | 'UPDATE' | 'DELETE',
+  tableName: string,
+  recordId: number,
+  oldValues: any = null,
+  newValues: any = null,
+  req: express.Request
+): Promise<void> {
+  try {
+    const ipAddress = getClientIP(req)
+
+    await prisma.auditLog.create({
+      data: {
+        user_id: userId,
+        action,
+        table_name: tableName,
+        record_id: recordId,
+        old_values: oldValues,
+        new_values: newValues,
+        ip_address: ipAddress,
+      },
+    })
+
+    console.log(`[AUDIT] ${action} on ${tableName} record ${recordId} by user ${userId} from ${ipAddress}`)
+  } catch (error) {
+    console.error('[AUDIT] Failed to log audit entry:', error)
+    // Don't throw - audit logging failure shouldn't break the main operation
+  }
+}
+
 // Get all users (admin only)
 app.get('/api/users', (req, res) => {
   if (!requireAdmin(req, res)) return
@@ -1305,51 +1361,78 @@ app.post('/api/users', (req, res) => {
 })
 
 // Get audit logs (admin only)
-app.get('/api/audit-logs', (req, res) => {
+app.get('/api/audit-logs', async (req, res) => {
   if (!requireAdmin(req, res)) return
 
-  // Mock audit log data
-  const auditLogs = [
-    {
-      log_id: 1,
-      user_id: 1,
-      username: 'admin',
-      action: 'CREATE',
-      table_name: 'asset',
-      record_id: 123,
-      old_values: null,
-      new_values: { partno: 'TEST-001', serno: 'SN-001', status_cd: 'FMC' },
-      ip_address: '192.168.1.100',
-      created_at: new Date().toISOString(),
-    },
-    {
-      log_id: 2,
-      user_id: 2,
-      username: 'depot_mgr',
-      action: 'UPDATE',
-      table_name: 'event',
-      record_id: 456,
-      old_values: { status_cd: 'NMCS' },
-      new_values: { status_cd: 'FMC' },
-      ip_address: '192.168.1.101',
-      created_at: new Date().toISOString(),
-    },
-    {
-      log_id: 3,
-      user_id: 3,
-      username: 'field_tech',
-      action: 'CREATE',
-      table_name: 'repair',
-      record_id: 789,
-      old_values: null,
-      new_values: { event_id: 456, repair_seq: 1, type_maint: 'CORRECTIVE' },
-      ip_address: '192.168.1.102',
-      created_at: new Date().toISOString(),
-    },
-  ]
+  try {
+    // Query filters from query params
+    const userId = req.query.user_id ? parseInt(req.query.user_id as string, 10) : undefined
+    const tableName = req.query.table_name as string | undefined
+    const action = req.query.action as string | undefined
+    const startDate = req.query.start_date as string | undefined
+    const endDate = req.query.end_date as string | undefined
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100
+    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0
 
-  console.log('[AUDIT] Audit logs requested by admin')
-  res.json({ logs: auditLogs })
+    // Build where clause
+    const where: any = {}
+    if (userId) where.user_id = userId
+    if (tableName) where.table_name = tableName
+    if (action) where.action = action
+    if (startDate || endDate) {
+      where.created_at = {}
+      if (startDate) where.created_at.gte = new Date(startDate)
+      if (endDate) where.created_at.lte = new Date(endDate)
+    }
+
+    // Get audit logs from database with user info
+    const auditLogs = await prisma.auditLog.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            username: true,
+            first_name: true,
+            last_name: true,
+          },
+        },
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+      take: limit,
+      skip: offset,
+    })
+
+    // Get total count for pagination
+    const totalCount = await prisma.auditLog.count({ where })
+
+    // Format the response
+    const formattedLogs = auditLogs.map(log => ({
+      log_id: log.log_id,
+      user_id: log.user_id,
+      username: log.user?.username || 'Unknown',
+      user_full_name: log.user ? `${log.user.first_name} ${log.user.last_name}` : 'Unknown User',
+      action: log.action,
+      table_name: log.table_name,
+      record_id: log.record_id,
+      old_values: log.old_values,
+      new_values: log.new_values,
+      ip_address: log.ip_address,
+      created_at: log.created_at.toISOString(),
+    }))
+
+    console.log(`[AUDIT] Audit logs requested by admin - returned ${formattedLogs.length} of ${totalCount} logs`)
+    res.json({
+      logs: formattedLogs,
+      total: totalCount,
+      limit,
+      offset,
+    })
+  } catch (error) {
+    console.error('[AUDIT] Error fetching audit logs:', error)
+    res.status(500).json({ error: 'Failed to fetch audit logs' })
+  }
 })
 
 // Dashboard: Get asset status summary (requires authentication)
@@ -8975,7 +9058,7 @@ app.delete('/api/assets/:id/software/:assocId', (req, res) => {
 });
 
 // PUT /api/assets/:id - Update an existing asset (requires authentication and depot_manager/admin role)
-app.put('/api/assets/:id', (req, res) => {
+app.put('/api/assets/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -9002,6 +9085,29 @@ app.put('/api/assets/:id', (req, res) => {
   const userProgramIds = user.programs.map(p => p.pgm_id);
   if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get detailedAsset for extended fields
+  const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
+
+  // Capture old values for audit logging (before any changes)
+  const oldValues: any = {
+    partno: asset.partno,
+    serno: asset.serno,
+    name: asset.name,
+    status_cd: asset.status_cd,
+    admin_loc: asset.admin_loc,
+    cust_loc: asset.cust_loc,
+    notes: asset.notes,
+    active: asset.active,
+  };
+
+  if (detailedAsset) {
+    oldValues.bad_actor = detailedAsset.bad_actor;
+    oldValues.in_transit = detailedAsset.in_transit;
+    oldValues.carrier = detailedAsset.carrier;
+    oldValues.tracking_number = detailedAsset.tracking_number;
+    oldValues.ship_date = detailedAsset.ship_date;
   }
 
   const { partno, serno, name, status_cd, admin_loc, cust_loc, notes, active, bad_actor, in_transit, carrier, tracking_number, ship_date } = req.body;
@@ -9095,9 +9201,7 @@ app.put('/api/assets/:id', (req, res) => {
     asset.active = active;
   }
 
-  // Also find and update the detailed asset entry for bad_actor and other fields
-  const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
-
+  // Handle bad_actor field (already have detailedAsset from line 9091)
   if (bad_actor !== undefined && detailedAsset && bad_actor !== detailedAsset.bad_actor) {
     changes.push(`Bad Actor: ${detailedAsset.bad_actor ? 'Yes' : 'No'} → ${bad_actor ? 'Yes' : 'No'}`);
     historyChanges.push({ field: 'bad_actor', field_label: 'Bad Actor', old_value: detailedAsset.bad_actor ? 'Yes' : 'No', new_value: bad_actor ? 'Yes' : 'No' });
@@ -9205,6 +9309,37 @@ app.put('/api/assets/:id', (req, res) => {
     pgm_id: asset.pgm_id,
   };
   dynamicActivityLog.push(newActivity);
+
+  // Capture new values for audit logging (after all changes)
+  const newValues: any = {
+    partno: asset.partno,
+    serno: asset.serno,
+    name: asset.name,
+    status_cd: asset.status_cd,
+    admin_loc: asset.admin_loc,
+    cust_loc: asset.cust_loc,
+    notes: asset.notes,
+    active: asset.active,
+  };
+
+  if (detailedAsset) {
+    newValues.bad_actor = detailedAsset.bad_actor;
+    newValues.in_transit = detailedAsset.in_transit;
+    newValues.carrier = detailedAsset.carrier;
+    newValues.tracking_number = detailedAsset.tracking_number;
+    newValues.ship_date = detailedAsset.ship_date;
+  }
+
+  // Log to audit table in database
+  await logAuditAction(
+    user.user_id,
+    'UPDATE',
+    'asset',
+    assetId,
+    oldValues,
+    newValues,
+    req
+  );
 
   res.json({
     message: 'Asset updated successfully',
@@ -9649,6 +9784,26 @@ app.post('/api/assets', (req, res) => {
     'create',
     createChanges,
     `Asset ${serno} created`
+  );
+
+  // Log to audit trail
+  logAuditAction(
+    user.user_id,
+    'CREATE',
+    'asset',
+    newAssetId,
+    null,
+    {
+      serno,
+      partno,
+      name: name || `${partno} - ${serno}`,
+      status_cd,
+      admin_loc,
+      cust_loc,
+      notes: notes || '',
+      pgm_id,
+    },
+    req
   );
 
   console.log(`[ASSETS] New asset created by ${user.username}: ${serno} (ID: ${newAssetId}, Program: ${program?.pgm_cd})`);
