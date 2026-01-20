@@ -13072,8 +13072,8 @@ app.get('/api/sorties', (req, res) => {
   if (endDate) {
     // Include the entire end date by filtering for dates <= end date (not < end date)
     const endDateTime = new Date(endDate);
-    // Set to end of day (23:59:59.999)
-    endDateTime.setHours(23, 59, 59, 999);
+    // Set to end of day in UTC (23:59:59.999)
+    endDateTime.setUTCHours(23, 59, 59, 999);
     filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() <= endDateTime.getTime());
   }
 
