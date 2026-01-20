@@ -22,6 +22,7 @@ import MaintenancePage from './pages/MaintenancePage'
 import SortiesPage from './pages/SortiesPage'
 import SortieDetailPage from './pages/SortieDetailPage'
 import SparesPage from './pages/SparesPage'
+import PartsOrderedPage from './pages/PartsOrderedPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -95,7 +96,7 @@ function App() {
           <Route path="/sorties" element={<SortiesPage />} />
           <Route path="/sorties/:id" element={<SortieDetailPage />} />
           <Route path="/spares" element={<SparesPage />} />
-          <Route path="/parts-ordered" element={<PlaceholderPage title="Parts Ordered" />} />
+          <Route path="/parts-ordered" element={<PartsOrderedPage />} />
           <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
           <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
           <Route path="/admin" element={<PlaceholderPage title="Admin" />} />

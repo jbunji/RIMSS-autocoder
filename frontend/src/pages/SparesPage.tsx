@@ -330,6 +330,295 @@ export default function SparesPage() {
     setPagination(prev => ({ ...prev, page: 1 }))
   }
 
+  // Helper function to get ZULU timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Helper function to get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  // Export spares to PDF with CUI markings
+  const exportToPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+    }
+
+    // Add header
+    addCuiHeader()
+
+    // Title
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text('RIMSS Spares Inventory Report', pageWidth / 2, 20, { align: 'center' })
+
+    // Metadata
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
+    doc.text(`Total Spares: ${spares.length}`, 14, 33)
+    if (program) {
+      doc.text(`Program: ${program.pgm_cd} - ${program.pgm_name}`, 14, 38)
+    }
+
+    // Filters info
+    let yPos = program ? 43 : 38
+    const hasActiveFilters = searchQuery || statusFilter || locationFilter || showDeleted
+    if (hasActiveFilters) {
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'italic')
+      const filters: string[] = []
+      if (searchQuery) filters.push(`Search: "${searchQuery}"`)
+      if (statusFilter) filters.push(`Status: ${statusFilter}`)
+      if (locationFilter) filters.push(`Location: "${locationFilter}"`)
+      if (showDeleted) filters.push('Including deleted records')
+      doc.text(`Filters: ${filters.join(', ')}`, 14, yPos)
+      yPos += 5
+    }
+
+    // Prepare table data
+    const tableHeaders = [
+      'Serial Number',
+      'Part Number',
+      'Part Name',
+      'Status',
+      'Location',
+      'UII',
+      'Remarks'
+    ]
+
+    const tableData = spares.map(spare => [
+      spare.serno,
+      spare.partno,
+      spare.part_name,
+      spare.status_cd,
+      spare.location || '-',
+      spare.uii || '-',
+      spare.remarks ? spare.remarks.substring(0, 50) : '-'
+    ])
+
+    // Generate table
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: yPos + 5,
+      margin: { left: 14, right: 14, top: 15, bottom: 15 },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246], // primary-600
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251], // gray-50
+      },
+      didDrawPage: (data: any) => {
+        const pageCount = (doc as any).internal.pages.length - 1
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+
+        // Add CUI footer to each page
+        addCuiFooter(currentPage, pageCount)
+      },
+    })
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Spares-${zuluDate}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  // Export spares to Excel with CUI markings
+  const exportToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = ['RIMSS Spares Inventory Report']
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total Spares: ${spares.length}`]
+    const reportInfoRow4 = program ? [`Program: ${program.pgm_cd} - ${program.pgm_name}`] : []
+
+    // Filter info
+    const filters: string[] = []
+    if (searchQuery) filters.push(`Search: "${searchQuery}"`)
+    if (statusFilter) filters.push(`Status: ${statusFilter}`)
+    if (locationFilter) filters.push(`Location: "${locationFilter}"`)
+    if (showDeleted) filters.push('Including deleted records')
+    const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
+
+    // Table header row
+    const headerRow = [
+      'Serial Number',
+      'Part Number',
+      'Part Name',
+      'Status',
+      'Location',
+      'Location Type',
+      'Admin Location',
+      'Custodial Location',
+      'UII',
+      'Manufacture Date',
+      'In Transit',
+      'Bad Actor',
+      'Active',
+      'Remarks'
+    ]
+
+    // Data rows
+    const dataRows = spares.map(spare => [
+      spare.serno,
+      spare.partno,
+      spare.part_name,
+      spare.status_cd,
+      spare.location || '',
+      spare.loc_type || '',
+      spare.admin_loc || '',
+      spare.cust_loc || '',
+      spare.uii || '',
+      spare.mfg_date ? new Date(spare.mfg_date).toISOString().split('T')[0] : '',
+      spare.in_transit ? 'Yes' : 'No',
+      spare.bad_actor ? 'Yes' : 'No',
+      spare.active ? 'Yes' : 'No',
+      spare.remarks || ''
+    ])
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      ...(reportInfoRow4.length ? [reportInfoRow4] : []),
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 18 },  // Serial Number
+      { wch: 18 },  // Part Number
+      { wch: 30 },  // Part Name
+      { wch: 12 },  // Status
+      { wch: 25 },  // Location
+      { wch: 15 },  // Location Type
+      { wch: 20 },  // Admin Location
+      { wch: 20 },  // Custodial Location
+      { wch: 18 },  // UII
+      { wch: 15 },  // Manufacture Date
+      { wch: 12 },  // In Transit
+      { wch: 12 },  // Bad Actor
+      { wch: 10 },  // Active
+      { wch: 40 },  // Remarks
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    const headerRowIdx = reportInfoRow4.length ? 8 : 7
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total spares
+    ]
+
+    // Add program row merge if present
+    if (reportInfoRow4.length) {
+      ws['!merges'].push({ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } })
+    }
+
+    // Add filters row merge if present
+    if (filterRow.length) {
+      const filterRowIdx = reportInfoRow4.length ? 6 : 5
+      ws['!merges'].push({ s: { r: filterRowIdx, c: 0 }, e: { r: filterRowIdx, c: numCols - 1 } })
+    }
+
+    // Add footer merge
+    const footerRowIdx = allRows.length - 1
+    ws['!merges'].push({ s: { r: footerRowIdx, c: 0 }, e: { r: footerRowIdx, c: numCols - 1 } })
+
+    // Style CUI header and footer with yellow background
+    // Note: XLSX doesn't support cell styling in basic mode, but we can add the cell references
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Spares Inventory')
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Spares-${zuluDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(wb, filename)
+  }
+
   // Handle create spare button click
   const handleCreateClick = () => {
     setCreateModalError(null)
@@ -611,26 +900,47 @@ export default function SparesPage() {
               </label>
             )}
           </div>
-          {canEditSpare && !showDeleted && (
-            <div className="flex items-center gap-3">
-              {selectedSpareIds.length > 0 && (
+          <div className="flex items-center gap-3">
+            {/* Export Buttons */}
+            <button
+              onClick={exportToPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              title="Export to PDF"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              Export PDF
+            </button>
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              title="Export to Excel"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              Export Excel
+            </button>
+
+            {/* Add/Edit Buttons (only for depot managers and admins) */}
+            {canEditSpare && !showDeleted && (
+              <>
+                {selectedSpareIds.length > 0 && (
+                  <button
+                    onClick={handleMassUpdateClick}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  >
+                    <PencilIcon className="h-5 w-5" />
+                    Mass Update ({selectedSpareIds.length})
+                  </button>
+                )}
                 <button
-                  onClick={handleMassUpdateClick}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  onClick={handleCreateClick}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
-                  <PencilIcon className="h-5 w-5" />
-                  Mass Update ({selectedSpareIds.length})
+                  <PlusIcon className="h-5 w-5" />
+                  Add Spare
                 </button>
-              )}
-              <button
-                onClick={handleCreateClick}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              >
-                <PlusIcon className="h-5 w-5" />
-                Add Spare
-              </button>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
