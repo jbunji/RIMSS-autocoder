@@ -199,7 +199,7 @@ export default function AssetsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery)
-    }, 300)
+    }, 150)
     return () => clearTimeout(timer)
   }, [searchQuery])
 
