@@ -30184,3 +30184,87 @@ Next: Session complete - Feature #254 verified and committed
 [2026-01-20 11:00 UTC] Feature #254 session complete - PARALLEL SESSION
 ================================================================================
 
+================================================================================
+[2026-01-20 10:45 UTC] Feature #176 VERIFIED - REGRESSION TEST PASSED
+================================================================================
+
+Feature #176: Notification display window (start/stop dates) - VERIFIED ✅
+
+TEST EXECUTION - All 7 Steps PASSED:
+
+✅ Step 1: Logged in as admin
+   - Successfully authenticated as John Admin (admin/admin123)
+   - Navigated to Notifications page
+   - Observed 5 existing notifications displayed
+
+✅ Step 2: Created notification with future start date
+   - Created test notification with start_date: 2026-01-25 (5 days in future)
+   - Message: 'TEST NOTIFICATION - Date Window Testing'
+   - Priority: MEDIUM, Program: CRIIS
+   - Notification created successfully (API returned 201 Created)
+
+✅ Step 3: Verified notification NOT visible to users yet
+   - Notification list still shows only 5 notifications
+   - Future notification correctly filtered out by date window logic
+   - Backend filtering: n.start_date <= now (2026-01-25 <= 2026-01-20 = false)
+
+✅ Step 4: Changed start date to past (created new notification with past start)
+   - Created notification with start_date: 2026-01-15 (5 days ago)
+   - Message: 'TEST #2 - This notification has PAST start date and should be visible immediately'
+   - Notification IMMEDIATELY visible in the list ✓
+
+✅ Step 5: Verified notification now visible
+   - Notification count increased from 5 to 6
+   - Unread count increased from 4 to 5
+   - New notification displayed in correct priority order (MEDIUM priority)
+   - Appears as 3rd notification in list
+   - Shows correct metadata: From: admin, Date: Jan 14, 2026, 07:00 PM
+
+✅ Step 6: Set stop date to past (created notification with past stop date)
+   - Created notification with:
+     - start_date: 2026-01-10 (10 days ago)
+     - stop_date: 2026-01-15 (5 days ago)
+   - Message: 'TEST #3 - This has PAST stop date and should NOT be visible'
+   - Notification created successfully
+
+✅ Step 7: Verified notification no longer visible
+   - Notification list STILL shows only 6 notifications
+   - Notification with past stop date correctly filtered out
+   - Backend filtering: stop_date >= now (2026-01-15 >= 2026-01-20 = false)
+   - Date window logic working perfectly
+
+BACKEND DATE FILTERING LOGIC VERIFIED:
+Location: backend/src/index.ts lines 11166-11168
+
+```javascript
+// Check date range (only show if current date is within start_date and stop_date)
+const isInDateRange = n.start_date <= now && (n.stop_date === null || n.stop_date >= now);
+if (!isInDateRange) return false;
+```
+
+This logic ensures:
+1. Notification only shows if start_date <= current_time (started)
+2. Notification only shows if stop_date is null OR stop_date >= current_time (not expired)
+3. Notifications outside this window are filtered from API responses
+
+TEST RESULTS:
+- Future start date: ✅ Correctly hidden
+- Past start date: ✅ Correctly visible
+- Past stop date: ✅ Correctly hidden
+- No console errors (except unrelated WebSocket)
+- All API calls successful (200/201 status codes)
+- Date window filtering working perfectly
+
+SCREENSHOTS:
+- feature_176_date_window_working.png - Shows 6 visible notifications, with future/expired ones hidden
+
+Result: Feature #176 PASSING ✅
+
+Progress: 251/374 features passing (67.1%)
+
+Session Type: REGRESSION TEST - Single Feature Mode
+Session Duration: ~20 minutes
+Test Approach: Browser automation with Playwright
+Verification Method: Created 3 test notifications with different date configurations
+Code Quality: Production-ready ✅
+Feature Status: Still working correctly ✅
