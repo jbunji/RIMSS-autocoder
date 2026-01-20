@@ -36839,3 +36839,15 @@ provide excellent user experience for error recovery.
 ================================================================================
 [Testing] Session complete - Feature #258 verified PASSING - no regression found
 ================================================================================
+[Testing] 2026-01-20 11:43 UTC - Feature #138 regression test - PARTIAL FIX
+
+Date range filter has timezone issues causing incorrect filtering.
+- Search by mission ID: WORKING ✓
+- Tail number filter: WORKING ✓
+- Date range filter: BUG - end date not inclusive due to timezone mismatch
+- Clear filters: WORKING ✓
+
+Issue: Backend stores dates in UTC, frontend displays in local time, causing off-by-one errors in date filtering.
+Fix attempted but requires more comprehensive timezone handling across backend and frontend.
+
+Marking feature as failing due to date range filter regression.
