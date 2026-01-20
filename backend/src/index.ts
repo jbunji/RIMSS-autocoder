@@ -5041,7 +5041,7 @@ app.get('/api/events/:eventId/available-assets', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this maintenance event' });
   }
 
-  const searchQuery = (req.query.search as string || '').toLowerCase();
+  const searchQuery = (req.query.search as string || '').toLowerCase().trim() || null;
 
   // Get assets from the same program that are not the event's primary asset
   let availableAssets = mockAssets.filter(a =>
@@ -5387,7 +5387,7 @@ app.get('/api/events/:eventId/removable-assets', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this maintenance event' });
   }
 
-  const searchQuery = (req.query.search as string || '').toLowerCase();
+  const searchQuery = (req.query.search as string || '').toLowerCase().trim() || null;
 
   // Get all assets from the same program (including the event's primary asset - it could be a subcomponent)
   let removableAssets = mockAssets.filter(a => a.pgm_id === event.pgm_id && a.active);
@@ -7942,7 +7942,7 @@ app.get('/api/assets', (req, res) => {
   }
 
   // Apply optional search filter (searches serno, partno, part_name)
-  const searchQuery = (req.query.search as string)?.toLowerCase();
+  const searchQuery = (req.query.search as string)?.toLowerCase().trim() || null;
   if (searchQuery) {
     filteredAssets = filteredAssets.filter(asset =>
       asset.serno.toLowerCase().includes(searchQuery) ||
@@ -13543,7 +13543,7 @@ app.get('/api/spares', (req, res) => {
   }
 
   // Apply optional search filter (searches serno, partno, part_name)
-  const searchQuery = (req.query.search as string)?.toLowerCase();
+  const searchQuery = (req.query.search as string)?.toLowerCase().trim() || null;
   if (searchQuery) {
     filteredSpares = filteredSpares.filter(spare =>
       spare.serno.toLowerCase().includes(searchQuery) ||

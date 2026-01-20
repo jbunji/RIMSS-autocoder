@@ -1057,6 +1057,10 @@ export default function MaintenancePage() {
     }
     if (!newEventForm.discrepancy.trim()) {
       fieldErrors.discrepancy = 'Please enter a discrepancy description'
+    } else if (newEventForm.discrepancy.trim().length < 10) {
+      fieldErrors.discrepancy = 'Discrepancy description must be at least 10 characters'
+    } else if (newEventForm.discrepancy.trim().length > 500) {
+      fieldErrors.discrepancy = 'Discrepancy description must not exceed 500 characters'
     }
     if (!newEventForm.start_job) {
       fieldErrors.start_job = 'Please select a date in'
