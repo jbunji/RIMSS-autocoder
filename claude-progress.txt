@@ -14182,3 +14182,73 @@ Regression Result: NO REGRESSION DETECTED
 Feature #155 remains PASSING
 
 [Testing] Session complete - verified feature #155 (no regression)
+
+## [2026-01-20] Feature #159 - PQDR Flagging on Parts Orders - COMPLETED ✅
+
+**Feature**: PQDR (Product Quality Deficiency Report) flagging on parts orders
+**Status**: ✅ PASSING (157/374 features, 42.0% complete)
+
+### Implementation Summary
+
+Added comprehensive PQDR flagging functionality to parts orders with toggle capability, visual indicators, and filtering:
+
+**Backend Changes** (backend/src/index.ts):
+- Added `pqdr: boolean` field to PartsOrder interface
+- Updated all 9 mock parts orders with pqdr field (orders #1 and #6 flagged as true)
+- Implemented PATCH `/api/parts-orders/:id/pqdr` endpoint to toggle PQDR flag
+- Added pqdr query parameter support to GET `/api/parts-orders` endpoint for filtering
+- Role-based access control: field_technician, depot_manager, and admin can toggle PQDR
+
+**Frontend Changes**:
+
+PartsOrderDetailPage.tsx:
+- Added pqdr field to PartsOrder interface
+- Imported ExclamationTriangleIcon from Heroicons
+- Added handleTogglePqdr function to call PATCH API
+- Added canTogglePqdr permission check
+- Added red PQDR badge in header (shows when pqdr is true)
+- Added checkbox toggle control below header with icon
+
+PartsOrderedPage.tsx:
+- Added pqdr field to PartsOrder interface
+- Fixed status values from uppercase to lowercase (pending, acknowledged, shipped, received)
+- Imported ExclamationTriangleIcon
+- Added pqdrFilter state variable
+- Added pqdr parameter to API call when filter is active
+- Added "PQDR Only" checkbox in filters section
+- Added red background highlighting (bg-red-50 hover:bg-red-100) for PQDR rows
+- Added PQDR badge display in order date column for flagged orders
+
+### Testing Results
+
+✅ **Login Test**: Successfully logged in as field_tech/field123 (Bob Field)
+✅ **List View Test**: Verified PQDR order #1 displays with red background and PQDR badge
+✅ **Detail View Test**: Opened PQDR order, verified red badge in header and checked checkbox
+✅ **Toggle Off Test**: Unchecked PQDR flag, verified badge disappeared
+✅ **Toggle On Test**: Rechecked PQDR flag, verified badge reappeared
+✅ **Filter UI Test**: Verified "PQDR Only" checkbox visible in filters panel
+✅ **Filter Function Test**: Checked "PQDR Only", verified:
+   - Order count changed from "5 orders found" to "1 order found"
+   - Only PQDR-flagged order (Power Supply Unit) displayed
+   - Red background and badge visible on filtered result
+   - "Clear All" button appeared
+
+### Technical Details
+
+- Pattern follows existing maintenance events PQDR implementation
+- Red visual indicators (bg-red-50, text-red-500) consistent with system design
+- PQDR toggle persists in mock data array (memory storage)
+- Filter works server-side with pqdr=true query parameter
+- All role permissions properly enforced
+
+### Files Modified
+- backend/src/index.ts: Added pqdr field, endpoints, and filtering
+- frontend/src/pages/PartsOrderDetailPage.tsx: Added toggle and display
+- frontend/src/pages/PartsOrderedPage.tsx: Added filter and visual indicators
+
+### Commit
+- SHA: b371a32
+- Message: "feat: Add PQDR flagging functionality to parts orders"
+
+**Feature #159 successfully implemented and tested!** 🎉
+
