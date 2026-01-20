@@ -1,5 +1,57 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #114)
+
+### Completed This Session:
+- Feature #114: Auto-PMI creation for ECU actions - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** ECU-related part actions trigger automatic PMI creation
+
+**Implementation:**
+- Modified backend POST /api/labor/:laborId/parts endpoint in backend/src/index.ts
+- Added auto-PMI creation logic that detects ECU parts by name or part number (case-insensitive)
+- When ECU part action is recorded (WORKED, REMOVED, or INSTALLED):
+  - Creates a new PMI record for the maintenance event's asset
+  - PMI type: "ECU Post-Action Inspection ({ACTION})"
+  - Due date: 30 days from current date
+  - Interval: 30-Day
+- Returns auto_pmi in response to inform user of automatic creation
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Create repair with ECU part action - Added labor part to MX-2024-001, Repair #2:
+   - Part Number: PN-ECU-TEST-114
+   - Part Name: ECU Module Test Unit
+   - Serial Number: SN-ECU-F114-001
+   - Action: WORKED
+3. ✅ Save repair - Part saved successfully
+4. ✅ Navigate to PMI page - Accessed Maintenance > PMI Schedule tab
+5. ✅ Verify new PMI auto-created for ECU - PMI #100 created automatically:
+   - Asset: Camera System X (CRIIS-005)
+   - PMI Type: ECU Post-Action Inspection (WORKED)
+   - Status: UPCOMING
+   - Interval: 30-Day
+   - Due Date: Feb 18, 2026
+6. ✅ Verify correct due date based on rules - Due date is 30 days from creation date
+
+**Server Logs Confirmation:**
+```
+[LABOR_PARTS] Added WORKED part "PN-ECU-TEST-114" to labor 2 by field_tech
+[PMI] Auto-created PMI #100 for ECU part action - Asset: CRIIS-005, Due: 2026-02-19
+```
+
+**Screenshots:**
+- .playwright-mcp/feature114_auto_pmi_created.png - PMI Schedule showing new ECU PMI
+- .playwright-mcp/feature114_ecu_pmi_row_visible.png - Detailed view of ECU PMI row
+
+**Console errors:** None detected
+
+[Feature] Feature #114 marked as PASSING
+
+**Current Progress:** 113/374 features passing (30.2%)
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #115)
 
 ### Completed This Session:
@@ -8999,3 +9051,36 @@ Frontend (PMIDetailPage.tsx):
 
 **Current Progress:** 113/374 features passing (30.2%)
 
+
+
+---
+
+## Testing Session: 2026-01-20 (Regression Testing)
+
+[Testing] Feature #4 'CUI banner displays correctly in header' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** CUI (Controlled Unclassified Information) banner appears in header with proper styling
+
+**Verification Steps Completed:**
+1. ✅ Navigate to any authenticated page - Logged in as admin (John Admin) and accessed dashboard
+2. ✅ Verify yellow CUI banner in header - Banner present at top of page
+3. ✅ Verify banner text reads 'CUI' or 'Controlled Unclassified Information' - Text: 'CUI - Controlled Unclassified Information'
+4. ✅ Verify banner uses yellow background (#FEF3C7) - Background color: rgb(254, 243, 199) = #FEF3C7 ✅
+5. ✅ Verify banner text is black - Text color: rgb(0, 0, 0) = black ✅
+
+**Additional Verifications:**
+- ✅ CUI banner also present in footer with same correct styling
+- ✅ Banner visible on login page (unauthenticated)
+- ✅ Banner visible on dashboard page (authenticated)
+
+**Screenshots:**
+- feature4_login_page_cui_banner.png - Login page showing CUI banner at top and bottom
+- feature4_dashboard_cui_banner.png - Dashboard showing CUI banner with correct yellow (#FEF3C7) background
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #4 (no regression found)
+
+**Current Progress:** 114/374 features passing (30.5%)
