@@ -33972,3 +33972,39 @@ Git Commit: 8f476d0
 ================================================================================
 [2026-01-20 12:05 UTC] Feature #270 session complete - PARALLEL SESSION
 ================================================================================
+
+================================================================================
+[2026-01-20 UTC] Feature #166 REGRESSION TEST - REGRESSION FOUND AND FIXED
+================================================================================
+
+Feature #166: ETM validation (out >= in) - REGRESSION FIXED ✅
+
+Session Type: Regression Testing - Single Feature Mode
+Test Result: REGRESSION FOUND, FIXED, AND VERIFIED ✅
+
+REGRESSION DISCOVERED:
+Error message persisted after checking Meter Changed checkbox.
+
+ROOT CAUSE:
+No mechanism to clear validation error when checkbox state changes.
+
+FIX IMPLEMENTED:
+Added useEffect hook to clear ETI validation error when checkbox or ETI Out value changes.
+
+VERIFICATION STEPS COMPLETED:
+✅ Step 1-8: All steps passed
+✅ Error clears immediately after checking Meter Changed checkbox
+✅ Form submits successfully with ETI Out < ETI In when meter changed
+✅ Repair closed with negative delta (-2 hrs) correctly displayed
+
+Result: Feature #166 regression FIXED and marked as PASSING ✅
+
+Progress: 268/374 features passing (71.7%)
+Git Commit: 6d87d0f
+
+================================================================================
+[2026-01-20 UTC] Feature #166 regression test complete - FIXED AND PASSING
+================================================================================
+
+[Testing] Session complete - Feature #166 regression found and fixed successfully
+[Testing] Starting regression test for Feature #99: Delete labor record
