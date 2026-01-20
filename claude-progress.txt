@@ -33046,3 +33046,95 @@ Status: PASSING - No regression found
 Screenshots: 3 captured in .playwright-mcp/
 Session ended: Tue Jan 20 05:51:49 EST 2026
 ========================================
+
+================================================================================
+[2026-01-20 11:51 UTC] Feature #178 REGRESSION FIXED - TESTING SESSION
+================================================================================
+
+Feature #178: Unread notification indicator - REGRESSION FOUND AND FIXED ✅
+
+Assignment: Random regression test (feature_get_for_regression with limit=1)
+Session Type: Testing agent - verify passing features still work
+
+REGRESSION DISCOVERED:
+The notification badge in the header was not updating immediately when
+notifications were acknowledged. Badge would get stuck showing incorrect
+counts and only update after 30 seconds.
+
+ROOT CAUSE ANALYSIS:
+1. Navbar.tsx: Fetched unread count on mount and polled every 30 seconds
+2. NotificationsPage.tsx: Acknowledged notifications but had no way to
+   notify the Navbar that the count changed
+3. Result: Up to 30 second delay before badge updated
+
+THE FIX:
+1. Navbar.tsx (lines 54-63):
+   - Added event listener for 'notificationAcknowledged' custom event
+   - Calls fetchUnreadCount() immediately when event fires
+   - Properly cleaned up in useEffect return
+
+2. NotificationsPage.tsx (line 198):
+   - Dispatches 'notificationAcknowledged' event after successful acknowledgment
+   - Triggers immediate badge refresh in Navbar
+
+VERIFICATION - All 5 Steps PASSED:
+
+✅ Step 1: Log in as user with unread notifications
+   - Logged in as admin with password: admin123
+   - 4 unread notifications present
+
+✅ Step 2: Verify notification badge in header
+   - Badge visible in top-right corner of header
+   - Red circular badge with white text
+
+✅ Step 3: Verify badge shows count
+   - Badge clearly displays "4"
+   - Matches the 4 unread notifications on the page
+
+✅ Step 4: Acknowledge all notifications
+   - Acknowledged notification 1: Badge immediately updated 4 → 3 ✅
+   - Acknowledged notification 2: Badge immediately updated 3 → 2 ✅
+   - Acknowledged notification 3: Badge immediately updated 2 → 1 ✅
+   - Acknowledged notification 4: Badge immediately updated 1 → 0 ✅
+
+✅ Step 5: Verify badge disappears or shows 0
+   - Badge completely disappeared after last acknowledgment ✅
+   - No badge visible on notification bell icon
+   - Page shows "Showing 5 notifications" (no "X unread" text)
+
+QUALITY VERIFICATION:
+✅ No JavaScript console errors
+✅ Immediate updates (no delay)
+✅ Clean visual appearance
+✅ All acknowledgments persisted correctly
+
+FILES MODIFIED:
+- frontend/src/components/layout/Navbar.tsx (added event listener)
+- frontend/src/pages/NotificationsPage.tsx (added event dispatch)
+
+SCREENSHOTS:
+- feature_178_fix_step1_before_ack.png (before: 4 unread)
+- feature_178_fix_step5_all_acknowledged.png (after: 0 unread, badge gone)
+
+TESTING METHODOLOGY:
+- Browser automation with Playwright MCP
+- Real-time UI interaction and verification
+- Console error monitoring
+- Visual confirmation via screenshots
+
+Result: Feature #178 marked as PASSING ✅
+Regression: FIXED and verified ✅
+Progress: 263/374 features passing (70.3%)
+
+Git Commit: 3753548
+Session Duration: ~15 minutes
+Code Changes: 2 files (event-based communication pattern)
+
+Quality: Production-ready ✅
+User Experience: Immediate feedback ✅
+Architecture: Clean event-driven pattern ✅
+
+================================================================================
+[2026-01-20 11:51 UTC] Feature #178 testing session complete
+================================================================================
+[Testing] Session complete - verified/fixed feature #178
