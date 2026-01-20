@@ -8490,3 +8490,160 @@ Feature verified working and marked as passing.
 
 **Current Progress:** 107/374 features passing (28.6%)
 
+
+---
+
+## Testing Session: 2026-01-19 19:34 (Regression Testing)
+
+[Testing] Feature #20 'Dashboard loads for authenticated user' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Dashboard page loads with widgets for logged in users
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Verify redirect to dashboard - URL changed to /dashboard
+3. ✅ Verify dashboard title displays - 'Dashboard' heading visible at top
+4. ✅ Verify page loads without errors - No console errors detected
+5. ✅ Verify loading states complete - All widgets loaded with data:
+   - Welcome message: 'Welcome, John Admin'
+   - Asset Status Summary: 10 Total Assets, 70% Mission Capability Rate
+   - PMI Due Soon widget with items
+   - Open Maintenance Jobs widget
+   - Parts Awaiting Action widget
+   - Recent Activity widget
+
+**Screenshots:**
+- .playwright-mcp/feature20_dashboard_loaded.png - Dashboard fully loaded with all widgets
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #20 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #2 'Navigation bar renders correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** The main navigation sidebar renders with all module links
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin user - Logged in as John Admin (admin role)
+2. ✅ Verify sidebar navigation is visible - Left sidebar clearly displayed
+3. ✅ Verify Dashboard link is present - Home icon at top of sidebar
+4. ✅ Verify Assets link is present - Shown below Dashboard
+5. ✅ Verify Configurations link is present - Shown below Assets
+6. ✅ Verify Maintenance link is present - Shown below Configurations
+7. ✅ Verify Sorties link is present - Shown below Maintenance
+8. ✅ Verify Spares link is present - Shown below Sorties
+9. ✅ Verify Parts Ordered link is present - Shown below Spares
+10. ✅ Verify Notifications link is present - Shown below Parts Ordered
+11. ✅ Verify Reports link is present - Shown below Notifications
+12. ✅ Verify Admin link is present for admin users - 'ADMINISTRATION' section with 'Users' link visible
+
+**Navigation Links Tested:**
+- Assets link → /assets page loads correctly ✅
+- Maintenance link → /maintenance page loads correctly ✅
+- Users link (Admin) → /admin/users page loads correctly ✅
+
+**Screenshots:**
+- .playwright-mcp/feature2_navigation_sidebar.png - Full navigation sidebar on dashboard
+- .playwright-mcp/feature2_admin_users_page.png - Admin section showing Users page
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #2 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #95 'Repeat/recur flagging on repairs' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Repairs can be marked as repeat or recurring issues
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech)
+2. ✅ Navigate to repair - Navigated to Maintenance Event MX-2024-001, found repairs section
+3. ✅ Toggle repeat/recur flag - Opened Edit Repair #2 modal, toggled flag OFF then back ON
+4. ✅ Save changes - Changes saved successfully, flag persisted
+5. ✅ Verify indicator displays - REPEAT/RECUR badge visible on Repair #2 with tooltip 'Repeat/Recur issue flagged by bob_field'
+6. ✅ Filter repairs by repeat/recur - Clicked 'Repeat/Recur Only' filter button
+7. ✅ Verify only flagged repairs show - Only Repair #2 (with flag) shown, Repair #1 (without flag) hidden
+
+**UI Elements Verified:**
+- Repeat/Recur Only filter button with count badge (shows '1')
+- REPEAT/RECUR badge on flagged repairs (green with refresh icon)
+- Repeat/Recur Issue toggle in Edit Repair modal
+- 'Originally flagged by: bob_field' attribution text
+- Filter correctly hides non-flagged repairs
+
+**Screenshots:**
+- feature95_repairs_with_repeatrecur_flag.png - Initial page view
+- feature95_repairs_with_repeatrecur_visible.png - Repairs section showing filter button and count
+- feature95_repair2_with_repeatrecur_flag.png - Repair #2 with REPEAT/RECUR badge visible
+- feature95_edit_repair_repeatrecur_toggle.png - Edit repair modal showing toggle switches
+- feature95_repeatrecur_toggle_off.png - Toggle in OFF state demonstrating functionality
+- feature95_filter_repeatrecur_only.png - Filtered view showing only flagged repairs
+
+**Console errors:** Only transient connection errors from backend restart (not feature-related)
+
+[Testing] Session complete - verified feature #95 (no regression found)
+
+
+
+---
+
+## Session: 2026-01-20 (Feature #111)
+
+[Feature] Feature #111 'PMI color-coded due date alerts - Green' - VERIFIED AND PASSING
+
+**Feature Description:** PMIs due after 30 days show green indicator
+
+**Verification Steps Completed:**
+1. ✅ Create PMI due in 45 days - Created "TEST-Feature111 Green Indicator Check" for CRIIS-001
+   - Asset: Sensor Unit A (CRIIS-001)
+   - PMI Type: TEST-Feature111 Green Indicator Check
+   - Due Date: Mar 4, 2026 (44 days from today)
+   - WUC: 99ZZZ
+2. ✅ Navigate to PMI page - Accessed Maintenance > PMI Schedule tab
+3. ✅ Verify green color indicator displays - Confirmed green "SCHEDULED" badge displayed
+
+**Key Validations:**
+- PMI summary card shows "Scheduled" count with green checkmark icon (count increased from 2 to 3)
+- Total PMI count increased from 7 to 8 after creating test PMI
+- New PMI displays with green "SCHEDULED" badge in table
+- Days Until Due column shows green text for 44 days
+- PMI Status Legend confirms: "SCHEDULED" = "More than 30 days" (green badge)
+- Color coding logic verified in code:
+  - `daysUntilDue > 30` → `bg-green-100`, `text-green-800`, label: "SCHEDULED"
+- Existing PMIs also display correctly:
+  - Camera Assembly G (45 days) - Green SCHEDULED
+  - Processing Unit I (119 days) - Green SCHEDULED
+
+**Implementation Details:**
+- Color coding implemented in MaintenancePage.tsx getPMIStatusStyle() function (lines 2417-2428)
+- Green styling: bg-green-100, text-green-800, border-green-200
+- Summary cards use CheckCircleIcon with text-green-500 for Scheduled count
+
+**Screenshots:**
+- .playwright-mcp/feature111_pmi_schedule_with_green_indicators.png - PMI tab with summary cards
+- .playwright-mcp/feature111_pmi_table_with_scheduled_green.png - Full PMI table with green badges
+- .playwright-mcp/feature111_create_pmi_form_45days.png - Create PMI form
+- .playwright-mcp/feature111_new_pmi_created_with_green_scheduled.png - Final view with new green PMI
+
+**Console errors:** None related to feature (one temporary network error on first create attempt, resolved on retry)
+
+[Feature] Feature #111 marked as PASSING
+
+**Current Progress:** 109/374 features passing (29.1%)
+
