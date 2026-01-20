@@ -18,7 +18,7 @@ const reports: ReportCard[] = [
     description: 'Comprehensive inventory status report by system type, including asset counts, status breakdown, and program distribution.',
     icon: CubeIcon,
     category: 'Inventory',
-    route: '/spares',
+    route: '/reports/inventory',
     available: true,
   },
   {
