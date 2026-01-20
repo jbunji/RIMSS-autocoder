@@ -49571,3 +49571,91 @@ EXAMPLE VERIFIED:
 CONCLUSION: Feature #125 is FULLY FUNCTIONAL and PASSING ✅
 No regressions found. All verification steps completed successfully.
 ================================================================================
+
+================================================================================
+[Testing] Feature #222 - Delete button shows confirmation at correct context
+================================================================================
+[2026-01-20 10:52] VERIFICATION COMPLETE - FEATURE PASSING ✅
+
+Test Execution Summary:
+-----------------------
+
+✅ Step 1: Log in as admin
+   - Logged in as admin/admin123
+   - Successfully authenticated
+
+✅ Step 2: Navigate to list view
+   - Tested multiple list views:
+     * Assets list (/assets)
+     * Spares inventory list (/spares)
+
+✅ Step 3: Click delete on specific item
+   - Tested delete buttons on multiple items across different lists
+   - All delete buttons are clearly labeled with item identifiers
+
+✅ Step 4: Verify confirmation shows correct item name/ID
+   
+   Test Case 1 - Asset CRIIS-001:
+   - Serial Number: CRIIS-001 ✓
+   - Part Number: PN-SENSOR-A ✓
+   - Name: Sensor Unit A ✓
+   - Status: FMC ✓
+   - Dialog title: "Delete Asset"
+   - Options: Soft Delete (Recommended) / Permanent Delete
+   
+   Test Case 2 - Asset CRIIS-005:
+   - Serial Number: CRIIS-005 ✓
+   - Part Number: PN-CAMERA-X ✓
+   - Name: Camera System X ✓
+   - Status: NMCM ✓
+   - Dialog title: "Delete Asset"
+   - Confirmation correctly updated for different asset
+   
+   Test Case 3 - Spare CRIIS-007:
+   - Confirmation text: "Are you sure you want to delete CRIIS-007 (Radar Unit 01)?" ✓
+   - Dialog title: "Delete Spare Part"
+   - Soft delete notice included
+   - Different entity type handled correctly
+
+✅ Step 5: Verify correct item is targeted
+   - All confirmation dialogs show exact details from clicked row
+   - Each delete button targets the correct item
+   - No mix-ups or incorrect targeting detected
+   - Context switches correctly between entity types (Assets vs Spares)
+
+Console Status:
+---------------
+✅ Zero JavaScript errors
+✅ Zero React errors  
+✅ Zero network errors
+✅ Clean console throughout all tests
+
+Quality Assessment:
+-------------------
+✅ Confirmation dialogs are context-aware (Assets vs Spares)
+✅ Item details are accurately displayed
+✅ Serial numbers/IDs clearly shown
+✅ Part names correctly displayed
+✅ Different entity types have appropriate dialog variants
+✅ User can clearly identify which item will be deleted
+✅ No visual glitches or rendering issues
+
+Screenshots Captured:
+---------------------
+1. feature_222_delete_confirmation_criis001.png - Asset delete dialog
+2. feature_222_delete_confirmation_criis005.png - Different asset delete dialog
+3. feature_222_delete_confirmation_spare_criis007.png - Spare delete dialog
+
+CONCLUSION: Feature #222 is FULLY FUNCTIONAL and STILL PASSING ✅
+
+The delete confirmation system works correctly across multiple list views:
+- Shows correct item name/ID in confirmation dialog
+- Properly targets the selected item
+- Context-aware dialogs for different entity types
+- Clean implementation with zero errors
+
+No regressions detected. Feature verified as passing.
+
+[2026-01-20 10:52] Feature #222 regression test complete - STILL PASSING ✅
+================================================================================
+
