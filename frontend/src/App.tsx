@@ -9,6 +9,7 @@ import { ToastProvider } from './contexts/ToastContext'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import UsersPage from './pages/admin/UsersPage'
+import AuditLogsPage from './pages/admin/AuditLogsPage'
 import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
 import PMIPage from './pages/PMIPage'
@@ -129,6 +130,11 @@ function App() {
           <Route path="/admin/users" element={
             <ProtectedRoute requiredRoles={['ADMIN']}>
               <UsersPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/audit-logs" element={
+            <ProtectedRoute requiredRoles={['ADMIN']}>
+              <AuditLogsPage />
             </ProtectedRoute>
           } />
           <Route path="/admin/settings" element={
