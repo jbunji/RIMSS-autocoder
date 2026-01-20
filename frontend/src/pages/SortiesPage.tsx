@@ -10,11 +10,14 @@ import {
   TrashIcon,
   ArrowUpTrayIcon,
   ArrowDownTrayIcon,
+  DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
 import { Dialog } from '@headlessui/react'
 import { useAuthStore } from '../stores/authStore'
 import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 // Sortie interface matching backend
 interface Sortie {

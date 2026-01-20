@@ -9977,6 +9977,7 @@ app.get('/api/sorties', (req, res) => {
   const startDate = req.query.start_date ? String(req.query.start_date) : null;
   const endDate = req.query.end_date ? String(req.query.end_date) : null;
   const tailNumber = req.query.tail_number ? String(req.query.tail_number).toLowerCase() : null;
+  const sortieEffect = req.query.sortie_effect ? String(req.query.sortie_effect) : null;
 
   // Filter by user's accessible programs
   let filteredSorties = sorties.filter(s => userProgramIds.includes(s.pgm_id));
@@ -10001,14 +10002,23 @@ app.get('/api/sorties', (req, res) => {
     filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() >= startDateTime);
   }
   if (endDate) {
-    const endDateTime = new Date(endDate).getTime();
-    filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() <= endDateTime);
+    // Add 1 day to include the entire end date (up to 23:59:59)
+    const endDateTime = new Date(endDate);
+    endDateTime.setDate(endDateTime.getDate() + 1);
+    filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() < endDateTime.getTime());
   }
 
   // Apply tail number filter
   if (tailNumber) {
     filteredSorties = filteredSorties.filter(s =>
       s.ac_tailno && s.ac_tailno.toLowerCase().includes(tailNumber)
+    );
+  }
+
+  // Apply sortie effect filter
+  if (sortieEffect) {
+    filteredSorties = filteredSorties.filter(s =>
+      s.sortie_effect === sortieEffect
     );
   }
 
