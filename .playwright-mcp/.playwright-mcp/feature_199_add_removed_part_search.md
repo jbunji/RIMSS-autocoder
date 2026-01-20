@@ -1,0 +1,306 @@
+### Page state
+- Page URL: http://localhost:5173/maintenance/2
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - link [ref=e260] [cursor=pointer]:
+      - /url: "#main-content"
+      - text: Skip to main content
+    - generic [ref=e5]: CUI - Controlled Unclassified Information
+    - navigation [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - button [ref=e261] [cursor=pointer]:
+            - img [ref=e12]
+          - generic [ref=e14]:
+            - generic [ref=e15]: RIMSS
+            - generic [ref=e16]: Remote Independent Maintenance Status System
+        - generic [ref=e17]:
+          - link [ref=e262] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e19]
+            - generic [ref=e79]: "3"
+          - button [ref=e263] [cursor=pointer]:
+            - generic [ref=e23]: "Program:"
+            - generic [ref=e24]: CRIIS
+            - img [ref=e25]
+          - button [ref=e264] [cursor=pointer]:
+            - img [ref=e29]
+            - generic [ref=e31]: Bob Field
+            - img [ref=e32]
+    - generic [ref=e36]:
+      - navigation [ref=e37]:
+        - generic [ref=e38]:
+          - link [ref=e265] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e40]
+            - text: Dashboard
+          - link [ref=e266] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e43]
+            - text: Assets
+          - link [ref=e267] [cursor=pointer]:
+            - /url: /configurations
+            - img [ref=e46]
+            - text: Configurations
+          - link [ref=e268] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e50]
+            - text: Maintenance
+          - link [ref=e269] [cursor=pointer]:
+            - /url: /sorties
+            - img [ref=e53]
+            - text: Sorties
+          - link [ref=e270] [cursor=pointer]:
+            - /url: /spares
+            - img [ref=e56]
+            - text: Spares
+          - link [ref=e271] [cursor=pointer]:
+            - /url: /parts-ordered
+            - img [ref=e59]
+            - text: Parts Ordered
+          - link [ref=e272] [cursor=pointer]:
+            - /url: /software
+            - img [ref=e62]
+            - text: Software
+          - link [ref=e273] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e65]
+            - text: Notifications
+          - link [ref=e274] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e68]
+            - text: Reports
+      - paragraph [ref=e71]: RIMSS v0.1.0
+    - main [ref=e73]:
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - button [ref=e275] [cursor=pointer]:
+            - img [ref=e81]
+            - text: Back to Maintenance
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - img [ref=e85]
+              - generic [ref=e87]:
+                - heading [level=1] [ref=e276]: Maintenance Event Details
+                - paragraph [ref=e89]: "Job #MX-2024-002"
+            - generic [ref=e90]:
+              - button [ref=e277] [cursor=pointer]:
+                - img [ref=e92]
+                - text: Edit Event
+              - generic [ref=e94]: OPEN
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - heading [level=2] [ref=e278]: Job Information
+              - generic [ref=e99]:
+                - generic [ref=e100]:
+                  - text: Job Number
+                  - paragraph [ref=e101]: MX-2024-002
+                - generic [ref=e102]:
+                  - text: Event Type
+                  - paragraph [ref=e103]: Standard
+                - generic [ref=e104]:
+                  - text: Priority
+                  - paragraph [ref=e105]: Urgent
+                - generic [ref=e106]:
+                  - generic [ref=e107]:
+                    - img [ref=e108]
+                    - text: Location
+                  - paragraph [ref=e111]: Field Site Bravo
+                - generic [ref=e112]:
+                  - text: PQDR Status
+                  - paragraph [ref=e113]: Not flagged
+            - generic [ref=e114]:
+              - heading [level=2] [ref=e279]: Discrepancy
+              - paragraph [ref=e116]: Awaiting replacement parts - power supply module
+            - generic [ref=e117]:
+              - heading [level=2] [ref=e280]: Linked Sortie
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - generic [ref=e123]: CRIIS-SORTIE-003
+                  - generic [ref=e124]: Non-Mission Capable
+                - generic [ref=e125]:
+                  - generic [ref=e126]: "Asset: CRIIS-006"
+                  - generic [ref=e127]: "Date: 1/9/2026"
+                  - generic [ref=e128]: "Tail No: AC-006"
+                  - generic [ref=e129]: "Unit: Unit Alpha"
+                  - generic [ref=e130]: "Range: Range A"
+                  - generic [ref=e131]: "Reason: Maintenance check flight"
+                - generic [ref=e132]:
+                  - text: "Remarks:"
+                  - paragraph [ref=e133]: Power supply failure detected during flight
+            - generic [ref=e134]:
+              - heading [level=2] [ref=e281]: Timeline
+              - generic [ref=e136]:
+                - generic [ref=e137]:
+                  - img [ref=e139]
+                  - generic [ref=e141]:
+                    - paragraph [ref=e142]: Job Started
+                    - paragraph [ref=e143]: Saturday, January 10, 2026
+                - generic [ref=e144]:
+                  - img [ref=e146]
+                  - generic [ref=e148]:
+                    - paragraph [ref=e149]: In Progress
+                    - paragraph [ref=e150]: Job is currently open
+            - generic [ref=e151]:
+              - generic [ref=e152]:
+                - heading [level=2] [ref=e282]:
+                  - text: Repairs
+                  - generic [ref=e154]: (1 total, 1 open, 0 closed)
+                - button [ref=e283] [cursor=pointer]:
+                  - img [ref=e157]
+                  - text: Add Repair
+              - generic [ref=e161]:
+                - generic [ref=e162]:
+                  - generic [ref=e163]:
+                    - generic [ref=e164]: "Repair #1"
+                    - generic [ref=e165]: OPEN
+                    - generic [ref=e166]: Corrective
+                    - generic [ref=e284]:
+                      - img [ref=e168]
+                      - text: MICAP
+                    - generic [ref=e285]:
+                      - img [ref=e171]
+                      - text: SUPER REVIEW
+                  - paragraph [ref=e173]: Power supply module failed. Awaiting replacement part PN-PSU-001.
+                  - generic [ref=e174]:
+                    - generic [ref=e175]: "Started: 1/9/2026"
+                    - generic [ref=e176]: "Tag: TAG-003"
+                    - generic [ref=e177]: "Doc: DOC-2024-002"
+                    - generic [ref=e178]: "By: Jane Depot"
+                  - generic [ref=e180]: "ETI In: 1500 hrs"
+                  - generic [ref=e181]:
+                    - generic [ref=e182]:
+                      - heading [level=4] [ref=e286]:
+                        - img [ref=e184]
+                        - text: Installed Parts
+                        - generic [ref=e186]: (0)
+                      - button [ref=e287] [cursor=pointer]:
+                        - img [ref=e188]
+                        - text: Add Part
+                    - paragraph [ref=e190]: No parts installed
+                  - generic [ref=e191]:
+                    - generic [ref=e192]:
+                      - heading [level=4] [ref=e288]:
+                        - img [ref=e194]
+                        - text: Removed Parts
+                        - generic [ref=e196]: (0)
+                      - button [ref=e289] [cursor=pointer]:
+                        - img [ref=e198]
+                        - text: Add Removed Part
+                    - paragraph [ref=e200]: No parts removed
+                  - generic [ref=e201]:
+                    - generic [ref=e202]:
+                      - heading [level=4] [ref=e290]:
+                        - img [ref=e204]
+                        - text: Labor Records
+                        - generic [ref=e206]: (0)
+                      - button [ref=e291] [cursor=pointer]:
+                        - img [ref=e208]
+                        - text: Add Labor
+                    - paragraph [ref=e210]: No labor records
+                - generic [ref=e211]:
+                  - button [ref=e292] [cursor=pointer]:
+                    - img [ref=e213]
+                    - text: Edit
+                  - button [ref=e293] [cursor=pointer]:
+                    - img [ref=e216]
+                    - text: Close Repair
+            - generic [ref=e218]:
+              - generic [ref=e219]:
+                - heading [level=2] [ref=e294]:
+                  - img [ref=e221]
+                  - text: Attachments
+                  - generic [ref=e223]: (0 files)
+                - button [ref=e295] [cursor=pointer]:
+                  - img [ref=e225]
+                  - text: Upload
+              - generic [ref=e227]:
+                - img [ref=e228]
+                - paragraph [ref=e230]: No attachments uploaded
+                - button [ref=e296] [cursor=pointer]: Upload your first attachment
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - heading [level=2] [ref=e297]: Asset Information
+              - generic [ref=e235]:
+                - generic [ref=e236]:
+                  - text: Asset Name
+                  - paragraph [ref=e237]: Radar Unit 01
+                - generic [ref=e238]:
+                  - text: Serial Number
+                  - paragraph [ref=e239]: CRIIS-006
+                - generic [ref=e240]:
+                  - text: Asset ID
+                  - paragraph [ref=e241]: "#6"
+            - generic [ref=e242]:
+              - heading [level=2] [ref=e298]: Quick Actions
+              - generic [ref=e244]:
+                - button [ref=e299] [cursor=pointer]:
+                  - img [ref=e246]
+                  - text: Edit Event
+                - button [ref=e300] [cursor=pointer]:
+                  - img [ref=e249]
+                  - text: Close Event
+                - button [ref=e301] [cursor=pointer]:
+                  - img [ref=e252]
+                  - text: Return to Maintenance
+                - button [ref=e302] [cursor=pointer]:
+                  - img [ref=e255]
+                  - text: Print Details
+            - generic [ref=e257]:
+              - paragraph [ref=e258]: Event ID
+              - paragraph [ref=e259]: "#2"
+    - contentinfo [ref=e78]: CUI - Controlled Unclassified Information
+  - generic:
+    - generic:
+      - generic:
+        - dialog "Add Removed Part":
+          - generic [ref=e305]:
+            - generic [ref=e306]:
+              - heading "Add Removed Part" [level=2] [ref=e307]:
+                - img [ref=e308]
+                - text: Add Removed Part
+              - button "Close" [ref=e310] [cursor=pointer]:
+                - img [ref=e311]
+            - generic [ref=e313]:
+              - generic [ref=e314]:
+                - generic [ref=e315]: Search Asset to Remove *
+                - generic [ref=e316]:
+                  - img [ref=e317]
+                  - textbox "Search by serial number, part number, or name..." [active] [ref=e319]: PSU
+                - generic [ref=e408]: No assets found
+              - generic [ref=e391]:
+                - generic [ref=e392]: Removal Date
+                - textbox [ref=e393]: 2026-01-20
+              - generic [ref=e394]:
+                - generic [ref=e395]: Reason for Removal
+                - combobox [ref=e396]:
+                  - option "Select a reason..." [selected]
+                  - option "Failed - Component Failure"
+                  - option "Damaged - Physical Damage"
+                  - option "Worn - End of Service Life"
+                  - option "Upgrade - Replaced with Better Part"
+                  - option "Calibration - Needs Recalibration"
+                  - option "Inspection - Scheduled Inspection"
+                  - option "Other"
+              - generic [ref=e397]:
+                - generic [ref=e398]: Update Asset Status To
+                - combobox [ref=e399]:
+                  - option "Keep current status" [selected]
+                  - option "NMCM - Non-Mission Capable Maintenance"
+                  - option "NMCS - Non-Mission Capable Supply"
+                  - option "CNDM - Condition Not Determined"
+                  - option "FMC - Full Mission Capable"
+                  - option "PMC - Partial Mission Capable"
+              - generic [ref=e400]:
+                - generic [ref=e401]: Notes (optional)
+                - textbox "Enter any additional details about the removal..." [ref=e402]
+            - generic [ref=e403]:
+              - button "Cancel" [ref=e404] [cursor=pointer]
+              - button "Add Removed Part" [disabled] [ref=e405]:
+                - img [ref=e406]
+                - text: Add Removed Part
+```
