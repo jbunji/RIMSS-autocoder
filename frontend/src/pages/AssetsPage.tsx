@@ -521,7 +521,7 @@ export default function AssetsPage() {
       asset.part_name,
       asset.status_cd,
       asset.location,
-      asset.eti_hours !== null ? asset.eti_hours.toLocaleString() : '-',
+      asset.eti_hours != null ? asset.eti_hours.toLocaleString() : '-',
       formatDate(asset.next_pmi_date)
     ])
 
