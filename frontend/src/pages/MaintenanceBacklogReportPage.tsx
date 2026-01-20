@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
-import { WrenchScrewdriverIcon, ArrowDownTrayIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { WrenchScrewdriverIcon, ArrowDownTrayIcon, FunnelIcon, XMarkIcon, PrinterIcon } from '@heroicons/react/24/outline'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
@@ -166,6 +166,10 @@ export default function MaintenanceBacklogReportPage() {
     })
   }
 
+  const handlePrint = () => {
+    window.print()
+  }
+
   const exportToPDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -214,18 +218,27 @@ export default function MaintenanceBacklogReportPage() {
     doc.setTextColor(0, 0, 0)
     doc.text('RIMSS Maintenance Backlog Report', pageWidth / 2, 20, { align: 'center' })
 
+    // Get filtered events based on current filters
+    const filteredEvents = getFilteredEvents()
+
+    // Calculate summary statistics from filtered events
+    const filteredSummary = {
+      critical: filteredEvents.filter(e => e.priority === 'Critical').length,
+      urgent: filteredEvents.filter(e => e.priority === 'Urgent').length,
+      routine: filteredEvents.filter(e => e.priority === 'Routine').length,
+      overduePMI: filteredEvents.filter(e => e.event_type === 'PMI' && isOverdue(e.start_job)).length,
+      openPQDR: filteredEvents.filter(e => e.pqdr === true).length,
+    }
+
     // Metadata
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
     doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
-    doc.text(`Total Open Events: ${summary.totalOpen}`, 14, 33)
-    doc.text(`Critical: ${summary.critical} | Urgent: ${summary.urgent} | Routine: ${summary.routine}`, 14, 38)
+    doc.text(`Total Open Events: ${filteredEvents.length}`, 14, 33)
+    doc.text(`Critical: ${filteredSummary.critical} | Urgent: ${filteredSummary.urgent} | Routine: ${filteredSummary.routine}`, 14, 38)
     if (user?.program_cd && user?.program_name) {
       doc.text(`Program: ${user.program_cd} - ${user.program_name}`, 14, 43)
     }
-
-    // Get filtered events based on current filters
-    const filteredEvents = getFilteredEvents()
 
     // Prepare table data
     const tableHeaders = [
@@ -288,6 +301,15 @@ export default function MaintenanceBacklogReportPage() {
     const zuluTimestamp = getZuluTimestamp()
     const filteredEvents = getFilteredEvents()
 
+    // Calculate summary statistics from filtered events
+    const filteredSummary = {
+      critical: filteredEvents.filter(e => e.priority === 'Critical').length,
+      urgent: filteredEvents.filter(e => e.priority === 'Urgent').length,
+      routine: filteredEvents.filter(e => e.priority === 'Routine').length,
+      overduePMI: filteredEvents.filter(e => e.event_type === 'PMI' && isOverdue(e.start_job)).length,
+      openPQDR: filteredEvents.filter(e => e.pqdr === true).length,
+    }
+
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new()
 
@@ -297,8 +319,8 @@ export default function MaintenanceBacklogReportPage() {
     const reportInfoRow1 = ['RIMSS Maintenance Backlog Report']
     const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
     const reportInfoRow3 = [`Total Open Events: ${filteredEvents.length}`]
-    const reportInfoRow4 = [`Critical: ${summary.critical} | Urgent: ${summary.urgent} | Routine: ${summary.routine}`]
-    const reportInfoRow5 = [`Overdue PMI: ${summary.overduePMI} | Open PQDR: ${summary.openPQDR}`]
+    const reportInfoRow4 = [`Critical: ${filteredSummary.critical} | Urgent: ${filteredSummary.urgent} | Routine: ${filteredSummary.routine}`]
+    const reportInfoRow5 = [`Overdue PMI: ${filteredSummary.overduePMI} | Open PQDR: ${filteredSummary.openPQDR}`]
 
     // Table header row
     const headerRow = [
@@ -418,6 +440,11 @@ export default function MaintenanceBacklogReportPage() {
 
   return (
     <div>
+      {/* Print-only CUI Header */}
+      <div className="print-only print-cui-header" style={{ display: 'none' }}>
+        CONTROLLED UNCLASSIFIED INFORMATION (CUI)
+      </div>
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
@@ -427,7 +454,14 @@ export default function MaintenanceBacklogReportPage() {
               Current maintenance backlog including open jobs, repair status, and overdue items
             </p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex space-x-3 no-print">
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              <PrinterIcon className="h-5 w-5 mr-2" />
+              Print
+            </button>
             <button
               onClick={exportToPDF}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -717,6 +751,11 @@ export default function MaintenanceBacklogReportPage() {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Print-only CUI Footer */}
+      <div className="print-only print-cui-footer print-footer" style={{ display: 'none' }}>
+        CUI - CONTROLLED UNCLASSIFIED INFORMATION
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import {
   ShoppingCartIcon,
   DocumentArrowDownIcon,
   ExclamationTriangleIcon,
+  PrinterIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 import * as XLSX from 'xlsx'
@@ -189,6 +190,11 @@ export default function PartsOrderedReportPage() {
       month: 'short',
       day: 'numeric',
     })
+  }
+
+  // Handle print
+  const handlePrint = () => {
+    window.print()
   }
 
   // Export to PDF with CUI markings
@@ -446,6 +452,11 @@ export default function PartsOrderedReportPage() {
 
   return (
     <div>
+      {/* Print-only CUI Header */}
+      <div className="print-only print-cui-header" style={{ display: 'none' }}>
+        CONTROLLED UNCLASSIFIED INFORMATION (CUI)
+      </div>
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
@@ -458,7 +469,15 @@ export default function PartsOrderedReportPage() {
               Comprehensive parts requisition status report
             </p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 no-print">
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              title="Print Report"
+            >
+              <PrinterIcon className="h-5 w-5" />
+              Print
+            </button>
             <button
               onClick={exportToPDF}
               disabled={orders.length === 0}
@@ -725,6 +744,11 @@ export default function PartsOrderedReportPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Print-only CUI Footer */}
+      <div className="print-only print-cui-footer print-footer" style={{ display: 'none' }}>
+        CUI - CONTROLLED UNCLASSIFIED INFORMATION
       </div>
     </div>
   )

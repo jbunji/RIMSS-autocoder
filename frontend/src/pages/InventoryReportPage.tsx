@@ -359,6 +359,11 @@ export default function InventoryReportPage() {
 
   return (
     <div>
+      {/* Print-only CUI Header */}
+      <div className="print-only print-cui-header" style={{ display: 'none' }}>
+        CONTROLLED UNCLASSIFIED INFORMATION (CUI)
+      </div>
+
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">
@@ -545,6 +550,11 @@ export default function InventoryReportPage() {
           <p className="text-gray-500">No inventory data available for this program.</p>
         </div>
       )}
+
+      {/* Print-only CUI Footer */}
+      <div className="print-only print-cui-footer print-footer" style={{ display: 'none' }}>
+        CUI - CONTROLLED UNCLASSIFIED INFORMATION
+      </div>
     </div>
   )
 }

@@ -104,12 +104,144 @@
 @layer utilities {
   /* Print styles */
   @media print {
+    /* Hide elements not needed in print */
     .no-print {
       display: none !important;
     }
 
+    /* Show elements only in print */
     .print-only {
       display: block !important;
+    }
+
+    /* Hide navigation, sidebar, and other UI elements */
+    nav,
+    aside,
+    footer:not(.print-footer),
+    button:not(.print-button),
+    .no-print,
+    [class*="sidebar"],
+    [class*="navigation"] {
+      display: none !important;
+    }
+
+    /* General print layout */
+    body {
+      background: white !important;
+      color: black !important;
+      font-size: 12pt;
+    }
+
+    /* Reset page margins for better print layout */
+    @page {
+      margin: 1cm;
+      size: auto;
+    }
+
+    /* Main content should take full width */
+    main {
+      margin: 0 !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    /* Ensure report content is visible */
+    div[class*="container"],
+    div[class*="content"] {
+      max-width: 100% !important;
+      padding: 0 !important;
+    }
+
+    /* Print CUI banners */
+    .print-cui-header,
+    .print-cui-footer {
+      display: block !important;
+      background-color: #fef3c7 !important;
+      color: black !important;
+      text-align: center !important;
+      padding: 8px !important;
+      font-weight: bold !important;
+      font-size: 11pt !important;
+      border: 2px solid #f59e0b !important;
+      page-break-inside: avoid !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .print-cui-header {
+      margin-bottom: 1cm !important;
+    }
+
+    .print-cui-footer {
+      margin-top: 1cm !important;
+      page-break-before: avoid !important;
+    }
+
+    /* Tables in print */
+    table {
+      border-collapse: collapse !important;
+      width: 100% !important;
+      page-break-inside: auto !important;
+    }
+
+    tr {
+      page-break-inside: avoid !important;
+      page-break-after: auto !important;
+    }
+
+    thead {
+      display: table-header-group !important;
+    }
+
+    tfoot {
+      display: table-footer-group !important;
+    }
+
+    /* Preserve colors for badges and status indicators */
+    .badge,
+    [class*="badge"],
+    [class*="bg-"],
+    [class*="text-"] {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Headers and text */
+    h1, h2, h3, h4, h5, h6 {
+      page-break-after: avoid !important;
+      color: black !important;
+    }
+
+    /* Links */
+    a {
+      text-decoration: underline !important;
+      color: black !important;
+    }
+
+    /* Avoid breaking images */
+    img {
+      page-break-inside: avoid !important;
+      max-width: 100% !important;
+    }
+
+    /* Card shadows are not needed in print */
+    .card,
+    [class*="shadow"] {
+      box-shadow: none !important;
+      border: 1px solid #e5e7eb !important;
+    }
+
+    /* Ensure expanded sections stay expanded in print */
+    [class*="collapse"],
+    [class*="accordion"] {
+      display: block !important;
+      height: auto !important;
+    }
+
+    /* Remove hover effects */
+    *:hover {
+      background-color: inherit !important;
     }
   }
 }

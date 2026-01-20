@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CalendarDaysIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
+import { CalendarDaysIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon, DocumentArrowDownIcon, PrinterIcon } from '@heroicons/react/24/outline'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -147,6 +147,10 @@ export default function PMIScheduleReportPage() {
     const month = String(now.getUTCMonth() + 1).padStart(2, '0')
     const day = String(now.getUTCDate()).padStart(2, '0')
     return `${year}${month}${day}`
+  }
+
+  const handlePrint = () => {
+    window.print()
   }
 
   const handleExportToPDF = () => {
@@ -420,6 +424,11 @@ export default function PMIScheduleReportPage() {
 
   return (
     <div>
+      {/* Print-only CUI Header */}
+      <div className="print-only print-cui-header" style={{ display: 'none' }}>
+        CONTROLLED UNCLASSIFIED INFORMATION (CUI)
+      </div>
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">PMI Schedule Report</h1>
@@ -840,7 +849,16 @@ export default function PMIScheduleReportPage() {
       </div>
 
       {/* Export Buttons */}
-      <div className="mt-6 flex justify-end space-x-2">
+      <div className="mt-6 flex justify-end space-x-2 no-print">
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          title="Print Report"
+        >
+          <PrinterIcon className="h-5 w-5" />
+          Print
+        </button>
         <button
           type="button"
           onClick={handleExportToPDF}
@@ -859,6 +877,11 @@ export default function PMIScheduleReportPage() {
           <DocumentArrowDownIcon className="h-5 w-5" />
           Export Excel
         </button>
+      </div>
+
+      {/* Print-only CUI Footer */}
+      <div className="print-only print-cui-footer print-footer" style={{ display: 'none' }}>
+        CUI - CONTROLLED UNCLASSIFIED INFORMATION
       </div>
     </div>
   )
