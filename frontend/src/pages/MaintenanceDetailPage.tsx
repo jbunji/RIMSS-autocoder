@@ -5927,7 +5927,10 @@ export default function MaintenanceDetailPage() {
                   min="1"
                   max="100"
                   value={addLaborForm.crew_size}
-                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, crew_size: e.target.value }))}
+                  onChange={(e) => {
+                    setAddLaborForm(prev => ({ ...prev, crew_size: e.target.value }))
+                    setAddLaborError(null) // Clear error when user changes the value
+                  }}
                   placeholder="Number of workers"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
@@ -5944,7 +5947,10 @@ export default function MaintenanceDetailPage() {
                   max="1000"
                   step="0.5"
                   value={addLaborForm.hours}
-                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, hours: e.target.value }))}
+                  onChange={(e) => {
+                    setAddLaborForm(prev => ({ ...prev, hours: e.target.value }))
+                    setAddLaborError(null) // Clear error when user changes the value
+                  }}
                   placeholder="Enter hours worked"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
@@ -5983,7 +5989,10 @@ export default function MaintenanceDetailPage() {
                 </label>
                 <textarea
                   value={addLaborForm.corrective}
-                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, corrective: e.target.value }))}
+                  onChange={(e) => {
+                    setAddLaborForm(prev => ({ ...prev, corrective: e.target.value }))
+                    setAddLaborError(null) // Clear error when user changes the value
+                  }}
                   placeholder="Describe the corrective action taken..."
                   rows={3}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none ${
@@ -6471,7 +6480,10 @@ export default function MaintenanceDetailPage() {
                   min="1"
                   max="100"
                   value={editLaborForm.crew_size}
-                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, crew_size: e.target.value }))}
+                  onChange={(e) => {
+                    setEditLaborForm(prev => ({ ...prev, crew_size: e.target.value }))
+                    setEditLaborError(null) // Clear error when user changes the value
+                  }}
                   placeholder="Number of workers"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
@@ -6488,7 +6500,10 @@ export default function MaintenanceDetailPage() {
                   max="1000"
                   step="0.5"
                   value={editLaborForm.hours}
-                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, hours: e.target.value }))}
+                  onChange={(e) => {
+                    setEditLaborForm(prev => ({ ...prev, hours: e.target.value }))
+                    setEditLaborError(null) // Clear error when user changes the value
+                  }}
                   placeholder="Enter hours worked"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
@@ -6527,7 +6542,10 @@ export default function MaintenanceDetailPage() {
                 </label>
                 <textarea
                   value={editLaborForm.corrective}
-                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, corrective: e.target.value }))}
+                  onChange={(e) => {
+                    setEditLaborForm(prev => ({ ...prev, corrective: e.target.value }))
+                    setEditLaborError(null) // Clear error when user changes the value
+                  }}
                   placeholder="Describe the corrective action taken..."
                   rows={3}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none ${
