@@ -18,11 +18,41 @@ interface NavbarProps {
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
   const navigate = useNavigate()
-  const { user, logout, currentProgramId, setCurrentProgram } = useAuthStore()
+  const { user, logout, currentProgramId, setCurrentProgram, token } = useAuthStore()
+  const [unreadCount, setUnreadCount] = useState<number>(0)
 
   // Get current program from user's programs
   const currentProgram = user?.programs?.find(p => p.pgm_id === currentProgramId)
   const availablePrograms = user?.programs || []
+
+  // Fetch unread notification count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!token) return
+
+      try {
+        const response = await fetch('http://localhost:3001/api/notifications/unread-count', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setUnreadCount(data.count)
+        }
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error)
+      }
+    }
+
+    fetchUnreadCount()
+
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000)
+
+    return () => clearInterval(interval)
+  }, [token])
 
   const handleLogout = () => {
     logout()
@@ -56,8 +86,22 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             </div>
           </div>
 
-          {/* Right side - Program selector and user menu */}
+          {/* Right side - Notifications, Program selector and user menu */}
           <div className="flex items-center space-x-4">
+            {/* Notification Bell */}
+            <Link
+              to="/notifications"
+              className="relative inline-flex items-center rounded-md p-2 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              aria-label="View notifications"
+            >
+              <BellIcon className="h-6 w-6" aria-hidden="true" />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-xs font-bold text-white bg-red-600 rounded-full border-2 border-primary-800">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
+
             {/* Program Selector */}
             {availablePrograms.length > 0 && (
               <Menu as="div" className="relative">

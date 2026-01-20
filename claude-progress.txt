@@ -16122,3 +16122,285 @@ Current Progress: 175/374 features passing (46.8%)
 Next: Continue regression testing other passing features as needed
 
 
+
+================================================================================
+Session: 2026-01-20 01:03 UTC - Feature #177 COMPLETED
+================================================================================
+
+Feature #177: Notification acknowledge functionality - IMPLEMENTED AND VERIFIED
+
+Summary:
+Fixed the notification acknowledge functionality to properly capture and display
+the actual username from the API response. The frontend was hardcoding 'current_user'
+instead of using the username returned by the backend API.
+
+Bug Fixed:
+- Frontend was setting ack_by to 'current_user' in local state update
+- Backend was correctly returning user.username in the API response
+- Solution: Updated frontend to use the notification data from API response
+
+Implementation Changes (frontend/src/pages/NotificationsPage.tsx):
+Line 175-187: handleAcknowledge function
+- Changed from hardcoded ack_by: 'current_user' to using API response data
+- Now extracts updated notification from response: const data = await response.json()
+- Updates state with full notification object from backend
+- Ensures ack_by and ack_date match what backend stored
+
+Backend Implementation (Already Complete):
+Line 11030-11032: backend/src/index.ts
+- notification.acknowledged = true
+- notification.ack_by = user.username (correctly captures username)
+- notification.ack_date = new Date().toISOString()
+
+Verification Steps Completed (All 6):
+
+✅ Step 1: Logged in as field technician (Bob Field / field_tech)
+✅ Step 2: Viewed notifications on /notifications page
+   - 6 notifications visible with proper priority sorting
+   - Unread counter showing "6 unread"
+
+✅ Step 3: Clicked Acknowledge button
+   - Button on CRITICAL priority notification
+   - Loading state displayed: "Acknowledging..."
+   - Success message: "Notification acknowledged successfully"
+   - Message auto-dismissed after 3 seconds
+
+✅ Step 4: Verified acknowledged timestamp captured
+   - Timestamp displayed: "on Jan 20, 2026, 01:03 AM"
+   - Format: MMM DD, YYYY, HH:MM AM/PM
+   - Timestamp persists after page refresh
+
+✅ Step 5: Verified acknowledged by user captured
+   - Username correctly shown: "field_tech"
+   - Format: "Acknowledged by: field_tech"
+   - Backend logs confirm: [NOTIFICATIONS] Notification #2 acknowledged by field_tech
+   - Username persists after page refresh
+
+✅ Step 6: Verified notification marked as read
+   - Green "Acknowledged" badge with checkmark icon displayed
+   - Notification opacity reduced to 75%
+   - Unread counter updated: 6 → 5 → 4 (after 2 acknowledgments)
+   - Acknowledge button removed from acknowledged notifications
+   - Border color changed from red (CRITICAL) to gray
+   - Acknowledged notifications still visible but visually distinct
+
+Additional Testing:
+- Acknowledged second notification (HIGH priority)
+- Both acknowledgments persist correctly after page refresh
+- Zero JavaScript console errors
+- All API calls successful (PUT /api/notifications/:id/acknowledge returns 200)
+- Success message displays and auto-dismisses
+- Unread counter updates in real-time
+- Backend correctly logs each acknowledgment with username
+
+Technical Notes:
+- Frontend now uses complete notification object from API response
+- Ensures ack_by field matches backend username exactly
+- No more hardcoded placeholder values
+- Proper separation between optimistic UI updates and actual data
+- Backend stores acknowledgment permanently in notifications array
+
+Screenshots Captured:
+- feature177_step2_notifications_list.png - Initial notifications list (6 unread)
+- feature177_step4_first_acknowledged.png - After first acknowledgment
+- feature177_step6_second_acknowledged.png - After second acknowledgment
+- feature177_verified_persistence.png - Data persists after refresh
+
+Feature #177 marked as PASSING
+
+Current Progress: 176/374 features passing (47.1%)
+
+
+================================================================================
+Testing Session: Feature #9 REGRESSION TEST - PASSED
+================================================================================
+Date: Tue Jan 20 2026 01:05 EST
+Feature: Session timeout after inactivity
+
+Test Summary:
+Feature #9 has been thoroughly verified and is working correctly. The session 
+timeout mechanism properly expires user sessions after 30 minutes of inactivity.
+
+Implementation Details:
+1. ActivityTracker component (frontend/src/components/ActivityTracker.tsx):
+   - Monitors user activity (mouse, keyboard, scroll, touch events)
+   - 30-minute inactivity timeout (SESSION_TIMEOUT_MS = 30 * 60 * 1000)
+   - Testing override via localStorage: 'rimss-session-timeout-override'
+   - Throttled activity detection (max 1 reset per second for performance)
+
+2. TokenRefreshManager component (frontend/src/components/TokenRefreshManager.tsx):
+   - Refreshes JWT tokens every 25 minutes (5 min before 30-min expiry)
+   - Backend generates tokens with 30-minute expiration
+   - Testing override via localStorage: 'rimss-token-refresh-override'
+
+All 6 Verification Steps PASSED:
+✅ Step 1: Logged in as admin user (John Admin)
+✅ Step 2: Simulated inactivity (15 seconds with testing override)
+   - Set localStorage 'rimss-session-timeout-override' to 15000ms
+   - Reloaded page to apply new timeout setting
+   - Waited 20 seconds without any user interaction
+✅ Step 3: Session automatically expired after timeout
+   - Console log: "[ActivityTracker] Session timed out due to inactivity"
+✅ Step 4: Verified session expired (user logged out automatically)
+✅ Step 5: Redirected to login page automatically
+   - URL changed from /dashboard to /login
+✅ Step 6: Session expiration message displayed correctly
+   - Yellow alert box with warning icon
+   - Message: "Your session has expired due to inactivity. Please log in again."
+
+Technical Verification:
+- Zero JavaScript console errors
+- ActivityTracker properly mounted in App.tsx (wraps all routes)
+- Timeout triggers automatically without user action
+- State cleared properly (user logged out, auth store cleared)
+- Navigate with replace: true (prevents back button access)
+- Visual feedback with styled warning message
+
+Testing Method:
+- Used localStorage override to reduce timeout from 30 minutes to 15 seconds
+- Used browser_wait_for tool to simulate inactivity (no mouse/keyboard events)
+- Verified automatic timeout, logout, redirect, and message display
+
+Screenshot Captured:
+- feature9_session_expired_message.png - Login page with expiration message
+
+Regression Result: ✅ NO REGRESSION DETECTED
+
+Feature #9 remains PASSING - Session timeout working as designed.
+
+Current Progress: 173/374 features passing (46.3%)
+[Testing] Session complete - Feature #127 PASSED
+
+Feature: TCTO compliance status reporting
+Status: ✅ VERIFIED - NO REGRESSION FOUND
+
+All verification steps completed successfully:
+
+✅ Step 1: Logged in as admin user
+✅ Step 2: Navigated to TCTO page (Maintenance > TCTO tab)
+✅ Step 3: Viewed compliance summary with statistics:
+   - 2 Open TCTOs
+   - 1 Overdue TCTO
+   - 1 Critical TCTO
+   - 1 Completed TCTO
+
+✅ Step 4: Verified percentage complete displays correctly:
+   - TCTO-2024-002: 0% compliance (0/3 assets) - OVERDUE
+   - TCTO-2024-001: 100% compliance (3/3 assets) - UPCOMING
+   - TCTO-2024-003: 100% compliance (2/2 assets) - COMPLETED
+
+✅ Step 5: Verified count of compliant vs total assets displays:
+   - All three TCTOs show proper fraction format (X/Y assets)
+   - Clear visual indicators with percentage badges
+
+✅ Step 6: Exported compliance reports:
+   - PDF export successful (CUI_TCTO_Report_20260120.pdf)
+   - Excel export successful (CUI_TCTO_Report_20260120.xlsx)
+
+✅ Console errors: ZERO errors found
+
+Technical Details:
+- Page loads correctly at /maintenance (TCTO tab)
+- Compliance percentages calculate and display accurately
+- Asset counts match expected values
+- Export functionality works for both PDF and Excel
+- Status badges display correctly (OVERDUE, UPCOMING, COMPLETED)
+- Priority indicators work (Critical, Urgent, Routine)
+
+Screenshots captured:
+- feature127_tcto_compliance_view.png
+- feature127_tcto_compliance_table.png
+- feature127_tcto_table_scrolled.png
+- feature127_tcto_full_page.png
+
+Date: 2026-01-20 06:05 UTC
+
+================================================================================
+Session: 2026-01-20 01:04 UTC - Feature #176 COMPLETED
+================================================================================
+
+Feature #176: Notification display window (start/stop dates) - VERIFIED
+
+Summary:
+The notification date window filtering was already fully implemented in the
+backend. This feature validates that notifications only display when the current
+date/time falls within their start_date and stop_date window.
+
+Backend Implementation (already complete):
+Location: backend/src/index.ts, lines 10896-10898
+
+The GET /api/notifications endpoint includes date range filtering:
+The logic checks: start_date <= now && (stop_date === null || stop_date >= now)
+
+This ensures:
+- Notifications only appear when start_date <= current_date
+- Notifications hide when stop_date < current_date
+- Notifications with null stop_date never expire
+
+All 7 Verification Steps PASSED:
+
+✅ Step 1: Logged in as admin
+✅ Step 2: Created notification with future start date (2026-01-25)
+   - Notification text: "TEST_176_FUTURE_START"
+   - Start date: 2026-01-25 (5 days in future)
+   - Result: NOT visible in list (still showing 8 notifications)
+
+✅ Step 3: Verified future-dated notification not visible
+   - Notification count remained at 8 (didn't increase to 9)
+   - Backend correctly filtered out future-dated notification
+
+✅ Step 4: Created notification with past start date (2026-01-15)
+   - Notification text: "TEST_176_PAST_START"
+   - Start date: 2026-01-15 (5 days ago)
+   - Result: Immediately visible in list
+
+✅ Step 5: Verified past-dated notification now visible
+   - Notification count increased from 8 to 9
+   - New notification appeared in the list with correct priority
+
+✅ Step 6: Created notification with expired stop date
+   - Notification text: "TEST_176_EXPIRED"
+   - Start date: 2026-01-10 (past)
+   - Stop date: 2026-01-15 (5 days ago - expired)
+   - Priority: CRITICAL
+   - Result: NOT visible in list (still showing 9 notifications)
+
+✅ Step 7: Verified expired notification not visible
+   - Notification count remained at 9 (didn't increase to 10)
+   - Backend correctly filtered out expired notification
+   - Even though it's CRITICAL priority, it didn't appear because stop_date passed
+
+Additional Testing:
+- Logged in as field_tech (Bob Field)
+- Verified only 3 CRIIS notifications visible
+- Date filtering works correctly for all user roles
+- Program filtering also works (field_tech only sees CRIIS program)
+- Zero console errors throughout testing
+
+Technical Verification:
+✓ Backend date range logic correct
+✓ Frontend displays only filtered results
+✓ No JavaScript errors in console
+✓ All API calls successful (200 OK)
+✓ Works for admin and non-admin users
+✓ Respects both start_date and stop_date boundaries
+✓ Null stop_date handled correctly (never expires)
+
+Screenshots Captured:
+- feature176_step1_initial_notifications.png - Initial state (8 notifications)
+- feature176_step2_future_notification_not_visible.png - After creating future-dated notification
+- feature176_step3_past_notification_visible.png - After creating past-dated notification (9 notifications)
+- feature176_step5_expired_notification_not_visible.png - After creating expired notification (still 9)
+- feature176_step7_field_tech_view.png - Field tech view (3 notifications)
+
+Key Findings:
+1. Date window filtering is robust and works correctly
+2. Future notifications don't appear until start_date arrives
+3. Expired notifications (stop_date < now) are hidden
+4. Priority doesn't override date filtering (CRITICAL expired notification still hidden)
+5. Filtering applies equally to all user roles
+6. No edge cases or bugs detected
+
+Feature #176 marked as PASSING
+
+Current Progress: 174/374 features passing (46.5%)

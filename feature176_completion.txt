@@ -1,0 +1,89 @@
+================================================================================
+Session: 2026-01-20 01:04 UTC - Feature #176 COMPLETED
+================================================================================
+
+Feature #176: Notification display window (start/stop dates) - VERIFIED
+
+Summary:
+The notification date window filtering was already fully implemented in the
+backend. This feature validates that notifications only display when the current
+date/time falls within their start_date and stop_date window.
+
+Backend Implementation (already complete):
+Location: backend/src/index.ts, lines 10896-10898
+
+The GET /api/notifications endpoint includes date range filtering:
+The logic checks: start_date <= now && (stop_date === null || stop_date >= now)
+
+This ensures:
+- Notifications only appear when start_date <= current_date
+- Notifications hide when stop_date < current_date
+- Notifications with null stop_date never expire
+
+All 7 Verification Steps PASSED:
+
+✅ Step 1: Logged in as admin
+✅ Step 2: Created notification with future start date (2026-01-25)
+   - Notification text: "TEST_176_FUTURE_START"
+   - Start date: 2026-01-25 (5 days in future)
+   - Result: NOT visible in list (still showing 8 notifications)
+
+✅ Step 3: Verified future-dated notification not visible
+   - Notification count remained at 8 (didn't increase to 9)
+   - Backend correctly filtered out future-dated notification
+
+✅ Step 4: Created notification with past start date (2026-01-15)
+   - Notification text: "TEST_176_PAST_START"
+   - Start date: 2026-01-15 (5 days ago)
+   - Result: Immediately visible in list
+
+✅ Step 5: Verified past-dated notification now visible
+   - Notification count increased from 8 to 9
+   - New notification appeared in the list with correct priority
+
+✅ Step 6: Created notification with expired stop date
+   - Notification text: "TEST_176_EXPIRED"
+   - Start date: 2026-01-10 (past)
+   - Stop date: 2026-01-15 (5 days ago - expired)
+   - Priority: CRITICAL
+   - Result: NOT visible in list (still showing 9 notifications)
+
+✅ Step 7: Verified expired notification not visible
+   - Notification count remained at 9 (didn't increase to 10)
+   - Backend correctly filtered out expired notification
+   - Even though it's CRITICAL priority, it didn't appear because stop_date passed
+
+Additional Testing:
+- Logged in as field_tech (Bob Field)
+- Verified only 3 CRIIS notifications visible
+- Date filtering works correctly for all user roles
+- Program filtering also works (field_tech only sees CRIIS program)
+- Zero console errors throughout testing
+
+Technical Verification:
+✓ Backend date range logic correct
+✓ Frontend displays only filtered results
+✓ No JavaScript errors in console
+✓ All API calls successful (200 OK)
+✓ Works for admin and non-admin users
+✓ Respects both start_date and stop_date boundaries
+✓ Null stop_date handled correctly (never expires)
+
+Screenshots Captured:
+- feature176_step1_initial_notifications.png - Initial state (8 notifications)
+- feature176_step2_future_notification_not_visible.png - After creating future-dated notification
+- feature176_step3_past_notification_visible.png - After creating past-dated notification (9 notifications)
+- feature176_step5_expired_notification_not_visible.png - After creating expired notification (still 9)
+- feature176_step7_field_tech_view.png - Field tech view (3 notifications)
+
+Key Findings:
+1. Date window filtering is robust and works correctly
+2. Future notifications don't appear until start_date arrives
+3. Expired notifications (stop_date < now) are hidden
+4. Priority doesn't override date filtering (CRITICAL expired notification still hidden)
+5. Filtering applies equally to all user roles
+6. No edge cases or bugs detected
+
+Feature #176 marked as PASSING
+
+Current Progress: 174/374 features passing (46.5%)
