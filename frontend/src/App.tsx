@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
 import PMIPage from './pages/PMIPage'
 import MaintenanceDetailPage from './pages/MaintenanceDetailPage'
+import TCTODetailPage from './pages/TCTODetailPage'
 import PartsOrderDetailPage from './pages/PartsOrderDetailPage'
 import AssetsPage from './pages/AssetsPage'
 import AssetDetailPage from './pages/AssetDetailPage'
@@ -100,6 +101,7 @@ function App() {
           <Route path="/pmi" element={<PMIPage />} />
           <Route path="/pmi/:id" element={<PMIDetailPage />} />
           <Route path="/maintenance/:id" element={<MaintenanceDetailPage />} />
+          <Route path="/tcto/:id" element={<TCTODetailPage />} />
           <Route path="/parts-orders/:id" element={<PartsOrderDetailPage />} />
         </Route>
 

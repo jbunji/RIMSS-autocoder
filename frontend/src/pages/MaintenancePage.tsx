@@ -246,6 +246,12 @@ export default function MaintenancePage() {
   const [tctoLoading, setTctoLoading] = useState(false)
   const [tctoError, setTctoError] = useState<string | null>(null)
 
+  // TCTO Search and Filter State
+  const [tctoSearch, setTctoSearch] = useState('')
+  const [debouncedTctoSearch, setDebouncedTctoSearch] = useState('')
+  const [tctoPriorityFilter, setTctoPriorityFilter] = useState<'Critical' | 'Urgent' | 'Routine' | ''>('')
+  const [tctoStatusFilter, setTctoStatusFilter] = useState<'open' | 'closed' | ''>('')
+
   // Edit TCTO Modal State
   interface EditTCTOFormData {
     effective_date: string
@@ -379,6 +385,14 @@ export default function MaintenancePage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [pmiSearchQuery])
+
+  // Debounce TCTO search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTctoSearch(tctoSearch)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [tctoSearch])
 
   // Fetch events
   const fetchEvents = useCallback(async (page: number = 1, status?: 'open' | 'closed') => {
@@ -599,6 +613,16 @@ export default function MaintenancePage() {
         params.append('program_id', currentProgramId.toString())
       }
 
+      // Add search parameter
+      if (debouncedTctoSearch) {
+        params.append('search', debouncedTctoSearch)
+      }
+
+      // Add status filter parameter
+      if (tctoStatusFilter) {
+        params.append('status', tctoStatusFilter)
+      }
+
       const response = await fetch(`http://localhost:3001/api/tcto?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -610,7 +634,14 @@ export default function MaintenancePage() {
       }
 
       const data = await response.json()
-      setTctoRecords(data.tcto)
+
+      // Apply client-side priority filter (since backend doesn't support it yet)
+      let filteredRecords = data.tcto
+      if (tctoPriorityFilter) {
+        filteredRecords = filteredRecords.filter((tcto: TCTORecord) => tcto.priority === tctoPriorityFilter)
+      }
+
+      setTctoRecords(filteredRecords)
       setTctoSummary(data.summary)
     } catch (err) {
       setTctoError(err instanceof Error ? err.message : 'An error occurred')
@@ -618,7 +649,7 @@ export default function MaintenancePage() {
     } finally {
       setTctoLoading(false)
     }
-  }, [token, currentProgramId])
+  }, [token, currentProgramId, debouncedTctoSearch, tctoStatusFilter, tctoPriorityFilter])
 
   // Fetch TCTO when tab changes to TCTO or when program changes
   useEffect(() => {
@@ -4081,9 +4112,10 @@ export default function MaintenancePage() {
     }
 
     if (tctoRecords.length === 0) {
+      const hasActiveFilters = debouncedTctoSearch || tctoPriorityFilter || tctoStatusFilter
       return (
         <div className="space-y-6">
-          {canCreateTCTO && (
+          {canCreateTCTO && !hasActiveFilters && (
             <div className="flex justify-end">
               <button
                 onClick={openNewTCTOModal}
@@ -4096,15 +4128,34 @@ export default function MaintenancePage() {
           )}
           <div className="bg-white shadow rounded-lg p-8 text-center">
             <ClockIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No TCTO records found for the current program.</p>
-            {canCreateTCTO && (
-              <button
-                onClick={openNewTCTOModal}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                <PlusIcon className="h-4 w-4" />
-                Create First TCTO
-              </button>
+            {hasActiveFilters ? (
+              <>
+                <p className="text-gray-500 mb-4">No TCTO records match the current filters.</p>
+                <button
+                  onClick={() => {
+                    setTctoSearch('')
+                    setTctoPriorityFilter('')
+                    setTctoStatusFilter('')
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  Clear All Filters
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500">No TCTO records found for the current program.</p>
+                {canCreateTCTO && (
+                  <button
+                    onClick={openNewTCTOModal}
+                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                    Create First TCTO
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -4188,6 +4239,135 @@ export default function MaintenancePage() {
           </div>
         </div>
 
+        {/* Search and Filter Row */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search Input */}
+            <div className="flex-1">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={tctoSearch}
+                  onChange={(e) => setTctoSearch(e.target.value)}
+                  placeholder="Search by TCTO number, title, or description..."
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-2">
+              {/* Priority Filter */}
+              <button
+                onClick={() => setTctoPriorityFilter(tctoPriorityFilter === 'Critical' ? '' : 'Critical')}
+                className={classNames(
+                  'flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors',
+                  tctoPriorityFilter === 'Critical'
+                    ? 'bg-red-100 text-red-800 border-red-300'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                )}
+              >
+                <ExclamationCircleIcon className="h-4 w-4" />
+                Critical
+                {tctoPriorityFilter === 'Critical' && tctoSummary.critical > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-red-200 text-red-900">
+                    {tctoRecords.filter(t => t.priority === 'Critical').length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setTctoPriorityFilter(tctoPriorityFilter === 'Urgent' ? '' : 'Urgent')}
+                className={classNames(
+                  'flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors',
+                  tctoPriorityFilter === 'Urgent'
+                    ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                )}
+              >
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                Urgent
+                {tctoPriorityFilter === 'Urgent' && tctoSummary.urgent > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-yellow-200 text-yellow-900">
+                    {tctoRecords.filter(t => t.priority === 'Urgent').length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setTctoPriorityFilter(tctoPriorityFilter === 'Routine' ? '' : 'Routine')}
+                className={classNames(
+                  'flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors',
+                  tctoPriorityFilter === 'Routine'
+                    ? 'bg-blue-100 text-blue-800 border-blue-300'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                )}
+              >
+                <ClockIcon className="h-4 w-4" />
+                Routine
+                {tctoPriorityFilter === 'Routine' && tctoSummary.routine > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-blue-200 text-blue-900">
+                    {tctoRecords.filter(t => t.priority === 'Routine').length}
+                  </span>
+                )}
+              </button>
+
+              {/* Status Filter */}
+              <button
+                onClick={() => setTctoStatusFilter(tctoStatusFilter === 'open' ? '' : 'open')}
+                className={classNames(
+                  'flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors',
+                  tctoStatusFilter === 'open'
+                    ? 'bg-orange-100 text-orange-800 border-orange-300'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                )}
+              >
+                Open Only
+                {tctoStatusFilter === 'open' && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-orange-200 text-orange-900">
+                    {tctoRecords.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setTctoStatusFilter(tctoStatusFilter === 'closed' ? '' : 'closed')}
+                className={classNames(
+                  'flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors',
+                  tctoStatusFilter === 'closed'
+                    ? 'bg-green-100 text-green-800 border-green-300'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                )}
+              >
+                Closed Only
+                {tctoStatusFilter === 'closed' && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full bg-green-200 text-green-900">
+                    {tctoRecords.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Clear All Filters Button */}
+              {(tctoSearch || tctoPriorityFilter || tctoStatusFilter) && (
+                <button
+                  onClick={() => {
+                    setTctoSearch('')
+                    setTctoPriorityFilter('')
+                    setTctoStatusFilter('')
+                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-300 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  Clear All
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Actions Row */}
         <div className="flex justify-end gap-2">
           <button
@@ -4250,6 +4430,8 @@ export default function MaintenancePage() {
                     <tr
                       key={tcto.tcto_id}
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/tcto/${tcto.tcto_id}`)}
+                      title={`View TCTO ${tcto.tcto_no} details`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-primary-600">{tcto.tcto_no}</div>
@@ -4331,7 +4513,7 @@ export default function MaintenancePage() {
                           <div className="flex items-center justify-end gap-2">
                             {canEditTCTO && (
                               <button
-                                onClick={(e) => openEditTCTOModal(tcto, e)}
+                                onClick={(e) => { e.stopPropagation(); openEditTCTOModal(tcto, e); }}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-800 hover:bg-primary-50 rounded-md transition-colors"
                                 title={`Edit ${tcto.tcto_no}`}
                               >
@@ -4341,7 +4523,7 @@ export default function MaintenancePage() {
                             )}
                             {canDeleteTCTO && (
                               <button
-                                onClick={(e) => openDeleteTCTOModal(tcto, e)}
+                                onClick={(e) => { e.stopPropagation(); openDeleteTCTOModal(tcto, e); }}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
                                 title={`Delete ${tcto.tcto_no}`}
                               >
@@ -4362,7 +4544,16 @@ export default function MaintenancePage() {
           {/* Count message */}
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <p className="text-sm text-gray-700">
-              {tctoSummary.total} TCTO record{tctoSummary.total !== 1 ? 's' : ''} for {program?.pgm_name || 'current program'}
+              {tctoRecords.length} TCTO record{tctoRecords.length !== 1 ? 's' : ''}
+              {(debouncedTctoSearch || tctoPriorityFilter || tctoStatusFilter) && (
+                <span className="text-gray-500">
+                  {' '}(filtered
+                  {debouncedTctoSearch && ` by "${debouncedTctoSearch}"`}
+                  {tctoPriorityFilter && ` by ${tctoPriorityFilter} priority`}
+                  {tctoStatusFilter && ` by ${tctoStatusFilter} status`}
+                  )
+                </span>
+              )}
             </p>
           </div>
         </div>

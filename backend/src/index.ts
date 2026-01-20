@@ -1914,10 +1914,29 @@ app.get('/api/tcto/:id', (req, res) => {
   // Get program info
   const program = allPrograms.find(p => p.pgm_id === tcto.pgm_id);
 
-  // Get detailed asset information for affected assets
+  // Get detailed asset information for affected assets including completion data
+  const completionDataForTcto = tctoAssetCompletionData.get(tctoId) || [];
   const affectedAssetsDetails = tcto.affected_assets.map(assetId => {
     const asset = mockAssets.find(a => a.asset_id === assetId);
     const isCompliant = tcto.compliant_assets.includes(assetId);
+    const completionInfo = completionDataForTcto.find(c => c.asset_id === assetId);
+
+    // Look up linked repair if present
+    let linkedRepair = null;
+    if (completionInfo?.linked_repair_id) {
+      for (const event of maintenanceEvents) {
+        const repair = event.repairs.find(r => r.repair_id === completionInfo.linked_repair_id);
+        if (repair) {
+          linkedRepair = {
+            repair_id: repair.repair_id,
+            event_id: event.event_id,
+            job_no: event.job_no,
+            narrative: repair.narrative,
+          };
+          break;
+        }
+      }
+    }
 
     return {
       asset_id: assetId,
@@ -1929,6 +1948,11 @@ app.get('/api/tcto/:id', (req, res) => {
       cust_loc: asset?.cust_loc || 'Unknown',
       is_compliant: isCompliant,
       compliance_status: isCompliant ? 'Compliant' : 'Non-Compliant',
+      completion_date: completionInfo?.completion_date || null,
+      linked_repair_id: completionInfo?.linked_repair_id || null,
+      linked_repair: linkedRepair,
+      completed_by: completionInfo?.completed_by_name || null,
+      completed_at: completionInfo?.completed_at || null,
     };
   });
 
@@ -1966,8 +1990,8 @@ app.post('/api/tcto/:id/compliance', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // Only ADMIN and DEPOT_MANAGER can update compliance
-  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+  // ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can update compliance
+  if (!['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)) {
     return res.status(403).json({ error: 'You do not have permission to update TCTO compliance' });
   }
 
@@ -1976,7 +2000,7 @@ app.post('/api/tcto/:id/compliance', (req, res) => {
     return res.status(400).json({ error: 'Invalid TCTO ID' });
   }
 
-  const { asset_id, is_compliant } = req.body;
+  const { asset_id, is_compliant, completion_date, linked_repair_id } = req.body;
 
   if (typeof asset_id !== 'number') {
     return res.status(400).json({ error: 'Asset ID is required' });
@@ -1984,6 +2008,16 @@ app.post('/api/tcto/:id/compliance', (req, res) => {
 
   if (typeof is_compliant !== 'boolean') {
     return res.status(400).json({ error: 'Compliance status (is_compliant) is required' });
+  }
+
+  // If marking compliant, completion_date is required
+  if (is_compliant && !completion_date) {
+    return res.status(400).json({ error: 'Completion date is required when marking an asset as compliant' });
+  }
+
+  // Validate linked_repair_id if provided
+  if (linked_repair_id !== undefined && linked_repair_id !== null && typeof linked_repair_id !== 'number') {
+    return res.status(400).json({ error: 'Invalid linked repair ID' });
   }
 
   // Find the TCTO record
@@ -2007,19 +2041,54 @@ app.post('/api/tcto/:id/compliance', (req, res) => {
 
   // Update compliance status
   const asset = mockAssets.find(a => a.asset_id === asset_id);
+  let completionData: TCTOAssetCompletionData | undefined;
+
   if (is_compliant) {
     // Add to compliant list if not already there
     if (!tcto.compliant_assets.includes(asset_id)) {
       tcto.compliant_assets.push(asset_id);
-      console.log(`[TCTO] Asset ${asset?.serno || asset_id} marked COMPLIANT for ${tcto.tcto_no} by ${user.username}`);
     }
+
+    // Store completion data
+    completionData = {
+      asset_id,
+      completion_date: completion_date,
+      linked_repair_id: linked_repair_id || undefined,
+      completed_by_id: user.user_id,
+      completed_by_name: user.full_name,
+      completed_at: new Date().toISOString(),
+    };
+
+    // Initialize or update completion data array for this TCTO
+    if (!tctoAssetCompletionData.has(tctoId)) {
+      tctoAssetCompletionData.set(tctoId, []);
+    }
+    const completionArray = tctoAssetCompletionData.get(tctoId)!;
+    const existingIndex = completionArray.findIndex(c => c.asset_id === asset_id);
+    if (existingIndex !== -1) {
+      completionArray[existingIndex] = completionData;
+    } else {
+      completionArray.push(completionData);
+    }
+
+    console.log(`[TCTO] Asset ${asset?.serno || asset_id} marked COMPLIANT for ${tcto.tcto_no} by ${user.username} (completion date: ${completion_date}${linked_repair_id ? `, linked repair: ${linked_repair_id}` : ''})`);
   } else {
     // Remove from compliant list if present
     const compliantIndex = tcto.compliant_assets.indexOf(asset_id);
     if (compliantIndex !== -1) {
       tcto.compliant_assets.splice(compliantIndex, 1);
-      console.log(`[TCTO] Asset ${asset?.serno || asset_id} marked NON-COMPLIANT for ${tcto.tcto_no} by ${user.username}`);
     }
+
+    // Remove completion data
+    if (tctoAssetCompletionData.has(tctoId)) {
+      const completionArray = tctoAssetCompletionData.get(tctoId)!;
+      const existingIndex = completionArray.findIndex(c => c.asset_id === asset_id);
+      if (existingIndex !== -1) {
+        completionArray.splice(existingIndex, 1);
+      }
+    }
+
+    console.log(`[TCTO] Asset ${asset?.serno || asset_id} marked NON-COMPLIANT for ${tcto.tcto_no} by ${user.username}`);
   }
 
   // Calculate updated compliance info
@@ -2027,13 +2096,36 @@ app.post('/api/tcto/:id/compliance', (req, res) => {
     ? Math.round((tcto.compliant_assets.length / tcto.affected_assets.length) * 100)
     : 100;
 
+  // Look up linked repair if provided
+  let linkedRepair = null;
+  if (linked_repair_id) {
+    // Search through all events to find the repair
+    for (const event of maintenanceEvents) {
+      const repair = event.repairs.find(r => r.repair_id === linked_repair_id);
+      if (repair) {
+        linkedRepair = {
+          repair_id: repair.repair_id,
+          event_id: event.event_id,
+          job_no: event.job_no,
+          narrative: repair.narrative,
+        };
+        break;
+      }
+    }
+  }
+
   res.json({
-    message: `Asset ${asset?.serno || asset_id} compliance updated successfully`,
+    message: `Asset ${asset?.serno || asset_id} ${is_compliant ? 'marked compliant' : 'marked non-compliant'} for ${tcto.tcto_no}`,
     asset: {
       asset_id: asset_id,
       serno: asset?.serno || 'Unknown',
       name: asset?.name || 'Unknown',
       is_compliant: is_compliant,
+      completion_date: is_compliant ? completion_date : null,
+      linked_repair_id: is_compliant ? linked_repair_id : null,
+      linked_repair: linkedRepair,
+      completed_by: is_compliant ? user.full_name : null,
+      completed_at: is_compliant ? completionData?.completed_at : null,
     },
     tcto_summary: {
       total_affected: tcto.affected_assets.length,
@@ -2041,6 +2133,89 @@ app.post('/api/tcto/:id/compliance', (req, res) => {
       non_compliant: tcto.affected_assets.length - tcto.compliant_assets.length,
       compliance_percentage: compliancePercentage,
     },
+  });
+});
+
+// GET /api/tcto/:id/assets/:assetId/repairs - Get repairs for an asset to link to TCTO completion
+app.get('/api/tcto/:id/assets/:assetId/repairs', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const tctoId = parseInt(req.params.id, 10);
+  const assetId = parseInt(req.params.assetId, 10);
+
+  if (isNaN(tctoId)) {
+    return res.status(400).json({ error: 'Invalid TCTO ID' });
+  }
+  if (isNaN(assetId)) {
+    return res.status(400).json({ error: 'Invalid asset ID' });
+  }
+
+  // Find the TCTO record
+  const tcto = tctoRecords.find(t => t.tcto_id === tctoId);
+  if (!tcto) {
+    return res.status(404).json({ error: 'TCTO not found' });
+  }
+
+  // Verify user has access to the TCTO's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(tcto.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this TCTO' });
+  }
+
+  // Find the asset
+  const asset = mockAssets.find(a => a.asset_id === assetId);
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Find maintenance events for this asset
+  const assetEvents = maintenanceEvents.filter(e => e.asset_id === assetId);
+
+  // Get all repairs for these events
+  const assetRepairs: Array<{
+    repair_id: number;
+    event_id: number;
+    job_no: string;
+    repair_seq: number;
+    type_maint: string | null;
+    narrative: string | null;
+    start_date: string;
+    stop_date: string | null;
+    shop_status: string;
+  }> = [];
+
+  assetEvents.forEach(event => {
+    event.repairs.forEach(repair => {
+      assetRepairs.push({
+        repair_id: repair.repair_id,
+        event_id: event.event_id,
+        job_no: event.job_no,
+        repair_seq: repair.repair_seq,
+        type_maint: repair.type_maint,
+        narrative: repair.narrative,
+        start_date: repair.start_date,
+        stop_date: repair.stop_date,
+        shop_status: repair.shop_status,
+      });
+    });
+  });
+
+  // Sort by most recent first
+  assetRepairs.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+
+  console.log(`[TCTO] Repairs for asset ${asset.serno} (ID: ${assetId}) requested by ${user.username} - ${assetRepairs.length} repairs found`);
+
+  res.json({
+    asset_id: assetId,
+    serno: asset.serno,
+    repairs: assetRepairs,
+    total: assetRepairs.length,
   });
 });
 
@@ -2221,6 +2396,19 @@ interface TCTORecord {
   created_by_name: string;
   created_at: string;
 }
+
+// Asset completion data for TCTO compliance
+interface TCTOAssetCompletionData {
+  asset_id: number;
+  completion_date: string;
+  linked_repair_id?: number;
+  completed_by_id: number;
+  completed_by_name: string;
+  completed_at: string;
+}
+
+// Storage for asset completion data (keyed by tcto_id)
+const tctoAssetCompletionData: Map<number, TCTOAssetCompletionData[]> = new Map();
 
 // Persistent storage for TCTO records
 let tctoRecords: TCTORecord[] = [];
@@ -3730,6 +3918,37 @@ app.get('/api/events/:eventId/repairs', (req, res) => {
   // Get repairs for this event
   const eventRepairs = repairs.filter(r => r.event_id === eventId);
 
+  // Build reverse lookup for TCTO links to repairs
+  // For each repair, find if any TCTO completion is linked to it
+  const repairsWithTCTO = eventRepairs.map(repair => {
+    let linkedTCTO = null;
+
+    // Search through all TCTO completion data for any that link to this repair
+    for (const [tctoId, completionDataArray] of tctoAssetCompletionData.entries()) {
+      const linkedCompletion = completionDataArray.find(c => c.linked_repair_id === repair.repair_id);
+      if (linkedCompletion) {
+        // Found a TCTO linked to this repair
+        const tcto = tctoRecords.find(t => t.tcto_id === tctoId);
+        if (tcto) {
+          linkedTCTO = {
+            tcto_id: tcto.tcto_id,
+            tcto_no: tcto.tcto_no,
+            title: tcto.title,
+            status: tcto.status,
+            priority: tcto.priority,
+            completion_date: linkedCompletion.completion_date,
+          };
+          break; // Only one TCTO can be linked per repair
+        }
+      }
+    }
+
+    return {
+      ...repair,
+      linked_tcto: linkedTCTO,
+    };
+  });
+
   // Calculate summary
   const summary = {
     total: eventRepairs.length,
@@ -3740,7 +3959,7 @@ app.get('/api/events/:eventId/repairs', (req, res) => {
   console.log(`[REPAIRS] Fetched ${eventRepairs.length} repairs for event ${event.job_no} by ${user.username}`);
 
   res.json({
-    repairs: eventRepairs,
+    repairs: repairsWithTCTO,
     summary,
   });
 });

@@ -22,6 +22,7 @@ import {
   MagnifyingGlassIcon,
   InformationCircleIcon,
   ArrowPathIcon,
+  ClipboardDocumentCheckIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -60,6 +61,15 @@ interface Repair {
   eti_delta: number | null // Calculated difference (eti_out - eti_in)
   created_by_name: string
   created_at: string
+  // Linked TCTO (from TCTO completion linking)
+  linked_tcto: {
+    tcto_id: number
+    tcto_no: string
+    title: string
+    status: 'open' | 'closed'
+    priority: 'Routine' | 'Urgent' | 'Critical'
+    completion_date: string
+  } | null
 }
 
 interface RepairsSummary {
@@ -2845,6 +2855,64 @@ export default function MaintenanceDetailPage() {
                                 ETI Delta: {repair.eti_delta} hrs
                               </span>
                             )}
+                          </div>
+                        )}
+
+                        {/* Linked TCTO Reference */}
+                        {repair.linked_tcto && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <div className="flex items-start gap-2 bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                              <ClipboardDocumentCheckIcon className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-indigo-800">TCTO Completion</p>
+                                <p className="text-xs text-indigo-700 mt-1">
+                                  This repair was performed to complete a Time Compliance Technical Order (TCTO).
+                                </p>
+                                <div className="mt-2 p-2 bg-white border border-indigo-200 rounded">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-sm font-semibold text-indigo-900">
+                                        {repair.linked_tcto.tcto_no}
+                                      </p>
+                                      <p className="text-xs text-indigo-700 mt-0.5">
+                                        {repair.linked_tcto.title}
+                                      </p>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span
+                                          className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                            repair.linked_tcto.priority === 'Critical'
+                                              ? 'bg-red-100 text-red-800'
+                                              : repair.linked_tcto.priority === 'Urgent'
+                                              ? 'bg-orange-100 text-orange-800'
+                                              : 'bg-blue-100 text-blue-800'
+                                          }`}
+                                        >
+                                          {repair.linked_tcto.priority}
+                                        </span>
+                                        <span
+                                          className={`px-2 py-0.5 text-xs font-medium rounded-full uppercase ${
+                                            repair.linked_tcto.status === 'closed'
+                                              ? 'bg-green-100 text-green-800'
+                                              : 'bg-yellow-100 text-yellow-800'
+                                          }`}
+                                        >
+                                          {repair.linked_tcto.status}
+                                        </span>
+                                        <span className="text-xs text-indigo-600">
+                                          Completed: {new Date(repair.linked_tcto.completion_date).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => navigate(`/tcto/${repair.linked_tcto?.tcto_id}`)}
+                                      className="ml-3 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                                    >
+                                      View TCTO
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
 
