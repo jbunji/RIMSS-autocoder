@@ -667,6 +667,295 @@ export default function SortiesPage() {
   // Check if any filters are active
   const hasActiveFilters = searchQuery || startDate || endDate || tailNumberFilter || effectivenessFilter
 
+  // Get ZULU timestamp for reports
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  // Export sorties to PDF with CUI markings
+  const exportToPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+    }
+
+    // Add header
+    addCuiHeader()
+
+    // Title
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text('RIMSS Sorties Report', pageWidth / 2, 20, { align: 'center' })
+
+    // Metadata
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
+    doc.text(`Total Sorties: ${sorties.length}`, 14, 33)
+
+    // Filters info
+    let yPos = 38
+    if (hasActiveFilters) {
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'italic')
+      const filters: string[] = []
+      if (searchQuery) filters.push(`Search: "${searchQuery}"`)
+      if (startDate) filters.push(`From: ${startDate}`)
+      if (endDate) filters.push(`To: ${endDate}`)
+      if (tailNumberFilter) filters.push(`Tail: "${tailNumberFilter}"`)
+      if (effectivenessFilter) filters.push(`Effect: ${effectivenessFilter}`)
+      doc.text(`Filters: ${filters.join(', ')}`, 14, yPos)
+      yPos += 5
+    }
+
+    // Prepare table data
+    const tableHeaders = [
+      'Mission ID',
+      'Serial Number',
+      'Tail Number',
+      'Sortie Date (ZULU)',
+      'Sortie Effect',
+      'Range',
+      'Current Unit'
+    ]
+
+    const tableData = sorties.map(sortie => {
+      // Format date in ZULU
+      const dateZulu = sortie.sortie_date
+        ? new Date(sortie.sortie_date).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z').split(' ')[0] + 'Z'
+        : ''
+
+      return [
+        sortie.mission_id,
+        sortie.serno,
+        sortie.ac_tailno || '-',
+        dateZulu,
+        sortie.sortie_effect || '-',
+        sortie.range || '-',
+        sortie.current_unit || '-'
+      ]
+    })
+
+    // Generate table
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: yPos + 5,
+      margin: { left: 14, right: 14, top: 15, bottom: 15 },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246], // primary-600
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251], // gray-50
+      },
+      didDrawPage: (data: any) => {
+        const pageCount = (doc as any).internal.pages.length - 1
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+
+        // Add CUI footer to each page
+        addCuiFooter(currentPage, pageCount)
+      },
+    })
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Sorties-${zuluDate}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  // Export sorties to Excel with CUI markings
+  const exportToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = ['RIMSS Sorties Report']
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total Sorties: ${sorties.length}`]
+
+    // Filter info
+    const filters: string[] = []
+    if (searchQuery) filters.push(`Search: "${searchQuery}"`)
+    if (startDate) filters.push(`From: ${startDate}`)
+    if (endDate) filters.push(`To: ${endDate}`)
+    if (tailNumberFilter) filters.push(`Tail: "${tailNumberFilter}"`)
+    if (effectivenessFilter) filters.push(`Effect: ${effectivenessFilter}`)
+    const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
+
+    // Table header row
+    const headerRow = [
+      'Mission ID',
+      'Serial Number',
+      'Tail Number',
+      'Sortie Date (ZULU)',
+      'Sortie Effect',
+      'Range',
+      'Current Unit',
+      'Assigned Unit',
+      'Reason',
+      'Remarks'
+    ]
+
+    // Data rows
+    const dataRows = sorties.map(sortie => {
+      // Format date in ZULU
+      const dateZulu = sortie.sortie_date
+        ? new Date(sortie.sortie_date).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+        : ''
+
+      return [
+        sortie.mission_id,
+        sortie.serno,
+        sortie.ac_tailno || '',
+        dateZulu,
+        sortie.sortie_effect || '',
+        sortie.range || '',
+        sortie.current_unit || '',
+        sortie.assigned_unit || '',
+        sortie.reason || '',
+        sortie.remarks || ''
+      ]
+    })
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 20 },  // Mission ID
+      { wch: 18 },  // Serial Number
+      { wch: 15 },  // Tail Number
+      { wch: 25 },  // Sortie Date (ZULU)
+      { wch: 25 },  // Sortie Effect
+      { wch: 15 },  // Range
+      { wch: 20 },  // Current Unit
+      { wch: 20 },  // Assigned Unit
+      { wch: 30 },  // Reason
+      { wch: 40 },  // Remarks
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total sorties
+      ...(filterRow.length ? [{ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } }] : []), // Filters (if present)
+      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
+    ]
+
+    // Style CUI header and footer rows (yellow background)
+    const cuiHeaderCell = ws['A1']
+    if (cuiHeaderCell) {
+      cuiHeaderCell.s = {
+        fill: { fgColor: { rgb: 'FEF3C7' } },
+        font: { bold: true, sz: 12 },
+        alignment: { horizontal: 'center', vertical: 'center' }
+      }
+    }
+
+    const cuiFooterCell = ws[`A${allRows.length}`]
+    if (cuiFooterCell) {
+      cuiFooterCell.s = {
+        fill: { fgColor: { rgb: 'FEF3C7' } },
+        font: { bold: true, sz: 10 },
+        alignment: { horizontal: 'center', vertical: 'center' }
+      }
+    }
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Sorties')
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Sorties-${zuluDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(wb, filename)
+  }
+
   // Loading state
   if (loading) {
     return (
