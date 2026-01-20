@@ -28400,3 +28400,47 @@ END OF SESSION #160
 - Zero critical console errors
 - Screenshots captured: feature_44_bad_actor_report.png, feature_44_bad_actor_badge_scrolled.png
 
+================================================================================
+[2026-01-20 PARALLEL SESSION] Feature #245 COMPLETED ✅
+================================================================================
+
+Feature #245: Errors clear when user fixes the issue - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #245
+
+PROBLEM IDENTIFIED:
+- Validation errors were NOT clearing when users corrected invalid values
+- Error messages remained visible even after fixing the issue
+- Poor user experience - confusing and frustrating
+
+ROOT CAUSE:
+- No onChange handlers to clear errors when user modifies input
+- Errors only cleared after successful form submission
+
+IMPLEMENTATION:
+
+Files Modified:
+- frontend/src/pages/MaintenanceDetailPage.tsx (6 onChange handlers updated)
+
+Changes:
+- Added setAddLaborError(null) to Crew Size, Hours, Corrective fields (Add form)
+- Added setEditLaborError(null) to Crew Size, Hours, Corrective fields (Edit form)
+
+TEST EXECUTION - All 7 Steps PASSED:
+✅ Step 1: Logged in as depot manager (Jane Depot)
+✅ Step 2: Entered invalid value (crew size = 0)
+✅ Step 3: Error displayed: "Crew size must be at least 1"
+✅ Step 4: Corrected value to 5
+✅ Step 5: ERROR CLEARED IMMEDIATELY ✓✓✓
+✅ Step 6: Tabbed to next field
+✅ Step 7: No lingering errors
+
+BEFORE (Bug): Error stayed visible after correction
+AFTER (Fixed): Error clears immediately when user fixes the value
+
+Result: Feature #245 marked as PASSING ✅
+Progress: 244/374 features passing (65.2%)
+
+Git Commit: ca89b64
+Console: Zero errors ✅
+Quality: Production-ready ✅
