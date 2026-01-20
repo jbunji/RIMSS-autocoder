@@ -13517,6 +13517,80 @@ app.get('/api/reports/inventory', (req, res) => {
   });
 });
 
+// =============================================================================
+// PMI Schedule Report Endpoint
+// =============================================================================
+
+// GET /api/reports/pmi-schedule - Get PMI schedule report
+app.get('/api/reports/pmi-schedule', (req, res) => {
+  try {
+    const userPrograms = (req.user as User)?.programs || [];
+    const userRole = (req.user as User)?.role;
+    const isAdmin = userRole === 'ADMIN';
+
+    // Get all PMI records with program filtering
+    let allPMIs = [...generatedPMIRecords, ...customPMIRecords];
+
+    // Filter by program unless admin
+    if (!isAdmin && userPrograms.length > 0) {
+      allPMIs = allPMIs.filter((pmi) => {
+        return userPrograms.includes(pmi.pgm_id);
+      });
+    }
+
+    // Calculate current status for each PMI
+    const pmiData = allPMIs.map((pmi) => {
+      const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
+      return {
+        ...pmi,
+        days_until_due: daysUntilDue,
+        status: pmi.completed_date ? 'completed' as const : getPMIStatus(daysUntilDue),
+      };
+    });
+
+    // Sort by due date (earliest first), then by status priority
+    const statusPriority = { overdue: 0, due_soon: 1, upcoming: 2, completed: 3 };
+    pmiData.sort((a, b) => {
+      // First sort by status priority
+      const statusDiff = statusPriority[a.status] - statusPriority[b.status];
+      if (statusDiff !== 0) return statusDiff;
+
+      // Then by days until due
+      return a.days_until_due - b.days_until_due;
+    });
+
+    // Group by status
+    const byStatus = {
+      overdue: pmiData.filter((p) => p.status === 'overdue'),
+      due_soon: pmiData.filter((p) => p.status === 'due_soon'),
+      upcoming: pmiData.filter((p) => p.status === 'upcoming'),
+      completed: pmiData.filter((p) => p.status === 'completed'),
+    };
+
+    // Get program info for display
+    const programIds = [...new Set(pmiData.map((p) => p.pgm_id))];
+    const programs = programIds.map((id) => mockPrograms.find((p) => p.pgm_id === id)).filter(Boolean);
+
+    res.json({
+      program: programs.length === 1 ? programs[0] : null,
+      programs: programs,
+      total: pmiData.length,
+      by_status: {
+        overdue: byStatus.overdue.length,
+        due_soon: byStatus.due_soon.length,
+        upcoming: byStatus.upcoming.length,
+        completed: byStatus.completed.length,
+      },
+      pmis: pmiData,
+      grouped_by_status: byStatus,
+      generated_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error generating PMI schedule report:', error);
+    res.status(500).json({ error: 'Failed to generate PMI schedule report' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
