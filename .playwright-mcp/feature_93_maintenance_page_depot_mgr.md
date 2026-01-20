@@ -1,0 +1,243 @@
+### Page state
+- Page URL: http://localhost:5173/maintenance
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e1425]:
+  - generic [ref=e1426]: CUI - Controlled Unclassified Information
+  - navigation [ref=e1428]:
+    - generic [ref=e1430]:
+      - generic [ref=e1431]:
+        - button "Toggle sidebar" [ref=e1432] [cursor=pointer]:
+          - img [ref=e1433]
+        - generic [ref=e1435]:
+          - generic [ref=e1436]: RIMSS
+          - generic [ref=e1437]: Remote Independent Maintenance Status System
+      - generic [ref=e1438]:
+        - link "View notifications" [ref=e1439] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e1440]
+          - generic [ref=e1442]: "3"
+        - 'button "Program: CRIIS" [ref=e1444] [cursor=pointer]':
+          - generic [ref=e1445]: "Program:"
+          - generic [ref=e1446]: CRIIS
+          - img [ref=e1447]
+        - button "Jane Depot" [ref=e1450] [cursor=pointer]:
+          - img [ref=e1451]
+          - generic [ref=e1453]: Jane Depot
+          - img [ref=e1454]
+  - generic [ref=e1458]:
+    - navigation [ref=e1459]:
+      - generic [ref=e1460]:
+        - link "Dashboard" [ref=e1461] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e1462]
+          - text: Dashboard
+        - link "Assets" [ref=e1464] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e1465]
+          - text: Assets
+        - link "Configurations" [ref=e1467] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e1468]
+          - text: Configurations
+        - link "Maintenance" [ref=e1471] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e1472]
+          - text: Maintenance
+        - link "Sorties" [ref=e1474] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e1475]
+          - text: Sorties
+        - link "Spares" [ref=e1477] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e1478]
+          - text: Spares
+        - link "Parts Ordered" [ref=e1480] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e1481]
+          - text: Parts Ordered
+        - link "Software" [ref=e1483] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e1484]
+          - text: Software
+        - link "Notifications" [ref=e1486] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e1487]
+          - text: Notifications
+        - link "Reports" [ref=e1489] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e1490]
+          - text: Reports
+    - paragraph [ref=e1493]: RIMSS v0.1.0
+  - main [ref=e1495]:
+    - generic [ref=e1836]:
+      - generic [ref=e1838]:
+        - generic [ref=e1839]:
+          - img [ref=e1840]
+          - generic [ref=e1842]:
+            - heading "Maintenance" [level=1] [ref=e1843]
+            - paragraph [ref=e1844]: Viewing maintenance events for CRIIS - Common Remotely Operated Integrated Reconnaissance System
+        - generic [ref=e1845]:
+          - button "Export PDF" [ref=e1846] [cursor=pointer]:
+            - img [ref=e1847]
+            - text: Export PDF
+          - button "Export Excel" [ref=e1849] [cursor=pointer]:
+            - img [ref=e1850]
+            - text: Export Excel
+          - button "New Event" [ref=e1852] [cursor=pointer]:
+            - img [ref=e1853]
+            - text: New Event
+      - generic [ref=e1855]:
+        - generic [ref=e1857]:
+          - img [ref=e1858]
+          - generic [ref=e1860]:
+            - paragraph [ref=e1861]: Critical
+            - paragraph [ref=e1862]: "1"
+        - generic [ref=e1864]:
+          - img [ref=e1865]
+          - generic [ref=e1867]:
+            - paragraph [ref=e1868]: Urgent
+            - paragraph [ref=e1869]: "2"
+        - generic [ref=e1871]:
+          - img [ref=e1872]
+          - generic [ref=e1874]:
+            - paragraph [ref=e1875]: Routine
+            - paragraph [ref=e1876]: "1"
+        - generic [ref=e1878]:
+          - img [ref=e1879]
+          - generic [ref=e1881]:
+            - paragraph [ref=e1882]: Open Jobs
+            - paragraph [ref=e1883]: "4"
+        - generic [ref=e1885]:
+          - img [ref=e1886]
+          - generic [ref=e1888]:
+            - paragraph [ref=e1889]: Closed Jobs
+            - paragraph [ref=e1890]: "0"
+      - generic [ref=e1891]:
+        - generic [ref=e1892]:
+          - generic [ref=e1893]:
+            - img [ref=e1894]
+            - textbox "Search by job number, asset, discrepancy, or location..." [ref=e1896]
+          - generic [ref=e1897]:
+            - img [ref=e1898]
+            - combobox [ref=e1900]:
+              - option "All Event Types" [selected]
+              - option "Standard"
+              - option "PMI (Periodic Maintenance)"
+              - option "TCTO (Time Compliance)"
+              - option "BIT/PC (Built-In Test)"
+            - generic:
+              - img
+        - generic [ref=e1901]:
+          - generic [ref=e1902]:
+            - img [ref=e1903]
+            - generic [ref=e1905]: "Date Range:"
+            - textbox [ref=e1906]:
+              - /placeholder: From
+            - generic [ref=e1907]: —
+            - textbox [ref=e1908]:
+              - /placeholder: To
+          - generic [ref=e1909] [cursor=pointer]:
+            - checkbox "PQDR Only 1" [ref=e1910]
+            - img [ref=e1911]
+            - generic [ref=e1913]: PQDR Only 1
+      - generic [ref=e1914]:
+        - tablist [ref=e1915]:
+          - tab "Backlog (4)" [selected] [ref=e1916] [cursor=pointer]
+          - tab "History (0)" [ref=e1917] [cursor=pointer]
+          - tab "PMI Schedule (0)" [ref=e1918] [cursor=pointer]
+          - tab "TCTO (0)" [ref=e1919] [cursor=pointer]
+        - tabpanel "Backlog (4)" [ref=e1921]:
+          - generic [ref=e1923]:
+            - generic [ref=e1924]: "View:"
+            - generic [ref=e1925]:
+              - button "List" [ref=e1926] [cursor=pointer]:
+                - img [ref=e1927]
+                - text: List
+              - button "Grouped" [ref=e1929] [cursor=pointer]:
+                - img [ref=e1930]
+                - text: Grouped
+          - generic [ref=e1932]:
+            - table [ref=e1934]:
+              - rowgroup [ref=e1935]:
+                - 'row "Job # Asset Discrepancy Type Priority Location Started Days Open Status" [ref=e1936]':
+                  - 'columnheader "Job #" [ref=e1937]'
+                  - columnheader "Asset" [ref=e1938]
+                  - columnheader "Discrepancy" [ref=e1939]
+                  - columnheader "Type" [ref=e1940]
+                  - columnheader "Priority" [ref=e1941]
+                  - columnheader "Location" [ref=e1942]
+                  - columnheader "Started" [ref=e1943]
+                  - columnheader "Days Open" [ref=e1944]
+                  - columnheader "Status" [ref=e1945]
+              - rowgroup [ref=e1946]:
+                - row "MX-2024-001 PQDR Camera System X CRIIS-005 Intermittent power failure during operation Standard Critical Depot Alpha Jan 14, 2026 6 days OPEN" [ref=e1947] [cursor=pointer]:
+                  - cell "MX-2024-001 PQDR" [ref=e1948]:
+                    - generic [ref=e1949]:
+                      - generic [ref=e1950]: MX-2024-001
+                      - generic "Product Quality Deficiency Report" [ref=e1951]: PQDR
+                  - cell "Camera System X CRIIS-005" [ref=e1952]:
+                    - generic [ref=e1953]:
+                      - generic [ref=e1954]: Camera System X
+                      - generic [ref=e1955]: CRIIS-005
+                  - cell "Intermittent power failure during operation" [ref=e1956]:
+                    - generic "Intermittent power failure during operation" [ref=e1957]
+                  - cell "Standard" [ref=e1958]
+                  - cell "Critical" [ref=e1959]
+                  - cell "Depot Alpha" [ref=e1960]
+                  - cell "Jan 14, 2026" [ref=e1961]
+                  - cell "6 days" [ref=e1962]:
+                    - generic [ref=e1963]: 6 days
+                  - cell "OPEN" [ref=e1964]
+                - row "MX-2024-004 Communication System CRIIS-008 Software update required per TCTO 2024-15 TCTO Urgent Field Site Charlie Jan 18, 2026 2 days OPEN" [ref=e1965] [cursor=pointer]:
+                  - cell "MX-2024-004" [ref=e1966]:
+                    - generic [ref=e1968]: MX-2024-004
+                  - cell "Communication System CRIIS-008" [ref=e1969]:
+                    - generic [ref=e1970]:
+                      - generic [ref=e1971]: Communication System
+                      - generic [ref=e1972]: CRIIS-008
+                  - cell "Software update required per TCTO 2024-15" [ref=e1973]:
+                    - generic "Software update required per TCTO 2024-15" [ref=e1974]
+                  - cell "TCTO" [ref=e1975]
+                  - cell "Urgent" [ref=e1976]
+                  - cell "Field Site Charlie" [ref=e1977]
+                  - cell "Jan 18, 2026" [ref=e1978]
+                  - cell "2 days" [ref=e1979]:
+                    - generic [ref=e1980]: 2 days
+                  - cell "OPEN" [ref=e1981]
+                - row "MX-2024-002 Radar Unit 01 CRIIS-006 Awaiting replacement parts - power supply module Standard Urgent Field Site Bravo Jan 9, 2026 11 days OPEN" [ref=e1982] [cursor=pointer]:
+                  - cell "MX-2024-002" [ref=e1983]:
+                    - generic [ref=e1985]: MX-2024-002
+                  - cell "Radar Unit 01 CRIIS-006" [ref=e1986]:
+                    - generic [ref=e1987]:
+                      - generic [ref=e1988]: Radar Unit 01
+                      - generic [ref=e1989]: CRIIS-006
+                  - cell "Awaiting replacement parts - power supply module" [ref=e1990]:
+                    - generic "Awaiting replacement parts - power supply module" [ref=e1991]
+                  - cell "Standard" [ref=e1992]
+                  - cell "Urgent" [ref=e1993]
+                  - cell "Field Site Bravo" [ref=e1994]
+                  - cell "Jan 9, 2026" [ref=e1995]
+                  - cell "11 days" [ref=e1996]:
+                    - generic [ref=e1997]: 11 days
+                  - cell "OPEN" [ref=e1998]
+                - row "MX-2024-003 Sensor Unit B CRIIS-003 Scheduled PMI - 90-day calibration PMI Routine Depot Alpha Jan 17, 2026 3 days OPEN" [ref=e1999] [cursor=pointer]:
+                  - cell "MX-2024-003" [ref=e2000]:
+                    - generic [ref=e2002]: MX-2024-003
+                  - cell "Sensor Unit B CRIIS-003" [ref=e2003]:
+                    - generic [ref=e2004]:
+                      - generic [ref=e2005]: Sensor Unit B
+                      - generic [ref=e2006]: CRIIS-003
+                  - cell "Scheduled PMI - 90-day calibration" [ref=e2007]:
+                    - generic "Scheduled PMI - 90-day calibration" [ref=e2008]
+                  - cell "PMI" [ref=e2009]
+                  - cell "Routine" [ref=e2010]
+                  - cell "Depot Alpha" [ref=e2011]
+                  - cell "Jan 17, 2026" [ref=e2012]
+                  - cell "3 days" [ref=e2013]:
+                    - generic [ref=e2014]: 3 days
+                  - cell "OPEN" [ref=e2015]
+            - paragraph [ref=e2017]: 4 total events
+  - contentinfo [ref=e1835]: CUI - Controlled Unclassified Information
+```
