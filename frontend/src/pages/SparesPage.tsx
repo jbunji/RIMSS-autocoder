@@ -350,16 +350,57 @@ export default function SparesPage() {
   }
 
   // Export spares to PDF with CUI markings
-  const exportToPDF = () => {
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-    })
+  const exportToPDF = async () => {
+    try {
+      // Fetch ALL spares with current filters (no pagination)
+      const queryParams = new URLSearchParams({
+        program_id: currentProgramId!.toString(),
+        page: '1',
+        limit: '10000', // Large limit to get all records
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      })
 
-    const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
-    const zuluTimestamp = getZuluTimestamp()
+      if (searchQuery) {
+        queryParams.append('search', searchQuery)
+      }
+
+      if (statusFilter) {
+        queryParams.append('status', statusFilter)
+      }
+
+      if (locationFilter) {
+        queryParams.append('location', locationFilter)
+      }
+
+      if (showDeleted) {
+        queryParams.append('show_deleted', 'true')
+      }
+
+      const response = await fetch(`http://localhost:3001/api/spares?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch spares for export')
+      }
+
+      const data: SparesResponse = await response.json()
+      const allSpares = data.spares
+
+      // Now generate PDF with all filtered spares
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const zuluTimestamp = getZuluTimestamp()
 
     // CUI Banner text
     const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
@@ -409,7 +450,7 @@ export default function SparesPage() {
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
     doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
-    doc.text(`Total Spares: ${spares.length}`, 14, 33)
+    doc.text(`Total Spares: ${allSpares.length}`, 14, 33)
     if (program) {
       doc.text(`Program: ${program.pgm_cd} - ${program.pgm_name}`, 14, 38)
     }
@@ -440,7 +481,7 @@ export default function SparesPage() {
       'Remarks'
     ]
 
-    const tableData = spares.map(spare => [
+    const tableData = allSpares.map(spare => [
       spare.serno,
       spare.partno,
       spare.part_name,
@@ -477,27 +518,72 @@ export default function SparesPage() {
       },
     })
 
-    // Get filename with ZULU date
-    const zuluDate = getZuluDateForFilename()
-    const filename = `CUI-Spares-${zuluDate}.pdf`
+      // Get filename with ZULU date
+      const zuluDate = getZuluDateForFilename()
+      const filename = `CUI-Spares-${zuluDate}.pdf`
 
-    // Save the PDF
-    doc.save(filename)
+      // Save the PDF
+      doc.save(filename)
+    } catch (err) {
+      console.error('Error exporting to PDF:', err)
+      alert('Failed to export PDF. Please try again.')
+    }
   }
 
   // Export spares to Excel with CUI markings
-  const exportToExcel = () => {
-    const zuluTimestamp = getZuluTimestamp()
+  const exportToExcel = async () => {
+    try {
+      // Fetch ALL spares with current filters (no pagination)
+      const queryParams = new URLSearchParams({
+        program_id: currentProgramId!.toString(),
+        page: '1',
+        limit: '10000', // Large limit to get all records
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      })
+
+      if (searchQuery) {
+        queryParams.append('search', searchQuery)
+      }
+
+      if (statusFilter) {
+        queryParams.append('status', statusFilter)
+      }
+
+      if (locationFilter) {
+        queryParams.append('location', locationFilter)
+      }
+
+      if (showDeleted) {
+        queryParams.append('show_deleted', 'true')
+      }
+
+      const response = await fetch(`http://localhost:3001/api/spares?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch spares for export')
+      }
+
+      const data: SparesResponse = await response.json()
+      const allSpares = data.spares
+
+      // Now generate Excel with all filtered spares
+      const zuluTimestamp = getZuluTimestamp()
 
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new()
 
-    // Prepare data rows with CUI header
-    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
-    const blankRow: string[] = []
-    const reportInfoRow1 = ['RIMSS Spares Inventory Report']
-    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
-    const reportInfoRow3 = [`Total Spares: ${spares.length}`]
+      // Prepare data rows with CUI header
+      const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+      const blankRow: string[] = []
+      const reportInfoRow1 = ['RIMSS Spares Inventory Report']
+      const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+      const reportInfoRow3 = [`Total Spares: ${allSpares.length}`]
     const reportInfoRow4 = program ? [`Program: ${program.pgm_cd} - ${program.pgm_name}`] : []
 
     // Filter info

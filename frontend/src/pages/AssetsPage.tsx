@@ -455,103 +455,129 @@ export default function AssetsPage() {
   }
 
   // Export assets to PDF with CUI markings
-  const exportToPdf = () => {
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-    })
+  const exportToPdf = async () => {
+    try {
+      // Fetch ALL assets for export (not just current page)
+      const params = new URLSearchParams()
+      if (currentProgramId) params.append('program_id', currentProgramId.toString())
+      params.append('page', '1')
+      params.append('limit', '999999') // Fetch all records
+      if (statusFilter) params.append('status', statusFilter)
+      if (debouncedSearch) params.append('search', debouncedSearch)
+      params.append('sort_by', sortBy)
+      params.append('sort_order', sortOrder)
 
-    const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
-    const zuluTimestamp = getZuluTimestamp()
+      const response = await fetch(`http://localhost:3001/api/assets?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
 
-    // CUI Banner text
-    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
-    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
-
-    // Add CUI header function
-    const addCuiHeader = () => {
-      // Yellow background for CUI banner
-      doc.setFillColor(254, 243, 199) // #FEF3C7
-      doc.rect(0, 0, pageWidth, 12, 'F')
-
-      // CUI text
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(0, 0, 0)
-      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
-    }
-
-    // Add CUI footer function
-    const addCuiFooter = (pageNum: number, totalPages: number) => {
-      // Yellow background for CUI footer banner
-      doc.setFillColor(254, 243, 199) // #FEF3C7
-      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
-
-      // CUI text
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(0, 0, 0)
-      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
-
-      // Page number on footer
-      doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
-
-      // Timestamp on footer
-      doc.text(`Generated: ${zuluTimestamp}`, 15, pageHeight - 5, { align: 'left' })
-    }
-
-    // Add title section after header
-    const addTitle = () => {
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(30, 64, 175) // Primary blue
-      doc.text('RIMSS Asset Report', pageWidth / 2, 20, { align: 'center' })
-
-      doc.setFontSize(11)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(55, 65, 81) // Gray
-      const programText = program ? `Program: ${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'
-      doc.text(programText, pageWidth / 2, 27, { align: 'center' })
-
-      doc.setFontSize(9)
-      doc.text(`Report generated: ${zuluTimestamp}`, pageWidth / 2, 33, { align: 'center' })
-      doc.text(`Total Assets: ${pagination.total}`, pageWidth / 2, 38, { align: 'center' })
-
-      // Add filter info if applied
-      if (statusFilter || debouncedSearch) {
-        const filters: string[] = []
-        if (statusFilter) filters.push(`Status: ${statusFilter}`)
-        if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
-        doc.setFontSize(8)
-        doc.setTextColor(107, 114, 128)
-        doc.text(`Filters: ${filters.join(', ')}`, pageWidth / 2, 43, { align: 'center' })
+      if (!response.ok) {
+        showError('Failed to fetch assets for export')
+        return
       }
-    }
 
-    // Prepare table data
-    const tableData = assets.map(asset => [
-      asset.serno + (asset.bad_actor ? ' (BA)' : '') + (asset.in_transit ? ' (Transit)' : ''),
-      asset.partno,
-      asset.part_name,
-      asset.status_cd,
-      asset.location,
-      asset.eti_hours != null ? asset.eti_hours.toLocaleString() : '-',
-      formatDate(asset.next_pmi_date)
-    ])
+      const data: AssetsResponse = await response.json()
+      const allAssets = data.assets
 
-    // Add header to first page
-    addCuiHeader()
-    addTitle()
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      })
 
-    // Generate table with autoTable
-    autoTable(doc, {
-      startY: statusFilter || debouncedSearch ? 48 : 43,
-      head: [['Serial Number', 'Part Number', 'Name', 'Status', 'Location', 'ETI Hours', 'Next PMI']],
-      body: tableData,
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const zuluTimestamp = getZuluTimestamp()
+
+      // CUI Banner text
+      const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+      const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+      // Add CUI header function
+      const addCuiHeader = () => {
+        // Yellow background for CUI banner
+        doc.setFillColor(254, 243, 199) // #FEF3C7
+        doc.rect(0, 0, pageWidth, 12, 'F')
+
+        // CUI text
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(0, 0, 0)
+        doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+      }
+
+      // Add CUI footer function
+      const addCuiFooter = (pageNum: number, totalPages: number) => {
+        // Yellow background for CUI footer banner
+        doc.setFillColor(254, 243, 199) // #FEF3C7
+        doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+        // CUI text
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(0, 0, 0)
+        doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+        // Page number on footer
+        doc.setFontSize(8)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+
+        // Timestamp on footer
+        doc.text(`Generated: ${zuluTimestamp}`, 15, pageHeight - 5, { align: 'left' })
+      }
+
+      // Add title section after header
+      const addTitle = () => {
+        doc.setFontSize(16)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(30, 64, 175) // Primary blue
+        doc.text('RIMSS Asset Report', pageWidth / 2, 20, { align: 'center' })
+
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(55, 65, 81) // Gray
+        const programText = program ? `Program: ${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'
+        doc.text(programText, pageWidth / 2, 27, { align: 'center' })
+
+        doc.setFontSize(9)
+        doc.text(`Report generated: ${zuluTimestamp}`, pageWidth / 2, 33, { align: 'center' })
+        doc.text(`Total Assets: ${data.pagination.total}`, pageWidth / 2, 38, { align: 'center' })
+
+        // Add filter info if applied
+        if (statusFilter || debouncedSearch) {
+          const filters: string[] = []
+          if (statusFilter) filters.push(`Status: ${statusFilter}`)
+          if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
+          doc.setFontSize(8)
+          doc.setTextColor(107, 114, 128)
+          doc.text(`Filters: ${filters.join(', ')}`, pageWidth / 2, 43, { align: 'center' })
+        }
+      }
+
+      // Prepare table data from ALL assets
+      const tableData = allAssets.map(asset => [
+        asset.serno + (asset.bad_actor ? ' (BA)' : '') + (asset.in_transit ? ' (Transit)' : ''),
+        asset.partno,
+        asset.part_name,
+        asset.status_cd,
+        asset.location,
+        asset.eti_hours != null ? asset.eti_hours.toLocaleString() : '-',
+        formatDate(asset.next_pmi_date)
+      ])
+
+      // Add header to first page
+      addCuiHeader()
+      addTitle()
+
+      // Generate table with autoTable
+      autoTable(doc, {
+        startY: statusFilter || debouncedSearch ? 48 : 43,
+        head: [['Serial Number', 'Part Number', 'Name', 'Status', 'Location', 'ETI Hours', 'Next PMI']],
+        body: tableData,
       theme: 'striped',
       headStyles: {
         fillColor: [30, 64, 175], // Primary blue
@@ -586,118 +612,152 @@ export default function AssetsPage() {
         5: { cellWidth: 25 }, // ETI Hours
         6: { cellWidth: 30 }, // Next PMI
       }
-    })
+      })
 
-    // Get total pages and add footers
-    const totalPages = doc.getNumberOfPages()
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i)
-      addCuiFooter(i, totalPages)
+      // Get total pages and add footers
+      const totalPages = doc.getNumberOfPages()
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i)
+        addCuiFooter(i, totalPages)
+      }
+
+      // Generate filename with CUI prefix and ZULU date
+      const filename = `CUI_Assets_${getZuluDateForFilename()}.pdf`
+
+      // Save the PDF
+      doc.save(filename)
+    } catch (error) {
+      showError('Failed to export PDF')
+      console.error('PDF export error:', error)
     }
-
-    // Generate filename with CUI prefix and ZULU date
-    const filename = `CUI_Assets_${getZuluDateForFilename()}.pdf`
-
-    // Save the PDF
-    doc.save(filename)
   }
 
   // Export assets to Excel with CUI markings
-  const exportToExcel = () => {
-    const zuluTimestamp = getZuluTimestamp()
+  const exportToExcel = async () => {
+    try {
+      // Fetch ALL assets for export (not just current page)
+      const params = new URLSearchParams()
+      if (currentProgramId) params.append('program_id', currentProgramId.toString())
+      params.append('page', '1')
+      params.append('limit', '999999') // Fetch all records
+      if (statusFilter) params.append('status', statusFilter)
+      if (debouncedSearch) params.append('search', debouncedSearch)
+      params.append('sort_by', sortBy)
+      params.append('sort_order', sortOrder)
 
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new()
+      const response = await fetch(`http://localhost:3001/api/assets?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
 
-    // Prepare data rows with CUI header
-    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
-    const blankRow: string[] = []
-    const reportInfoRow1 = [`RIMSS Asset Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
-    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
-    const reportInfoRow3 = [`Total Assets: ${pagination.total}`]
-    const filterRow = statusFilter || debouncedSearch
-      ? [`Filters: ${[statusFilter ? `Status: ${statusFilter}` : '', debouncedSearch ? `Search: "${debouncedSearch}"` : ''].filter(Boolean).join(', ')}`]
-      : []
+      if (!response.ok) {
+        showError('Failed to fetch assets for export')
+        return
+      }
 
-    // Table header row
-    const headerRow = ['Serial Number', 'Part Number', 'Name', 'Status', 'Status Name', 'Location', 'Location Type', 'ETI Hours', 'Next PMI Date', 'Bad Actor', 'In Transit', 'Remarks']
+      const data: AssetsResponse = await response.json()
+      const allAssets = data.assets
 
-    // Data rows
-    const dataRows = assets.map(asset => [
-      asset.serno,
-      asset.partno,
-      asset.part_name,
-      asset.status_cd,
-      asset.status_name,
-      asset.location,
-      asset.loc_type,
-      asset.eti_hours !== null ? asset.eti_hours : '',
-      asset.next_pmi_date ? formatDate(asset.next_pmi_date) : '',
-      asset.bad_actor ? 'Yes' : 'No',
-      asset.in_transit ? 'Yes' : 'No',
-      asset.remarks || ''
-    ])
+      const zuluTimestamp = getZuluTimestamp()
 
-    // CUI footer row
-    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new()
 
-    // Combine all rows
-    const allRows = [
-      cuiHeaderRow,
-      blankRow,
-      reportInfoRow1,
-      reportInfoRow2,
-      reportInfoRow3,
-      ...(filterRow.length ? [filterRow] : []),
-      blankRow,
-      headerRow,
-      ...dataRows,
-      blankRow,
-      cuiFooterRow
-    ]
+      // Prepare data rows with CUI header
+      const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+      const blankRow: string[] = []
+      const reportInfoRow1 = [`RIMSS Asset Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
+      const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+      const reportInfoRow3 = [`Total Assets: ${data.pagination.total}`]
+      const filterRow = statusFilter || debouncedSearch
+        ? [`Filters: ${[statusFilter ? `Status: ${statusFilter}` : '', debouncedSearch ? `Search: "${debouncedSearch}"` : ''].filter(Boolean).join(', ')}`]
+        : []
 
-    // Create worksheet from array of arrays
-    const ws = XLSX.utils.aoa_to_sheet(allRows)
+      // Table header row
+      const headerRow = ['Serial Number', 'Part Number', 'Name', 'Status', 'Status Name', 'Location', 'Location Type', 'ETI Hours', 'Next PMI Date', 'Bad Actor', 'In Transit', 'Remarks']
 
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 18 },  // Serial Number
-      { wch: 15 },  // Part Number
-      { wch: 25 },  // Name
-      { wch: 8 },   // Status
-      { wch: 30 },  // Status Name
-      { wch: 20 },  // Location
-      { wch: 12 },  // Location Type
-      { wch: 12 },  // ETI Hours
-      { wch: 14 },  // Next PMI Date
-      { wch: 10 },  // Bad Actor
-      { wch: 10 },  // In Transit
-      { wch: 40 },  // Remarks
-    ]
+      // Data rows from ALL assets
+      const dataRows = allAssets.map(asset => [
+        asset.serno,
+        asset.partno,
+        asset.part_name,
+        asset.status_cd,
+        asset.status_name,
+        asset.location,
+        asset.loc_type,
+        asset.eti_hours !== null ? asset.eti_hours : '',
+        asset.next_pmi_date ? formatDate(asset.next_pmi_date) : '',
+        asset.bad_actor ? 'Yes' : 'No',
+        asset.in_transit ? 'Yes' : 'No',
+        asset.remarks || ''
+      ])
 
-    // Merge CUI header cells across all columns
-    const numCols = headerRow.length
-    ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
-      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
-      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
-      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total assets
-      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
-    ]
+      // CUI footer row
+      const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
 
-    // Add filter merge if applicable
-    if (filterRow.length) {
-      ws['!merges']!.push({ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } })
+      // Combine all rows
+      const allRows = [
+        cuiHeaderRow,
+        blankRow,
+        reportInfoRow1,
+        reportInfoRow2,
+        reportInfoRow3,
+        ...(filterRow.length ? [filterRow] : []),
+        blankRow,
+        headerRow,
+        ...dataRows,
+        blankRow,
+        cuiFooterRow
+      ]
+
+      // Create worksheet from array of arrays
+      const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 18 },  // Serial Number
+        { wch: 15 },  // Part Number
+        { wch: 25 },  // Name
+        { wch: 8 },   // Status
+        { wch: 30 },  // Status Name
+        { wch: 20 },  // Location
+        { wch: 12 },  // Location Type
+        { wch: 12 },  // ETI Hours
+        { wch: 14 },  // Next PMI Date
+        { wch: 10 },  // Bad Actor
+        { wch: 10 },  // In Transit
+        { wch: 40 },  // Remarks
+      ]
+
+      // Merge CUI header cells across all columns
+      const numCols = headerRow.length
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+        { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+        { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+        { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total assets
+        { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
+      ]
+
+      // Add filter merge if applicable
+      if (filterRow.length) {
+        ws['!merges']!.push({ s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } })
+      }
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Assets')
+
+      // Generate filename with CUI prefix and ZULU date
+      const filename = `CUI_Assets_${getZuluDateForFilename()}.xlsx`
+
+      // Write the file and trigger download
+      XLSX.writeFile(wb, filename)
+    } catch (error) {
+      showError('Failed to export Excel')
+      console.error('Excel export error:', error)
     }
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Assets')
-
-    // Generate filename with CUI prefix and ZULU date
-    const filename = `CUI_Assets_${getZuluDateForFilename()}.xlsx`
-
-    // Write the file and trigger download
-    XLSX.writeFile(wb, filename)
   }
 
   // Handle column sorting

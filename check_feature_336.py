@@ -7,7 +7,7 @@ cursor = conn.cursor()
 cursor.execute("""
     SELECT id, category, name, description, steps, passes, in_progress, dependencies 
     FROM features 
-    WHERE id = 310
+    WHERE id = 336
 """)
 
 row = cursor.fetchone()
