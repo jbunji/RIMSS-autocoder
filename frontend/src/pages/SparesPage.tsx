@@ -16,6 +16,7 @@ import {
   PlusIcon,
   TrashIcon,
   ExclamationTriangleIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -122,6 +123,7 @@ export default function SparesPage() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
+  const [showDeleted, setShowDeleted] = useState(false)
 
   // Sorting
   type SortColumn = 'serno' | 'partno' | 'part_name' | 'status_cd' | 'location'
@@ -198,6 +200,10 @@ export default function SparesPage() {
         queryParams.append('status', statusFilter)
       }
 
+      if (showDeleted) {
+        queryParams.append('show_deleted', 'true')
+      }
+
       const response = await fetch(`http://localhost:3001/api/spares?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -220,7 +226,7 @@ export default function SparesPage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, pagination.page, pagination.limit, sortBy, sortOrder, searchQuery, statusFilter])
+  }, [token, currentProgramId, pagination.page, pagination.limit, sortBy, sortOrder, searchQuery, statusFilter, showDeleted])
 
   useEffect(() => {
     fetchSpares()
@@ -312,6 +318,75 @@ export default function SparesPage() {
     }
   }
 
+  // Handle delete spare click
+  const handleDeleteClick = (e: React.MouseEvent, spare: Spare) => {
+    e.stopPropagation() // Prevent row click navigation
+    setSelectedSpare(spare)
+    setModalError(null)
+    setIsDeleteModalOpen(true)
+  }
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!selectedSpare || !token) return
+
+    setModalError(null)
+    setIsDeleting(true)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${selectedSpare.asset_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete spare')
+      }
+
+      // Success - close modal and refresh list
+      setIsDeleteModalOpen(false)
+      setSuccessMessage('Spare deleted successfully!')
+      setTimeout(() => setSuccessMessage(null), 3000)
+      fetchSpares()
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : 'Failed to delete spare')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  // Handle reactivate spare
+  const handleReactivateClick = async (e: React.MouseEvent, spare: Spare) => {
+    e.stopPropagation() // Prevent row click navigation
+
+    if (!token) return
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${spare.asset_id}/reactivate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to reactivate spare')
+      }
+
+      // Success - show message and refresh list
+      setSuccessMessage(`Spare "${spare.serno}" reactivated successfully!`)
+      setTimeout(() => setSuccessMessage(null), 3000)
+      fetchSpares()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reactivate spare')
+      setTimeout(() => setError(null), 3000)
+    }
+  }
+
   return (
     <div>
       {/* Header */}
@@ -344,8 +419,24 @@ export default function SparesPage() {
       {/* Filters and Actions */}
       <div className="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="flex items-end justify-between gap-4 mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
-          {canEditSpare && (
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
+            {user?.role === 'ADMIN' && (
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showDeleted}
+                  onChange={(e) => {
+                    setShowDeleted(e.target.checked)
+                    setPagination(prev => ({ ...prev, page: 1 }))
+                  }}
+                  className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <span>Show deleted/inactive spares</span>
+              </label>
+            )}
+          </div>
+          {canEditSpare && !showDeleted && (
             <button
               onClick={() => alert('Add Spare feature: Click Add Spare button')}
               className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -537,14 +628,35 @@ export default function SparesPage() {
                       </td>
                       {canEditSpare && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button
-                            type="button"
-                            onClick={(e) => handleEditClick(e, spare)}
-                            className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
-                          >
-                            <PencilIcon className="h-4 w-4" />
-                            Edit
-                          </button>
+                          {showDeleted ? (
+                            <button
+                              type="button"
+                              onClick={(e) => handleReactivateClick(e, spare)}
+                              className="text-green-600 hover:text-green-900 inline-flex items-center gap-1"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" />
+                              Reactivate
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={(e) => handleEditClick(e, spare)}
+                                className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
+                              >
+                                <PencilIcon className="h-4 w-4" />
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteClick(e, spare)}
+                                className="text-red-600 hover:text-red-900 inline-flex items-center gap-1"
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                                Delete
+                              </button>
+                            </div>
+                          )}
                         </td>
                       )}
                     </tr>
@@ -741,6 +853,82 @@ export default function SparesPage() {
                         </div>
                       </form>
                     </div>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
+      {/* Delete Confirmation Modal */}
+      <Transition.Root show={isDeleteModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={setIsDeleteModalOpen}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <div className="sm:flex sm:items-start">
+                    <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                      <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                        Delete Spare Part
+                      </Dialog.Title>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Are you sure you want to delete <span className="font-semibold">{selectedSpare?.serno}</span> ({selectedSpare?.part_name})?
+                        </p>
+                        <p className="text-sm text-gray-500 mt-2">
+                          This is a soft delete - the spare can be recovered if needed.
+                        </p>
+                      </div>
+
+                      {modalError && (
+                        <div className="mt-4 rounded-md bg-red-50 p-4">
+                          <p className="text-sm text-red-800">{modalError}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+                    <button
+                      type="button"
+                      onClick={handleDeleteConfirm}
+                      disabled={isDeleting}
+                      className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsDeleteModalOpen(false)}
+                      disabled={isDeleting}
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed sm:mt-0 sm:w-auto"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

@@ -8232,11 +8232,11 @@ app.delete('/api/assets/:id', (req, res) => {
     pgm_id: asset.pgm_id,
   };
 
-  // Remove the asset from the array
-  detailedAssets.splice(assetIndex, 1);
+  // Soft delete: set active = false (allows recovery)
+  detailedAssets[assetIndex].active = false;
 
   // Log the deletion
-  console.log(`[ASSETS] Asset deleted by ${user.username}: ${deletedAssetInfo.serno} (ID: ${assetId})`);
+  console.log(`[ASSETS] Asset soft deleted by ${user.username}: ${deletedAssetInfo.serno} (ID: ${assetId})`);
 
   // Add to activity log (audit trail)
   const now = new Date();
@@ -8250,14 +8250,85 @@ app.delete('/api/assets/:id', (req, res) => {
     entity_type: 'asset',
     entity_id: assetId,
     entity_name: deletedAssetInfo.serno,
-    description: `Deleted asset ${deletedAssetInfo.serno} (${deletedAssetInfo.name})`,
+    description: `Soft deleted asset ${deletedAssetInfo.serno} (${deletedAssetInfo.name})`,
     pgm_id: deletedAssetInfo.pgm_id,
   };
   dynamicActivityLog.push(newActivity);
 
   res.json({
-    message: `Asset "${deletedAssetInfo.serno}" deleted successfully`,
+    message: `Asset "${deletedAssetInfo.serno}" deleted successfully (soft delete - can be recovered)`,
     deleted_asset: deletedAssetInfo,
+    audit: newActivity,
+  });
+});
+
+// POST /api/assets/:id/reactivate - Reactivate a soft-deleted asset (requires authentication and admin role)
+app.post('/api/assets/:id/reactivate', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN can reactivate assets
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only administrators can reactivate assets' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const assetIndex = detailedAssets.findIndex(a => a.asset_id === assetId);
+
+  if (assetIndex === -1) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  const asset = detailedAssets[assetIndex];
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Check if asset is already active
+  if (asset.active) {
+    return res.status(400).json({ error: 'Asset is already active' });
+  }
+
+  // Reactivate: set active = true
+  detailedAssets[assetIndex].active = true;
+
+  // Log the reactivation
+  console.log(`[ASSETS] Asset reactivated by ${user.username}: ${asset.serno} (ID: ${assetId})`);
+
+  // Add to activity log (audit trail)
+  const now = new Date();
+  const newActivity: ActivityLogEntry = {
+    activity_id: 1000 + dynamicActivityLog.length + 1,
+    timestamp: now.toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    action_type: 'update',
+    entity_type: 'asset',
+    entity_id: assetId,
+    entity_name: asset.serno,
+    description: `Reactivated asset ${asset.serno} (${asset.part_name})`,
+    pgm_id: asset.pgm_id,
+  };
+  dynamicActivityLog.push(newActivity);
+
+  res.json({
+    message: `Asset "${asset.serno}" reactivated successfully`,
+    asset: {
+      asset_id: asset.asset_id,
+      serno: asset.serno,
+      partno: asset.partno,
+      part_name: asset.part_name,
+      active: asset.active,
+    },
     audit: newActivity,
   });
 });
@@ -10442,11 +10513,14 @@ app.get('/api/spares', (req, res) => {
   // Get spare assets (active assets without cfg_set_id, typically at depot locations)
   const allAssets = detailedAssets;
 
+  // Check if we should show deleted/inactive spares
+  const showDeleted = req.query.show_deleted === 'true';
+
   // Filter by program and "spare" status (not assigned to configuration)
   // Spares are typically assets at depot with no configuration assignment
   let filteredSpares = allAssets.filter(asset =>
     asset.pgm_id === programIdFilter &&
-    asset.active === true &&
+    (showDeleted ? asset.active === false : asset.active === true) &&
     asset.loc_type === 'depot' // Spares are typically at depot
   );
 
