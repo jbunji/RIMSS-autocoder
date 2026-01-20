@@ -29061,3 +29061,28 @@ Feature Status: COMPLETE ✅
 
 ================================================================================
 
+[Testing] 2026-01-20 05:12:37 - Starting regression test for Feature #217: Parts Ordered navigation link works
+[Testing] 2026-01-20 05:13:10 - Feature #217 verified - PASSING ✓
+- Navigation: Parts Ordered link correctly navigates to /parts-ordered
+- Table: 9 orders loaded and displayed successfully
+- Console: Zero errors
+- Screenshot: feature_217_parts_ordered_navigation.png
+- Result: No regression found - feature still works correctly
+[Testing] Session complete - verified feature #217
+[Testing] 2026-01-20 10:13 UTC - Feature #217 regression test PASSED
+
+Feature: Parts Ordered navigation link works
+Steps Verified:
+✓ Logged in as admin user
+✓ Clicked Parts Ordered link in sidebar
+✓ Successfully navigated to /parts-ordered
+✓ Orders table loaded with 9 orders displayed
+✓ Zero console errors
+✓ Page displays correctly with proper styling
+✓ All columns present in table
+
+Result: Feature #217 is still working correctly - NO REGRESSION FOUND
+
+Screenshot saved: feature_217_parts_ordered_page.png
+Session type: Regression Testing
+

@@ -1,6 +1,6 @@
 const Database = require('better-sqlite3');
 
-const db = new Database('./assistant.db', { readonly: true });
+const db = new Database('./features.db', { readonly: true });
 
 try {
   const row = db.prepare('SELECT id, category, name, description, steps, passes, in_progress, dependencies FROM features WHERE id = 249').get();

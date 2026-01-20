@@ -295,6 +295,7 @@ export default function MaintenancePage() {
   const [newEventLoading, setNewEventLoading] = useState(false)
   const [newEventError, setNewEventError] = useState<string | null>(null)
   const [newEventSuccess, setNewEventSuccess] = useState<string | null>(null)
+  const [newEventFieldErrors, setNewEventFieldErrors] = useState<{ [key: string]: string }>({})
   const [newEventForm, setNewEventForm] = useState<NewEventFormData>({
     asset_id: '',
     discrepancy: '',
@@ -1047,22 +1048,28 @@ export default function MaintenancePage() {
   const handleSubmitNewEvent = async () => {
     if (!token) return
 
-    // Validate form
+    // Validate form - collect all errors
+    const fieldErrors: { [key: string]: string } = {}
+
     if (!newEventForm.asset_id) {
-      setNewEventError('Please select an asset')
-      return
+      fieldErrors.asset_id = 'Please select an asset'
     }
     if (!newEventForm.discrepancy.trim()) {
-      setNewEventError('Please enter a discrepancy description')
-      return
+      fieldErrors.discrepancy = 'Please enter a discrepancy description'
     }
     if (!newEventForm.start_job) {
-      setNewEventError('Please select a date in')
+      fieldErrors.start_job = 'Please select a date in'
+    }
+
+    // If there are any errors, set them and return
+    if (Object.keys(fieldErrors).length > 0) {
+      setNewEventFieldErrors(fieldErrors)
       return
     }
 
     setNewEventLoading(true)
     setNewEventError(null)
+    setNewEventFieldErrors({})
 
     try {
       const response = await fetch('http://localhost:3001/api/events', {
@@ -2641,8 +2648,22 @@ export default function MaintenancePage() {
                 <select
                   id="asset_id"
                   value={newEventForm.asset_id}
-                  onChange={(e) => handleFormChange('asset_id', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  onChange={(e) => {
+                    handleFormChange('asset_id', e.target.value)
+                    // Clear field error when user corrects it
+                    if (newEventFieldErrors.asset_id) {
+                      setNewEventFieldErrors(prev => {
+                        const newErrors = { ...prev }
+                        delete newErrors.asset_id
+                        return newErrors
+                      })
+                    }
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
+                    newEventFieldErrors.asset_id
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300 focus:border-primary-500'
+                  }`}
                   disabled={assetsLoading}
                 >
                   <option value="">Select an asset...</option>
@@ -2655,6 +2676,9 @@ export default function MaintenancePage() {
                 {assetsLoading && (
                   <p className="text-sm text-gray-500 mt-1">Loading assets...</p>
                 )}
+                {newEventFieldErrors.asset_id && (
+                  <p className="mt-1 text-sm text-red-600">{newEventFieldErrors.asset_id}</p>
+                )}
               </div>
 
               {/* Discrepancy Description */}
@@ -2665,11 +2689,28 @@ export default function MaintenancePage() {
                 <textarea
                   id="discrepancy"
                   value={newEventForm.discrepancy}
-                  onChange={(e) => handleFormChange('discrepancy', e.target.value)}
+                  onChange={(e) => {
+                    handleFormChange('discrepancy', e.target.value)
+                    // Clear field error when user corrects it
+                    if (newEventFieldErrors.discrepancy) {
+                      setNewEventFieldErrors(prev => {
+                        const newErrors = { ...prev }
+                        delete newErrors.discrepancy
+                        return newErrors
+                      })
+                    }
+                  }}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
+                    newEventFieldErrors.discrepancy
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300 focus:border-primary-500'
+                  }`}
                   placeholder="Describe the maintenance issue or discrepancy..."
                 />
+                {newEventFieldErrors.discrepancy && (
+                  <p className="mt-1 text-sm text-red-600">{newEventFieldErrors.discrepancy}</p>
+                )}
               </div>
 
               {/* Event Type */}
@@ -2716,9 +2757,26 @@ export default function MaintenancePage() {
                   type="date"
                   id="start_job"
                   value={newEventForm.start_job}
-                  onChange={(e) => handleFormChange('start_job', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  onChange={(e) => {
+                    handleFormChange('start_job', e.target.value)
+                    // Clear field error when user corrects it
+                    if (newEventFieldErrors.start_job) {
+                      setNewEventFieldErrors(prev => {
+                        const newErrors = { ...prev }
+                        delete newErrors.start_job
+                        return newErrors
+                      })
+                    }
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
+                    newEventFieldErrors.start_job
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300 focus:border-primary-500'
+                  }`}
                 />
+                {newEventFieldErrors.start_job && (
+                  <p className="mt-1 text-sm text-red-600">{newEventFieldErrors.start_job}</p>
+                )}
               </div>
 
               {/* ETIC */}
