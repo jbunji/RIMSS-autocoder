@@ -10374,6 +10374,21 @@ interface ConfigurationSoftware {
   ins_date: string;
 }
 
+// Configuration Meter Tracking interface
+interface ConfigurationMeter {
+  cfg_meter_id: number;
+  cfg_set_id: number;
+  meter_type: string; // 'eti', 'cycles', 'landings', etc.
+  tracking_interval: number | null; // Hours/cycles between checks (optional)
+  tracking_unit: string | null; // 'hours', 'cycles', 'landings', etc.
+  description: string | null;
+  active: boolean;
+  ins_by: string;
+  ins_date: string;
+  chg_by: string | null;
+  chg_date: string | null;
+}
+
 // Initialize mock software catalog data
 function initializeSoftware(): Software[] {
   const today = new Date();
@@ -10616,12 +10631,55 @@ function initializeAssetSoftware(): AssetSoftware[] {
   ];
 }
 
+// Initialize mock configuration meter tracking data
+function initializeConfigurationMeters(): ConfigurationMeter[] {
+  const today = new Date();
+  const subtractDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.toISOString();
+  };
+
+  return [
+    // Camera System X Configuration - tracks ETI (operating hours)
+    {
+      cfg_meter_id: 1,
+      cfg_set_id: 1, // Camera System X Configuration
+      meter_type: 'eti',
+      tracking_interval: 500,
+      tracking_unit: 'hours',
+      description: 'Track operating hours for camera system - check every 500 hours',
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(300),
+      chg_by: null,
+      chg_date: null,
+    },
+    // Radar Unit Configuration - tracks cycles
+    {
+      cfg_meter_id: 2,
+      cfg_set_id: 2, // Radar Unit Configuration
+      meter_type: 'cycles',
+      tracking_interval: 1000,
+      tracking_unit: 'cycles',
+      description: 'Track radar power cycles - maintenance required every 1000 cycles',
+      active: true,
+      ins_by: 'depot_mgr',
+      ins_date: subtractDays(200),
+      chg_by: 'depot_mgr',
+      chg_date: subtractDays(50),
+    },
+  ];
+}
+
 // Mutable arrays for software tracking
 const softwareCatalog: Software[] = initializeSoftware();
 let assetSoftware: AssetSoftware[] = initializeAssetSoftware();
 let nextAssetSwId = 5; // Next ID for new asset-software associations
 let configSoftware: ConfigurationSoftware[] = initializeConfigSoftware();
 let nextCfgSwId = 6; // Next ID for new configuration-software associations
+let configurationMeters: ConfigurationMeter[] = initializeConfigurationMeters();
+let nextCfgMeterId = 3; // Next ID for new configuration meter entries
 
 // GET /api/software - List all software for a program (requires authentication)
 app.get('/api/software', (req, res) => {
@@ -11094,6 +11152,167 @@ app.get('/api/configurations/:id/bom', (req, res) => {
       cfg_name: config.cfg_name,
       partno: config.partno,
     },
+  });
+});
+
+// GET /api/configurations/:id/meters - Get meter tracking requirements for a configuration
+app.get('/api/configurations/:id/meters', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const config = configurations.find(c => c.cfg_set_id === configId);
+
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this configuration's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  // Get meter tracking requirements for this configuration
+  const configMeters = configurationMeters
+    .filter(m => m.cfg_set_id === configId && m.active)
+    .sort((a, b) => a.cfg_meter_id - b.cfg_meter_id);
+
+  console.log(`[CONFIGS] Meters request for config ${config.cfg_name} by ${user.username} - ${configMeters.length} meters`);
+
+  res.json({
+    meters: configMeters,
+    total: configMeters.length,
+    configuration: {
+      cfg_set_id: config.cfg_set_id,
+      cfg_name: config.cfg_name,
+      partno: config.partno,
+    },
+  });
+});
+
+// POST /api/configurations/:id/meters - Add meter tracking requirement (requires depot_manager or admin)
+app.post('/api/configurations/:id/meters', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - Only DEPOT_MANAGER and ADMIN can add meter requirements
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to manage meter tracking' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const config = configurations.find(c => c.cfg_set_id === configId);
+
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this configuration's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  const { meter_type, tracking_interval, tracking_unit, description } = req.body;
+
+  // Validate required fields
+  if (!meter_type || meter_type.trim() === '') {
+    return res.status(400).json({ error: 'Meter type is required' });
+  }
+
+  // Validate meter type
+  const validMeterTypes = ['eti', 'cycles', 'landings', 'flight_hours', 'engine_starts', 'other'];
+  if (!validMeterTypes.includes(meter_type)) {
+    return res.status(400).json({ error: `Invalid meter type. Must be one of: ${validMeterTypes.join(', ')}` });
+  }
+
+  // Validate tracking interval if provided
+  if (tracking_interval !== null && tracking_interval !== undefined) {
+    const parsedInterval = parseFloat(tracking_interval);
+    if (isNaN(parsedInterval) || parsedInterval <= 0) {
+      return res.status(400).json({ error: 'Tracking interval must be a positive number' });
+    }
+  }
+
+  // Create new meter tracking entry
+  const newMeter: ConfigurationMeter = {
+    cfg_meter_id: nextCfgMeterId++,
+    cfg_set_id: configId,
+    meter_type: meter_type.trim(),
+    tracking_interval: tracking_interval ? parseFloat(tracking_interval) : null,
+    tracking_unit: tracking_unit ? tracking_unit.trim() : null,
+    description: description ? description.trim() : null,
+    active: true,
+    ins_by: user.username,
+    ins_date: new Date().toISOString(),
+    chg_by: null,
+    chg_date: null,
+  };
+
+  configurationMeters.push(newMeter);
+
+  console.log(`[CONFIGS] Meter tracking added to config ${config.cfg_name} by ${user.username} - Type: ${meter_type}`);
+
+  res.status(201).json({
+    message: 'Meter tracking requirement added successfully',
+    meter: newMeter,
+  });
+});
+
+// DELETE /api/configurations/:id/meters/:meterId - Remove meter tracking requirement (requires depot_manager or admin)
+app.delete('/api/configurations/:id/meters/:meterId', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - Only DEPOT_MANAGER and ADMIN can remove meter requirements
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to manage meter tracking' });
+  }
+
+  const configId = parseInt(req.params.id, 10);
+  const meterId = parseInt(req.params.meterId, 10);
+
+  const config = configurations.find(c => c.cfg_set_id === configId);
+  if (!config) {
+    return res.status(404).json({ error: 'Configuration not found' });
+  }
+
+  // Check if user has access to this configuration's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this configuration' });
+  }
+
+  const meterIndex = configurationMeters.findIndex(m => m.cfg_meter_id === meterId && m.cfg_set_id === configId);
+  if (meterIndex === -1) {
+    return res.status(404).json({ error: 'Meter tracking requirement not found' });
+  }
+
+  // Soft delete by setting active to false
+  configurationMeters[meterIndex].active = false;
+  configurationMeters[meterIndex].chg_by = user.username;
+  configurationMeters[meterIndex].chg_date = new Date().toISOString();
+
+  console.log(`[CONFIGS] Meter tracking removed from config ${config.cfg_name} by ${user.username} - ID: ${meterId}`);
+
+  res.json({
+    message: 'Meter tracking requirement removed successfully',
   });
 });
 
