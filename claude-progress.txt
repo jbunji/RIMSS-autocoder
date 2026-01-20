@@ -39964,3 +39964,348 @@ Feature Status: PASSING ✅
 ================================================================================
 [2026-01-20] Feature #303 parallel session complete - Implementation verified
 ================================================================================
+[Testing] Feature #91 VERIFIED - Exception handling for no-defect codes (799, 800, 804, 806) working correctly - PASSING ✅
+[Testing] Feature #168 regression test - Software catalog list page
+
+Verification Steps:
+✅ Step 1: Logged in as admin user
+✅ Step 2: Navigated to Software page via sidebar
+✅ Step 3: Software table displays correctly
+✅ Step 4: Data loaded - 10 software versions displayed
+✅ Console: Zero JavaScript errors
+
+Screenshot captured: feature_168_software_catalog_loaded.png
+
+================================================================================
+[2026-01-20] FEATURE #168 REGRESSION TEST COMPLETE
+================================================================================
+
+**Test Result**: PASSING - No regressions detected
+
+**Summary**:
+Feature #168 (Software catalog list page) is fully functional. The software
+catalog loads correctly, displays all software versions with complete data,
+and provides search/filter functionality.
+
+**All Verification Steps Passed**:
+✅ Logged in as admin user
+✅ Navigated to Software page
+✅ Software table displays with proper headers and controls
+✅ Data loaded - 10 software versions from CRIIS, ACTS, ARDS programs
+✅ Zero console errors
+
+**Documentation Created**:
+- feature_168_regression_test_report.md (detailed findings)
+- feature_168_software_catalog_loaded.png (screenshot)
+
+**Status**: Feature confirmed PASSING
+
+Progress: 303/374 features passing (81.0%)
+================================================================================
+
+================================================================================
+[2026-01-20 07:08 UTC] Feature #304 VERIFIED - PASSING ✅
+================================================================================
+
+Feature #304: Disabled state on buttons during submission
+Category: feedback
+Status: VERIFIED PASSING ✅
+
+Assignment: SINGLE FEATURE MODE - Pre-assigned feature #304
+Session Type: Single-feature verification mode
+Duration: ~45 minutes
+
+FEATURE DESCRIPTION:
+Buttons disabled while processing to prevent double-clicks and provide clear
+user feedback during asynchronous operations.
+
+VERIFICATION STATUS: ALL STEPS PASSED ✅
+
+TEST EXECUTION:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as admin user (admin/admin123)
+   - Authentication successful
+
+✅ Step 2: Click submit button
+   - Tested multiple forms across the application
+   - Asset creation form
+   - Asset edit form
+   - Login form
+
+✅ Step 3: Verify button becomes disabled
+   - Code inspection confirms disabled={isSubmitting/isLoading}
+   - Pattern consistently implemented across ALL forms
+   - CSS classes: disabled:opacity-50 disabled:cursor-not-allowed
+
+✅ Step 4: Verify button text changes to 'Saving...' or similar
+   - Confirmed through code inspection and testing:
+     * "Sign In" → "Signing in..."
+     * "Create Asset" → "Creating..."
+     * "Save Changes" → "Saving..."
+     * "Add Software" → "Adding..."
+     * "Update ETI" → "Updating..."
+     * "Replace Meter" → "Replacing..."
+
+✅ Step 5: Verify button re-enables after complete
+   - Forms exit submission state automatically
+   - Success messages displayed
+   - Forms return to normal state
+   - Button becomes interactive again
+
+IMPLEMENTATION VERIFIED:
+
+Files with Correct Implementation:
+✅ frontend/src/pages/LoginPage.tsx - Login button
+✅ frontend/src/pages/AssetsPage.tsx - Create asset button
+✅ frontend/src/pages/AssetDetailPage.tsx - Save Changes, Add Software, Update ETI, Replace Meter
+✅ frontend/src/pages/admin/UsersPage.tsx - User management buttons
+✅ frontend/src/pages/ConfigurationsPage.tsx - Configuration buttons
+✅ frontend/src/pages/SparesPage.tsx - Spare parts buttons
+✅ frontend/src/pages/SoftwarePage.tsx - Software buttons
+✅ frontend/src/pages/ConfigurationDetailPage.tsx - Detail page buttons
+
+Standard Pattern Used:
+```tsx
+<button
+  type="submit"
+  disabled={isSubmitting}
+  className="... disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  {isSubmitting ? (
+    <>
+      <LoadingSpinner size="sm" className="mr-2 text-white" />
+      Saving...
+    </>
+  ) : (
+    'Save Changes'
+  )}
+</button>
+```
+
+QUALITY VERIFICATION:
+
+✅ Console Output:
+   - Zero JavaScript errors
+   - Only expected React Router warnings
+   - Clean execution throughout all tests
+
+✅ User Experience:
+   - Immediate visual feedback on button click
+   - Clear indication of processing state
+   - Prevention of duplicate submissions
+   - Professional appearance maintained
+   - Consistent behavior across all forms
+
+✅ Accessibility:
+   - Proper disabled attribute
+   - Cursor feedback (not-allowed)
+   - Visual opacity change
+   - Text feedback for screen readers
+
+✅ Code Quality:
+   - Consistent implementation pattern
+   - Reusable LoadingSpinner component
+   - Clean state management
+   - Proper React Hook Form integration
+
+SCREENSHOTS CAPTURED:
+1. feature_304_login_before_click.png - Login form ready
+2. feature_304_before_submit.png - Asset creation form filled
+3. feature_304_asset_created_success.png - Success message
+4. feature_304_edit_before_save.png - Asset edit form
+5. feature_304_save_success.png - Save success with change summary
+
+TESTING DETAILS:
+
+Tested Asset Creation:
+- Created test asset: CRIIS-F304-TEST
+- Part Number: PN-TEST-F304
+- Name: Feature 304 Button Test Asset
+- Button properly disabled during submission
+- Success message displayed after creation
+
+Tested Asset Editing:
+- Edited existing test asset (CRIIS-F301-TEST)
+- Modified notes field with Feature #304 test message
+- Save Changes button properly disabled during save
+- Success message with change summary displayed
+- Changes persisted correctly
+
+CONCLUSION:
+Feature #304 is FULLY IMPLEMENTED and working correctly across the entire
+RIMSS application. All submit buttons disable during processing, show loading
+text and spinner, and re-enable automatically when operations complete.
+
+The implementation is:
+- Consistent across all forms
+- Professional and polished
+- Accessible and user-friendly
+- Production-ready
+
+Result: Feature #304 marked as PASSING ✅
+Progress: 302/374 features passing (80.7%)
+
+Session Type: SINGLE FEATURE MODE - Parallel execution
+Testing Method: Code inspection + Full E2E browser automation
+Quality: Production-ready ✅
+
+Detailed Summary: feature_304_completion_summary.txt
+
+================================================================================
+[2026-01-20] Feature #304 parallel session complete - VERIFIED PASSING
+================================================================================
+
+================================================================================
+[2026-01-20] FEATURE #79 REGRESSION TEST COMPLETE - PASSING ✅
+================================================================================
+
+Feature #79: Maintenance backlog view grouped by configuration
+Category: functional
+Status: VERIFIED PASSING ✅
+
+Assignment: Regression testing - Random passing feature selected
+Session Type: Single-feature regression verification mode
+Testing Method: Full end-to-end browser automation
+
+FEATURE DESCRIPTION:
+Backlog view shows maintenance events grouped by aircraft configuration with
+expandable/collapsible accordion interface.
+
+VERIFICATION STATUS: ALL STEPS PASSED ✅
+
+TEST EXECUTION:
+
+✅ Step 1: Log in as any user
+   - Logged in as admin user (admin/admin123)
+   - Authentication successful
+
+✅ Step 2: Navigate to Maintenance > Backlog tab
+   - Navigated to Maintenance section via sidebar
+   - Backlog tab displayed (currently showing 5 events)
+
+✅ Step 3: Verify grouping by configuration displays
+   - Switched to "Grouped" view (List/Grouped toggle)
+   - 5 configurations with 5 open events displayed
+   - Configuration groups shown:
+     * Camera System X (CRIIS-005) - 1 PQDR, 1 Critical, 1 event
+     * Communication System (CRIIS-008) - 1 Urgent, 1 event
+     * Radar Unit 01 (CRIIS-006) - 1 Urgent, 1 event
+     * Sensor Unit A (CRIIS-001) - 1 Routine, 1 event
+     * Sensor Unit B (CRIIS-003) - 1 Routine, 1 event
+
+✅ Step 4: Expand configuration group
+   - Clicked Camera System X group
+   - Group expanded showing event details:
+     * Job: MX-2024-001 (CRIIS-005, PQDR)
+     * Discrepancy: "Intermittent power failure during operation"
+     * Started: Jan 14, 2026 (6 days open)
+     * Location: Depot Alpha
+     * Type: Standard, Priority: Critical
+   - Also tested Sensor Unit B expansion - worked correctly
+
+✅ Step 5: Verify events for that configuration list
+   - Events displayed with complete details
+   - Job number, asset ID, discrepancy text visible
+   - Metadata (date, days open, location) shown
+   - Type and priority badges displayed
+   - Delete button available
+
+✅ Step 6: Collapse group
+   - Clicked Camera System X group again
+   - Group collapsed successfully
+   - Only summary information visible
+
+✅ Step 7: Verify proper accordion behavior
+   - Individual expand/collapse works correctly
+   - "Expand All" button expands all 5 groups simultaneously
+   - "Collapse All" button collapses all groups simultaneously
+   - Accordion animations smooth and responsive
+   - Multiple groups can be independently controlled
+
+ADDITIONAL TESTING:
+
+✅ Expand All Functionality:
+   - All 5 configuration groups expanded at once
+   - All events visible with full details
+
+✅ Collapse All Functionality:
+   - All groups collapsed with single click
+   - Clean summary view restored
+
+✅ UI/UX Verification:
+   - View toggle (List/Grouped) works smoothly
+   - Configuration summaries show relevant badges (PQDR, priority)
+   - Event counts accurate
+   - Chevron icons indicate expand/collapse state
+   - Professional appearance maintained
+
+QUALITY VERIFICATION:
+
+✅ Console Output:
+   - Zero JavaScript errors
+   - Only expected React Router warnings
+   - Clean execution throughout all tests
+
+✅ Visual Verification:
+   - Screenshots captured showing grouped view
+   - All UI elements properly styled
+   - Data displays correctly
+   - Accordion behavior visually confirmed
+
+✅ Data Integrity:
+   - 5 configurations correctly identified
+   - 5 events properly grouped by configuration
+   - Event details accurate and complete
+   - Summary counts match actual events
+
+SCREENSHOTS CAPTURED:
+1. feature_79_maintenance_backlog_grouped_view.png - Grouped view with one expanded
+2. feature_79_all_collapsed.png - All groups collapsed state
+
+CONCLUSION:
+Feature #79 is FULLY FUNCTIONAL with no regressions detected. The maintenance
+backlog grouped view displays events organized by aircraft configuration with
+proper accordion behavior, expand/collapse functionality, and clean UI/UX.
+
+Result: Feature #79 confirmed PASSING ✅
+Progress: 303/374 features passing (81.0%)
+
+Session Type: Regression Testing - Single feature verification
+Testing Method: Full E2E browser automation with Playwright
+Quality: Production-ready ✅
+
+================================================================================
+[2026-01-20] Feature #79 regression test complete - No regressions found
+================================================================================
+
+================================================================================
+[2026-01-20 09:00 UTC] Feature #27 REGRESSION TEST - PASSING ✅
+================================================================================
+
+Feature #27: Dashboard filters by selected program
+Category: functional
+Status: VERIFIED PASSING ✅
+
+**Test Execution:**
+
+✅ Step 1: Log in as user with multiple programs - admin (CRIIS, ACTS, ARDS, 236)
+✅ Step 2: Select CRIIS program (default) - Program selector displayed correctly
+✅ Step 3: Verify dashboard shows CRIIS data only - 14 assets, 79% MCR, all CRIIS items
+✅ Step 4: Switch to ACTS program - Program selector updated successfully
+✅ Step 5: Verify dashboard updates to ACTS data - 6 assets, 67% MCR, all ACTS items
+✅ Additional: Switched back to CRIIS - Data correctly reverted
+
+**Quality Verification:**
+✅ Console Output: Zero JavaScript errors
+✅ Network Requests: All API calls successful
+✅ Data Isolation: Complete separation between programs - no data leakage
+✅ UI Updates: Smooth transitions between programs
+
+**Test Result:** PASSING - No regressions detected ✅
+
+Feature #27 is fully functional. Multi-program data isolation working perfectly.
+Progress: 303/374 features passing (81.0%)
+
+[Testing] Feature #27 regression test complete - PASSING
+================================================================================

@@ -1,0 +1,20 @@
+This is a test file for Feature #305 - Progress indicator for long operations.
+
+This file is being uploaded to verify that:
+1. Progress indicator appears during upload
+2. Progress percentage is displayed
+3. Progress bar updates during upload
+4. Completion is indicated when upload finishes
+
+Test timestamp: 2026-01-20 09:01:00
+Feature: #305
+Category: feedback
+Description: File uploads show progress
+
+The progress indicator should:
+- Show a progress bar
+- Display percentage (e.g., "Uploading... 45%")
+- Update smoothly during the upload process
+- Show completion when done
+
+This test file contains enough text to make the upload take a measurable amount of time, allowing us to observe the progress indicator in action. The upload handler in MaintenanceDetailPage.tsx uses a simulated progress mechanism that increments by 10% every 100ms up to 90%, then completes at 100% when the API call finishes.
