@@ -10020,6 +10020,184 @@ app.get('/api/sorties/:id', (req, res) => {
   });
 });
 
+// Create new sortie (requires field_technician or higher)
+app.post('/api/sorties', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Authorization: Only field_technician, depot_manager, and admin can create sorties
+  if (!['field_technician', 'depot_manager', 'admin'].includes(user.role_cd)) {
+    return res.status(403).json({ error: 'Insufficient permissions to create sortie' });
+  }
+
+  // Validate required fields
+  const {
+    asset_id,
+    mission_id,
+    sortie_date,
+    sortie_effect,
+    range,
+    remarks
+  } = req.body;
+
+  if (!asset_id || !mission_id || !sortie_date) {
+    return res.status(400).json({ error: 'Missing required fields: asset_id, mission_id, sortie_date' });
+  }
+
+  // Find the asset and validate
+  const asset = mockAssets.find(a => a.asset_id === parseInt(asset_id, 10));
+  if (!asset) {
+    return res.status(400).json({ error: 'Invalid asset_id' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this asset program' });
+  }
+
+  // Generate new sortie ID
+  const newSortieId = sorties.length > 0 ? Math.max(...sorties.map(s => s.sortie_id)) + 1 : 1;
+
+  // Create new sortie
+  const newSortie: Sortie = {
+    sortie_id: newSortieId,
+    pgm_id: asset.pgm_id,
+    asset_id: parseInt(asset_id, 10),
+    mission_id: mission_id.trim(),
+    serno: asset.serno,
+    ac_tailno: asset.serno, // Use serno as tail number
+    sortie_date: sortie_date,
+    sortie_effect: sortie_effect || null,
+    current_unit: user.programs.find(p => p.pgm_id === asset.pgm_id)?.pgm_cd || null,
+    assigned_unit: user.programs.find(p => p.pgm_id === asset.pgm_id)?.pgm_cd || null,
+    range: range || null,
+    reason: null,
+    remarks: remarks || null,
+  };
+
+  // Add to sorties array
+  sorties.push(newSortie);
+
+  console.log(`[SORTIES] Created new sortie #${newSortieId} by ${user.username} for asset ${asset.serno}`);
+
+  res.status(201).json({
+    sortie: newSortie,
+    message: 'Sortie created successfully',
+  });
+});
+
+// PUT /api/sorties/:id - Update existing sortie (requires field_technician or higher)
+app.put('/api/sorties/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Authorization: Only field_technician, depot_manager, and admin can edit sorties
+  if (!['FIELD_TECHNICIAN', 'DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to edit sortie' });
+  }
+
+  const sortieId = parseInt(req.params.id, 10);
+  const sortieIndex = sorties.findIndex(s => s.sortie_id === sortieId);
+
+  if (sortieIndex === -1) {
+    return res.status(404).json({ error: 'Sortie not found' });
+  }
+
+  const sortie = sorties[sortieIndex];
+
+  // Check if user has access to this sortie's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(sortie.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this sortie program' });
+  }
+
+  // Update fields (allow partial updates)
+  const {
+    mission_id,
+    sortie_date,
+    sortie_effect,
+    range,
+    remarks,
+    reason,
+    current_unit,
+    assigned_unit
+  } = req.body;
+
+  // Update sortie with new values
+  const updatedSortie = {
+    ...sortie,
+    mission_id: mission_id !== undefined ? mission_id.trim() : sortie.mission_id,
+    sortie_date: sortie_date !== undefined ? sortie_date : sortie.sortie_date,
+    sortie_effect: sortie_effect !== undefined ? sortie_effect : sortie.sortie_effect,
+    range: range !== undefined ? range : sortie.range,
+    remarks: remarks !== undefined ? remarks : sortie.remarks,
+    reason: reason !== undefined ? reason : sortie.reason,
+    current_unit: current_unit !== undefined ? current_unit : sortie.current_unit,
+    assigned_unit: assigned_unit !== undefined ? assigned_unit : sortie.assigned_unit,
+  };
+
+  sorties[sortieIndex] = updatedSortie;
+
+  console.log(`[SORTIES] Updated sortie #${sortieId} by ${user.username}`);
+
+  res.status(200).json({
+    sortie: updatedSortie,
+    message: 'Sortie updated successfully',
+  });
+});
+
+// Delete sortie (requires depot_manager or admin)
+app.delete('/api/sorties/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Authorization: Only depot_manager and admin can delete sorties
+  if (!['DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to delete sortie' });
+  }
+
+  const sortieId = parseInt(req.params.id, 10);
+  const sortieIndex = sorties.findIndex(s => s.sortie_id === sortieId);
+
+  if (sortieIndex === -1) {
+    return res.status(404).json({ error: 'Sortie not found' });
+  }
+
+  const sortie = sorties[sortieIndex];
+
+  // Check if user has access to this sortie's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(sortie.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this sortie' });
+  }
+
+  // Remove the sortie
+  sorties.splice(sortieIndex, 1);
+
+  console.log(`[SORTIES] Deleted sortie #${sortieId} (${sortie.mission_id}) by ${user.username}`);
+
+  res.json({
+    message: 'Sortie deleted successfully',
+    sortie_id: sortieId,
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
