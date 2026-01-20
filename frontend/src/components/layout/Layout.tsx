@@ -26,8 +26,8 @@ export default function Layout() {
 
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1 pt-[calc(1.75rem+4rem)] overflow-x-hidden">
-        <main className="flex-1 pb-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+        <main className="flex-1 pb-16 overflow-x-hidden">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 overflow-x-hidden">
             <Outlet />
           </div>
         </main>

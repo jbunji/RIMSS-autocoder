@@ -4,8 +4,18 @@
 
 /* Base styles */
 @layer base {
-  html, body, #root {
+  html {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: clip !important;
+    max-width: 100vw;
+  }
+
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+  }
+
+  #root {
     overflow-x: hidden !important;
     max-width: 100vw;
   }
