@@ -8202,6 +8202,183 @@ app.put('/api/assets/:id', (req, res) => {
   });
 });
 
+// POST /api/assets/mass-update - Mass update multiple assets (requires authentication and depot_manager/admin role)
+app.post('/api/assets/mass-update', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN and DEPOT_MANAGER can update assets
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to modify assets' });
+  }
+
+  const { asset_ids, field, value } = req.body;
+
+  // Validate inputs
+  if (!asset_ids || !Array.isArray(asset_ids) || asset_ids.length === 0) {
+    return res.status(400).json({ error: 'asset_ids must be a non-empty array' });
+  }
+
+  if (!field || !value) {
+    return res.status(400).json({ error: 'field and value are required' });
+  }
+
+  // Validate field name (only allow specific fields to be mass updated)
+  const allowedFields = ['status_cd', 'admin_loc', 'cust_loc'];
+  if (!allowedFields.includes(field)) {
+    return res.status(400).json({ error: `Field '${field}' cannot be mass updated. Allowed fields: ${allowedFields.join(', ')}` });
+  }
+
+  // Validate value based on field
+  if (field === 'status_cd') {
+    const validStatuses = assetStatusCodes.map(s => s.status_cd);
+    if (!validStatuses.includes(value)) {
+      return res.status(400).json({ error: 'Invalid status code' });
+    }
+  } else if (field === 'admin_loc') {
+    const validAdminLocs = adminLocations.map(l => l.loc_cd);
+    if (!validAdminLocs.includes(value)) {
+      return res.status(400).json({ error: 'Invalid administrative location' });
+    }
+  } else if (field === 'cust_loc') {
+    const validCustLocs = custodialLocations.map(l => l.loc_cd);
+    if (!validCustLocs.includes(value)) {
+      return res.status(400).json({ error: 'Invalid custodial location' });
+    }
+  }
+
+  // Track results
+  let updated_count = 0;
+  const failed_updates: Array<{ asset_id: number; reason: string }> = [];
+
+  // Get user's program IDs for access check
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Update each asset
+  asset_ids.forEach((assetId: number) => {
+    const assetIndex = mockAssets.findIndex(a => a.asset_id === assetId);
+
+    if (assetIndex === -1) {
+      failed_updates.push({ asset_id: assetId, reason: 'Asset not found' });
+      return;
+    }
+
+    const asset = mockAssets[assetIndex];
+
+    // Check if user has access to this asset's program
+    if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+      failed_updates.push({ asset_id: assetId, reason: 'Access denied to this asset' });
+      return;
+    }
+
+    // Check if this is an active asset (don't update deleted assets)
+    if (!asset.active) {
+      failed_updates.push({ asset_id: assetId, reason: 'Asset is inactive/deleted' });
+      return;
+    }
+
+    // Get old value for logging
+    let oldValue = asset[field as keyof typeof asset];
+    let fieldLabel = '';
+    let oldValueDisplay = '';
+    let newValueDisplay = '';
+
+    // Apply the update
+    if (field === 'status_cd') {
+      const oldStatus = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
+      const newStatus = assetStatusCodes.find(s => s.status_cd === value);
+      fieldLabel = 'Status';
+      oldValueDisplay = oldStatus?.status_name || asset.status_cd;
+      newValueDisplay = newStatus?.status_name || value;
+      asset.status_cd = value;
+
+      // Update detailed assets if present
+      const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
+      if (detailedAsset) {
+        detailedAsset.status_cd = value;
+        detailedAsset.status_name = newStatus?.status_name || value;
+      }
+    } else if (field === 'admin_loc') {
+      const oldLoc = adminLocations.find(l => l.loc_cd === asset.admin_loc);
+      const newLoc = adminLocations.find(l => l.loc_cd === value);
+      fieldLabel = 'Admin Location';
+      oldValueDisplay = oldLoc?.loc_name || asset.admin_loc;
+      newValueDisplay = newLoc?.loc_name || value;
+      asset.admin_loc = value;
+
+      // Update detailed assets if present
+      const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
+      if (detailedAsset) {
+        detailedAsset.admin_loc = value;
+        detailedAsset.admin_loc_name = newLoc?.loc_name || value;
+      }
+    } else if (field === 'cust_loc') {
+      const oldLoc = custodialLocations.find(l => l.loc_cd === asset.cust_loc);
+      const newLoc = custodialLocations.find(l => l.loc_cd === value);
+      fieldLabel = 'Custodial Location';
+      oldValueDisplay = oldLoc?.loc_name || asset.cust_loc;
+      newValueDisplay = newLoc?.loc_name || value;
+      asset.cust_loc = value;
+
+      // Update detailed assets if present
+      const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
+      if (detailedAsset) {
+        detailedAsset.cust_loc = value;
+        detailedAsset.cust_loc_name = newLoc?.loc_name || value;
+      }
+    }
+
+    // Add to asset history
+    const historyChange: AssetHistoryChange = {
+      field: field,
+      field_label: fieldLabel,
+      old_value: oldValueDisplay,
+      new_value: newValueDisplay,
+    };
+
+    addAssetHistory(
+      assetId,
+      user,
+      'update',
+      [historyChange],
+      `Mass update: ${fieldLabel}: ${oldValueDisplay} → ${newValueDisplay}`
+    );
+
+    // Add to activity log
+    const now = new Date();
+    const newActivity: ActivityLogEntry = {
+      activity_id: 1000 + dynamicActivityLog.length + 1,
+      timestamp: now.toISOString(),
+      user_id: user.user_id,
+      username: user.username,
+      user_full_name: `${user.first_name} ${user.last_name}`,
+      action_type: 'update',
+      entity_type: 'asset',
+      entity_id: assetId,
+      entity_name: asset.serno,
+      description: `Mass update: ${fieldLabel} changed from ${oldValueDisplay} to ${newValueDisplay}`,
+      pgm_id: asset.pgm_id,
+    };
+    dynamicActivityLog.push(newActivity);
+
+    updated_count++;
+  });
+
+  console.log(`[ASSETS] Mass update by ${user.username}: Updated ${updated_count} asset(s), ${failed_updates.length} failed`);
+
+  res.json({
+    message: `Successfully updated ${updated_count} asset(s)`,
+    updated_count,
+    failed_count: failed_updates.length,
+    failed_updates: failed_updates.length > 0 ? failed_updates : undefined,
+  });
+});
+
 // POST /api/assets - Create a new asset (requires authentication and depot_manager/admin role)
 app.post('/api/assets', (req, res) => {
   const payload = authenticateRequest(req, res);
@@ -8556,6 +8733,79 @@ app.get('/api/reference/software-versions', (req, res) => {
   res.json({
     versions,
     total: versions.length,
+  });
+});
+
+// Get all parts orders (list)
+app.get('/api/parts-orders', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get all orders
+  const allOrders = generateMockPartsOrders();
+
+  // Filter by user's accessible programs
+  let filteredOrders = allOrders.filter(order => userProgramIds.includes(order.pgm_id));
+
+  // Apply filters from query parameters
+  const statusFilter = req.query.status as string | undefined;
+  const priorityFilter = req.query.priority as string | undefined;
+  const searchQuery = req.query.search as string | undefined;
+
+  if (statusFilter) {
+    filteredOrders = filteredOrders.filter(order => order.status === statusFilter);
+  }
+
+  if (priorityFilter) {
+    filteredOrders = filteredOrders.filter(order => order.priority === priorityFilter);
+  }
+
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    filteredOrders = filteredOrders.filter(order =>
+      order.part_no.toLowerCase().includes(query) ||
+      order.part_name.toLowerCase().includes(query) ||
+      order.nsn.toLowerCase().includes(query) ||
+      (order.asset_sn && order.asset_sn.toLowerCase().includes(query)) ||
+      (order.job_no && order.job_no.toLowerCase().includes(query))
+    );
+  }
+
+  // Add program info for display
+  const ordersWithProgram = filteredOrders.map(order => {
+    const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
+    return {
+      ...order,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    };
+  });
+
+  // Sort by order date (newest first)
+  ordersWithProgram.sort((a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime());
+
+  // Pagination
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const offset = (page - 1) * limit;
+  const paginatedOrders = ordersWithProgram.slice(offset, offset + limit);
+
+  console.log(`[PARTS ORDERS] List request by ${user.username} - Total: ${ordersWithProgram.length}, Page: ${page}`);
+
+  res.json({
+    orders: paginatedOrders,
+    total: ordersWithProgram.length,
+    page,
+    limit,
+    totalPages: Math.ceil(ordersWithProgram.length / limit),
   });
 });
 
