@@ -1,0 +1,396 @@
+### Page state
+- Page URL: http://localhost:5173/dashboard
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e28]:
+  - link "Skip to main content" [ref=e29] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e30]: CUI - Controlled Unclassified Information
+  - navigation [ref=e32]:
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - button "Toggle sidebar" [ref=e36] [cursor=pointer]:
+          - img [ref=e37]
+        - generic [ref=e39]:
+          - generic [ref=e40]: RIMSS
+          - generic [ref=e41]: Remote Independent Maintenance Status System
+      - generic [ref=e42]:
+        - link "View notifications" [ref=e43] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e44]
+          - generic [ref=e46]: "3"
+        - 'button "Program: CRIIS" [ref=e48] [cursor=pointer]':
+          - generic [ref=e49]: "Program:"
+          - generic [ref=e50]: CRIIS
+          - img [ref=e51]
+        - button "Jane Depot" [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+          - generic [ref=e57]: Jane Depot
+          - img [ref=e58]
+  - generic [ref=e62]:
+    - navigation [ref=e63]:
+      - generic [ref=e64]:
+        - link "Dashboard" [ref=e65] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e66]
+          - text: Dashboard
+        - link "Assets" [ref=e68] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e69]
+          - text: Assets
+        - link "Configurations" [ref=e71] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e72]
+          - text: Configurations
+        - link "Maintenance" [ref=e75] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e76]
+          - text: Maintenance
+        - link "Sorties" [ref=e78] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e79]
+          - text: Sorties
+        - link "Spares" [ref=e81] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e82]
+          - text: Spares
+        - link "Parts Ordered" [ref=e84] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e85]
+          - text: Parts Ordered
+        - link "Software" [ref=e87] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e88]
+          - text: Software
+        - link "Notifications" [ref=e90] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e91]
+          - text: Notifications
+        - link "Reports" [ref=e93] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e94]
+          - text: Reports
+    - paragraph [ref=e97]: RIMSS v0.1.0
+  - main [ref=e99]:
+    - generic [ref=e101]:
+      - generic [ref=e102]:
+        - heading "Dashboard" [level=1] [ref=e103]
+        - generic [ref=e104]:
+          - generic [ref=e105]: "Last updated: Just now"
+          - button "Refresh dashboard data" [ref=e106] [cursor=pointer]:
+            - img [ref=e107]
+            - text: Refresh
+      - generic [ref=e109]:
+        - heading "Welcome, Jane Depot" [level=2] [ref=e110]
+        - paragraph [ref=e111]: You are logged in as DEPOT MANAGER
+        - paragraph [ref=e112]: "Current Program: Common Remotely Operated Integrated Reconnaissance System"
+      - generic [ref=e113]:
+        - button "Navigate to Assets" [ref=e114] [cursor=pointer]:
+          - img [ref=e115]
+          - generic [ref=e117]: Assets
+        - button "Navigate to Maintenance" [ref=e118] [cursor=pointer]:
+          - img [ref=e119]
+          - generic [ref=e121]: Maintenance
+        - button "Navigate to Configurations" [ref=e122] [cursor=pointer]:
+          - img [ref=e123]
+          - generic [ref=e126]: Configurations
+        - button "Navigate to Sorties" [ref=e127] [cursor=pointer]:
+          - img [ref=e128]
+          - generic [ref=e130]: Sorties
+        - button "Navigate to Spares" [ref=e131] [cursor=pointer]:
+          - img [ref=e132]
+          - generic [ref=e134]: Spares
+        - button "Navigate to Parts Ordered" [ref=e135] [cursor=pointer]:
+          - img [ref=e136]
+          - generic [ref=e138]: Parts Ordered
+      - generic [ref=e139]:
+        - generic [ref=e140]:
+          - heading "Asset Status Summary" [level=3] [ref=e141]
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - paragraph [ref=e145]: Total Assets
+                - paragraph [ref=e146]: "44"
+              - generic [ref=e147]:
+                - paragraph [ref=e148]: Mission Capability Rate
+                - paragraph [ref=e149]: 93%
+            - generic [ref=e150]:
+              - generic "Asset is fully operational and mission ready" [ref=e151]:
+                - paragraph [ref=e152]: FMC
+                - paragraph [ref=e153]: "39"
+              - generic "Asset can perform some but not all mission types" [ref=e154]:
+                - paragraph [ref=e155]: PMC
+                - paragraph [ref=e156]: "2"
+              - generic "Asset is down due to maintenance requirements" [ref=e157]:
+                - paragraph [ref=e158]: NMCM
+                - paragraph [ref=e159]: "1"
+              - generic "Asset is down awaiting parts/supplies" [ref=e160]:
+                - paragraph [ref=e161]: NMCS
+                - paragraph [ref=e162]: "1"
+              - generic "Asset status cannot be determined" [ref=e163]:
+                - paragraph [ref=e164]: CNDM
+                - paragraph [ref=e165]: "1"
+            - paragraph [ref=e166]: "Data for program: CRIIS"
+        - generic [ref=e167]:
+          - generic [ref=e168]:
+            - heading "PMI Due Soon" [level=3] [ref=e169]
+            - generic [ref=e170]:
+              - generic [ref=e173]: "3"
+              - generic [ref=e176]: "2"
+              - generic [ref=e179]: "2"
+          - generic [ref=e180]:
+            - button "View PMI details for Sensor Unit A" [ref=e181] [cursor=pointer]:
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - paragraph [ref=e186]: Sensor Unit A
+                  - paragraph [ref=e187]: 30-Day Inspection
+                  - paragraph [ref=e188]: CRIIS-001
+                - generic [ref=e189]:
+                  - paragraph [ref=e190]: 3 days overdue
+                  - paragraph [ref=e191]: Jan 17
+            - button "View PMI details for Sensor Unit B" [ref=e192] [cursor=pointer]:
+              - generic [ref=e193]:
+                - generic [ref=e194]:
+                  - paragraph [ref=e197]: Sensor Unit B
+                  - paragraph [ref=e198]: 90-Day Calibration
+                  - paragraph [ref=e199]: CRIIS-003
+                - generic [ref=e200]:
+                  - paragraph [ref=e201]: Due in 2 days
+                  - paragraph [ref=e202]: Jan 22
+            - button "View PMI details for Camera System X" [ref=e203] [cursor=pointer]:
+              - generic [ref=e204]:
+                - generic [ref=e205]:
+                  - paragraph [ref=e208]: Camera System X
+                  - paragraph [ref=e209]: 60-Day Check
+                  - paragraph [ref=e210]: CRIIS-004
+                - generic [ref=e211]:
+                  - paragraph [ref=e212]: Due in 6 days
+                  - paragraph [ref=e213]: Jan 26
+            - button "View PMI details for Radar Unit 01" [ref=e214] [cursor=pointer]:
+              - generic [ref=e215]:
+                - generic [ref=e216]:
+                  - paragraph [ref=e219]: Radar Unit 01
+                  - paragraph [ref=e220]: 180-Day Service
+                  - paragraph [ref=e221]: CRIIS-006
+                - generic [ref=e222]:
+                  - paragraph [ref=e223]: Due in 11 days
+                  - paragraph [ref=e224]: Jan 31
+            - button "View PMI details for Communication System" [ref=e225] [cursor=pointer]:
+              - generic [ref=e226]:
+                - generic [ref=e227]:
+                  - paragraph [ref=e230]: Communication System
+                  - paragraph [ref=e231]: 365-Day Overhaul
+                  - paragraph [ref=e232]: CRIIS-008
+                - generic [ref=e233]:
+                  - paragraph [ref=e234]: Due in 20 days
+                  - paragraph [ref=e235]: Feb 9
+            - button "View PMI details for Camera System X" [ref=e236] [cursor=pointer]:
+              - generic [ref=e237]:
+                - generic [ref=e238]:
+                  - paragraph [ref=e241]: Camera System X
+                  - paragraph [ref=e242]: 90-Day Calibration
+                  - paragraph [ref=e243]: CRIIS-004
+                - generic [ref=e244]:
+                  - paragraph [ref=e245]: Due in 44 days
+                  - paragraph [ref=e246]: Mar 5
+            - button "View PMI details for Navigation Unit" [ref=e247] [cursor=pointer]:
+              - generic [ref=e248]:
+                - generic [ref=e249]:
+                  - paragraph [ref=e252]: Navigation Unit
+                  - paragraph [ref=e253]: 365-Day Overhaul
+                  - paragraph [ref=e254]: CRIIS-010
+                - generic [ref=e255]:
+                  - paragraph [ref=e256]: Due in 119 days
+                  - paragraph [ref=e257]: May 19
+          - generic [ref=e259]:
+            - generic [ref=e260]: Due in 7 days or less
+            - generic [ref=e262]: Due in 8-30 days
+            - generic [ref=e264]: Due after 30 days
+        - generic [ref=e266]:
+          - generic [ref=e267]:
+            - heading "Open Maintenance Jobs" [level=3] [ref=e268]
+            - generic [ref=e269]:
+              - generic [ref=e272]: "1"
+              - generic [ref=e275]: "1"
+              - generic [ref=e278]: "1"
+          - generic [ref=e279]:
+            - button "View maintenance job MX-2024-001" [ref=e280] [cursor=pointer]:
+              - generic [ref=e281]:
+                - generic [ref=e282]:
+                  - paragraph [ref=e285]: Camera System X
+                  - paragraph [ref=e286]: Intermittent power failure during operation
+                  - paragraph [ref=e287]: MX-2024-001
+                - generic [ref=e288]:
+                  - paragraph [ref=e289]: Critical
+                  - paragraph [ref=e290]: 6 days open
+                  - paragraph [ref=e291]: Standard
+            - button "View maintenance job MX-2024-004" [ref=e292] [cursor=pointer]:
+              - generic [ref=e293]:
+                - generic [ref=e294]:
+                  - paragraph [ref=e297]: Communication System
+                  - paragraph [ref=e298]: Software update required per TCTO 2024-15
+                  - paragraph [ref=e299]: MX-2024-004
+                - generic [ref=e300]:
+                  - paragraph [ref=e301]: Urgent
+                  - paragraph [ref=e302]: 2 days open
+                  - paragraph [ref=e303]: TCTO
+            - button "View maintenance job MX-2024-003" [ref=e304] [cursor=pointer]:
+              - generic [ref=e305]:
+                - generic [ref=e306]:
+                  - paragraph [ref=e309]: Sensor Unit B
+                  - paragraph [ref=e310]: Scheduled PMI - 90-day calibration
+                  - paragraph [ref=e311]: MX-2024-003
+                - generic [ref=e312]:
+                  - paragraph [ref=e313]: Routine
+                  - paragraph [ref=e314]: 3 days open
+                  - paragraph [ref=e315]: PMI
+          - generic [ref=e317]:
+            - generic [ref=e318]:
+              - generic [ref=e319]: Critical
+              - generic [ref=e321]: Urgent
+              - generic [ref=e323]: Routine
+            - generic [ref=e325]: "Total: 3"
+        - generic [ref=e326]:
+          - generic [ref=e327]:
+            - heading "Parts Awaiting Action" [level=3] [ref=e328]
+            - generic [ref=e329]:
+              - generic [ref=e332]: 2 pending
+              - generic [ref=e335]: 1 ack
+          - generic [ref=e336]:
+            - button "View parts order for Power Supply Unit 24V" [ref=e337] [cursor=pointer]:
+              - generic [ref=e338]:
+                - generic [ref=e339]:
+                  - paragraph [ref=e342]: Power Supply Unit 24V
+                  - paragraph [ref=e343]: "For: Radar Unit 01"
+                  - paragraph [ref=e344]: PN-PSU-001
+                - generic [ref=e345]:
+                  - paragraph [ref=e346]: Pending
+                  - paragraph [ref=e347]: "Qty: 2"
+                  - paragraph [ref=e348]: 4 days ago
+            - button "View parts order for Lithium Battery Pack" [ref=e349] [cursor=pointer]:
+              - generic [ref=e350]:
+                - generic [ref=e351]:
+                  - paragraph [ref=e354]: Lithium Battery Pack
+                  - paragraph [ref=e355]: "For: Camera System X"
+                  - paragraph [ref=e356]: PN-BATT-009
+                - generic [ref=e357]:
+                  - paragraph [ref=e358]: Pending
+                  - paragraph [ref=e359]: "Qty: 4"
+                  - paragraph [ref=e360]: 2 days ago
+            - button "View parts order for Coaxial Cable Assembly" [ref=e361] [cursor=pointer]:
+              - generic [ref=e362]:
+                - generic [ref=e363]:
+                  - paragraph [ref=e366]: Coaxial Cable Assembly
+                  - paragraph [ref=e367]: Stock replenishment
+                  - paragraph [ref=e368]: PN-CAB-004
+                - generic [ref=e369]:
+                  - paragraph [ref=e370]: Acknowledged
+                  - paragraph [ref=e371]: "Qty: 10"
+                  - paragraph [ref=e372]: 6 days ago
+          - generic [ref=e374]:
+            - generic [ref=e375]:
+              - generic [ref=e376]: Critical (0)
+              - generic [ref=e378]: Urgent (2)
+              - generic [ref=e380]: Routine (1)
+            - generic [ref=e382]: "Total: 3"
+        - generic [ref=e383]:
+          - generic [ref=e384]:
+            - heading "Recent Activity" [level=3] [ref=e385]
+            - generic [ref=e386]: 10 recent activities
+          - generic [ref=e387]:
+            - generic [ref=e388]:
+              - generic [ref=e389]: +
+              - generic [ref=e390]:
+                - paragraph [ref=e391]: Created maintenance job MX-2024-011 for Sensor Unit A
+                - generic [ref=e392]:
+                  - generic [ref=e393]: Bob Field
+                  - generic [ref=e394]: •
+                  - generic [ref=e395]: 5m ago
+            - generic [ref=e396]:
+              - generic [ref=e397]: ×
+              - generic [ref=e398]:
+                - paragraph [ref=e399]: PERMANENTLY deleted asset CRIIS-010 (Navigation Unit) - CANNOT BE RECOVERED
+                - generic [ref=e400]:
+                  - generic [ref=e401]: John Admin
+                  - generic [ref=e402]: •
+                  - generic [ref=e403]: 23m ago
+            - generic [ref=e404]:
+              - generic [ref=e405]: ~
+              - generic [ref=e406]:
+                - paragraph [ref=e407]: "Updated asset CRIIS-001: Name: Sensor Unit A - User B Edit → Sensor Unit A"
+                - generic [ref=e408]:
+                  - generic [ref=e409]: John Admin
+                  - generic [ref=e410]: •
+                  - generic [ref=e411]: 23m ago
+            - generic [ref=e412]:
+              - generic [ref=e413]: ~
+              - generic [ref=e414]:
+                - paragraph [ref=e415]: "Updated asset CRIIS-001: Name: Sensor Unit A - User A Edit → Sensor Unit A - User B Edit"
+                - generic [ref=e416]:
+                  - generic [ref=e417]: John Admin
+                  - generic [ref=e418]: •
+                  - generic [ref=e419]: 24m ago
+            - generic [ref=e420]:
+              - generic [ref=e421]: ~
+              - generic [ref=e422]:
+                - paragraph [ref=e423]: "Updated asset CRIIS-001: Name: Sensor Unit A → Sensor Unit A - User A Edit"
+                - generic [ref=e424]:
+                  - generic [ref=e425]: John Admin
+                  - generic [ref=e426]: •
+                  - generic [ref=e427]: 24m ago
+            - generic [ref=e428]:
+              - generic [ref=e429]: 📦
+              - generic [ref=e430]:
+                - paragraph [ref=e431]: Ordered 4x Lithium Battery Pack for Camera System X
+                - generic [ref=e432]:
+                  - generic [ref=e433]: Bob Field
+                  - generic [ref=e434]: •
+                  - generic [ref=e435]: 25m ago
+            - generic [ref=e436]:
+              - generic [ref=e437]: ~
+              - generic [ref=e438]:
+                - paragraph [ref=e439]: Updated user account test_user - changed role to VIEWER
+                - generic [ref=e440]:
+                  - generic [ref=e441]: John Admin
+                  - generic [ref=e442]: •
+                  - generic [ref=e443]: 45m ago
+            - generic [ref=e444]:
+              - generic [ref=e445]: ✓
+              - generic [ref=e446]:
+                - paragraph [ref=e447]: Completed 30-Day Inspection on Sensor Unit A (CRIIS-001)
+                - generic [ref=e448]:
+                  - generic [ref=e449]: Jane Depot
+                  - generic [ref=e450]: •
+                  - generic [ref=e451]: 1h ago
+            - generic [ref=e452]:
+              - generic [ref=e453]: ~
+              - generic [ref=e454]:
+                - paragraph [ref=e455]: Updated maintenance job MX-2024-002 - added repair notes
+                - generic [ref=e456]:
+                  - generic [ref=e457]: Bob Field
+                  - generic [ref=e458]: •
+                  - generic [ref=e459]: 1h ago
+            - generic [ref=e460]:
+              - generic [ref=e461]: ↔
+              - generic [ref=e462]:
+                - paragraph [ref=e463]: Changed asset status from FMC to NMCM - Camera System X
+                - generic [ref=e464]:
+                  - generic [ref=e465]: Jane Depot
+                  - generic [ref=e466]: •
+                  - generic [ref=e467]: 2h ago
+          - generic [ref=e469]:
+            - generic [ref=e470]:
+              - generic [ref=e471]: +
+              - text: Created
+            - generic [ref=e472]:
+              - generic [ref=e473]: ~
+              - text: Updated
+            - generic [ref=e474]:
+              - generic [ref=e475]: ↔
+              - text: Status
+            - generic [ref=e476]:
+              - generic [ref=e477]: ✓
+              - text: Completed
+  - contentinfo [ref=e478]: CUI - Controlled Unclassified Information
+```

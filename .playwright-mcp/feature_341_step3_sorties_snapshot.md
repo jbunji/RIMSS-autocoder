@@ -1,0 +1,237 @@
+### Page state
+- Page URL: http://localhost:5173/sorties
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e28]:
+  - link "Skip to main content" [ref=e29] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e30]: CUI - Controlled Unclassified Information
+  - navigation [ref=e32]:
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - button "Toggle sidebar" [ref=e36] [cursor=pointer]:
+          - img [ref=e37]
+        - generic [ref=e39]:
+          - generic [ref=e40]: RIMSS
+          - generic [ref=e41]: Remote Independent Maintenance Status System
+      - generic [ref=e42]:
+        - link "View notifications" [ref=e43] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e44]
+          - generic [ref=e46]: "3"
+        - 'button "Program: CRIIS" [ref=e48] [cursor=pointer]':
+          - generic [ref=e49]: "Program:"
+          - generic [ref=e50]: CRIIS
+          - img [ref=e51]
+        - button "Jane Depot" [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+          - generic [ref=e57]: Jane Depot
+          - img [ref=e58]
+  - generic [ref=e62]:
+    - navigation [ref=e63]:
+      - generic [ref=e64]:
+        - link "Dashboard" [ref=e65] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e66]
+          - text: Dashboard
+        - link "Assets" [ref=e68] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e69]
+          - text: Assets
+        - link "Configurations" [ref=e71] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e72]
+          - text: Configurations
+        - link "Maintenance" [ref=e75] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e76]
+          - text: Maintenance
+        - link "Sorties" [active] [ref=e78] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e79]
+          - text: Sorties
+        - link "Spares" [ref=e81] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e82]
+          - text: Spares
+        - link "Parts Ordered" [ref=e84] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e85]
+          - text: Parts Ordered
+        - link "Software" [ref=e87] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e88]
+          - text: Software
+        - link "Notifications" [ref=e90] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e91]
+          - text: Notifications
+        - link "Reports" [ref=e93] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e94]
+          - text: Reports
+    - paragraph [ref=e97]: RIMSS v0.1.0
+  - main [ref=e99]:
+    - generic [ref=e479]:
+      - generic [ref=e480]:
+        - generic [ref=e481]:
+          - heading "Sorties" [level=1] [ref=e482]
+          - paragraph [ref=e483]: Track sortie missions and aircraft operations
+        - generic [ref=e484]:
+          - button "Export PDF" [ref=e485] [cursor=pointer]:
+            - img [ref=e486]
+            - text: Export PDF
+          - button "Export Excel" [ref=e488] [cursor=pointer]:
+            - img [ref=e489]
+            - text: Export Excel
+          - button "Import" [ref=e491] [cursor=pointer]:
+            - img [ref=e492]
+            - text: Import
+          - button "Add Sortie" [ref=e494] [cursor=pointer]:
+            - img [ref=e495]
+            - text: Add Sortie
+      - generic [ref=e498]:
+        - generic [ref=e499]:
+          - generic:
+            - img
+          - textbox "Search by mission ID, serial number, or tail number..." [ref=e500]
+        - generic [ref=e501]:
+          - generic [ref=e502]:
+            - generic [ref=e503]: Start Date
+            - textbox "Start Date" [ref=e504]
+          - generic [ref=e505]:
+            - generic [ref=e506]: End Date
+            - textbox "End Date" [ref=e507]
+          - generic [ref=e508]:
+            - generic [ref=e509]: Tail Number
+            - textbox "Tail Number" [ref=e510]:
+              - /placeholder: Filter by tail number...
+          - generic [ref=e511]:
+            - generic [ref=e512]: Effectiveness
+            - combobox "Effectiveness" [ref=e513]:
+              - option "All" [selected]
+              - option "Full Mission Capable"
+              - option "Partial Mission Capable"
+              - option "Non-Mission Capable"
+          - button "Clear Filters" [disabled] [ref=e515]:
+            - img [ref=e516]
+            - text: Clear Filters
+      - generic [ref=e518]:
+        - table [ref=e520]:
+          - rowgroup [ref=e521]:
+            - row "Mission ID Serial Number Tail Number Sortie Date Sortie Effect Range Current Unit Actions" [ref=e522]:
+              - columnheader "Mission ID" [ref=e523]
+              - columnheader "Serial Number" [ref=e524]
+              - columnheader "Tail Number" [ref=e525]
+              - columnheader "Sortie Date" [ref=e526]
+              - columnheader "Sortie Effect" [ref=e527]
+              - columnheader "Range" [ref=e528]
+              - columnheader "Current Unit" [ref=e529]
+              - columnheader "Actions" [ref=e530]
+          - rowgroup [ref=e531]:
+            - row "TEST-FEATURE-136-VALID-002 CRIIS-002 CRIIS-002 Jan 20, 2026 Partial Mission Capable Range Y CRIIS Edit Delete" [ref=e532] [cursor=pointer]:
+              - cell "TEST-FEATURE-136-VALID-002" [ref=e533]
+              - cell "CRIIS-002" [ref=e534]
+              - cell "CRIIS-002" [ref=e535]
+              - cell "Jan 20, 2026" [ref=e536]
+              - cell "Partial Mission Capable" [ref=e537]:
+                - generic [ref=e538]: Partial Mission Capable
+              - cell "Range Y" [ref=e539]
+              - cell "CRIIS" [ref=e540]
+              - cell "Edit Delete" [ref=e541]:
+                - generic [ref=e542]:
+                  - button "Edit" [ref=e543]:
+                    - img [ref=e544]
+                    - text: Edit
+                  - button "Delete" [ref=e546]:
+                    - img [ref=e547]
+                    - text: Delete
+            - row "TEST-FEATURE-136-VALID-001 CRIIS-001 CRIIS-001 Jan 19, 2026 Full Mission Capable Range X CRIIS Edit Delete" [ref=e549] [cursor=pointer]:
+              - cell "TEST-FEATURE-136-VALID-001" [ref=e550]
+              - cell "CRIIS-001" [ref=e551]
+              - cell "CRIIS-001" [ref=e552]
+              - cell "Jan 19, 2026" [ref=e553]
+              - cell "Full Mission Capable" [ref=e554]:
+                - generic [ref=e555]: Full Mission Capable
+              - cell "Range X" [ref=e556]
+              - cell "CRIIS" [ref=e557]
+              - cell "Edit Delete" [ref=e558]:
+                - generic [ref=e559]:
+                  - button "Edit" [ref=e560]:
+                    - img [ref=e561]
+                    - text: Edit
+                  - button "Delete" [ref=e563]:
+                    - img [ref=e564]
+                    - text: Delete
+            - row "CRIIS-SORTIE-004 CRIIS-003 AC-003 Jan 17, 2026 Full Mission Capable Range C Unit Charlie Edit Delete" [ref=e566] [cursor=pointer]:
+              - cell "CRIIS-SORTIE-004" [ref=e567]
+              - cell "CRIIS-003" [ref=e568]
+              - cell "AC-003" [ref=e569]
+              - cell "Jan 17, 2026" [ref=e570]
+              - cell "Full Mission Capable" [ref=e571]:
+                - generic [ref=e572]: Full Mission Capable
+              - cell "Range C" [ref=e573]
+              - cell "Unit Charlie" [ref=e574]
+              - cell "Edit Delete" [ref=e575]:
+                - generic [ref=e576]:
+                  - button "Edit" [ref=e577]:
+                    - img [ref=e578]
+                    - text: Edit
+                  - button "Delete" [ref=e580]:
+                    - img [ref=e581]
+                    - text: Delete
+            - row "CRIIS-SORTIE-002 CRIIS-005 AC-005 Jan 16, 2026 Partial Mission Capable Range B Unit Bravo Edit Delete" [ref=e583] [cursor=pointer]:
+              - cell "CRIIS-SORTIE-002" [ref=e584]
+              - cell "CRIIS-005" [ref=e585]
+              - cell "AC-005" [ref=e586]
+              - cell "Jan 16, 2026" [ref=e587]
+              - cell "Partial Mission Capable" [ref=e588]:
+                - generic [ref=e589]: Partial Mission Capable
+              - cell "Range B" [ref=e590]
+              - cell "Unit Bravo" [ref=e591]
+              - cell "Edit Delete" [ref=e592]:
+                - generic [ref=e593]:
+                  - button "Edit" [ref=e594]:
+                    - img [ref=e595]
+                    - text: Edit
+                  - button "Delete" [ref=e597]:
+                    - img [ref=e598]
+                    - text: Delete
+            - row "CRIIS-SORTIE-001 CRIIS-001 AC-001 Jan 14, 2026 Full Mission Capable Range A Unit Alpha Edit Delete" [ref=e600] [cursor=pointer]:
+              - cell "CRIIS-SORTIE-001" [ref=e601]
+              - cell "CRIIS-001" [ref=e602]
+              - cell "AC-001" [ref=e603]
+              - cell "Jan 14, 2026" [ref=e604]
+              - cell "Full Mission Capable" [ref=e605]:
+                - generic [ref=e606]: Full Mission Capable
+              - cell "Range A" [ref=e607]
+              - cell "Unit Alpha" [ref=e608]
+              - cell "Edit Delete" [ref=e609]:
+                - generic [ref=e610]:
+                  - button "Edit" [ref=e611]:
+                    - img [ref=e612]
+                    - text: Edit
+                  - button "Delete" [ref=e614]:
+                    - img [ref=e615]
+                    - text: Delete
+            - row "CRIIS-SORTIE-003 CRIIS-006 AC-006 Jan 9, 2026 Non-Mission Capable Range A Unit Alpha Edit Delete" [ref=e617] [cursor=pointer]:
+              - cell "CRIIS-SORTIE-003" [ref=e618]
+              - cell "CRIIS-006" [ref=e619]
+              - cell "AC-006" [ref=e620]
+              - cell "Jan 9, 2026" [ref=e621]
+              - cell "Non-Mission Capable" [ref=e622]:
+                - generic [ref=e623]: Non-Mission Capable
+              - cell "Range A" [ref=e624]
+              - cell "Unit Alpha" [ref=e625]
+              - cell "Edit Delete" [ref=e626]:
+                - generic [ref=e627]:
+                  - button "Edit" [ref=e628]:
+                    - img [ref=e629]
+                    - text: Edit
+                  - button "Delete" [ref=e631]:
+                    - img [ref=e632]
+                    - text: Delete
+        - generic [ref=e636]: Showing 6 of 6 sorties
+  - contentinfo [ref=e478]: CUI - Controlled Unclassified Information
+```
