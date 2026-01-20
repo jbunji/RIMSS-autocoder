@@ -10031,7 +10031,7 @@ app.post('/api/sorties', (req, res) => {
   }
 
   // Authorization: Only field_technician, depot_manager, and admin can create sorties
-  if (!['field_technician', 'depot_manager', 'admin'].includes(user.role_cd)) {
+  if (!['FIELD_TECHNICIAN', 'DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
     return res.status(403).json({ error: 'Insufficient permissions to create sortie' });
   }
 
