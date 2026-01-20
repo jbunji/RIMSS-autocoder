@@ -357,15 +357,15 @@ export default function PMIDetailPage() {
         <h3 className="text-sm font-medium text-gray-700 mb-3">Due Date Color Legend</h3>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-red-600"></span>
+            <span className="w-3 h-3 rounded-full bg-pmi-red"></span>
             <span className="text-sm text-gray-600">Overdue or Due within 7 days</span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+            <span className="w-3 h-3 rounded-full bg-pmi-yellow"></span>
             <span className="text-sm text-gray-600">Due in 8-30 days</span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-green-600"></span>
+            <span className="w-3 h-3 rounded-full bg-pmi-green"></span>
             <span className="text-sm text-gray-600">Due after 30 days</span>
           </div>
         </div>

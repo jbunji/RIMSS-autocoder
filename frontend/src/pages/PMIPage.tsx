@@ -40,15 +40,16 @@ interface Asset {
 // Get color class based on days until due
 function getDueDateColorClass(daysUntilDue: number): { bg: string; text: string; border: string; dot: string } {
   if (daysUntilDue < 0) {
-    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-red-600' }
+    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-pmi-red' }
   }
   if (daysUntilDue <= 7) {
-    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-red-600' }
+    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-pmi-red' }
   }
   if (daysUntilDue <= 30) {
-    return { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-400', dot: 'bg-yellow-500' }
+    return { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-400', dot: 'bg-pmi-yellow' }
   }
-  return { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-400', dot: 'bg-green-600' }
+  // Green - after 30 days (WCAG AA compliant: 5.48:1 contrast ratio)
+  return { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-400', dot: 'bg-pmi-green' }
 }
 
 function getStatusBadge(daysUntilDue: number, completed: boolean): { text: string; bgClass: string; textClass: string } {

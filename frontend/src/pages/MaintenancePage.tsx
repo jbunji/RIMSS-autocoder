@@ -3836,8 +3836,9 @@ export default function MaintenancePage() {
                           onClick={(e) => openDeleteModal(event, e)}
                           className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
                           title={`Delete ${event.job_no}`}
+                          aria-label={`Delete ${event.job_no}`}
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <TrashIcon className="h-5 w-5" aria-hidden="true" />
                         </button>
                       </td>
                     )}
