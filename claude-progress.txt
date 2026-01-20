@@ -12384,3 +12384,172 @@ Conclusion: Feature #116 is still passing. No regression detected.
 
 **Current Progress:** 142/374 features passing (38.0%)
 
+[Testing] 2026-01-20 - Feature #44 "Bad actor flagging works" - VERIFIED PASSING
+
+Feature Description: Assets can be flagged as bad actors for chronic failures
+
+Verification Steps Completed:
+✅ 1. Logged in as depot manager (Jane Depot / depot_mgr)
+✅ 2. Navigated to Assets page
+✅ 3. Verified asset CRIIS-005 displayed "BA" badge on assets list
+✅ 4. Clicked View on CRIIS-005 to see asset details
+✅ 5. Verified "Bad Actor Flag: ⚠️ Bad Actor" displayed in Status & Location section
+✅ 6. Clicked Edit Asset button
+✅ 7. Toggled bad actor flag OFF (unchecked the checkbox)
+✅ 8. Saved changes - Success message: "Asset updated successfully! Changes: Bad Actor: Yes → No"
+✅ 9. Verified "Bad Actor Flag: Not flagged" displayed after save
+✅ 10. Navigated back to Assets list - Verified "BA" badge removed from CRIIS-005
+✅ 11. Returned to asset details and edited again
+✅ 12. Toggled bad actor flag ON (checked the checkbox)
+✅ 13. Saved changes - Success message: "Asset updated successfully! Changes: Bad Actor: No → Yes"
+✅ 14. Verified "Bad Actor Flag: ⚠️ Bad Actor" displayed after save
+✅ 15. Navigated back to Assets list - Verified "BA" badge restored on CRIIS-005
+
+Key Features Verified:
+- "BA" badge displays next to serial number in assets list ✓
+- Badge has tooltip "Bad Actor" ✓
+- "⚠️ Bad Actor" indicator shows on asset details page ✓
+- Status legend explains "BA = Bad Actor (chronic failures)" ✓
+- Edit Asset form includes checkbox for bad actor flag ✓
+- Can toggle flag ON and OFF ✓
+- Changes save successfully and persist ✓
+- Backend integration working correctly ✓
+- Zero critical JavaScript errors ✓
+
+Result: NO REGRESSION FOUND - Feature #44 still passes ✓
+
+[Testing] Session complete - Feature #44 verified successfully, no regression found
+
+
+---
+
+## Session: 2026-01-20 (Feature #145) - PARALLEL EXECUTION
+
+[Feature] Feature #145 "Spare reactivation (soft delete recovery)" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Deleted spares can be reactivated
+
+**Implementation:**
+
+**Backend Changes (backend/src/index.ts):**
+1. **Added POST /api/assets/:id/reactivate endpoint** (lines 8265-8335)
+   - Authentication required (admin only)
+   - Finds asset by ID
+   - Checks if asset is already active (returns 400 if so)
+   - Sets active = true to reactivate
+   - Logs reactivation event
+   - Adds entry to activity log (audit trail)
+   - Returns success message with asset details
+
+2. **Modified GET /api/spares endpoint** (line 10519)
+   - Added support for ?show_deleted=true query parameter
+   - When show_deleted=true, filters for active=false instead of active=true
+   - Allows viewing deleted/inactive spares
+
+**Frontend Changes (frontend/src/pages/SparesPage.tsx):**
+1. **Added ArrowPathIcon import** (line 18)
+   - Used for the Reactivate button icon
+
+2. **Added showDeleted state** (line 126)
+   - Boolean state to track whether deleted spares should be shown
+   - Defaults to false (show active spares)
+
+3. **Updated fetchSpares function** (lines 203-205)
+   - Appends show_deleted=true to query params when checkbox enabled
+   - Updated dependency array to include showDeleted
+
+4. **Added handleReactivateClick function** (lines 357-381)
+   - Calls POST /api/assets/:id/reactivate endpoint
+   - Shows success message on reactivation
+   - Refreshes spares list automatically
+   - Handles errors gracefully
+
+5. **Added UI toggle checkbox** (lines 427-437)
+   - "Show deleted/inactive spares" checkbox
+   - Only visible to admin users
+   - Resets pagination to page 1 when toggled
+   - Placed next to "Search & Filter" heading
+
+6. **Modified Add Spare button visibility** (line 439)
+   - Only shows when NOT viewing deleted spares (!showDeleted)
+
+7. **Updated Actions column** (lines 614-639)
+   - Shows green "Reactivate" button when viewing deleted spares
+   - Shows Edit/Delete buttons when viewing active spares
+   - Uses ArrowPathIcon for Reactivate button
+
+**Verification Steps Completed (All 7):**
+✅ 1. Logged in as admin (John Admin)
+✅ 2. Navigated to Spares page - 4 active spares displayed
+✅ 3. Enabled "Show deleted/inactive filter" checkbox
+✅ 4. Found soft-deleted spare - CRIIS-003 (Sensor Unit B) displayed
+✅ 5. Clicked Reactivate button (green button with ArrowPathIcon)
+✅ 6. Confirmed reactivation - Success message: "Spare "CRIIS-003" reactivated successfully!"
+✅ 7. Verified spare returned to active list - Unchecked filter, now showing 5 spares (was 4)
+
+**Key Features Verified:**
+
+**Admin-Only Access:**
+- Checkbox only visible to admin users ✓
+- Backend endpoint restricted to admin role ✓
+
+**Show Deleted Filter:**
+- Checkbox toggles between active/deleted view ✓
+- When checked: Shows only deleted spares (active=false) ✓
+- When unchecked: Shows only active spares (active=true) ✓
+- Resets pagination when toggled ✓
+
+**Deleted Spares Display:**
+- CRIIS-003 (Sensor Unit B) found in deleted list ✓
+- Displayed with all details (serial, part, name, status, location) ✓
+- Count shows "Showing 1 of 1 spare parts" ✓
+
+**Reactivate Button:**
+- Green color (text-green-600) with ArrowPathIcon ✓
+- Only visible when viewing deleted spares ✓
+- Replaces Edit/Delete buttons in deleted view ✓
+- Click triggers reactivation without confirmation modal ✓
+
+**Reactivation Process:**
+- POST request to /api/assets/:id/reactivate ✓
+- Backend sets active=true ✓
+- Backend logs reactivation event ✓
+- Backend adds activity log entry ✓
+- Frontend shows success message ✓
+- Frontend refreshes spares list automatically ✓
+
+**After Reactivation:**
+- Deleted list now shows 0 spares ✓
+- Active list shows 5 spares (increased from 4) ✓
+- CRIIS-003 appears at bottom of active list ✓
+- Spare has Edit/Delete buttons (not Reactivate) ✓
+- All data intact (serial, part, name, status, location) ✓
+
+**Console Verification:**
+- Zero JavaScript errors ✓
+- Only expected React Router warnings ✓
+- Token refresh scheduled correctly ✓
+
+**Files Modified:**
+- backend/src/index.ts (added reactivate endpoint, modified spares filter)
+- frontend/src/pages/SparesPage.tsx (added checkbox, reactivate button, handler)
+
+**Technical Highlights:**
+- Soft delete recovery pattern (active flag toggle) ✓
+- Admin-only feature restriction ✓
+- Query parameter filtering for deleted items ✓
+- Automatic list refresh after reactivation ✓
+- Success message with asset serial number ✓
+- Audit trail maintained (activity log) ✓
+- Consistent with existing patterns in codebase ✓
+
+**Screenshots:**
+- feature145_spares_page_initial.png (4 active spares, checkbox visible)
+- feature145_show_deleted_spares.png (1 deleted spare with Reactivate button)
+- feature145_reactivation_success.png (success message, 0 deleted spares)
+- feature145_spare_reactivated_in_active_list.png (5 active spares, CRIIS-003 restored)
+
+[Feature] Feature #145 marked as PASSING
+
+**Current Progress:** 144/374 features passing (38.5%)
+
