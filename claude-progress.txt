@@ -1,5 +1,73 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #119)
+
+### Completed This Session:
+- Feature #119: Create TCTO record - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Admin/Depot Manager can create TCTO records
+
+**Implementation:**
+
+Backend changes (backend/src/index.ts):
+- Added POST /api/tcto endpoint with:
+  - Authentication and role-based access control (ADMIN, DEPOT_MANAGER only)
+  - Request body validation: tcto_no (required), title (required), effective_date (required),
+    compliance_deadline (required), priority (required - Routine/Urgent/Critical)
+  - Optional fields: tcto_type, sys_type, description, remarks
+  - Auto-generates tcto_id, created_at, created_by_id, created_by_name
+  - Adds new TCTO to in-memory mockTCTORecords array
+- Fixed role check case sensitivity: Changed from lowercase 'admin'/'depot_manager'
+  to uppercase 'ADMIN'/'DEPOT_MANAGER' to match mockUsers role values
+
+Frontend changes (frontend/src/pages/MaintenancePage.tsx):
+- Added canCreateTCTO permission check for ADMIN and DEPOT_MANAGER roles
+- Added NewTCTOFormData interface with all form fields
+- Added modal state variables: isNewTCTOModalOpen, newTCTOLoading, newTCTOError, newTCTOSuccess, newTCTOForm
+- Added modal helper functions:
+  - openNewTCTOModal(): Opens modal and resets form to defaults
+  - closeNewTCTOModal(): Closes modal and resets all state
+  - handleTCTOFormChange(): Updates form field values
+  - handleCreateTCTO(): Submits form to API, handles success/error, refreshes TCTO list
+- Added "Add TCTO" button to renderTCTOTable() (only visible to ADMIN/DEPOT_MANAGER)
+- Added complete New TCTO Modal dialog with form fields:
+  - TCTO Number (required text input)
+  - Title (required text input)
+  - TCTO Type (dropdown: Software, Hardware, Firmware, Calibration, Modification, Inspection)
+  - System Type (dropdown: Sensor, Radar, Camera, Communication, Navigation, Power, All Systems)
+  - Effective Date (required date input, defaults to today)
+  - Compliance Deadline (required date input, defaults to today + 30 days)
+  - Priority (required dropdown: Routine, Urgent, Critical)
+  - Description (textarea)
+  - Remarks (textarea)
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_mgr)
+2. ✅ Navigate to TCTO page - Clicked Maintenance link, then TCTO tab
+3. ✅ Click Add TCTO button - Button visible and clicked successfully
+4. ✅ Enter TCTO number - Entered "TCTO-TEST-001"
+5. ✅ Select TCTO type - Selected "Software"
+6. ✅ Select system type - Selected "Sensor"
+7. ✅ Enter effective date - Used default (2026-01-20)
+8. ✅ Enter remarks - Entered "Created during automated testing."
+9. ✅ Click save - Clicked "Create TCTO" button
+10. ✅ Verify TCTO appears in list - New TCTO visible with:
+    - TCTO-TEST-001
+    - Title: "Test TCTO for Feature Verification"
+    - Priority: Urgent
+    - Status: UPCOMING
+    - Tab count updated from "TCTO (3)" to "TCTO (4)"
+
+**Bug Fixed:**
+- Role check case sensitivity: The POST /api/tcto endpoint was checking for lowercase roles
+  ('admin', 'depot_manager') but mockUsers use uppercase roles ('ADMIN', 'DEPOT_MANAGER').
+  Fixed by updating the role check to use uppercase values.
+
+**Screenshot Evidence:**
+- .playwright-mcp/tcto-creation-verified.png - Shows TCTO tab with newly created TCTO-TEST-001
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #118)
 
 ### Completed This Session:
@@ -9399,3 +9467,39 @@ Frontend changes (frontend/src/pages/MaintenancePage.tsx):
 [Testing] Session complete - verified feature #95 (no regression found)
 
 **Current Progress:** 117/374 features passing (31.3%)
+
+---
+
+## Testing Session: 2026-01-20 (Regression Testing)
+
+[Testing] Feature #26 'Dashboard quick navigation links work' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Dashboard provides quick links to all modules
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to dashboard - Dashboard displayed with welcome message and quick links
+3. ✅ Click Assets quick link - Clicked 'Navigate to Assets' button
+4. ✅ Verify navigation to Assets page - Navigated to /assets, page showed 10 total assets
+5. ✅ Return to dashboard - Clicked Dashboard in sidebar, returned to /dashboard
+6. ✅ Click Maintenance quick link - Clicked 'Navigate to Maintenance' button
+7. ✅ Verify navigation to Maintenance page - Navigated to /maintenance, page showed 4 open jobs
+
+**Additional Verifications:**
+- ✅ All 6 quick navigation buttons present: Assets, Maintenance, Configurations, Sorties, Spares, Parts Ordered
+- ✅ Quick link buttons have proper icons and labels
+- ✅ Navigation is instant with no delays
+
+**Screenshots:**
+- feature26_dashboard_quick_links.png - Dashboard with all quick navigation buttons visible
+- feature26_assets_page.png - Assets page after clicking quick link
+- feature26_maintenance_page.png - Maintenance page after clicking quick link
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #26 (no regression found)
+
+**Current Progress:** 118/374 features passing (31.6%)
+
