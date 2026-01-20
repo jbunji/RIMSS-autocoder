@@ -808,9 +808,13 @@ export default function TCTODetailPage() {
                                   {asset.linked_repair && (
                                     <div className="flex items-center text-blue-600">
                                       <WrenchScrewdriverIcon className="h-4 w-4 mr-1" />
-                                      <span title={asset.linked_repair.narrative || 'No narrative'}>
+                                      <button
+                                        onClick={() => navigate(`/maintenance/${asset.linked_repair?.event_id}`)}
+                                        className="hover:underline font-medium"
+                                        title={asset.linked_repair.narrative || 'No narrative'}
+                                      >
                                         {asset.linked_repair.job_no}
-                                      </span>
+                                      </button>
                                     </div>
                                   )}
                                   {asset.completed_by && (
