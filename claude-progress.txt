@@ -29365,3 +29365,166 @@ Next: Session complete - Feature #250 verified and committed
 ================================================================================
 [2026-01-20 10:30 UTC] Feature #250 session complete - PARALLEL SESSION
 ================================================================================
+
+================================================================================
+[2026-01-20 10:25 UTC] Feature #249 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #249: Invalid form input shows field-level errors - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #249
+
+PROBLEM IDENTIFIED:
+The Maintenance Event form displayed errors in a single message at the top of the form
+instead of showing field-level errors next to each invalid field. This made it harder
+for users to identify which fields needed correction, especially with multiple errors.
+
+BEFORE (Bug):
+- Single error message displayed at top: "Please select an asset"
+- When submitting with multiple invalid fields, only first error shown
+- No visual indication (red borders) on invalid fields
+- User had to read error, scroll to find field, fix it, submit again to see next error
+
+AFTER (Fixed):
+- Each invalid field highlighted with red border (border-red-300)
+- Error message displayed immediately below each invalid field in red text
+- All errors shown simultaneously when form submitted
+- Errors clear automatically when user corrects the field
+- Much better UX - user can see all issues at once
+
+IMPLEMENTATION:
+
+Files Modified:
+- frontend/src/pages/MaintenancePage.tsx
+
+Changes Made:
+
+1. Added Field-Level Error State (Line 298):
+   ```typescript
+   const [newEventFieldErrors, setNewEventFieldErrors] = useState<{ [key: string]: string }>({})
+   ```
+
+2. Updated Validation Logic (Lines 1052-1072):
+   - Changed from stopping at first error to collecting all errors
+   - Stores errors in object: { asset_id: "error message", discrepancy: "error message" }
+   - Returns early if any errors exist
+
+3. Updated Asset Field (Lines 2643-2682):
+   - Added onChange handler to clear field error when corrected
+   - Added conditional red border styling when error exists
+   - Added error message paragraph below field
+
+4. Updated Discrepancy Field (Lines 2684-2714):
+   - Same pattern as Asset field
+   - Clears error on change
+   - Red border + error message display
+
+5. Updated Date In Field (Lines 2751-2780):
+   - Same pattern as other fields
+   - Complete field-level validation
+
+6. Modal Close Cleanup (Line 843):
+   - Clear all field errors when modal closes
+
+TEST EXECUTION - All 5 Steps PASSED:
+
+✅ Step 1: Logged in as depot manager (Jane Depot)
+   - Successfully authenticated
+   - Navigated to Maintenance page
+
+✅ Step 2: Submitted form with multiple invalid fields
+   - Left Asset dropdown at "Select an asset..."
+   - Left Discrepancy Description empty
+   - Clicked "Create Event" button
+
+✅ Step 3: Verified each invalid field highlighted
+   - Asset field: Red border (border-red-300 class applied)
+   - Discrepancy field: Red border (border-red-300 class applied)
+   - Visual feedback clearly indicates invalid fields
+
+✅ Step 4: Verified error message next to each field
+   - Asset field: "Please select an asset" displayed below dropdown
+   - Discrepancy field: "Please enter a discrepancy description" displayed below textarea
+   - Both errors visible simultaneously
+   - No error banner at top of form
+
+✅ Step 5: Verified no single error message at bottom only
+   - Confirmed errors are field-specific, not form-level
+   - Each error appears in context with its field
+   - Better UX than single error message approach
+
+ADDITIONAL VERIFICATION:
+
+Error Clearing Behavior:
+- Selected an asset → Asset error disappeared immediately ✓
+- Typed in Discrepancy field → Discrepancy error disappeared immediately ✓
+- Errors only show for invalid fields, not all fields ✓
+
+Console Status:
+✅ Zero JavaScript errors
+✅ Clean execution
+✅ All validation logic working correctly
+
+Screenshots Captured:
+1. feature_249_before_fix_single_error_top.png - Old behavior (error at top)
+2. feature_249_after_fix_field_level_errors.png - New behavior (errors at field level) ✅
+
+Technical Details:
+
+State Management:
+- newEventFieldErrors: Object mapping field names to error messages
+- Errors added during validation
+- Errors removed when user corrects field
+- Errors cleared when modal closes
+
+Styling:
+- Invalid fields: border-red-300 focus:border-red-500
+- Valid fields: border-gray-300 focus:border-primary-500
+- Error text: text-red-600 text-sm
+- Consistent with application design system
+
+User Experience Improvements:
+1. See all errors at once (no sequential error discovery)
+2. Visual feedback (red borders) draws eye to problem areas
+3. Errors in context (next to field, not at top)
+4. Immediate feedback (errors clear when fixed)
+5. No need to scroll to find error banner then back to field
+
+Pattern Applied:
+This field-level error pattern matches the existing UsersPage.tsx implementation,
+ensuring consistency across the application. Other forms in the codebase already
+use this pattern (confirmed via code inspection).
+
+Result: Feature #249 marked as PASSING ✅
+
+Progress: 248/374 features passing (66.3%)
+
+Session Type: PARALLEL SESSION - Single Feature Mode
+Session Duration: ~25 minutes
+Code Changes: 1 file modified (frontend/src/pages/MaintenancePage.tsx)
+Lines Modified: ~80 lines (new state, validation logic, 3 field updates, cleanup)
+Tests Executed: All 5 verification steps
+Console Errors: 0
+
+Implementation Quality Assessment:
+- Validation logic: ✓ Comprehensive, collects all errors
+- Error display: ✓ Clear, field-specific, visually distinct
+- Error clearing: ✓ Automatic when user corrects
+- Styling: ✓ Consistent with design system  
+- UX improvement: ✓ Significant - multiple errors visible at once
+- Code quality: ✓ Production-ready
+- Console: ✓ Zero errors
+- Pattern consistency: ✓ Matches existing forms (UsersPage)
+
+Feature Status: PASSING ✅
+Code Quality: Production-ready ✅
+UX Impact: HIGH - Much better error feedback ✅
+Pattern Consistency: Matches existing codebase ✅
+
+Git Commit: 9c80c4c - "Implement Feature #249: Invalid form input shows field-level errors - PASSING"
+
+Next: Session complete - Feature #249 verified and committed
+
+================================================================================
+[2026-01-20 10:30 UTC] Feature #249 session complete - PARALLEL SESSION
+================================================================================
