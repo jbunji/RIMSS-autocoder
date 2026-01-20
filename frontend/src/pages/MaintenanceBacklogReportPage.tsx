@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuthStore } from '../stores/authStore'
 import { WrenchScrewdriverIcon, ArrowDownTrayIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 interface MaintenanceEvent {
@@ -28,6 +29,7 @@ interface BacklogSummary {
 }
 
 export default function MaintenanceBacklogReportPage() {
+  const { token } = useAuthStore()
   const [events, setEvents] = useState<MaintenanceEvent[]>([])
   const [summary, setSummary] = useState<BacklogSummary>({
     totalOpen: 0,
@@ -50,10 +52,9 @@ export default function MaintenanceBacklogReportPage() {
   const fetchBacklogData = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
 
       // Fetch open maintenance events
-      const response = await fetch('/api/events?status=open&limit=1000', {
+      const response = await fetch('http://localhost:3001/api/events?status=open&limit=1000', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
