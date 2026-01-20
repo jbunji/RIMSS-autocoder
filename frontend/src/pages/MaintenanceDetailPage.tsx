@@ -341,6 +341,7 @@ export default function MaintenanceDetailPage() {
   const [closingRepair, setClosingRepair] = useState<Repair | null>(null)
   const [closeRepairDate, setCloseRepairDate] = useState(new Date().toISOString().split('T')[0])
   const [closeRepairEtiOut, setCloseRepairEtiOut] = useState<string>('') // ETI Out value for closing repair
+  const [closeRepairMeterChanged, setCloseRepairMeterChanged] = useState(false) // Meter changed flag for closing repair
   const [closeRepairLoading, setCloseRepairLoading] = useState(false)
   const [closeRepairError, setCloseRepairError] = useState<string | null>(null)
   const [closeRepairSuccess, setCloseRepairSuccess] = useState<string | null>(null)
@@ -1939,6 +1940,7 @@ export default function MaintenanceDetailPage() {
     setIsCloseRepairModalOpen(false)
     setClosingRepair(null)
     setCloseRepairEtiOut('')
+    setCloseRepairMeterChanged(false)
     setCloseRepairError(null)
     setCloseRepairSuccess(null)
   }
@@ -1957,11 +1959,11 @@ export default function MaintenanceDetailPage() {
       return
     }
 
-    // Validate ETI Out >= ETI In if both are provided
-    if (closeRepairEtiOut && closingRepair.eti_in !== null) {
+    // Validate ETI Out >= ETI In if both are provided (unless meter was changed)
+    if (closeRepairEtiOut && closingRepair.eti_in !== null && !closeRepairMeterChanged) {
       const etiOutValue = parseFloat(closeRepairEtiOut)
       if (etiOutValue < closingRepair.eti_in) {
-        setCloseRepairError(`ETI Out (${etiOutValue}) cannot be less than ETI In (${closingRepair.eti_in})`)
+        setCloseRepairError(`ETI Out (${etiOutValue}) cannot be less than ETI In (${closingRepair.eti_in}). If the meter was replaced, check the "Meter Changed" checkbox.`)
         return
       }
     }
@@ -1980,6 +1982,7 @@ export default function MaintenanceDetailPage() {
           stop_date: closeRepairDate,
           shop_status: 'closed',
           eti_out: closeRepairEtiOut || null, // Include ETI Out value
+          meter_changed: closeRepairMeterChanged, // Include meter changed flag
         }),
       })
 
@@ -5070,6 +5073,24 @@ export default function MaintenanceDetailPage() {
                     ETI Delta: {(parseFloat(closeRepairEtiOut) - closingRepair.eti_in).toFixed(2)} hours
                   </p>
                 )}
+
+                {/* Meter Changed Checkbox */}
+                <div className="mt-3 flex items-start">
+                  <input
+                    type="checkbox"
+                    id="close_repair_meter_changed"
+                    checked={closeRepairMeterChanged}
+                    onChange={(e) => setCloseRepairMeterChanged(e.target.checked)}
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    disabled={closeRepairLoading || !!closeRepairSuccess}
+                  />
+                  <label htmlFor="close_repair_meter_changed" className="ml-2 text-sm text-blue-800">
+                    <span className="font-medium">Meter Changed</span>
+                    <span className="block text-xs text-blue-600 mt-0.5">
+                      Check this box if the physical meter was replaced during repair (allows ETI Out to be less than ETI In)
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
 
