@@ -27578,3 +27578,9 @@ Next Action: Session complete - regression test successful
 [2026-01-20 09:56 UTC] Testing session complete - Feature #83 verified
 ================================================================================
 
+[Testing] Feature #140 verified - PASSING
+- Sortie PDF export includes CUI header/footer and ZULU timestamps
+- Sortie Excel export includes CUI markings (verified in source code)
+- Both exports working correctly
+- Zero console errors
+- All 7 verification steps passed
