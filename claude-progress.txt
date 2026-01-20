@@ -9729,3 +9729,52 @@ Frontend changes (frontend/src/pages/MaintenancePage.tsx):
 
 **Current Progress:** 122/374 features passing (32.6%)
 
+
+
+---
+
+## Session: 2026-01-20 (Feature #122)
+
+[Feature] Feature #122 "TCTO number unique per program" - VERIFIED AND PASSING
+
+**Feature Description:** TCTO numbers must be unique within a program
+
+**Implementation Status:** Already implemented in backend - this was a verification-only task
+
+The backend already has duplicate checking logic that:
+- Searches existing TCTOs for matching number (case-insensitive) within the same program
+- Returns 400 error with message "TCTO number already exists for this program" if duplicate found
+
+**Verification Steps Completed:**
+1. Log in as depot manager - Logged in as admin (John Admin) for multi-program access
+2. Create TCTO with number TCTO-001 for CRIIS - Successfully created
+   - Tab count changed from 3 to 4 TCTOs
+3. Attempt to create another TCTO-001 for CRIIS - Error displayed
+   - Error message: "TCTO number already exists for this program" (red alert)
+   - API returned 400 Bad Request as expected
+4. Verify error about duplicate - Screenshot captured showing error message
+5. Create TCTO-001 for ACTS - Successfully created
+   - Switched to ACTS program
+   - Tab count changed from 1 to 2 TCTOs
+   - Title: "TCTO-001 for ACTS program - different program test"
+6. Verify success (different program) - Both programs now have TCTO-001
+   - CRIIS: TCTO-001 with title "Test TCTO for uniqueness verification"
+   - ACTS: TCTO-001 with title "TCTO-001 for ACTS program - different program test"
+
+**Key Verification Points:**
+- Same TCTO number CAN exist in different programs
+- Same TCTO number CANNOT be duplicated within the same program
+- Error message is user-friendly and specific
+- Case-insensitive matching works correctly
+
+**Screenshots:**
+- feature122_duplicate_tcto_error.png - Error when creating duplicate TCTO-001 in CRIIS
+- feature122_tcto001_success_acts.png - TCTO-001 successfully created in ACTS program
+- feature122_tcto001_in_criis.png - CRIIS program showing its own TCTO-001
+
+**Console errors:** None related to feature
+
+[Feature] Feature #122 marked as PASSING
+
+**Current Progress:** 122/374 features passing (32.6%)
+
