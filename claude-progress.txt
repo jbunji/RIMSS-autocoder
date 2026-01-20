@@ -17468,3 +17468,120 @@ Current Progress: 183/374 features passing (48.9%)
 Next: Session complete - Feature #184 verified and committed
 
 Feature #185 COMPLETED - Sortie Report - Tue Jan 20 01:21:07 EST 2026
+[Testing] Feature #114 - Auto-PMI creation for ECU actions - VERIFIED AND PASSING
+
+Summary:
+✅ Step 1: Logged in as field technician (Bob Field / field_tech)
+✅ Step 2: Created repair with ECU part action on maintenance event MX-DEP-2026-002
+✅ Step 3: Saved repair - Repair #1 created successfully
+✅ Step 4: Added labor record #1 to repair
+✅ Step 5: Added ECU part action - 'ECU Control Unit' with action INSTALLED
+✅ Step 6: Backend log confirmed: 'Auto-created PMI #100 for ECU part action - Asset: CRIIS-001, Due: 2026-02-19'
+✅ Step 7: Navigated to PMI page and verified new PMI auto-created
+✅ Step 8: Verified PMI details - ECU Post-Action Inspection (INSTALLED), 30-Day interval, Due Feb 18, 2026
+
+Technical Details:
+- Backend detects 'ecu' in part name (case-insensitive)
+- Auto-creates PMI with 30-day due date from part action date
+- PMI type: 'ECU Post-Action Inspection (INSTALLED)'
+- Zero console errors (only initial 401 from wrong password attempts)
+- Screenshots captured documenting all steps
+
+[Testing] Feature #79 verified - still passing - Tue Jan 20 01:21:40 EST 2026
+
+================================================================================
+Testing Session: Tue Jan 20 01:22:08 EST 2026 - Feature #79 REGRESSION TEST COMPLETE
+================================================================================
+
+Feature #79: Maintenance backlog view grouped by configuration
+
+Test Result: ✅ PASSING - NO REGRESSION FOUND
+
+All 7 verification steps completed successfully:
+✅ Step 1: Logged in as admin user
+✅ Step 2: Navigated to Maintenance > Backlog tab
+✅ Step 3: Verified grouping by configuration displays (5 configs, 6 events)
+✅ Step 4: Expanded configuration group (Sensor Unit A)
+✅ Step 5: Verified events for that configuration list (2 events displayed)
+✅ Step 6: Collapsed group successfully
+✅ Step 7: Verified proper accordion behavior (tested multiple groups)
+
+Technical Verification:
+- Zero console errors
+- Zero JavaScript warnings (except React Router future flags)
+- All API calls successful
+- Real database data displayed correctly
+- Program-based filtering working (CRIIS)
+- Smooth accordion animations
+- List/Grouped toggle works perfectly
+- PQDR badges display correctly
+- Priority badges color-coded properly
+- Expand/Collapse All buttons present
+
+Screenshots saved:
+- feature_79_grouped_backlog_view.png
+- feature_79_camera_group_expanded.png
+
+Documentation: FEATURE_79_REGRESSION_TEST.md
+
+Conclusion: Feature #79 is fully functional with no regressions. No fixes needed.
+
+Session complete.
+
+[Testing] Feature #121 regression test - PASSED - Delete TCTO record functionality verified
+[Testing] Session complete - Feature #121 verified successfully - No regression found
+[Testing] Feature #162 verified - Parts order export with CUI markings - PASSING
+
+================================================================================
+Testing Session: 2026-01-20 06:21-06:22 UTC - Feature #162 Regression Test
+================================================================================
+
+Feature #162: Parts order export with CUI markings
+Status: ✅ PASSING - No regression found
+
+Test Summary:
+✅ Step 1: Logged in as admin user
+✅ Step 2: Navigated to Parts Ordered page (9 orders displayed)
+✅ Step 3: Exported to PDF (CUI-Parts-Orders-20260120.pdf - 22KB)
+✅ Step 4: Verified CUI header/footer in PDF (code analysis confirmed)
+✅ Step 5: Exported to Excel (CUI-Parts-Orders-20260120.xlsx - 25KB)
+✅ Step 6: Verified CUI markings in Excel (automated script confirmed)
+
+PDF Export Verification:
+- CUI Header: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+- CUI Footer: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+- Yellow banners (#FEF3C7) on every page
+- Bold, centered text
+- Implementation verified in PartsOrderedPage.tsx lines 216-243
+
+Excel Export Verification:
+- Row 1: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+- Row 18: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+- Includes report metadata, timestamp, order count
+- 9 orders with complete details (19 columns)
+- Automated verification script confirmed all CUI markings present
+
+Technical Verification:
+✓ Zero JavaScript console errors
+✓ All API calls successful (200 OK)
+✓ Network requests show proper data retrieval
+✓ Both export files downloaded successfully
+✓ File sizes reasonable (PDF: 22KB, Excel: 25KB)
+✓ Program-based filtering respected
+✓ Authentication and authorization enforced
+
+Test Data:
+- 9 orders tested (various statuses: Pending, Acknowledged, Shipped, Received)
+- 2 PQDR orders included (Jan 16 and Jan 11)
+- Multiple priority levels (Routine, Urgent, Critical)
+- Multiple requestors (Bob Field, Jane Depot)
+
+Artifacts Created:
+- FEATURE_162_REGRESSION_TEST.md (comprehensive test report)
+- verify_parts_orders_cui.js (Excel validation script)
+- feature-162-parts-ordered-page.png (screenshot)
+
+Result: Feature #162 continues to work correctly. No regression found.
+No code changes needed. Feature remains PASSING.
+
+Session complete - Feature #162 verified successfully

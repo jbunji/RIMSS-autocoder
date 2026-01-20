@@ -1,4 +1,4 @@
-import { DocumentChartBarIcon, CubeIcon, WrenchScrewdriverIcon, CalendarDaysIcon, TruckIcon, CheckCircleIcon, RocketLaunchIcon } from '@heroicons/react/24/outline'
+import { DocumentChartBarIcon, CubeIcon, WrenchScrewdriverIcon, CalendarDaysIcon, TruckIcon, CheckCircleIcon, RocketLaunchIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from 'react-router-dom'
 
 interface ReportCard {
@@ -55,6 +55,15 @@ const reports: ReportCard[] = [
     icon: RocketLaunchIcon,
     category: 'Operations',
     route: '/reports/sorties',
+    available: true,
+  },
+  {
+    id: 'bad-actors',
+    name: 'Bad Actor Report',
+    description: 'Assets flagged as bad actors due to repeated failures, with failure history and risk assessment.',
+    icon: ExclamationTriangleIcon,
+    category: 'Maintenance',
+    route: '/reports/bad-actors',
     available: true,
   },
 ]

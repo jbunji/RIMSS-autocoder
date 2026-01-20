@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { WrenchScrewdriverIcon, ArrowDownTrayIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 
 interface MaintenanceEvent {
   event_id: number
@@ -139,12 +142,243 @@ export default function MaintenanceBacklogReportPage() {
     return grouped
   }
 
+  // Helper function to get ZULU timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Helper function to get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  }
+
   const exportToPDF = () => {
-    alert('PDF export functionality will be implemented')
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const user = useAuthStore.getState().user
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+    }
+
+    // Add header
+    addCuiHeader()
+
+    // Title
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text('RIMSS Maintenance Backlog Report', pageWidth / 2, 20, { align: 'center' })
+
+    // Metadata
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
+    doc.text(`Total Open Events: ${summary.totalOpen}`, 14, 33)
+    doc.text(`Critical: ${summary.critical} | Urgent: ${summary.urgent} | Routine: ${summary.routine}`, 14, 38)
+    if (user?.program_cd && user?.program_name) {
+      doc.text(`Program: ${user.program_cd} - ${user.program_name}`, 14, 43)
+    }
+
+    // Get filtered events based on current filters
+    const filteredEvents = getFilteredEvents()
+
+    // Prepare table data
+    const tableHeaders = [
+      'Job No',
+      'Asset',
+      'System',
+      'Discrepancy',
+      'Priority',
+      'Type',
+      'Started',
+      'Location'
+    ]
+
+    const tableData = filteredEvents.map(event => [
+      event.job_no,
+      `${event.asset_name || '-'} (${event.asset_sn})`,
+      event.system_type || 'Unknown',
+      event.discrepancy.substring(0, 40) + (event.discrepancy.length > 40 ? '...' : ''),
+      event.priority,
+      event.event_type + (event.pqdr ? ' (PQDR)' : ''),
+      formatDate(event.start_job),
+      event.location
+    ])
+
+    // Generate table
+    const startY = user?.program_cd ? 48 : 43
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: startY,
+      margin: { left: 14, right: 14, top: 15, bottom: 15 },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246], // primary-600
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251], // gray-50
+      },
+      didDrawPage: (data: any) => {
+        const pageCount = (doc as any).internal.pages.length - 1
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+        addCuiFooter(currentPage, pageCount)
+      },
+    })
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Maintenance-Backlog-Report-${zuluDate}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
   }
 
   const exportToExcel = () => {
-    alert('Excel export functionality will be implemented')
+    const zuluTimestamp = getZuluTimestamp()
+    const filteredEvents = getFilteredEvents()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = ['RIMSS Maintenance Backlog Report']
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total Open Events: ${filteredEvents.length}`]
+    const reportInfoRow4 = [`Critical: ${summary.critical} | Urgent: ${summary.urgent} | Routine: ${summary.routine}`]
+    const reportInfoRow5 = [`Overdue PMI: ${summary.overduePMI} | Open PQDR: ${summary.openPQDR}`]
+
+    // Table header row
+    const headerRow = [
+      'Job No',
+      'Asset',
+      'Serial Number',
+      'System Type',
+      'Discrepancy',
+      'Priority',
+      'Type',
+      'Started',
+      'Location',
+      'Assigned To',
+      'Est. Hours',
+      'PQDR'
+    ]
+
+    // Data rows
+    const dataRows = filteredEvents.map(event => [
+      event.job_no,
+      event.asset_name || '',
+      event.asset_sn || '',
+      event.system_type || '',
+      event.discrepancy,
+      event.priority,
+      event.event_type,
+      formatDate(event.start_job),
+      event.location || '',
+      event.assigned_to || '',
+      event.estimated_hours?.toString() || '',
+      event.pqdr ? 'Yes' : 'No'
+    ])
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      reportInfoRow4,
+      reportInfoRow5,
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 15 },  // Job No
+      { wch: 30 },  // Asset
+      { wch: 20 },  // Serial Number
+      { wch: 20 },  // System Type
+      { wch: 40 },  // Discrepancy
+      { wch: 12 },  // Priority
+      { wch: 15 },  // Type
+      { wch: 12 },  // Started
+      { wch: 15 },  // Location
+      { wch: 20 },  // Assigned To
+      { wch: 10 },  // Est. Hours
+      { wch: 8 },   // PQDR
+    ]
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Maintenance Backlog')
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Maintenance-Backlog-Report-${zuluDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(wb, filename)
   }
 
   const getPriorityColor = (priority: string): string => {

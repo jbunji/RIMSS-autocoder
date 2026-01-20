@@ -13594,6 +13594,99 @@ app.get('/api/reports/pmi-schedule', (req, res) => {
   }
 });
 
+// =============================================================================
+// Bad Actor Report Endpoint
+// =============================================================================
+
+// GET /api/reports/bad-actors - Get bad actor report
+app.get('/api/reports/bad-actors', (req, res) => {
+  try {
+    const userPrograms = (req.user as User)?.programs || [];
+    const userRole = (req.user as User)?.role;
+    const isAdmin = userRole === 'ADMIN';
+
+    // Filter bad actors by user's program access
+    let badActors = detailedAssets.filter(asset => asset.bad_actor === true);
+
+    // Apply program filter unless admin
+    if (!isAdmin && userPrograms.length > 0) {
+      badActors = badActors.filter(asset => userPrograms.includes(asset.pgm_id));
+    }
+
+    // For each bad actor, gather failure history from maintenance events
+    const badActorData = badActors.map(asset => {
+      // Find all maintenance events for this asset
+      const assetEvents = maintenanceEvents.filter(event => event.asset_id === asset.asset_id);
+
+      // Count repairs and failures
+      const totalEvents = assetEvents.length;
+      const criticalEvents = assetEvents.filter(e => e.priority === 'Critical').length;
+      const urgentEvents = assetEvents.filter(e => e.priority === 'Urgent').length;
+
+      // Find most recent event
+      const sortedEvents = assetEvents.sort((a, b) =>
+        new Date(b.open_date).getTime() - new Date(a.open_date).getTime()
+      );
+      const lastFailureDate = sortedEvents[0]?.open_date || null;
+
+      // Get program info
+      const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
+
+      return {
+        asset_id: asset.asset_id,
+        serno: asset.serno,
+        partno: asset.partno,
+        part_name: asset.part_name,
+        system_type: asset.system_type || 'Unknown',
+        status_cd: asset.status_cd,
+        status_name: asset.status_name,
+        location: asset.location,
+        loc_type: asset.loc_type,
+        program: program ? {
+          pgm_id: program.pgm_id,
+          pgm_cd: program.pgm_cd,
+          pgm_name: program.pgm_name,
+        } : null,
+        failure_count: totalEvents,
+        critical_failures: criticalEvents,
+        urgent_failures: urgentEvents,
+        last_failure_date: lastFailureDate,
+        remarks: asset.remarks,
+      };
+    });
+
+    // Sort by failure count (highest first)
+    badActorData.sort((a, b) => b.failure_count - a.failure_count);
+
+    // Calculate summary statistics
+    const totalBadActors = badActorData.length;
+    const totalFailures = badActorData.reduce((sum, ba) => sum + ba.failure_count, 0);
+    const criticalFailures = badActorData.reduce((sum, ba) => sum + ba.critical_failures, 0);
+    const urgentFailures = badActorData.reduce((sum, ba) => sum + ba.urgent_failures, 0);
+
+    // Get program info for display
+    const programIds = [...new Set(badActorData.map(ba => ba.program?.pgm_id).filter(Boolean))];
+    const programs = programIds.map(id => allPrograms.find(p => p.pgm_id === id)).filter(Boolean);
+
+    res.json({
+      program: programs.length === 1 ? programs[0] : null,
+      programs: programs,
+      summary: {
+        total_bad_actors: totalBadActors,
+        total_failures: totalFailures,
+        critical_failures: criticalFailures,
+        urgent_failures: urgentFailures,
+        average_failures_per_asset: totalBadActors > 0 ? (totalFailures / totalBadActors).toFixed(1) : 0,
+      },
+      bad_actors: badActorData,
+      generated_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error generating bad actor report:', error);
+    res.status(500).json({ error: 'Failed to generate bad actor report' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`

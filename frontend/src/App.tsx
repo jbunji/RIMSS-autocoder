@@ -31,6 +31,7 @@ import MaintenanceBacklogReportPage from './pages/MaintenanceBacklogReportPage'
 import PMIScheduleReportPage from './pages/PMIScheduleReportPage'
 import PartsOrderedReportPage from './pages/PartsOrderedReportPage'
 import SortieReportPage from './pages/SortieReportPage'
+import BadActorReportPage from './pages/BadActorReportPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -113,6 +114,7 @@ function App() {
           <Route path="/reports/pmi-schedule" element={<PMIScheduleReportPage />} />
           <Route path="/reports/parts-ordered" element={<PartsOrderedReportPage />} />
           <Route path="/reports/sorties" element={<SortieReportPage />} />
+          <Route path="/reports/bad-actors" element={<BadActorReportPage />} />
           <Route path="/admin" element={<PlaceholderPage title="Admin" />} />
           <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/profile" element={<ProfilePage />} />

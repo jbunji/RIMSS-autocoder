@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { ChevronDownIcon, ChevronUpIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
+import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface AssetDetails {
   asset_id: number
@@ -91,9 +94,243 @@ export default function InventoryReportPage() {
     })
   }
 
-  const handleExport = () => {
-    // TODO: Implement export to PDF/Excel
-    console.log('Export functionality to be implemented')
+  // Helper function to get ZULU timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Helper function to get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  const exportToPDF = () => {
+    if (!reportData) return
+
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+    }
+
+    // Add header
+    addCuiHeader()
+
+    // Title
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text('RIMSS Inventory Report by System Type', pageWidth / 2, 20, { align: 'center' })
+
+    // Metadata
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
+    doc.text(`Program: ${reportData.program.pgm_cd} - ${reportData.program.pgm_name}`, 14, 33)
+    doc.text(`Total Assets: ${reportData.total_assets} | System Types: ${reportData.system_types.length}`, 14, 38)
+
+    let yPos = 43
+
+    // Add each system type section
+    reportData.system_types.forEach((systemType, index) => {
+      // Check if we need a new page
+      if (yPos > pageHeight - 40) {
+        doc.addPage()
+        addCuiHeader()
+        yPos = 18
+      }
+
+      // System type header
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`System: ${systemType.system_type || 'Unknown'} (${systemType.total_count} assets)`, 14, yPos)
+      yPos += 5
+
+      // Status breakdown
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'normal')
+      const statusBreakdown = Object.entries(systemType.status_breakdown)
+        .map(([status, count]) => `${status}: ${count}`)
+        .join(' | ')
+      doc.text(`Status: ${statusBreakdown}`, 14, yPos)
+      yPos += 5
+
+      // Asset table
+      const tableHeaders = ['Serial Number', 'Part Number', 'Part Name', 'Status', 'Location']
+      const tableData = systemType.assets.map(asset => [
+        asset.serno,
+        asset.partno,
+        asset.part_name ? asset.part_name.substring(0, 30) : '',
+        asset.status_name,
+        asset.location || '-'
+      ])
+
+      autoTable(doc, {
+        head: [tableHeaders],
+        body: tableData,
+        startY: yPos,
+        margin: { left: 14, right: 14 },
+        styles: {
+          fontSize: 7,
+          cellPadding: 1.5,
+        },
+        headStyles: {
+          fillColor: [59, 130, 246],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [249, 250, 251],
+        },
+        didDrawPage: (data: any) => {
+          const pageCount = (doc as any).internal.pages.length - 1
+          const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+          addCuiFooter(currentPage, pageCount)
+        },
+      })
+
+      // Update yPos after table
+      const finalY = (doc as any).lastAutoTable.finalY
+      yPos = finalY + 8
+    })
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Inventory-Report-${zuluDate}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  const exportToExcel = () => {
+    if (!reportData) return
+
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = ['RIMSS Inventory Report by System Type']
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Program: ${reportData.program.pgm_cd} - ${reportData.program.pgm_name}`]
+    const reportInfoRow4 = [`Total Assets: ${reportData.total_assets}`]
+    const reportInfoRow5 = [`System Types: ${reportData.system_types.length}`]
+
+    const allRows: any[] = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      reportInfoRow4,
+      reportInfoRow5,
+      blankRow
+    ]
+
+    // Add each system type section
+    reportData.system_types.forEach((systemType) => {
+      // System type header
+      allRows.push([`System Type: ${systemType.system_type || 'Unknown'}`])
+      allRows.push([`Total Assets: ${systemType.total_count}`])
+
+      // Status breakdown
+      const statusBreakdown = Object.entries(systemType.status_breakdown)
+        .map(([status, count]) => `${status}: ${count}`)
+        .join(' | ')
+      allRows.push([`Status Breakdown: ${statusBreakdown}`])
+      allRows.push(blankRow)
+
+      // Asset table header
+      allRows.push([
+        'Serial Number',
+        'Part Number',
+        'Part Name',
+        'Status',
+        'Location',
+        'Location Type'
+      ])
+
+      // Asset rows
+      systemType.assets.forEach(asset => {
+        allRows.push([
+          asset.serno,
+          asset.partno,
+          asset.part_name || '',
+          asset.status_name,
+          asset.location || '',
+          asset.loc_type || ''
+        ])
+      })
+
+      allRows.push(blankRow)
+      allRows.push(blankRow)
+    })
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+    allRows.push(cuiFooterRow)
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 20 },  // Serial Number / System Type
+      { wch: 20 },  // Part Number
+      { wch: 30 },  // Part Name
+      { wch: 15 },  // Status
+      { wch: 20 },  // Location
+      { wch: 15 },  // Location Type
+    ]
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory Report')
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Inventory-Report-${zuluDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(wb, filename)
   }
 
   if (loading) {
@@ -127,13 +364,24 @@ export default function InventoryReportPage() {
               Program: {reportData.program.pgm_name} ({reportData.program.pgm_cd})
             </p>
           </div>
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-          >
-            <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
-            Export Report
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={exportToPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              title="Export to PDF"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              Export PDF
+            </button>
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              title="Export to Excel"
+            >
+              <DocumentArrowDownIcon className="h-5 w-5" />
+              Export Excel
+            </button>
+          </div>
         </div>
       </div>
 

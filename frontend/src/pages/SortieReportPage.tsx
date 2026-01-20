@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { DocumentArrowDownIcon, CalendarIcon } from '@heroicons/react/24/outline'
+import * as XLSX from 'xlsx'
 
 interface Sortie {
   sortie_id: number
@@ -124,9 +125,113 @@ export default function SortieReportPage() {
     fetchSortieReport()
   }
 
+  // Helper function to get ZULU timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Helper function to get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
   const handleExport = () => {
-    // TODO: Implement export to PDF/Excel
-    console.log('Export functionality to be implemented')
+    if (!summary || sorties.length === 0) return
+
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = ['RIMSS Sortie Report']
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = user?.program_cd ? [`Program: ${user.program_cd} - ${user.program_name}`] : []
+    const reportInfoRow4 = [`Date Range: ${formatDate(summary.date_range.start)} to ${formatDate(summary.date_range.end)}`]
+    const reportInfoRow5 = [`Total Sorties: ${summary.total_sorties}`]
+    const reportInfoRow6 = [`FMC: ${summary.fmc_count} | PMC: ${summary.pmc_count} | NMCM: ${summary.nmcm_count} | NMCS: ${summary.nmcs_count}`]
+
+    // Table header row
+    const headerRow = [
+      'Mission ID',
+      'Serial Number',
+      'Tail Number',
+      'Sortie Date',
+      'Sortie Effect',
+      'Current Unit',
+      'Assigned Unit',
+      'Range',
+      'Reason',
+      'Remarks'
+    ]
+
+    // Data rows
+    const dataRows = sorties.map(sortie => [
+      sortie.mission_id,
+      sortie.serno,
+      sortie.ac_tailno || '',
+      formatDate(sortie.sortie_date),
+      sortie.sortie_effect || '',
+      sortie.current_unit || '',
+      sortie.assigned_unit || '',
+      sortie.range || '',
+      sortie.reason || '',
+      sortie.remarks || ''
+    ])
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      ...(reportInfoRow3.length ? [reportInfoRow3] : []),
+      reportInfoRow4,
+      reportInfoRow5,
+      reportInfoRow6,
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 20 },  // Mission ID
+      { wch: 20 },  // Serial Number
+      { wch: 15 },  // Tail Number
+      { wch: 15 },  // Sortie Date
+      { wch: 20 },  // Sortie Effect
+      { wch: 20 },  // Current Unit
+      { wch: 20 },  // Assigned Unit
+      { wch: 15 },  // Range
+      { wch: 30 },  // Reason
+      { wch: 40 },  // Remarks
+    ]
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Sortie Report')
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Sortie-Report-${zuluDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(wb, filename)
   }
 
   const formatDate = (dateString: string) => {

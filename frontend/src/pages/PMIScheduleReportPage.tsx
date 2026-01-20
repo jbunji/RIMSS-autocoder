@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CalendarDaysIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import * as XLSX from 'xlsx'
 
 interface PMI {
   pmi_id: number
@@ -129,6 +130,127 @@ export default function PMIScheduleReportPage() {
     } else {
       return <span className="text-gray-600">{days} days</span>
     }
+  }
+
+  // Helper function to get ZULU timestamp
+  const getZuluTimestamp = (): string => {
+    const now = new Date()
+    return now.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')
+  }
+
+  // Helper function to get ZULU date for filename
+  const getZuluDateForFilename = (): string => {
+    const now = new Date()
+    const year = now.getUTCFullYear()
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(now.getUTCDate()).padStart(2, '0')
+    return `${year}${month}${day}`
+  }
+
+  const handleExportToExcel = () => {
+    if (!reportData) return
+
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = ['RIMSS PMI Schedule Report']
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = reportData.program ? [`Program: ${reportData.program.name}`] : []
+    const reportInfoRow4 = [`Total PMIs: ${reportData.total}`]
+    const reportInfoRow5 = [`Overdue: ${reportData.by_status.overdue} | Due Soon: ${reportData.by_status.due_soon} | Upcoming: ${reportData.by_status.upcoming} | Completed: ${reportData.by_status.completed}`]
+
+    const allRows: any[] = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      ...(reportInfoRow3.length ? [reportInfoRow3] : []),
+      reportInfoRow4,
+      reportInfoRow5,
+      blankRow
+    ]
+
+    // Add each status section
+    const sections: Array<{ title: string; pmis: PMI[] }> = [
+      { title: 'OVERDUE PMIs', pmis: reportData.grouped_by_status.overdue },
+      { title: 'DUE SOON - Within 7 Days', pmis: reportData.grouped_by_status.due_soon },
+      { title: 'UPCOMING PMIs', pmis: reportData.grouped_by_status.upcoming },
+      { title: 'COMPLETED PMIs', pmis: reportData.grouped_by_status.completed }
+    ]
+
+    sections.forEach(section => {
+      if (section.pmis.length > 0) {
+        // Section header
+        allRows.push([section.title])
+        allRows.push([`Count: ${section.pmis.length}`])
+        allRows.push(blankRow)
+
+        // Table header
+        allRows.push([
+          'Asset S/N',
+          'Asset Name',
+          'PMI Type',
+          'WUC Code',
+          'Next Due Date',
+          'Days Until Due',
+          'Interval (Days)',
+          'Completed Date',
+          'Status'
+        ])
+
+        // PMI rows
+        section.pmis.forEach(pmi => {
+          allRows.push([
+            pmi.asset_sn,
+            pmi.asset_name || '',
+            pmi.pmi_type,
+            pmi.wuc_cd || '',
+            formatDate(pmi.next_due_date),
+            pmi.days_until_due.toString(),
+            pmi.interval_days.toString(),
+            pmi.completed_date ? formatDate(pmi.completed_date) : '',
+            pmi.status.toUpperCase().replace('_', ' ')
+          ])
+        })
+
+        allRows.push(blankRow)
+      }
+    })
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+    allRows.push(cuiFooterRow)
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 20 },  // Asset S/N
+      { wch: 30 },  // Asset Name
+      { wch: 25 },  // PMI Type
+      { wch: 12 },  // WUC Code
+      { wch: 15 },  // Next Due Date
+      { wch: 15 },  // Days Until Due
+      { wch: 15 },  // Interval (Days)
+      { wch: 15 },  // Completed Date
+      { wch: 15 },  // Status
+    ]
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'PMI Schedule')
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-PMI-Schedule-Report-${zuluDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(wb, filename)
   }
 
   if (loading) {
@@ -582,10 +704,11 @@ export default function PMIScheduleReportPage() {
       <div className="mt-6 flex justify-end">
         <button
           type="button"
+          onClick={handleExportToExcel}
           className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <CalendarDaysIcon className="-ml-1 mr-2 h-5 w-5 text-gray-500" aria-hidden="true" />
-          Export Report
+          Export to Excel
         </button>
       </div>
     </div>
