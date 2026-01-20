@@ -10364,3 +10364,81 @@ Frontend changes (frontend/src/pages/MaintenancePage.tsx):
 
 **Current Progress:** 125/374 features passing (33.4%)
 
+
+---
+
+## Session: 2026-01-20 (Feature #129) - PARALLEL EXECUTION
+
+[Feature] Feature #129 "Sorties list page loads" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Sorties page displays all sortie records
+
+**Implementation:**
+
+Created new SortiesPage component (frontend/src/pages/SortiesPage.tsx):
+- Complete sortie list page with table display
+- Columns: Mission ID, Serial Number, Tail Number, Sortie Date, Sortie Effect, Range, Current Unit
+- Search functionality filters by mission ID, serial number, tail number, or sortie effect
+- Color-coded sortie effect badges:
+  - Green: Full Mission Capable
+  - Yellow: Partial Mission Capable  
+  - Red: Non-Mission Capable
+- Footer shows count: "Showing X of Y sorties" with filter indicator
+- Loading spinner during data fetch
+- Error state with user-friendly message
+- Responsive table design with hover effects
+- Clickable rows (prepared for navigation to sortie detail)
+
+Updated App.tsx:
+- Imported SortiesPage component
+- Replaced PlaceholderPage with SortiesPage on /sorties route
+
+Backend Integration:
+- Fetches from GET /api/sorties endpoint with authentication
+- Respects currentProgramId filter - only shows sorties for selected program
+- Client-side search filtering with real-time updates (no debouncing needed for small dataset)
+- Properly handles empty states and error conditions
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to Sorties page - Clicked "Sorties" in navigation, page loaded successfully
+3. ✅ Verify sorties table displays - Table with 7 columns displayed correctly
+4. ✅ Verify data loads - Initial load showed 4 CRIIS sorties:
+   - CRIIS-SORTIE-004 (CRIIS-003, AC-003, Jan 17) - Full Mission Capable
+   - CRIIS-SORTIE-002 (CRIIS-005, AC-005, Jan 16) - Partial Mission Capable
+   - CRIIS-SORTIE-001 (CRIIS-001, AC-001, Jan 14) - Full Mission Capable
+   - CRIIS-SORTIE-003 (CRIIS-006, AC-006, Jan 9) - Non-Mission Capable
+5. ✅ Verify program filter applied - Switched from CRIIS to ACTS program:
+   - Sorties changed from 4 CRIIS sorties to 2 ACTS sorties
+   - ACTS-SORTIE-001 (ACTS-001, AC-101, Jan 15) - Partial Mission Capable
+   - ACTS-SORTIE-002 (ACTS-002, AC-102, Jan 13) - Full Mission Capable
+   - Footer correctly updated: "Showing 2 of 2 sorties"
+
+**Additional Verifications:**
+- ✅ Search functionality tested - Entered "CRIIS-001" in search box
+  - Filtered from 4 sorties to 1 sortie (CRIIS-SORTIE-001 with serial CRIIS-001)
+  - Footer showed: "Showing 1 of 4 sorties (filtered by "CRIIS-001")"
+- ✅ Search is case-insensitive and searches across multiple fields
+- ✅ Color coding works correctly for all sortie effect types
+- ✅ Date formatting displays as "Jan 17, 2026" (locale-formatted)
+- ✅ Null values handled gracefully (dashes for missing data)
+- ✅ Loading state displays during data fetch
+- ✅ No console errors detected (only expected React Router warnings)
+
+**Screenshots:**
+- feature129_sorties_page_loaded.png - Initial page load with CRIIS sorties table
+- feature129_search_working.png - Search filter showing single result for "CRIIS-001"
+- feature129_program_filter_acts.png - ACTS program sorties after switching programs
+
+**Files Created:**
+- frontend/src/pages/SortiesPage.tsx (new file, 250+ lines)
+
+**Files Modified:**
+- frontend/src/App.tsx (added import and route)
+
+**Console errors:** None (only expected React DevTools and React Router future flag warnings)
+
+[Feature] Feature #129 marked as PASSING
+
+**Current Progress:** 127/374 features passing (34.0%)
+
