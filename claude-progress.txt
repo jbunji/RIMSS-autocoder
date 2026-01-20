@@ -1,5 +1,61 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (SINGLE FEATURE MODE - Feature #257)
+
+### Completed This Session:
+- Feature #257: File upload error shows clear message - VERIFIED AND PASSING
+
+**Feature Description:** Upload failures explained clearly
+
+**Verification Results:**
+All 7 steps PASSED ✅
+
+1. ✅ Logged in as field technician (Bob Field, CRIIS program)
+2. ✅ Navigated to Maintenance Event #1 detail page, opened Upload Attachment modal
+3. ✅ Attempted to upload oversized file (test_large_file.bin, 11MB)
+4. ✅ Verified clear error message: "File size exceeds 10MB limit"
+5. ✅ Attempted to upload wrong file type (test_wrong_type.exe)
+6. ✅ Verified clear error message: "Invalid file type. Only PDF, images, Word, Excel, and text files are allowed."
+7. ✅ Uploaded valid file (test_valid_file.txt, 44 bytes) - Success! File appears in attachments list
+
+**Implementation Status:**
+Feature was already working correctly. Error handling was implemented as part of Features #75, #77, #78.
+
+Backend (backend/src/index.ts:6227-6239):
+- Multer middleware wrapped in error handler callback to properly catch and format errors
+- Returns appropriate HTTP 400 status with JSON error messages
+- Handles both file size (LIMIT_FILE_SIZE) and file type (fileFilter) errors
+
+Frontend (MaintenanceDetailPage.tsx:1845-1849):
+- Client-side file size validation (10MB limit)
+- Error displayed in red alert box within upload modal
+- Upload button disabled when error present
+- Form preserves state for user correction
+
+**Error Message Quality:**
+✓ Clear and specific about what went wrong
+✓ Actionable (tells user how to fix)
+✓ User-friendly language (no technical jargon)
+✓ Appears immediately after validation fails
+
+**Allowed File Types:**
+PDF, Images (jpg/png/gif/webp), Word (doc/docx), Excel (xls/xlsx), Text (txt)
+
+**Test Files Created:**
+- test_large_file.bin (11MB) - size limit test
+- test_wrong_type.exe (26 bytes) - file type test
+- test_valid_file.txt (44 bytes) - success case test
+
+**Screenshots:**
+- f257-step7-valid-file-upload-success.png
+
+**Result:**
+- Feature #257 marked as PASSING
+- Progress: 255/374 features (68.2%)
+- Commit: 968e214
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #119)
 
 ### Completed This Session:
@@ -31470,3 +31526,156 @@ Git Commit: 28cc4d1
 ================================================================================
 [2026-01-20 11:35 UTC] Feature #259 session complete - PARALLEL SESSION
 ================================================================================
+Feature #225 - Testing Deep Linking with Authentication
+Step 1: Captured URL of asset detail page: http://localhost:5173/assets/1
+Step 2: Logged out successfully
+Step 3: Navigating directly to deep link URL: http://localhost:5173/assets/1
+Step 4: ✅ Verified - Redirected to login page when accessing deep link while logged out
+Step 5: ✅ Logged in successfully
+Step 6: ✅ Verified - Redirected to original URL (http://localhost:5173/assets/1)
+Step 7: ✅ Verified - Content loads correctly (Asset Details for Sensor Unit A)
+
+================================================================================
+[2026-01-20 12:39 UTC] Feature #225 REGRESSION TEST COMPLETE - PASSING ✅
+================================================================================
+
+Feature #225: Deep linking works with authentication
+
+REGRESSION TEST RESULTS: ALL STEPS PASSED ✅
+
+✅ Step 1: Copy URL of asset detail page
+   - URL captured: http://localhost:5173/assets/1
+   - Asset: Sensor Unit A (CRIIS-001)
+
+✅ Step 2: Log out
+   - Successfully logged out
+   - Redirected to login page
+
+✅ Step 3: Paste URL in browser
+   - Navigated directly to: http://localhost:5173/assets/1
+
+✅ Step 4: Verify redirect to login
+   - VERIFIED: Automatically redirected to login page
+   - Authentication check working correctly
+
+✅ Step 5: Log in
+   - Successfully logged in as admin
+
+✅ Step 6: Verify redirect to original URL
+   - VERIFIED: Automatically redirected back to http://localhost:5173/assets/1
+   - Deep linking preserved the original destination
+
+✅ Step 7: Verify content loads
+   - VERIFIED: Asset detail page loaded correctly
+   - All data displayed: Serial Number, Part Number, Name, Status, etc.
+   - Breadcrumb shows: Home > Assets > Sensor Unit A
+
+CONSOLE STATUS:
+✅ Zero JavaScript errors
+✅ Zero console warnings (only React DevTools info)
+✅ Token refresh scheduled correctly
+
+SCREENSHOTS CAPTURED:
+1. feature_225_step1_asset_detail.png - Original asset detail page
+2. feature_225_step4_redirect_to_login.png - Redirect to login verification
+3. feature_225_step6_redirected_to_original_url.png - Final redirect back to asset
+
+VERDICT: Feature #225 is still PASSING ✅
+No regressions found. Deep linking with authentication works perfectly.
+
+Session Type: REGRESSION TEST - Testing Agent
+Test Duration: ~5 minutes
+Quality: Production-ready ✅
+User Experience: Seamless authentication flow ✅
+
+================================================================================
+[Testing] Session complete - Feature #225 verified as passing (no regression found)
+
+================================================================================
+[2026-01-20 Testing Session] Feature #91 VERIFICATION COMPLETE - PASSING ✅
+================================================================================
+
+Feature #91: Exception handling for no-defect codes
+Description: Codes 799, 800, 804, 806 have special handling
+
+Session Type: Regression Testing - Single Feature Verification
+
+TEST EXECUTION - All 6 Verification Steps PASSED:
+
+✅ Step 1: Log in as field technician
+   - Logged in as field_tech (Bob Field)
+   - Role: FIELD_TECHNICIAN
+   - Program: CRIIS
+
+✅ Step 2: Create repair with how_mal code 799
+   - Created maintenance event MX-DEP-2026-001 for asset CRIIS-001
+   - Added Repair #1 with type_maint: Corrective
+   - Selected how_mal code: 799 - No Defect, Cannot Duplicate
+   - Narrative: "Testing special handling for how_mal code 799 - no defect found"
+
+✅ Step 3: Verify special handling applies
+   - Special badge displayed: "NO DEFECT (799)" with blue info icon
+   - Blue info box shown with clear explanation:
+     "No-Defect Code (799) - This repair uses a no-defect how-malfunctioned 
+     code, indicating no actual defect was found in the component. Parts 
+     tracking is not required for this type of repair."
+
+✅ Step 4: Verify no parts required
+   - Installed Parts (0): "Parts not required for no-defect repairs"
+   - Removed Parts (0): "Parts not required for no-defect repairs"
+   - "Add Part" buttons hidden for both sections
+   - Parts tracking completely disabled for this repair type
+
+✅ Step 5: Create repair with code 800
+   - Added Repair #2 to same maintenance event
+   - Selected how_mal code: 800 - No Defect Evident
+   - Narrative: "Testing special handling for how_mal code 800 - no defect evident"
+
+✅ Step 6: Verify appropriate exception handling
+   - Special badge displayed: "NO DEFECT (800)" with blue info icon
+   - Same comprehensive info box as code 799
+   - Parts sections disabled with appropriate messages
+   - Consistent UI treatment across all no-defect codes
+
+IMPLEMENTATION VERIFICATION:
+
+Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):
+- Line 411: noDefectCodes array = ['799', '800', '804', '806']
+- Line 412: isNoDefectCode() helper function
+- Lines 2975+: Conditional rendering of no-defect badge
+- Lines 3089+: Info box display for no-defect repairs
+- Lines 3140, 3219: "Add Part" buttons hidden when no-defect code
+- Lines 3155, 3234: Special message shown instead of empty state
+- Lines 4282, 4707: Form validation respects no-defect codes
+
+QUALITY VERIFICATION:
+✅ Zero console errors
+✅ All 4 special codes (799, 800, 804, 806) supported
+✅ Clear user messaging and visual indicators
+✅ Parts tracking correctly disabled
+✅ Consistent UI behavior across codes
+✅ Production-ready implementation
+
+SCREENSHOTS:
+- feature_91_code_799_special_handling.png
+- feature_91_codes_799_800_special_handling.png
+
+TESTING METHOD:
+- Browser automation (Playwright MCP)
+- Actual UI interaction and verification
+- Visual confirmation via screenshots
+- Console error monitoring
+
+Result: Feature #91 VERIFIED AS PASSING ✅
+
+Session Duration: ~20 minutes
+Code Changes: None (regression test only)
+Regressions Found: None
+Quality: Production-ready ✅
+
+Progress: 258/374 features passing (69.0%)
+
+================================================================================
+[2026-01-20] Feature #91 regression testing session complete
+================================================================================
+[Testing] Session complete - verified feature #91 still passing
