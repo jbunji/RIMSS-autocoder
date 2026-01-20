@@ -953,7 +953,7 @@ export default function AssetsPage() {
                         <div className="text-xs text-gray-500 capitalize">{asset.loc_type}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {asset.eti_hours !== null ? asset.eti_hours.toLocaleString() : '-'}
+                        {asset.eti_hours != null ? asset.eti_hours.toLocaleString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(asset.next_pmi_date)}
