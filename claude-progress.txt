@@ -1,5 +1,52 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #95)
+
+### Completed This Session:
+- Feature #95: Repeat/recur flagging on repairs - VERIFIED AND PASSING
+
+**Description:** Repairs can be marked as repeat or recurring issues
+
+**Implementation Already Present:**
+The feature was already fully implemented in the codebase (included in Feature #96 commit):
+
+**Backend (backend/src/index.ts):**
+- repeat_recur and repeat_recur_by fields in Repair interface
+- Handled in POST /api/repairs (create repair)
+- Handled in PUT /api/repairs/:id (update repair with toggle tracking)
+- Tracks who flagged as repeat/recur (repeat_recur_by)
+- All 12 mock repair records have repeat_recur fields (Repair #2 is flagged)
+
+**Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):**
+- Repeat/Recur toggle in Add Repair modal (cyan themed)
+- Repeat/Recur toggle in Edit Repair modal with attribution text
+- Cyan "REPEAT/RECUR" badge on repair cards when flagged
+- Cyan border/background styling for flagged repairs
+- "Repeat/Recur Only" filter button with badge count
+- Filter shows only flagged repairs when active
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Navigate to repair - MX-2024-001 maintenance event
+3. ✅ Verified REPEAT/RECUR badge displays on Repair #2 with tooltip "Repeat/Recur issue flagged by bob_field"
+4. ✅ Verified "Repeat/Recur Only 1" filter button shows with count badge
+5. ✅ Toggle repeat/recur flag OFF - Clicked Edit, toggled off, saved changes
+6. ✅ Verified badge removed and filter button hidden (count became 0)
+7. ✅ Toggle repeat/recur flag ON - Clicked Edit, toggled on, saved changes
+8. ✅ Verified badge restored showing "Repeat/Recur issue flagged by field_tech"
+9. ✅ Filter repairs by repeat/recur - Clicked filter button
+10. ✅ Verify only flagged repairs show - Only Repair #2 displayed when filter active
+
+**Bug Fixed During Verification:**
+- Fixed null reference error in Close Repair modal with closingRepair?.eti_in check
+- Fixed duplicate variable declaration (actionTakenOptions -> laborActionTakenOptions)
+
+**Screenshots:**
+- feature95_repairs_with_repeat_recur_badge.png
+- feature95_repairs_section_with_filter.png
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #96)
 
 ### Completed This Session:
