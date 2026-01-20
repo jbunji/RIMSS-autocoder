@@ -1924,17 +1924,15 @@ app.get('/api/tcto/:id', (req, res) => {
     // Look up linked repair if present
     let linkedRepair = null;
     if (completionInfo?.linked_repair_id) {
-      for (const event of maintenanceEvents) {
-        const repair = event.repairs.find(r => r.repair_id === completionInfo.linked_repair_id);
-        if (repair) {
-          linkedRepair = {
-            repair_id: repair.repair_id,
-            event_id: event.event_id,
-            job_no: event.job_no,
-            narrative: repair.narrative,
-          };
-          break;
-        }
+      const repair = repairs.find(r => r.repair_id === completionInfo.linked_repair_id);
+      if (repair) {
+        const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+        linkedRepair = {
+          repair_id: repair.repair_id,
+          event_id: repair.event_id,
+          job_no: event?.job_no || 'Unknown',
+          narrative: repair.narrative,
+        };
       }
     }
 

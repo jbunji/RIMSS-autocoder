@@ -29,6 +29,7 @@
   },
   "packageManager": "pnpm@8.15.6",
   "dependencies": {
-    "better-sqlite3": "^12.6.2"
+    "better-sqlite3": "^12.6.2",
+    "xlsx": "^0.18.5"
   }
 }
