@@ -43476,3 +43476,119 @@ Quality: Production-ready and mobile-optimized ✅
 [2026-01-20] Feature #316 parallel session complete - VERIFIED PASSING ✅
 ================================================================================
 
+
+================================================================================
+[2026-01-20 09:37] TESTING SESSION - Feature #20 Regression Test
+================================================================================
+
+FEATURE UNDER TEST:
+===================
+ID: 20
+Category: functional
+Name: Dashboard loads for authenticated user
+Description: Dashboard page loads with widgets for logged in users
+
+VERIFICATION STEPS:
+===================
+✅ Step 1: Log in as any user
+   - Logged in as admin user
+   - Credentials: admin/admin123
+   - Login successful
+
+✅ Step 2: Verify redirect to dashboard
+   - After login, redirected to: http://localhost:5173/dashboard
+   - Redirect working correctly
+
+✅ Step 3: Verify dashboard title displays
+   - Dashboard heading "Dashboard" is visible
+   - Welcome message "Welcome, John Admin" is displayed
+   - Role displayed: "You are logged in as ADMIN"
+   - Program displayed: "Common Remotely Operated Integrated Reconnaissance System"
+
+✅ Step 4: Verify page loads without errors
+   - Zero JavaScript errors in console
+   - Zero layout errors
+   - Only expected React Router future flag warnings (not errors)
+   - Token refresh scheduled correctly
+
+✅ Step 5: Verify loading states complete
+   - All dashboard widgets loaded successfully:
+     * Asset Status Summary widget - showing 9 total assets, 67% MCR
+     * PMI Due Soon widget - showing 7 upcoming PMI items
+     * Open Maintenance Jobs widget - showing 4 open jobs
+     * Parts Awaiting Action widget - showing 3 parts orders
+     * Recent Activity widget - showing 10 recent activities
+   - All data rendering correctly
+   - No loading spinners stuck
+   - All widgets showing actual data (not loading states)
+
+WIDGET VERIFICATION:
+====================
+1. Asset Status Summary:
+   - Total Assets: 9
+   - Mission Capability Rate: 67%
+   - Status breakdown: FMC (4), PMC (2), NMCM (1), NMCS (1), CNDM (1)
+   - Program filter: CRIIS ✅
+
+2. PMI Due Soon:
+   - Showing 7 PMI items
+   - Color-coded by urgency: 2 critical (red), 3 urgent (yellow), 2 routine (green)
+   - Items sorted by due date
+   - Earliest due: Sensor Unit B in 2 days ✅
+
+3. Open Maintenance Jobs:
+   - Showing 4 open jobs
+   - Priority breakdown: 1 Critical, 2 Urgent, 1 Routine
+   - Job details displaying: asset, description, job number, priority, days open, type ✅
+
+4. Parts Awaiting Action:
+   - Showing 3 parts orders
+   - Status breakdown: 2 pending, 1 acknowledged
+   - Priority breakdown: 0 Critical, 2 Urgent, 1 Routine
+   - Part details displaying: name, for asset, part number, status, quantity, time ago ✅
+
+5. Recent Activity:
+   - Showing 10 recent activities
+   - Activity types: Created (+), Updated (~), Status (↔), Completed (✓), Deleted (×), Ordered (📦)
+   - User and timestamp displayed for each activity
+   - Activities sorted chronologically (most recent first) ✅
+
+CONSOLE VERIFICATION:
+======================
+✅ Zero JavaScript errors
+✅ Zero layout errors
+✅ Only expected React Router future flag warnings
+✅ Token refresh scheduled correctly (1500s)
+✅ Clean execution throughout all tests
+
+SCREENSHOTS CAPTURED:
+=====================
+1. feature_20_step1_login_page.png - Login page before authentication
+2. feature_20_step2_dashboard_loaded.png - Dashboard fully loaded with all widgets
+
+REGRESSION TEST RESULT:
+========================
+✅ PASSED - All verification steps completed successfully
+✅ No regressions detected
+✅ Feature #20 still working correctly
+✅ Dashboard loads properly for authenticated users
+✅ All widgets display data correctly
+✅ No console errors or issues
+
+CONCLUSION:
+===========
+Feature #20 "Dashboard loads for authenticated user" is fully functional and
+working as expected. The dashboard page loads correctly after authentication,
+displays all required widgets with real data, and has zero errors. No
+regressions were found in this feature.
+
+Result: Feature #20 verified - STILL PASSING ✅
+Progress: 316/374 features passing (84.5%)
+
+Session Type: REGRESSION TESTING
+Testing Method: Full end-to-end browser automation with Playwright
+Quality: Production-ready ✅
+
+================================================================================
+[2026-01-20] Feature #20 regression test complete - VERIFIED PASSING ✅
+================================================================================

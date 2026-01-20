@@ -15,6 +15,7 @@ import {
   ChevronUpDownIcon,
   DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/authStore'
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -113,18 +114,15 @@ export default function AssetsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { token, currentProgramId, user } = useAuthStore()
   const { showSuccess, showError } = useToast()
+  const queryClient = useQueryClient()
 
   // Check if user can create assets
   const canCreateAsset = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
   // Check if user can delete assets (only admins)
   const canDeleteAsset = user && user.role === 'ADMIN'
 
-  // State
-  const [assets, setAssets] = useState<Asset[]>([])
-  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, total_pages: 1 })
-  const [program, setProgram] = useState<ProgramInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Page state (not managed by React Query)
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -133,7 +131,6 @@ export default function AssetsPage() {
   // Delete confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   // Reference data for form
@@ -206,17 +203,20 @@ export default function AssetsPage() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  // Fetch assets
-  const fetchAssets = useCallback(async (page: number = 1) => {
-    if (!token) return
+  // React Query: Fetch assets with automatic caching and invalidation
+  const {
+    data: assetsData,
+    isLoading: loading,
+    error: queryError,
+    refetch: refetchAssets,
+  } = useQuery<AssetsResponse, Error>({
+    queryKey: ['assets', currentProgramId, currentPage, statusFilter, debouncedSearch, sortBy, sortOrder],
+    queryFn: async () => {
+      if (!token) throw new Error('No authentication token')
 
-    setLoading(true)
-    setError(null)
-
-    try {
       const params = new URLSearchParams()
       if (currentProgramId) params.append('program_id', currentProgramId.toString())
-      params.append('page', page.toString())
+      params.append('page', currentPage.toString())
       params.append('limit', '10')
       if (statusFilter) params.append('status', statusFilter)
       if (debouncedSearch) params.append('search', debouncedSearch)
@@ -235,17 +235,111 @@ export default function AssetsPage() {
         throw new Error(errorData.error || 'Failed to fetch assets')
       }
 
-      const data: AssetsResponse = await response.json()
-      setAssets(data.assets)
-      setPagination(data.pagination)
-      setProgram(data.program)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      console.error('Error fetching assets:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [token, currentProgramId, statusFilter, debouncedSearch, sortBy, sortOrder])
+      return response.json()
+    },
+    enabled: !!token, // Only run query if token exists
+  })
+
+  // Extract data from React Query result
+  const assets = assetsData?.assets || []
+  const pagination = assetsData?.pagination || { page: 1, limit: 10, total: 0, total_pages: 1 }
+  const program = assetsData?.program || null
+  const error = queryError?.message || null
+
+  // React Query: Create asset mutation
+  const createAssetMutation = useMutation({
+    mutationFn: async (data: CreateAssetFormData) => {
+      const response = await fetch('http://localhost:3001/api/assets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...data,
+          pgm_id: currentProgramId || 1,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create asset')
+      }
+
+      return response.json()
+    },
+    onSuccess: (result) => {
+      showSuccess(`Asset "${result.asset.serno}" created successfully!`)
+      setIsModalOpen(false)
+      reset()
+      setCurrentPage(1) // Reset to first page
+      // Invalidate and refetch assets
+      queryClient.invalidateQueries({ queryKey: ['assets'] })
+    },
+    onError: (error: Error) => {
+      setModalError(error.message)
+    },
+  })
+
+  // React Query: Delete asset mutation (soft delete)
+  const deleteAssetMutation = useMutation({
+    mutationFn: async (assetId: number) => {
+      const response = await fetch(`http://localhost:3001/api/assets/${assetId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete asset')
+      }
+
+      return response.json()
+    },
+    onSuccess: (result, assetId) => {
+      const asset = assets.find(a => a.asset_id === assetId)
+      showSuccess(result.message || `Asset "${asset?.serno}" deleted successfully!`)
+      closeDeleteModal()
+      // Invalidate and refetch assets - THIS IS THE KEY FIX FOR FEATURE #283
+      queryClient.invalidateQueries({ queryKey: ['assets'] })
+    },
+    onError: (error: Error) => {
+      setDeleteError(error.message)
+    },
+  })
+
+  // React Query: Permanent delete asset mutation
+  const permanentDeleteAssetMutation = useMutation({
+    mutationFn: async (assetId: number) => {
+      const response = await fetch(`http://localhost:3001/api/assets/${assetId}/permanent`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to permanently delete asset')
+      }
+
+      return response.json()
+    },
+    onSuccess: (result, assetId) => {
+      const asset = assets.find(a => a.asset_id === assetId)
+      showSuccess(result.message || `Asset "${asset?.serno}" permanently deleted!`)
+      closeDeleteModal()
+      // Invalidate and refetch assets - THIS IS THE KEY FIX FOR FEATURE #283
+      queryClient.invalidateQueries({ queryKey: ['assets'] })
+    },
+    onError: (error: Error) => {
+      setDeleteError(error.message)
+    },
+  })
 
   // Fetch reference data for form
   const fetchReferenceData = useCallback(async () => {
@@ -276,49 +370,22 @@ export default function AssetsPage() {
     }
   }, [token])
 
-  // Fetch on mount and when dependencies change
+  // Fetch reference data on mount
   useEffect(() => {
-    fetchAssets(1)
     fetchReferenceData()
-  }, [fetchAssets, fetchReferenceData])
+  }, [fetchReferenceData])
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.total_pages) {
-      fetchAssets(newPage)
+      setCurrentPage(newPage)
     }
   }
 
-  // Handle form submission
+  // Handle form submission using React Query mutation
   const onSubmit = async (data: CreateAssetFormData) => {
-    try {
-      setModalError(null)
-      const response = await fetch('http://localhost:3001/api/assets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...data,
-          pgm_id: currentProgramId || 1,
-        }),
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        showSuccess(`Asset "${result.asset.serno}" created successfully!`)
-        setIsModalOpen(false)
-        reset()
-        fetchAssets(1) // Refresh the asset list
-      } else {
-        const errorData = await response.json()
-        setModalError(errorData.error || 'Failed to create asset')
-      }
-    } catch (err) {
-      setModalError('Failed to create asset. Please try again.')
-      console.error('Error creating asset:', err)
-    }
+    setModalError(null)
+    createAssetMutation.mutate(data)
   }
 
   // Modal handlers
@@ -347,69 +414,20 @@ export default function AssetsPage() {
     setDeleteError(null)
   }
 
-  const handleDeleteAsset = async () => {
-    if (!assetToDelete || !token) return
-
-    setIsDeleting(true)
+  const handleDeleteAsset = () => {
+    if (!assetToDelete) return
     setDeleteError(null)
-
-    try {
-      const response = await fetch(`http://localhost:3001/api/assets/${assetToDelete.asset_id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        showSuccess(result.message || `Asset "${assetToDelete.serno}" deleted successfully!`)
-        closeDeleteModal()
-        fetchAssets(pagination.page) // Refresh the list
-      } else {
-        const errorData = await response.json()
-        setDeleteError(errorData.error || 'Failed to delete asset')
-      }
-    } catch (err) {
-      setDeleteError('Failed to delete asset. Please try again.')
-      console.error('Error deleting asset:', err)
-    } finally {
-      setIsDeleting(false)
-    }
+    deleteAssetMutation.mutate(assetToDelete.asset_id)
   }
 
-  const handlePermanentDeleteAsset = async () => {
-    if (!assetToDelete || !token) return
-
-    setIsDeleting(true)
+  const handlePermanentDeleteAsset = () => {
+    if (!assetToDelete) return
     setDeleteError(null)
-
-    try {
-      const response = await fetch(`http://localhost:3001/api/assets/${assetToDelete.asset_id}/permanent`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        showSuccess(result.message || `Asset "${assetToDelete.serno}" permanently deleted!`)
-        closeDeleteModal()
-        fetchAssets(pagination.page) // Refresh the list
-      } else {
-        const errorData = await response.json()
-        setDeleteError(errorData.error || 'Failed to permanently delete asset')
-      }
-    } catch (err) {
-      setDeleteError('Failed to permanently delete asset. Please try again.')
-      console.error('Error permanently deleting asset:', err)
-    } finally {
-      setIsDeleting(false)
-    }
+    permanentDeleteAssetMutation.mutate(assetToDelete.asset_id)
   }
+
+  // Track deleting state from mutations
+  const isDeleting = deleteAssetMutation.isPending || permanentDeleteAssetMutation.isPending
 
   // Format date for display
   const formatDate = (dateString: string | null): string => {
@@ -834,7 +852,7 @@ export default function AssetsPage() {
           <div className="flex items-end">
             <button
               type="button"
-              onClick={() => fetchAssets(pagination.page)}
+              onClick={() => refetchAssets()}
               className="inline-flex items-center px-4 py-3 min-h-[44px] border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
