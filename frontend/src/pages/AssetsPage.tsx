@@ -164,8 +164,8 @@ export default function AssetsPage() {
       serno: '',
       name: '',
       status_cd: 'FMC', // Default to Full Mission Capable
-      admin_loc: 'Depot Alpha', // Default to first depot location
-      cust_loc: 'Maintenance Bay 1', // Default to first maintenance location
+      admin_loc: 'DEPOT-A', // Default to first depot location (Depot Alpha)
+      cust_loc: 'MAINT-BAY-1', // Default to first maintenance location (Maintenance Bay 1)
       notes: '',
     },
   })
