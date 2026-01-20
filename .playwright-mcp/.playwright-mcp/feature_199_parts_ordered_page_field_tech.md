@@ -1,0 +1,193 @@
+### Page state
+- Page URL: http://localhost:5173/parts-ordered
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e28]:
+  - link "Skip to main content" [ref=e29] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e30]: CUI - Controlled Unclassified Information
+  - navigation [ref=e32]:
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - button "Toggle sidebar" [ref=e36] [cursor=pointer]:
+          - img [ref=e37]
+        - generic [ref=e39]:
+          - generic [ref=e40]: RIMSS
+          - generic [ref=e41]: Remote Independent Maintenance Status System
+      - generic [ref=e42]:
+        - link "View notifications" [ref=e43] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e44]
+          - generic [ref=e46]: "3"
+        - 'button "Program: CRIIS" [ref=e48] [cursor=pointer]':
+          - generic [ref=e49]: "Program:"
+          - generic [ref=e50]: CRIIS
+          - img [ref=e51]
+        - button "Bob Field" [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+          - generic [ref=e57]: Bob Field
+          - img [ref=e58]
+  - generic [ref=e62]:
+    - navigation [ref=e63]:
+      - generic [ref=e64]:
+        - link "Dashboard" [ref=e65] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e66]
+          - text: Dashboard
+        - link "Assets" [ref=e68] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e69]
+          - text: Assets
+        - link "Configurations" [ref=e71] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e72]
+          - text: Configurations
+        - link "Maintenance" [ref=e75] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e76]
+          - text: Maintenance
+        - link "Sorties" [ref=e78] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e79]
+          - text: Sorties
+        - link "Spares" [ref=e81] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e82]
+          - text: Spares
+        - link "Parts Ordered" [active] [ref=e84] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e85]
+          - text: Parts Ordered
+        - link "Software" [ref=e87] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e88]
+          - text: Software
+        - link "Notifications" [ref=e90] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e91]
+          - text: Notifications
+        - link "Reports" [ref=e93] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e94]
+          - text: Reports
+    - paragraph [ref=e97]: RIMSS v0.1.0
+  - main [ref=e99]:
+    - generic [ref=e503]:
+      - generic [ref=e505]:
+        - generic [ref=e506]:
+          - heading "Parts Ordered" [level=1] [ref=e507]:
+            - img [ref=e508]
+            - text: Parts Ordered
+          - paragraph [ref=e510]: 5 orders found
+        - generic [ref=e511]:
+          - button "Export PDF" [ref=e512] [cursor=pointer]:
+            - img [ref=e513]
+            - text: Export PDF
+          - button "Export Excel" [ref=e515] [cursor=pointer]:
+            - img [ref=e516]
+            - text: Export Excel
+      - button "Show Filters" [ref=e520] [cursor=pointer]:
+        - img [ref=e521]
+        - text: Show Filters
+      - table [ref=e525]:
+        - rowgroup [ref=e526]:
+          - row "Order Date Part Number Part Name Qty Status Priority Requestor Asset" [ref=e527]:
+            - columnheader "Order Date" [ref=e528] [cursor=pointer]:
+              - generic [ref=e529]:
+                - text: Order Date
+                - img [ref=e530]
+            - columnheader "Part Number" [ref=e532] [cursor=pointer]:
+              - generic [ref=e533]:
+                - text: Part Number
+                - img [ref=e534]
+            - columnheader "Part Name" [ref=e536]
+            - columnheader "Qty" [ref=e537] [cursor=pointer]:
+              - generic [ref=e538]:
+                - text: Qty
+                - img [ref=e539]
+            - columnheader "Status" [ref=e541] [cursor=pointer]:
+              - generic [ref=e542]:
+                - text: Status
+                - img [ref=e543]
+            - columnheader "Priority" [ref=e545] [cursor=pointer]:
+              - generic [ref=e546]:
+                - text: Priority
+                - img [ref=e547]
+            - columnheader "Requestor" [ref=e549]
+            - columnheader "Asset" [ref=e550]
+        - rowgroup [ref=e551]:
+          - row "Jan 18, 2026 PN-FLT-002 2940-01-333-5678 Air Filter Assembly 5 Shipped Routine Bob Field -" [ref=e552] [cursor=pointer]:
+            - cell "Jan 18, 2026" [ref=e553]:
+              - generic [ref=e555]: Jan 18, 2026
+            - cell "PN-FLT-002 2940-01-333-5678" [ref=e556]:
+              - generic [ref=e557]: PN-FLT-002
+              - generic [ref=e558]: 2940-01-333-5678
+            - cell "Air Filter Assembly" [ref=e559]
+            - cell "5" [ref=e560]
+            - cell "Shipped" [ref=e561]:
+              - generic [ref=e562]: Shipped
+            - cell "Routine" [ref=e563]:
+              - generic [ref=e564]: Routine
+            - cell "Bob Field" [ref=e565]
+            - cell "-" [ref=e566]
+          - row "Jan 18, 2026 PN-BATT-009 6140-01-888-7654 Lithium Battery Pack 4 Pending Urgent Bob Field CRIIS-005" [ref=e567] [cursor=pointer]:
+            - cell "Jan 18, 2026" [ref=e568]:
+              - generic [ref=e570]: Jan 18, 2026
+            - cell "PN-BATT-009 6140-01-888-7654" [ref=e571]:
+              - generic [ref=e572]: PN-BATT-009
+              - generic [ref=e573]: 6140-01-888-7654
+            - cell "Lithium Battery Pack" [ref=e574]
+            - cell "4" [ref=e575]
+            - cell "Pending" [ref=e576]:
+              - generic [ref=e577]: Pending
+            - cell "Urgent" [ref=e578]:
+              - generic [ref=e579]: Urgent
+            - cell "Bob Field" [ref=e580]
+            - cell "CRIIS-005" [ref=e581]
+          - row "Jan 16, 2026 PQDR PN-PSU-001 6130-01-555-1234 Power Supply Unit 24V 2 Pending Urgent Bob Field CRIIS-006" [ref=e582] [cursor=pointer]:
+            - cell "Jan 16, 2026 PQDR" [ref=e583]:
+              - generic [ref=e584]:
+                - generic [ref=e585]: Jan 16, 2026
+                - generic "Product Quality Deficiency Report" [ref=e586]: PQDR
+            - cell "PN-PSU-001 6130-01-555-1234" [ref=e587]:
+              - generic [ref=e588]: PN-PSU-001
+              - generic [ref=e589]: 6130-01-555-1234
+            - cell "Power Supply Unit 24V" [ref=e590]
+            - cell "2" [ref=e591]
+            - cell "Pending" [ref=e592]:
+              - generic [ref=e593]: Pending
+            - cell "Urgent" [ref=e594]:
+              - generic [ref=e595]: Urgent
+            - cell "Bob Field" [ref=e596]
+            - cell "CRIIS-006" [ref=e597]
+          - row "Jan 14, 2026 PN-CAB-004 6145-01-222-4567 Coaxial Cable Assembly 10 Acknowledged Routine Bob Field -" [ref=e598] [cursor=pointer]:
+            - cell "Jan 14, 2026" [ref=e599]:
+              - generic [ref=e601]: Jan 14, 2026
+            - cell "PN-CAB-004 6145-01-222-4567" [ref=e602]:
+              - generic [ref=e603]: PN-CAB-004
+              - generic [ref=e604]: 6145-01-222-4567
+            - cell "Coaxial Cable Assembly" [ref=e605]
+            - cell "10" [ref=e606]
+            - cell "Acknowledged" [ref=e607]:
+              - generic [ref=e608]: Acknowledged
+            - cell "Routine" [ref=e609]:
+              - generic [ref=e610]: Routine
+            - cell "Bob Field" [ref=e611]
+            - cell "-" [ref=e612]
+          - row "Jan 4, 2026 PN-SEAL-008 5330-01-666-3456 O-Ring Seal Kit 20 Received Routine Bob Field -" [ref=e613] [cursor=pointer]:
+            - cell "Jan 4, 2026" [ref=e614]:
+              - generic [ref=e616]: Jan 4, 2026
+            - cell "PN-SEAL-008 5330-01-666-3456" [ref=e617]:
+              - generic [ref=e618]: PN-SEAL-008
+              - generic [ref=e619]: 5330-01-666-3456
+            - cell "O-Ring Seal Kit" [ref=e620]
+            - cell "20" [ref=e621]
+            - cell "Received" [ref=e622]:
+              - generic [ref=e623]: Received
+            - cell "Routine" [ref=e624]:
+              - generic [ref=e625]: Routine
+            - cell "Bob Field" [ref=e626]
+            - cell "-" [ref=e627]
+  - contentinfo [ref=e502]: CUI - Controlled Unclassified Information
+```
