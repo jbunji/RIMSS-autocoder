@@ -1170,8 +1170,19 @@ export default function MaintenancePage() {
     }
   }
 
-  // Format date
+  // Format date (timezone-safe for date-only strings)
   const formatDate = (dateString: string) => {
+    // For date-only strings (YYYY-MM-DD), parse as local timezone to avoid off-by-one errors
+    if (dateString && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number)
+      const date = new Date(year, month - 1, day)
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    }
+    // For datetime strings, use normal Date parsing
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',

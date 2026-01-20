@@ -2842,12 +2842,26 @@ export default function MaintenanceDetailPage() {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Job Started</p>
                   <p className="text-sm text-gray-500">
-                    {new Date(event.start_job).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                    {(() => {
+                      // For date-only strings (YYYY-MM-DD), parse as local timezone to avoid off-by-one errors
+                      if (event.start_job && /^\d{4}-\d{2}-\d{2}$/.test(event.start_job)) {
+                        const [year, month, day] = event.start_job.split('-').map(Number)
+                        const date = new Date(year, month - 1, day)
+                        return date.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })
+                      }
+                      // For datetime strings, use normal Date parsing
+                      return new Date(event.start_job).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                    })()}
                   </p>
                 </div>
               </div>
