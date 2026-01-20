@@ -309,6 +309,12 @@ export default function DashboardPage() {
     setRefreshCount(prev => prev + 1)
   }
 
+  // Refresh data on component mount (when navigating to dashboard)
+  useEffect(() => {
+    // Trigger immediate refresh when dashboard loads
+    setRefreshCount(prev => prev + 1)
+  }, [])
+
   // Auto-refresh interval
   useEffect(() => {
     const intervalId = setInterval(() => {
