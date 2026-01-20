@@ -986,7 +986,16 @@ export default function AssetsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-3">
                           <button
-                            onClick={() => navigate(`/assets/${asset.asset_id}`)}
+                            onClick={() => {
+                              // Save current filters to sessionStorage before navigating
+                              const currentFilters = searchParams.toString()
+                              if (currentFilters) {
+                                sessionStorage.setItem('assetsPageFilters', currentFilters)
+                              } else {
+                                sessionStorage.removeItem('assetsPageFilters')
+                              }
+                              navigate(`/assets/${asset.asset_id}`)
+                            }}
                             className="text-primary-600 hover:text-primary-900"
                           >
                             View

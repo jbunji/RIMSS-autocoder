@@ -1129,7 +1129,12 @@ export default function AssetDetailPage() {
       {/* Breadcrumbs */}
       <Breadcrumbs
         items={[
-          { label: 'Assets', path: '/assets' },
+          {
+            label: 'Assets',
+            path: sessionStorage.getItem('assetsPageFilters')
+              ? `/assets?${sessionStorage.getItem('assetsPageFilters')}`
+              : '/assets'
+          },
           { label: asset.part_name || asset.name || asset.serno, path: `/assets/${asset.asset_id}` },
         ]}
       />
@@ -1137,7 +1142,15 @@ export default function AssetDetailPage() {
       {/* Header */}
       <div className="mb-6">
         <button
-          onClick={() => navigate('/assets')}
+          onClick={() => {
+            // Restore filters from sessionStorage if they exist
+            const savedFilters = sessionStorage.getItem('assetsPageFilters')
+            if (savedFilters) {
+              navigate(`/assets?${savedFilters}`)
+            } else {
+              navigate('/assets')
+            }
+          }}
           className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
         >
           <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
