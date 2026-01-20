@@ -16608,3 +16608,43 @@ Feature #180 marked as PASSING
 Current Progress: 179/374 features passing (47.9%)
 
 Next: Feature #180 complete - ready for next feature assignment
+
+================================================================================
+Session: 2026-01-20 01:07 UTC - Feature #179 COMPLETED
+================================================================================
+
+Feature #179: Notification filtered by program - VERIFIED AND PASSING
+
+Summary:
+Successfully verified that users only see notifications for their assigned 
+program(s). Added ACTS-only test user to validate cross-program filtering.
+
+Backend Changes Made:
+- Added ACTS-only test user (acts_user / acts123)
+  * user_id: 5
+  * role: FIELD_TECHNICIAN  
+  * programs: ACTS only (pgm_id: 2)
+- Existing filtering logic at lines 10890-10901 works correctly
+
+Verification Steps Completed (All 6 Steps):
+✅ Step 1: Logged in as admin
+✅ Step 2: Created CRIIS-only notification TEST_F179_CRIIS_ONLY
+✅ Step 3: CRIIS user (field_tech) sees CRIIS notifications (4 total)
+✅ Step 4: ACTS user (acts_user) does NOT see CRIIS notifications
+✅ Step 5: ACTS user sees only ACTS notifications (1 total)
+✅ Step 6: Zero console errors
+
+Key Findings:
+- Program filtering works correctly at backend (line 10890)
+- Admin role bypasses filtering (sees all programs)
+- Users only see notifications for their assigned programs
+- No cross-program data leakage
+
+Screenshots:
+- feature179_step2_criis_notification_created.png
+- feature179_step3_field_tech_sees_criis.png
+- feature179_step4_acts_user_no_criis.png
+
+Feature #179 marked as PASSING
+Current Progress: 179/374 features passing (47.9%)
+
