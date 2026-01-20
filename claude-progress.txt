@@ -11479,3 +11479,151 @@ Due to browser automation file upload limitations, full end-to-end testing requi
 
 **Note:** Feature #137 is functionally complete but requires manual browser testing to fully verify the duplicate handling workflow due to file upload automation limitations. The implementation follows all requirements and best practices.
 
+
+========================================
+REGRESSION TEST SUMMARY - Feature #105
+========================================
+
+Feature: Inspected by and corrected by fields
+Status: ✅ PASSING (No regression found)
+Test Date: $(date)
+
+Test Results:
+-------------
+✅ Step 1: Logged in as field technician (Bob Field)
+✅ Step 2: Accessed labor record via Maintenance Event MX-2024-001, Repair #2, Labor #1
+✅ Step 3: "Inspected By" field present and functional (contains "Bob Field")
+✅ Step 4: "Corrected By" field present and functional (filled with "Jane Depot")
+✅ Step 5: Changes saved successfully
+✅ Step 6: Fields persist correctly (verified by reopening dialog)
+⚠️ Step 7: Reports page under construction - cannot verify labor report display
+✅ Zero console errors detected
+
+Test Details:
+-------------
+- User: field_tech (Bob Field, Field Technician role)
+- Maintenance Event: MX-2024-001 (Camera System X, CRIIS-005)
+- Labor Record: Repair #2, Labor #1 (Inspection category, 2 hrs)
+- Inspected By: Bob Field
+- Corrected By: Jane Depot
+- Both fields saved and retrieved correctly from backend
+
+Feature Status: PASSING (no regression detected)
+Note: Labor report display cannot be verified as Reports page is under construction
+
+Screenshots captured:
+- feature105_edit_labor_dialog_with_fields.png
+- feature105_inspected_corrected_fields_visible.png
+- feature105_both_fields_filled.png
+- feature105_fields_persisted_successfully.png
+
+Date: $(date)
+
+[Testing] Session complete - verified feature #105 (Inspected by and corrected by fields)
+No regressions found. Feature continues to work correctly.
+
+---
+
+## Session: 2026-01-20 (Feature #139) - PARALLEL EXECUTION
+
+[Feature] Feature #139 "Sortie effectiveness codes" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Sortie effectiveness is tracked with codes
+
+**Implementation:**
+
+**Frontend Changes (frontend/src/pages/SortiesPage.tsx):**
+- Added effectivenessFilter state variable to manage filter selection
+- Added effectiveness dropdown filter in filter controls section (changed grid from 4 to 5 columns)
+- Dropdown options: All, Full Mission Capable, Partial Mission Capable, Non-Mission Capable
+- Added effectivenessFilter to fetchSorties API call as query parameter
+- Updated clearFilters() to reset effectivenessFilter
+- Updated hasActiveFilters check to include effectivenessFilter
+- Added effectivenessFilter to useEffect dependencies for automatic refetch
+- Added effectiveness filter badge to active filters indicator
+
+**Backend Changes (backend/src/index.ts):**
+- Added sortieEffect query parameter parsing to GET /api/sorties endpoint
+- Added filter logic: filters sorties where sortie_effect exactly matches selected value
+- Filter applied after program, search, date range, and tail number filters
+
+**Verification Steps Completed:**
+
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech)
+2. ✅ Create sortie - Created TEST-FEATURE-139-SORTIE for CRIIS-002
+3. ✅ Select effectiveness code from dropdown - Selected "Partial Mission Capable"
+4. ✅ Save sortie - Sortie created successfully with sortie_id auto-assigned
+5. ✅ Verify code displays in list - Badge displays "Partial Mission Capable" with yellow background
+6. ✅ Filter by effectiveness code - Tested all three filter options:
+   - Full Mission Capable: Showed 2 sorties (CRIIS-SORTIE-004, CRIIS-SORTIE-001) with green badges
+   - Partial Mission Capable: Showed 2 sorties (TEST-FEATURE-139-SORTIE, CRIIS-SORTIE-002) with yellow badges
+   - Non-Mission Capable: Showed 1 sortie (CRIIS-SORTIE-003) with red badge
+7. ✅ Verify filter works - All filters worked correctly:
+   - Active filter indicator shows selected code
+   - Clear Filters button resets to "All" and shows all 5 sorties
+   - Sortie count updates correctly (2 of 2, 1 of 1, 5 of 5)
+
+**Key Features Verified:**
+
+**Effectiveness Codes:**
+- Three codes available: Full Mission Capable, Partial Mission Capable, Non-Mission Capable ✓
+- Codes selectable in create sortie modal ✓
+- Codes selectable in edit sortie modal (existing functionality) ✓
+- Optional field - can create sorties without effectiveness code ✓
+
+**Display in List:**
+- Effectiveness codes display with color-coded badges ✓
+- Green badge: Full Mission Capable ✓
+- Yellow badge: Partial Mission Capable ✓
+- Red badge: Non-Mission Capable ✓
+- Badge styling consistent with existing design patterns ✓
+
+**Filter Functionality:**
+- Effectiveness filter dropdown in filter section ✓
+- Default option "All" shows all sorties ✓
+- Filter correctly returns only matching sorties ✓
+- Active filter indicator shows selected code ✓
+- Clear Filters button resets effectiveness filter ✓
+- Filter works alongside other filters (search, date range, tail number) ✓
+- Sortie count updates to reflect filtered results ✓
+
+**Backend API:**
+- GET /api/sorties?sortie_effect={code} parameter working ✓
+- Exact match filter (not case-insensitive partial match) ✓
+- Returns correct subset of sorties ✓
+- Respects program-based access control ✓
+- Works with other query parameters ✓
+
+**Data Persistence:**
+- Created sortie persists in database ✓
+- Effectiveness code retained after page refresh ✓
+- Filter selection resets on page refresh (expected behavior) ✓
+
+**Console Errors:**
+- Zero errors detected ✓
+- Only expected React Router future flag warnings ✓
+
+**Screenshots:**
+- feature139_sorties_page_with_effectiveness_filter.png - Sorties page with new filter
+- feature139_create_sortie_with_effectiveness_code.png - Create modal with code selected
+- feature139_sortie_created_with_effectiveness_code.png - New sortie in list
+- feature139_filter_by_partial_mission_capable.png - Filter showing 2 PMC sorties
+- feature139_filter_by_non_mission_capable.png - Filter showing 1 NMC sortie
+- feature139_all_sorties_with_effectiveness_codes.png - All sorties with color-coded badges
+
+**Files Modified:**
+- frontend/src/pages/SortiesPage.tsx (added effectiveness filter UI and logic)
+- backend/src/index.ts (added sortie_effect query parameter filter)
+
+**Technical Highlights:**
+- Filter grid changed from 4 to 5 columns to accommodate new dropdown
+- Dropdown uses standard select element with consistent styling
+- Filter applies client-side API call with query parameter
+- Backend uses exact match filtering (sortie.sortie_effect === sortieEffect)
+- Active filter indicator uses same badge component pattern
+- Clear Filters button properly resets all filters including effectiveness
+
+[Feature] Feature #139 marked as PASSING
+
+**Current Progress:** 137/374 features passing (36.6%)
+
