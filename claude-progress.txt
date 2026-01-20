@@ -28388,3 +28388,15 @@ END OF SESSION #160
 
 ================================================================================
 
+[Testing] 2026-01-20 05:05:01 - Feature #44 (Bad actor flagging works) regression test PASSED ✅
+- Logged in as depot manager (depot_mgr)
+- Navigated to Assets page
+- Edited asset CRIIS-005 (Camera System X)
+- Toggled bad actor flag OFF and ON successfully
+- Saved changes - confirmed with success message
+- Verified bad actor indicator displays as 'BA' badge on assets list
+- Verified asset appears in Bad Actor Report with correct details
+- All 7 verification steps completed successfully
+- Zero critical console errors
+- Screenshots captured: feature_44_bad_actor_report.png, feature_44_bad_actor_badge_scrolled.png
+
