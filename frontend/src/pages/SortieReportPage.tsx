@@ -398,6 +398,11 @@ export default function SortieReportPage() {
 
   return (
     <div>
+      {/* Print-only CUI Header */}
+      <div className="print-only print-cui-header" style={{ display: 'none' }}>
+        CONTROLLED UNCLASSIFIED INFORMATION (CUI)
+      </div>
+
       {/* CUI Header Banner */}
       <div className="bg-green-600 text-white text-center py-1 text-xs font-semibold mb-4">
         CUI
@@ -520,7 +525,15 @@ export default function SortieReportPage() {
             <h2 className="text-lg font-semibold text-gray-900">
               Sortie Details ({sorties.length} sorties)
             </h2>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 no-print">
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm"
+                title="Print Report"
+              >
+                <PrinterIcon className="h-4 w-4" />
+                Print
+              </button>
               <button
                 onClick={exportToPDF}
                 className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-sm"
@@ -619,6 +632,11 @@ export default function SortieReportPage() {
       {/* CUI Footer Banner */}
       <div className="bg-green-600 text-white text-center py-1 text-xs font-semibold mt-6">
         CUI
+      </div>
+
+      {/* Print-only CUI Footer */}
+      <div className="print-only print-cui-footer print-footer" style={{ display: 'none' }}>
+        CUI - CONTROLLED UNCLASSIFIED INFORMATION
       </div>
     </div>
   )

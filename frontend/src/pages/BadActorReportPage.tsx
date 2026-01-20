@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
-import { ExclamationTriangleIcon, DocumentArrowDownIcon, ClockIcon, CubeIcon } from '@heroicons/react/24/outline'
+import { ExclamationTriangleIcon, DocumentArrowDownIcon, ClockIcon, CubeIcon, PrinterIcon } from '@heroicons/react/24/outline'
 
 interface BadActor {
   asset_id: number
