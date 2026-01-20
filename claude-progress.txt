@@ -35800,3 +35800,36 @@ ensuring data consistency across multiple browser tabs/views.
 ================================================================================
 [2026-01-20 11:40 UTC] Feature #283 session complete - PARALLEL SESSION
 ================================================================================
+[Testing] Feature #84 - REGRESSION FIXED and PASSING
+- Found: Close Repair dialog buttons were outside viewport
+- Root cause: Missing scroll handling classes on Dialog.Panel
+- Fix: Added max-h-[90vh] overflow-y-auto and sticky header
+- Verified: Stop date validation working, repair closes successfully
+- Result: Feature now fully functional
+
+================================================================================
+[2026-01-20 11:45 UTC] Feature #208 REGRESSION TEST - PASSING
+================================================================================
+
+Feature #208: User role changes require admin re-authentication - VERIFIED
+Category: Security
+Description: Changing roles requires password confirmation
+
+TEST EXECUTION - All 8 Steps PASSED
+
+Step 1: Log in as admin - PASSED
+Step 2: Navigate to user management - PASSED
+Step 3: Edit user to change role - PASSED (Bob Field: Field Technician to Viewer)
+Step 4: Verify password prompt appears - PASSED (Security panel displayed)
+Step 5: Enter wrong password - PASSED (wrongpassword123 entered)
+Step 6: Verify change blocked - PASSED (403 Forbidden, error message displayed)
+Step 7: Enter correct password - PASSED (admin123 entered)
+Step 8: Verify role change applied - PASSED (Role updated to Viewer, 200 OK)
+
+Result: Feature #208 PASSING - NO REGRESSION DETECTED
+Progress: 280/374 features passing (74.9%)
+
+[2026-01-20 11:45 UTC] Feature #208 regression test complete - PASSING
+================================================================================
+[Testing] Note: Bob Field role changed from Field Technician to Viewer during test
+[Testing] Session complete - Feature #208 verified PASSING - no regression found
