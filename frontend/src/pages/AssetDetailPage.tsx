@@ -1087,7 +1087,7 @@ export default function AssetDetailPage() {
       <Breadcrumbs
         items={[
           { label: 'Assets', path: '/assets' },
-          { label: asset.name || asset.serno, path: `/assets/${asset.asset_id}` },
+          { label: asset.part_name || asset.name || asset.serno, path: `/assets/${asset.asset_id}` },
         ]}
       />
 
