@@ -20041,3 +20041,241 @@ Tests Executed: 9 comprehensive scenarios (7 required + 2 additional)
 Documentation: FEATURE_201_COMPLETION.md created with detailed analysis
 
 Next: Session complete - Feature #201 verified and committed
+[Testing] 2026-01-20 01:52 UTC - Feature #125 REGRESSION TEST: TCTO link to repair records
+
+✅ Step 1: Logged in as field technician (Bob Field)
+✅ Step 2: Found TCTO for asset (TCTO-2024-001)
+✅ Step 3: Verified link to repair record exists (MX-2024-001 linked to CRIIS-002)
+✅ Step 4: Navigated to repair (maintenance event #1)
+✅ Step 5: Verified TCTO reference visible on repair (TCTO-2024-001 section displayed)
+✅ Step 6: Navigated from repair to TCTO (clicked View TCTO button successfully)
+
+⚠️ PARTIAL REGRESSION FOUND:
+- Repair → TCTO navigation: ✅ WORKING (clickable View TCTO button)
+- TCTO → Repair navigation: ❌ NOT WORKING (repair job number shown but not clickable)
+
+The feature is only 50% complete. TCTOs display linked repairs but there's no way to navigate back to the repair from the TCTO page.
+
+Recommendation: Add clickable link or button to navigate from TCTO asset list to the linked repair.
+
+================================================================================
+Session: 2026-01-20 01:54 UTC - Feature #22 REGRESSION TEST COMPLETED
+================================================================================
+
+Feature #22: Dashboard shows PMI due soon alerts widget - VERIFIED AND PASSING
+
+Assignment: Regression testing session - Random passing feature selected
+
+Test Execution - All 7 Steps PASSED:
+
+✅ Step 1: Logged in as admin user (John Admin)
+   - Successfully authenticated and redirected to dashboard
+
+✅ Step 2: Navigated to dashboard
+   - Dashboard loaded successfully at http://localhost:5173/dashboard
+   - Screenshot: feature22_step2_dashboard_with_pmi_widget.png
+
+✅ Step 3: Verified PMI alerts widget displays
+   - PMI Due Soon widget clearly visible on dashboard
+   - Widget shows heading "PMI Due Soon" 
+   - Widget displays 7 PMI items in total
+   - Color-coded indicators shown at top: 3 red, 2 yellow, 2 green
+
+✅ Step 4: Verified red items are due within 7 days
+   Red items identified (3 total):
+   1. Sensor Unit A - 30-Day Inspection - "3 days overdue" - Jan 17
+   2. Sensor Unit B - 90-Day Calibration - "Due in 2 days" - Jan 22
+   3. Camera System X - 60-Day Check - "Due in 6 days" - Jan 26
+   ✓ All red items are within 7 days or overdue
+
+✅ Step 5: Verified yellow items are due 8-30 days
+   Yellow items identified (2 total):
+   4. Radar Unit 01 - 180-Day Service - "Due in 11 days" - Jan 31
+   5. Communication System - 365-Day Overhaul - "Due in 20 days" - Feb 9
+   ✓ All yellow items are between 8-30 days
+
+✅ Step 6: Verified green items are due after 30 days
+   Green items identified (2 total):
+   6. Camera System X - 90-Day Calibration - "Due in 44 days" - Mar 5
+   7. Navigation Unit - 365-Day Overhaul - "Due in 119 days" - May 19
+   ✓ All green items are after 30 days
+
+✅ Step 7: Clicked on PMI item to navigate to detail
+   - Clicked on "Sensor Unit A" PMI item
+   - Successfully navigated to /pmi/1 detail page
+   - Detail page shows correct PMI information
+   - OVERDUE badge displayed prominently
+   - Screenshot: feature22_step7_pmi_detail_navigation.png
+
+Technical Verification:
+✅ Zero console errors during entire test
+✅ Widget color coding matches requirements exactly:
+   - Red: ≤7 days (includes overdue)
+   - Yellow: 8-30 days
+   - Green: >30 days
+✅ PMI items display all required information:
+   - Asset name
+   - PMI type/description
+   - Asset serial number
+   - Due date/days remaining
+✅ Navigation from widget to detail page works correctly
+✅ Color legend displayed at bottom of widget
+
+Implementation Details Verified:
+- Widget properly queries backend API for PMI data
+- Color coding logic correctly calculates days until due
+- Overdue items properly flagged (negative days)
+- Clickable PMI items navigate to correct detail pages
+- Visual hierarchy clear with color-coded indicators
+- Count badges at top match actual items in each category
+
+Result: Feature #22 continues to work correctly. No regression found.
+Feature remains PASSING ✅
+
+Session Type: Regression testing (verification only)
+Session Duration: ~6 minutes
+Code Changes: 0 files modified
+Tests Executed: 7 steps (all required verification steps)
+Screenshots Captured: 2
+
+Next: Session complete - Feature #22 regression test successful
+
+[Testing] Session complete - verified feature #22
+
+================================================================================
+[Testing] 2026-01-20 01:53 UTC - Feature #125 REGRESSION TEST COMPLETE
+================================================================================
+
+Feature: TCTO link to repair records
+Status: ✅ PASSED - REGRESSION FIXED
+
+Initial Finding:
+⚠️ Partial regression detected - bidirectional linking incomplete
+
+Regression Details:
+- Repair → TCTO navigation: ✅ Working (View TCTO button present)
+- TCTO → Repair navigation: ❌ Broken (job number displayed but not clickable)
+
+Fix Applied:
+Changed repair job number in TCTODetailPage.tsx from <span> to <button> with onClick handler
+that navigates to /maintenance/{event_id}
+
+Verification After Fix - All 6 Steps PASSED:
+
+✅ Step 1: Log in as field technician (Bob Field)
+   - Authenticated successfully
+
+✅ Step 2: Complete TCTO for asset (TCTO-2024-001)
+   - Found TCTO: Sensor Firmware Update v2.3.1
+   - 100% compliance (3 assets)
+   - Asset CRIIS-002 has linked repair MX-2024-001
+
+✅ Step 3: Link to repair record
+   - Repair MX-2024-001 linked to TCTO completion
+   - Link visible in TCTO Assets tab
+
+✅ Step 4: Navigate to repair
+   - Clicked MX-2024-001 link from TCTO page
+   - Successfully navigated to /maintenance/1
+
+✅ Step 5: Verify TCTO reference visible
+   - Repair page shows TCTO Completion section
+   - Displays: TCTO-2024-001, Sensor Firmware Update v2.3.1
+   - Shows priority (Urgent), status (open), completion date
+   - "View TCTO" button present
+
+✅ Step 6: Navigate from repair to TCTO
+   - Clicked "View TCTO" button
+   - Successfully navigated to /tcto/1
+   - Full bidirectional navigation confirmed
+
+Technical Details:
+✓ Zero JavaScript console errors
+✓ Zero API errors
+✓ Bidirectional navigation fully functional
+✓ UI responsive and clear
+✓ Tooltips show repair narrative on hover
+✓ Data integrity maintained
+
+Screenshots Captured:
+- feature125_dashboard.png - Initial login view
+- feature125_tcto_maintenance_event.png - TCTO event type display
+- feature125_tcto_event_detail.png - TCTO maintenance event
+- feature125_tcto_assets_with_linked_repair.png - TCTO showing linked repairs
+- feature125_repair_with_tcto_link.png - Repair showing TCTO section
+- feature125_tcto_with_clickable_repair_link_FIXED.png - After fix applied
+- feature125_bidirectional_navigation_SUCCESS.png - Final verification
+
+Git Commit: 479b141 - "Fix regression in Feature #125: Make TCTO repair links clickable"
+
+Result: Feature #125 now fully passing - bidirectional TCTO ↔ Repair linking works perfectly
+
+Current Progress: 199/374 features passing (53.2%)
+
+Session complete - Feature #125 regression fixed and verified
+================================================================================
+
+
+================================================================================
+Session: 2026-01-20 01:53 UTC - Feature #204 PARALLEL EXECUTION COMPLETE
+================================================================================
+
+Feature #204: Depot Manager cannot manage users - VERIFIED AND PASSING
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #204
+
+Implementation Status: ALREADY FULLY IMPLEMENTED
+- Frontend route protection working correctly
+- Backend API authorization enforced
+- Navigation menu properly filtered by role
+- Clear error messaging for unauthorized access
+
+Test Execution - All 7 Steps PASSED:
+
+Step 1: ✅ Logged in as depot manager (Jane Depot)
+Step 2: ✅ Verified Admin link not visible in navigation menu
+Step 3: ✅ Direct URL access to /admin/users blocked (redirected to /unauthorized)
+Step 4: ✅ POST /api/users returned 403 "Admin access required"
+Step 5: ✅ Verified 403 response for create user
+Step 6: ✅ DELETE /api/users/3 returned 403 "Admin access required"
+Step 7: ✅ Verified 403 response for delete user
+
+Technical Verification:
+✅ Frontend ProtectedRoute component blocks admin routes for non-admins
+✅ Backend authorization middleware checks role before user operations
+✅ Navigation menu filtered based on user role
+✅ Token-based authentication working correctly
+✅ Zero console errors during testing
+✅ Clear 403 error messages without sensitive information
+
+Security Features Verified:
+- Depot managers cannot see Admin menu item
+- Direct URL access to admin pages blocked with 403
+- API endpoints enforce ADMIN role requirement
+- All user management operations restricted to admins only
+
+API Testing Results:
+- POST /api/users with depot_mgr token: 403 "Admin access required" ✅
+- DELETE /api/users/:id with depot_mgr token: 403 "Admin access required" ✅
+
+Result: Feature #204 marked as PASSING ✅
+
+Progress: 203/374 features passing (54.3%)
+
+Session Type: Verification only (no code changes needed)
+Session Duration: ~15 minutes
+Code Changes: 0 files modified
+Tests Executed: 7 steps (all passing)
+Documentation: FEATURE_204_COMPLETION.md created
+
+Screenshots:
+- feature204_step1_depot_mgr_dashboard.png
+- feature204_step2_unauthorized_page.png
+
+Test Scripts:
+- test_f204_api.sh (initial version)
+- test_f204_api_v2.sh (with Bearer token)
+
+Next: Session complete - Feature #204 verified and committed
+
+================================================================================
