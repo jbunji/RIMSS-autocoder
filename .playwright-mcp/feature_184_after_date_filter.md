@@ -1,0 +1,243 @@
+### Page state
+- Page URL: http://localhost:5173/reports/parts-ordered
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e26]:
+  - generic [ref=e27]: CUI - Controlled Unclassified Information
+  - navigation [ref=e29]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - button "Toggle sidebar" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - generic [ref=e36]:
+          - generic [ref=e37]: RIMSS
+          - generic [ref=e38]: Remote Independent Maintenance Status System
+      - generic [ref=e39]:
+        - link "View notifications" [ref=e40] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e41]
+          - generic [ref=e43]: "4"
+        - 'button "Program: CRIIS" [ref=e45] [cursor=pointer]':
+          - generic [ref=e46]: "Program:"
+          - generic [ref=e47]: CRIIS
+          - img [ref=e48]
+        - button "John Admin" [ref=e51] [cursor=pointer]:
+          - img [ref=e52]
+          - generic [ref=e54]: John Admin
+          - img [ref=e55]
+  - generic [ref=e59]:
+    - navigation [ref=e60]:
+      - generic [ref=e61]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e63]
+          - text: Dashboard
+        - link "Assets" [ref=e65] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e66]
+          - text: Assets
+        - link "Configurations" [ref=e68] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e69]
+          - text: Configurations
+        - link "Maintenance" [ref=e72] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e73]
+          - text: Maintenance
+        - link "Sorties" [ref=e75] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e76]
+          - text: Sorties
+        - link "Spares" [ref=e78] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e79]
+          - text: Spares
+        - link "Parts Ordered" [ref=e81] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e82]
+          - text: Parts Ordered
+        - link "Software" [ref=e84] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e85]
+          - text: Software
+        - link "Notifications" [ref=e87] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e88]
+          - text: Notifications
+        - link "Reports" [ref=e90] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e91]
+          - text: Reports
+      - generic [ref=e93]:
+        - paragraph [ref=e94]: Administration
+        - link "Admin" [ref=e95] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e96]
+          - text: Admin
+        - link "Users" [ref=e98] [cursor=pointer]:
+          - /url: /admin/users
+          - img [ref=e99]
+          - text: Users
+    - paragraph [ref=e102]: RIMSS v0.1.0
+  - main [ref=e104]:
+    - generic [ref=e582]:
+      - generic [ref=e584]:
+        - generic [ref=e585]:
+          - heading "Parts Ordered Report" [level=1] [ref=e586]:
+            - img [ref=e587]
+            - text: Parts Ordered Report
+          - paragraph [ref=e589]: Comprehensive parts requisition status report
+        - generic [ref=e590]:
+          - button "Print" [ref=e591] [cursor=pointer]:
+            - img [ref=e592]
+            - text: Print
+          - button "Export PDF" [ref=e594] [cursor=pointer]:
+            - img [ref=e595]
+            - text: Export PDF
+          - button "Export Excel" [ref=e597] [cursor=pointer]:
+            - img [ref=e598]
+            - text: Export Excel
+      - generic [ref=e601]:
+        - generic [ref=e602]:
+          - generic [ref=e603]: Start Date
+          - textbox [ref=e604]: 2026-01-10
+        - generic [ref=e605]:
+          - generic [ref=e606]: End Date
+          - textbox [active] [ref=e607]: 2026-01-18
+      - generic [ref=e608]:
+        - generic [ref=e611]:
+          - img [ref=e613]
+          - generic [ref=e616]:
+            - term [ref=e617]: Total Orders
+            - definition [ref=e618]: "6"
+        - generic [ref=e621]:
+          - img [ref=e623]
+          - generic [ref=e626]:
+            - term [ref=e627]: PQDR Orders
+            - definition [ref=e628]: "2"
+        - generic [ref=e631]:
+          - generic [ref=e634]: P
+          - generic [ref=e636]:
+            - term [ref=e637]: Pending
+            - definition [ref=e638]: "2"
+        - generic [ref=e641]:
+          - generic [ref=e644]: $
+          - generic [ref=e646]:
+            - term [ref=e647]: Total Value
+            - definition [ref=e648]: $28,450.00
+      - generic [ref=e649]:
+        - heading "Status Breakdown" [level=3] [ref=e650]
+        - generic [ref=e651]:
+          - generic [ref=e652]: "Pending: 2"
+          - generic [ref=e653]: "Acknowledged: 3"
+          - generic [ref=e654]: "Shipped: 1"
+          - generic [ref=e655]: "Received: 0"
+          - generic [ref=e656]: "Cancelled: 0"
+        - heading "Priority Breakdown" [level=3] [ref=e657]
+        - generic [ref=e658]:
+          - generic [ref=e659]: "Routine: 1"
+          - generic [ref=e660]: "Urgent: 3"
+          - generic [ref=e661]: "Critical: 2"
+      - table [ref=e664]:
+        - rowgroup [ref=e665]:
+          - row "Order Date Part Number Part Name Qty Status Priority Requestor Asset" [ref=e666]:
+            - columnheader "Order Date" [ref=e667]
+            - columnheader "Part Number" [ref=e668]
+            - columnheader "Part Name" [ref=e669]
+            - columnheader "Qty" [ref=e670]
+            - columnheader "Status" [ref=e671]
+            - columnheader "Priority" [ref=e672]
+            - columnheader "Requestor" [ref=e673]
+            - columnheader "Asset" [ref=e674]
+        - rowgroup [ref=e675]:
+          - row "Jan 17, 2026 PN-GYRO-006 6615-01-777-8901 Gyroscope Stabilizer 1 Pending Critical Bob Field ACTS-003" [ref=e706]:
+            - cell "Jan 17, 2026" [ref=e707]:
+              - generic [ref=e709]: Jan 17, 2026
+            - cell "PN-GYRO-006 6615-01-777-8901" [ref=e710]:
+              - generic [ref=e711]: PN-GYRO-006
+              - generic [ref=e712]: 6615-01-777-8901
+            - cell "Gyroscope Stabilizer" [ref=e713]
+            - cell "1" [ref=e714]
+            - cell "Pending" [ref=e715]:
+              - generic [ref=e716]: Pending
+            - cell "Critical" [ref=e717]:
+              - generic [ref=e718]: Critical
+            - cell "Bob Field" [ref=e719]
+            - cell "ACTS-003" [ref=e720]
+          - row "Jan 16, 2026 PQDR PN-PSU-001 6130-01-555-1234 Power Supply Unit 24V 2 Pending Urgent Bob Field CRIIS-006" [ref=e721]:
+            - cell "Jan 16, 2026 PQDR" [ref=e722]:
+              - generic [ref=e723]:
+                - generic [ref=e724]: Jan 16, 2026
+                - generic "Product Quality Deficiency Report" [ref=e725]: PQDR
+            - cell "PN-PSU-001 6130-01-555-1234" [ref=e726]:
+              - generic [ref=e727]: PN-PSU-001
+              - generic [ref=e728]: 6130-01-555-1234
+            - cell "Power Supply Unit 24V" [ref=e729]
+            - cell "2" [ref=e730]
+            - cell "Pending" [ref=e731]:
+              - generic [ref=e732]: Pending
+            - cell "Urgent" [ref=e733]:
+              - generic [ref=e734]: Urgent
+            - cell "Bob Field" [ref=e735]
+            - cell "CRIIS-006" [ref=e736]
+          - row "Jan 14, 2026 PN-CAB-004 6145-01-222-4567 Coaxial Cable Assembly 10 Acknowledged Routine Bob Field -" [ref=e737]:
+            - cell "Jan 14, 2026" [ref=e738]:
+              - generic [ref=e740]: Jan 14, 2026
+            - cell "PN-CAB-004 6145-01-222-4567" [ref=e741]:
+              - generic [ref=e742]: PN-CAB-004
+              - generic [ref=e743]: 6145-01-222-4567
+            - cell "Coaxial Cable Assembly" [ref=e744]
+            - cell "10" [ref=e745]
+            - cell "Acknowledged" [ref=e746]:
+              - generic [ref=e747]: Acknowledged
+            - cell "Routine" [ref=e748]:
+              - generic [ref=e749]: Routine
+            - cell "Bob Field" [ref=e750]
+            - cell "-" [ref=e751]
+          - row "Jan 12, 2026 PN-DIODE-003 5960-01-444-9876 Laser Diode Module 1 Acknowledged Critical Jane Depot ACTS-005" [ref=e752]:
+            - cell "Jan 12, 2026" [ref=e753]:
+              - generic [ref=e755]: Jan 12, 2026
+            - cell "PN-DIODE-003 5960-01-444-9876" [ref=e756]:
+              - generic [ref=e757]: PN-DIODE-003
+              - generic [ref=e758]: 5960-01-444-9876
+            - cell "Laser Diode Module" [ref=e759]
+            - cell "1" [ref=e760]
+            - cell "Acknowledged" [ref=e761]:
+              - generic [ref=e762]: Acknowledged
+            - cell "Critical" [ref=e763]:
+              - generic [ref=e764]: Critical
+            - cell "Jane Depot" [ref=e765]
+            - cell "ACTS-005" [ref=e766]
+          - row "Jan 11, 2026 PQDR PN-CLASS-007 5999-01-999-0001 Classified Component Alpha 1 Acknowledged Urgent Jane Depot 236-002" [ref=e767]:
+            - cell "Jan 11, 2026 PQDR" [ref=e768]:
+              - generic [ref=e769]:
+                - generic [ref=e770]: Jan 11, 2026
+                - generic "Product Quality Deficiency Report" [ref=e771]: PQDR
+            - cell "PN-CLASS-007 5999-01-999-0001" [ref=e772]:
+              - generic [ref=e773]: PN-CLASS-007
+              - generic [ref=e774]: 5999-01-999-0001
+            - cell "Classified Component Alpha" [ref=e775]
+            - cell "1" [ref=e776]
+            - cell "Acknowledged" [ref=e777]:
+              - generic [ref=e778]: Acknowledged
+            - cell "Urgent" [ref=e779]:
+              - generic [ref=e780]: Urgent
+            - cell "Jane Depot" [ref=e781]
+            - cell "236-002" [ref=e782]
+          - row "Jan 9, 2026 PN-LENS-005 6650-01-111-2345 Optical Lens Kit 1 Shipped Urgent Jane Depot ARDS-004" [ref=e783]:
+            - cell "Jan 9, 2026" [ref=e784]:
+              - generic [ref=e786]: Jan 9, 2026
+            - cell "PN-LENS-005 6650-01-111-2345" [ref=e787]:
+              - generic [ref=e788]: PN-LENS-005
+              - generic [ref=e789]: 6650-01-111-2345
+            - cell "Optical Lens Kit" [ref=e790]
+            - cell "1" [ref=e791]
+            - cell "Shipped" [ref=e792]:
+              - generic [ref=e793]: Shipped
+            - cell "Urgent" [ref=e794]:
+              - generic [ref=e795]: Urgent
+            - cell "Jane Depot" [ref=e796]
+            - cell "ARDS-004" [ref=e797]
+  - contentinfo [ref=e483]: CUI - Controlled Unclassified Information
+```

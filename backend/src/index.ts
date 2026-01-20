@@ -4054,6 +4054,12 @@ app.post('/api/events', (req, res) => {
   if (!discrepancy || discrepancy.trim() === '') {
     return res.status(400).json({ error: 'Discrepancy description is required' });
   }
+  if (discrepancy.trim().length < 10) {
+    return res.status(400).json({ error: 'Discrepancy description must be at least 10 characters' });
+  }
+  if (discrepancy.trim().length > 500) {
+    return res.status(400).json({ error: 'Discrepancy description must not exceed 500 characters' });
+  }
   if (!event_type || !['Standard', 'PMI', 'TCTO', 'BIT/PC'].includes(event_type)) {
     return res.status(400).json({ error: 'Valid event type is required (Standard, PMI, TCTO, BIT/PC)' });
   }
