@@ -1839,7 +1839,7 @@ app.delete('/api/tcto/:id', (req, res) => {
   }
 
   // Check role permissions - only ADMIN can delete TCTO records
-  if (user.role !== 'admin') {
+  if (user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Access denied. Only administrators can delete TCTO records.' });
   }
 
@@ -1874,6 +1874,172 @@ app.delete('/api/tcto/:id', (req, res) => {
       tcto_no: deletedTCTO.tcto_no,
       title: deletedTCTO.title,
       status: deletedTCTO.status,
+    },
+  });
+});
+
+// GET /api/tcto/:id - Get a single TCTO with asset compliance details
+app.get('/api/tcto/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const tctoId = parseInt(req.params.id, 10);
+  if (isNaN(tctoId)) {
+    return res.status(400).json({ error: 'Invalid TCTO ID' });
+  }
+
+  // Find the TCTO record
+  const tcto = tctoRecords.find(t => t.tcto_id === tctoId);
+  if (!tcto) {
+    return res.status(404).json({ error: 'TCTO not found' });
+  }
+
+  // Verify user has access to the TCTO's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(tcto.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this TCTO' });
+  }
+
+  // Calculate compliance info
+  const daysUntilDeadline = calculateDaysUntilDeadline(tcto.compliance_deadline);
+  const compliancePercentage = tcto.affected_assets.length > 0
+    ? Math.round((tcto.compliant_assets.length / tcto.affected_assets.length) * 100)
+    : 100;
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === tcto.pgm_id);
+
+  // Get detailed asset information for affected assets
+  const affectedAssetsDetails = tcto.affected_assets.map(assetId => {
+    const asset = mockAssets.find(a => a.asset_id === assetId);
+    const isCompliant = tcto.compliant_assets.includes(assetId);
+
+    return {
+      asset_id: assetId,
+      serno: asset?.serno || 'Unknown',
+      partno: asset?.partno || 'Unknown',
+      name: asset?.name || 'Unknown Asset',
+      status_cd: asset?.status_cd || 'Unknown',
+      admin_loc: asset?.admin_loc || 'Unknown',
+      cust_loc: asset?.cust_loc || 'Unknown',
+      is_compliant: isCompliant,
+      compliance_status: isCompliant ? 'Compliant' : 'Non-Compliant',
+    };
+  });
+
+  const responseData = {
+    tcto: {
+      ...tcto,
+      days_until_deadline: daysUntilDeadline,
+      compliance_percentage: compliancePercentage,
+      assets_remaining: tcto.affected_assets.length - tcto.compliant_assets.length,
+      is_overdue: daysUntilDeadline < 0 && tcto.status === 'open',
+      program_code: program?.pgm_cd || '',
+      program_name: program?.pgm_name || '',
+    },
+    assets: affectedAssetsDetails,
+    summary: {
+      total_affected: tcto.affected_assets.length,
+      compliant: tcto.compliant_assets.length,
+      non_compliant: tcto.affected_assets.length - tcto.compliant_assets.length,
+      compliance_percentage: compliancePercentage,
+    },
+  };
+
+  console.log(`[TCTO] Detail request for ${tcto.tcto_no} (ID: ${tcto.tcto_id}) by ${user.username}`);
+
+  res.json(responseData);
+});
+
+// POST /api/tcto/:id/compliance - Update asset compliance status for a TCTO
+app.post('/api/tcto/:id/compliance', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Only ADMIN and DEPOT_MANAGER can update compliance
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to update TCTO compliance' });
+  }
+
+  const tctoId = parseInt(req.params.id, 10);
+  if (isNaN(tctoId)) {
+    return res.status(400).json({ error: 'Invalid TCTO ID' });
+  }
+
+  const { asset_id, is_compliant } = req.body;
+
+  if (typeof asset_id !== 'number') {
+    return res.status(400).json({ error: 'Asset ID is required' });
+  }
+
+  if (typeof is_compliant !== 'boolean') {
+    return res.status(400).json({ error: 'Compliance status (is_compliant) is required' });
+  }
+
+  // Find the TCTO record
+  const tctoIndex = tctoRecords.findIndex(t => t.tcto_id === tctoId);
+  if (tctoIndex === -1) {
+    return res.status(404).json({ error: 'TCTO not found' });
+  }
+
+  const tcto = tctoRecords[tctoIndex];
+
+  // Verify user has access to the TCTO's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(tcto.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this TCTO' });
+  }
+
+  // Verify the asset is in the affected_assets list
+  if (!tcto.affected_assets.includes(asset_id)) {
+    return res.status(400).json({ error: 'Asset is not in the affected assets list for this TCTO' });
+  }
+
+  // Update compliance status
+  const asset = mockAssets.find(a => a.asset_id === asset_id);
+  if (is_compliant) {
+    // Add to compliant list if not already there
+    if (!tcto.compliant_assets.includes(asset_id)) {
+      tcto.compliant_assets.push(asset_id);
+      console.log(`[TCTO] Asset ${asset?.serno || asset_id} marked COMPLIANT for ${tcto.tcto_no} by ${user.username}`);
+    }
+  } else {
+    // Remove from compliant list if present
+    const compliantIndex = tcto.compliant_assets.indexOf(asset_id);
+    if (compliantIndex !== -1) {
+      tcto.compliant_assets.splice(compliantIndex, 1);
+      console.log(`[TCTO] Asset ${asset?.serno || asset_id} marked NON-COMPLIANT for ${tcto.tcto_no} by ${user.username}`);
+    }
+  }
+
+  // Calculate updated compliance info
+  const compliancePercentage = tcto.affected_assets.length > 0
+    ? Math.round((tcto.compliant_assets.length / tcto.affected_assets.length) * 100)
+    : 100;
+
+  res.json({
+    message: `Asset ${asset?.serno || asset_id} compliance updated successfully`,
+    asset: {
+      asset_id: asset_id,
+      serno: asset?.serno || 'Unknown',
+      name: asset?.name || 'Unknown',
+      is_compliant: is_compliant,
+    },
+    tcto_summary: {
+      total_affected: tcto.affected_assets.length,
+      compliant: tcto.compliant_assets.length,
+      non_compliant: tcto.affected_assets.length - tcto.compliant_assets.length,
+      compliance_percentage: compliancePercentage,
     },
   });
 });

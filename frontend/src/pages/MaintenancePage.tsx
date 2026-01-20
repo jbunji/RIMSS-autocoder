@@ -3077,6 +3077,121 @@ export default function MaintenancePage() {
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* Delete TCTO Confirmation Modal */}
+      <Dialog open={isDeleteTCTOModalOpen} onClose={closeDeleteTCTOModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-red-600 flex items-center">
+                <ExclamationTriangleIcon className="h-6 w-6 mr-2" />
+                Delete TCTO
+              </Dialog.Title>
+              <button
+                onClick={closeDeleteTCTOModal}
+                className="text-gray-400 hover:text-gray-500"
+                disabled={deleteTCTOLoading}
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {/* Success Message */}
+              {deleteTCTOSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{deleteTCTOSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {deleteTCTOError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <p className="text-red-700 text-sm">{deleteTCTOError}</p>
+                </div>
+              )}
+
+              {!deleteTCTOSuccess && (
+                <>
+                  {/* Warning */}
+                  <div className="mb-4">
+                    <p className="text-gray-700">
+                      Are you sure you want to delete this TCTO record? This action cannot be undone.
+                    </p>
+                  </div>
+
+                  {/* TCTO Details */}
+                  {tctoToDelete && (
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">TCTO Number:</span>
+                        <span className="text-sm font-mono font-semibold text-indigo-600">{tctoToDelete.tcto_no}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Title:</span>
+                        <span className="text-sm font-medium text-gray-900 text-right max-w-[200px] truncate">{tctoToDelete.title}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Status:</span>
+                        <span className={classNames(
+                          'text-xs font-medium px-2 py-0.5 rounded-full',
+                          tctoToDelete.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        )}>
+                          {tctoToDelete.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Priority:</span>
+                        <span className="text-sm text-gray-900">{tctoToDelete.priority}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Deadline:</span>
+                        <span className="text-sm text-gray-900">{tctoToDelete.compliance_deadline}</span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            {!deleteTCTOSuccess && (
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                <button
+                  onClick={closeDeleteTCTOModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  disabled={deleteTCTOLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteTCTO}
+                  disabled={deleteTCTOLoading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {deleteTCTOLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-4 w-4 mr-2" />
+                      Delete TCTO
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   )
 
@@ -4120,7 +4235,7 @@ export default function MaintenancePage() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  {canEditTCTO && (
+                  {(canEditTCTO || canDeleteTCTO) && (
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
