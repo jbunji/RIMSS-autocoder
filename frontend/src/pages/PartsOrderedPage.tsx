@@ -8,6 +8,7 @@ import {
   ChevronUpDownIcon,
   FunnelIcon,
   XMarkIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -22,7 +23,7 @@ interface PartsOrder {
   unit_price: number
   order_date: string
   request_date: string
-  status: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled'
+  status: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled'
   requestor_id: number
   requestor_name: string
   asset_sn: string | null
@@ -35,6 +36,7 @@ interface PartsOrder {
   estimated_delivery: string | null
   program_cd: string
   program_name: string
+  pqdr: boolean
 }
 
 interface Pagination {
@@ -46,10 +48,10 @@ interface Pagination {
 
 // Status badge colors
 const statusColors: Record<string, { bg: string; text: string }> = {
-  REQUEST: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
-  ACKNOWLEDGE: { bg: 'bg-blue-100', text: 'text-blue-800' },
-  FILL: { bg: 'bg-purple-100', text: 'text-purple-800' },
-  DELIVER: { bg: 'bg-green-100', text: 'text-green-800' },
+  pending: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+  acknowledged: { bg: 'bg-blue-100', text: 'text-blue-800' },
+  shipped: { bg: 'bg-purple-100', text: 'text-purple-800' },
+  received: { bg: 'bg-green-100', text: 'text-green-800' },
   cancelled: { bg: 'bg-red-100', text: 'text-red-800' },
 }
 
@@ -77,6 +79,9 @@ export default function PartsOrderedPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [priorityFilter, setPriorityFilter] = useState<string>('')
+  const [pqdrFilter, setPqdrFilter] = useState(false)
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
 
   // Sorting state
@@ -99,6 +104,9 @@ export default function PartsOrderedPage() {
       if (searchQuery) params.append('search', searchQuery)
       if (statusFilter) params.append('status', statusFilter)
       if (priorityFilter) params.append('priority', priorityFilter)
+      if (pqdrFilter) params.append('pqdr', 'true')
+      if (startDate) params.append('start_date', startDate)
+      if (endDate) params.append('end_date', endDate)
 
       const response = await fetch(`http://localhost:3001/api/parts-orders?${params}`, {
         headers: {
@@ -130,7 +138,7 @@ export default function PartsOrderedPage() {
   // Fetch on mount and when dependencies change
   useEffect(() => {
     fetchOrders()
-  }, [token, currentProgramId, pagination.page, searchQuery, statusFilter, priorityFilter])
+  }, [token, currentProgramId, pagination.page, searchQuery, statusFilter, priorityFilter, pqdrFilter, startDate, endDate])
 
   // Handle search
   const handleSearch = (value: string) => {
@@ -153,6 +161,9 @@ export default function PartsOrderedPage() {
     setSearchQuery('')
     setStatusFilter('')
     setPriorityFilter('')
+    setPqdrFilter(false)
+    setStartDate('')
+    setEndDate('')
     setPagination(prev => ({ ...prev, page: 1 }))
   }
 
@@ -253,7 +264,7 @@ export default function PartsOrderedPage() {
             <FunnelIcon className="h-5 w-5 mr-2" />
             {showFilters ? 'Hide' : 'Show'} Filters
           </button>
-          {(searchQuery || statusFilter || priorityFilter) && (
+          {(searchQuery || statusFilter || priorityFilter || pqdrFilter || startDate || endDate) && (
             <button
               onClick={handleClearFilters}
               className="flex items-center text-sm text-gray-600 hover:text-gray-900"
@@ -265,58 +276,113 @@ export default function PartsOrderedPage() {
         </div>
 
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Part number, NSN, Serial..."
-                  className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Search */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Search
+                </label>
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    placeholder="Document #, Part #, NSN, Serial..."
+                    className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => handleStatusFilterChange(e.target.value)}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                >
+                  <option value="">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="acknowledged">Acknowledged</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="received">Received</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {/* Priority Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Priority
+                </label>
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => handlePriorityFilterChange(e.target.value)}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                >
+                  <option value="">All Priorities</option>
+                  <option value="routine">Routine</option>
+                  <option value="urgent">Urgent</option>
+                  <option value="critical">Critical</option>
+                </select>
               </div>
             </div>
 
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => handleStatusFilterChange(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                <option value="">All Statuses</option>
-                <option value="REQUEST">Request</option>
-                <option value="ACKNOWLEDGE">Acknowledge</option>
-                <option value="FILL">Fill</option>
-                <option value="DELIVER">Deliver</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Start Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value)
+                    setPagination(prev => ({ ...prev, page: 1 }))
+                  }}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
 
-            {/* Priority Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Priority
-              </label>
-              <select
-                value={priorityFilter}
-                onChange={(e) => handlePriorityFilterChange(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                <option value="">All Priorities</option>
-                <option value="routine">Routine</option>
-                <option value="urgent">Urgent</option>
-                <option value="critical">Critical</option>
-              </select>
+              {/* End Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value)
+                    setPagination(prev => ({ ...prev, page: 1 }))
+                  }}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                />
+              </div>
+
+              {/* PQDR Filter */}
+              <div>
+                <label className="flex items-center cursor-pointer mt-6">
+                  <input
+                    type="checkbox"
+                    checked={pqdrFilter}
+                    onChange={(e) => {
+                      setPqdrFilter(e.target.checked)
+                      setPagination(prev => ({ ...prev, page: 1 }))
+                    }}
+                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                  />
+                  <ExclamationTriangleIcon className="h-5 w-5 ml-2 mr-1 text-red-500" />
+                  <span className="text-sm font-medium text-gray-700">
+                    PQDR Only
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
         )}
@@ -403,10 +469,17 @@ export default function PartsOrderedPage() {
                   <tr
                     key={order.order_id}
                     onClick={() => handleRowClick(order.order_id)}
-                    className="hover:bg-gray-50 cursor-pointer"
+                    className={`cursor-pointer ${order.pqdr ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50'}`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(order.order_date)}
+                      <div className="flex items-center space-x-2">
+                        <span>{formatDate(order.order_date)}</span>
+                        {order.pqdr && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-500 text-white" title="Product Quality Deficiency Report">
+                            PQDR
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{order.part_no}</div>

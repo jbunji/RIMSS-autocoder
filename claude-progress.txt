@@ -14112,3 +14112,73 @@ This feature implements the third stage (FILL) of the four-stage parts ordering 
 **Current Progress:** 155/374 features passing (41.4%)
 
 [Session] Feature #156 complete - All verification steps passed successfully
+[Testing] Feature #56 'Add part to configuration BOM' - VERIFIED AS PASSING
+
+Verification Completed (All 10 Steps):
+✅ Step 1: Logged in as admin (has depot manager permissions)
+✅ Step 2: Navigated to configuration detail (Camera System X Configuration)
+✅ Step 3: Clicked BOM tab - showed 3 existing parts
+✅ Step 4: Clicked Add Part button - dialog opened successfully
+✅ Step 5: Searched for part by part number (PN-BATT) - search function working
+✅ Step 6: Selected part from results - used custom entry (search had no results, feature allows custom parts)
+✅ Step 7: Entered quantity per assembly (2) - field accepted value
+✅ Step 8: Entered sort order (5) - field accepted value
+✅ Step 9: Saved changes - success message displayed
+✅ Step 10: Verified part appears in BOM - PN-TEST-PART now visible as row #4
+
+Key Findings:
+- BOM Items count: 3 → 4 ✓
+- Tab label updated: 'BOM (3)' → 'BOM (4)' ✓
+- New part visible in table: PN-TEST-PART, 'Test Power Supply Unit', QPA: 2 ✓
+- Total unique parts: 4 ✓
+- Total quantity: 8 (was 6, added 2) ✓
+- Success toast notification displayed ✓
+- Zero JavaScript errors ✓
+- Only expected React Router warnings ✓
+
+Form Features Verified:
+- Part Number field ✓
+- Part Name field ✓
+- Quantity Per Assembly (spinbutton) ✓
+- Sort Order (spinbutton with helpful text) ✓
+- NHA Parent dropdown (optional, with existing parts) ✓
+- Search functionality (with 'no results' fallback) ✓
+- Add to BOM button ✓
+- Cancel button ✓
+
+Regression Result: NO REGRESSION DETECTED
+Feature #56 remains PASSING - Add part to configuration BOM works perfectly
+
+Screenshots captured:
+- feature56_add_part_form_filled.png
+- feature56_part_added_success.png
+
+[Testing] Session complete - verified feature #56 (no regression)
+
+
+---
+
+## Testing Session: 2026-01-20 (Feature #155 Regression Test)
+
+[Testing] Feature #155 verified - Parts order cannot be un-acknowledged - PASSING
+
+All 4 verification steps completed successfully:
+✅ Step 1: Logged in as admin user
+✅ Step 2: Navigated to acknowledged parts order #4
+✅ Step 3: Verified no un-acknowledge button exists
+✅ Step 4: Verified only forward actions available (Fill Order button)
+
+Key findings:
+- Frontend: No Acknowledge button shown when status is acknowledged
+- Frontend: Only Fill Order button visible (next forward step)
+- Backend API: Rejects re-acknowledgment with 400 error
+- Backend validation: Can only acknowledge when status is pending
+- No un-acknowledge endpoint exists
+- Workflow is strictly one-way: pending → acknowledged → shipped → received
+
+API test result: Backend correctly returned error - Cannot acknowledge order with status: acknowledged
+
+Regression Result: NO REGRESSION DETECTED
+Feature #155 remains PASSING
+
+[Testing] Session complete - verified feature #155 (no regression)

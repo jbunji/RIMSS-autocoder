@@ -56,6 +56,19 @@ interface Spare {
   uii: string | null
 }
 
+interface HistoryEntry {
+  history_id: number
+  order_id: number
+  timestamp: string
+  user_id: number
+  username: string
+  user_full_name: string
+  action_type: 'create' | 'request' | 'acknowledge' | 'fill' | 'deliver' | 'cancel' | 'pqdr_flag'
+  status: string
+  description: string
+  metadata?: Record<string, any>
+}
+
 // Status badge styling
 function getStatusBadge(status: PartsOrder['status']): { bg: string; text: string; label: string } {
   switch (status) {
@@ -151,6 +164,9 @@ export default function PartsOrderDetailPage() {
   const [shipDate, setShipDate] = useState('')
   const [showReceiveDialog, setShowReceiveDialog] = useState(false)
   const [receiving, setReceiving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'details' | 'history'>('details')
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -187,6 +203,36 @@ export default function PartsOrderDetailPage() {
 
     fetchOrder()
   }, [token, id])
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!token || !id || activeTab !== 'history') return
+
+      setLoadingHistory(true)
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/history`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch order history')
+        }
+
+        const data = await response.json()
+        setHistory(data.history || [])
+      } catch (err) {
+        console.error('History fetch error:', err)
+        setHistory([])
+      } finally {
+        setLoadingHistory(false)
+      }
+    }
+
+    fetchHistory()
+  }, [token, id, activeTab])
 
   const handleAcknowledge = async () => {
     if (!token || !id) return
@@ -476,9 +522,37 @@ export default function PartsOrderDetailPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Part Information */}
-        <div className="bg-white shadow rounded-lg p-6">
+      {/* Tab Navigation */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="flex space-x-8">
+          <button
+            onClick={() => setActiveTab('details')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'details'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Details
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'history'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            History
+          </button>
+        </nav>
+      </div>
+
+      {/* Details Tab */}
+      {activeTab === 'details' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Part Information */}
+          <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Part Information</h2>
           <dl className="space-y-3">
             <div className="flex justify-between">
@@ -721,12 +795,86 @@ export default function PartsOrderDetailPage() {
           </dl>
         </div>
 
-        {/* Notes */}
-        <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
-          <p className="text-gray-700">{order.notes || 'No notes available.'}</p>
+          {/* Notes */}
+          <div className="bg-white shadow rounded-lg p-6 lg:col-span-2">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
+            <p className="text-gray-700">{order.notes || 'No notes available.'}</p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Order History</h2>
+
+          {loadingHistory ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : history.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No history entries available</p>
+          ) : (
+            <div className="flow-root">
+              <ul className="-mb-8">
+                {history.map((entry, idx) => (
+                  <li key={entry.history_id}>
+                    <div className="relative pb-8">
+                      {idx !== history.length - 1 && (
+                        <span
+                          className="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <div className="relative flex items-start space-x-3">
+                        <div>
+                          <div className="relative px-1">
+                            <div className="h-8 w-8 bg-blue-500 rounded-full ring-8 ring-white flex items-center justify-center">
+                              <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div>
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-900">{entry.user_full_name}</span>
+                            </div>
+                            <p className="mt-0.5 text-sm text-gray-500">
+                              {new Date(entry.timestamp).toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                          <div className="mt-2 text-sm text-gray-700">
+                            <p>{entry.description}</p>
+                            {entry.metadata && Object.keys(entry.metadata).length > 0 && (
+                              <div className="mt-2 bg-gray-50 rounded p-2 text-xs">
+                                {Object.entries(entry.metadata).map(([key, value]) => (
+                                  <div key={key} className="flex justify-between py-1">
+                                    <span className="font-medium text-gray-600">{key.replace(/_/g, ' ')}:</span>
+                                    <span className="text-gray-900">{String(value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Acknowledge Confirmation Dialog */}
       {showAcknowledgeDialog && (

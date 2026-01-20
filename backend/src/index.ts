@@ -6595,6 +6595,49 @@ interface PartsOrder {
   pqdr: boolean; // Product Quality Deficiency Report flag
 }
 
+// Parts Order History interface for audit trail
+interface PartsOrderHistoryEntry {
+  history_id: number;
+  order_id: number;
+  timestamp: string;
+  user_id: number;
+  username: string;
+  user_full_name: string;
+  action_type: 'create' | 'request' | 'acknowledge' | 'fill' | 'deliver' | 'cancel' | 'pqdr_flag';
+  status: string; // Status after this action
+  description: string;
+  metadata?: Record<string, any>; // Additional data like shipper, tracking, etc.
+}
+
+// Parts order history storage - stores all history events for parts orders
+const partsOrderHistory: PartsOrderHistoryEntry[] = [];
+let nextHistoryId = 1;
+
+// Helper function to add parts order history entry
+function addPartsOrderHistory(
+  orderId: number,
+  user: { user_id: number; username: string; first_name: string; last_name: string },
+  actionType: PartsOrderHistoryEntry['action_type'],
+  status: string,
+  description: string,
+  metadata?: Record<string, any>
+): PartsOrderHistoryEntry {
+  const entry: PartsOrderHistoryEntry = {
+    history_id: nextHistoryId++,
+    order_id: orderId,
+    timestamp: new Date().toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    action_type: actionType,
+    status,
+    description,
+    metadata,
+  };
+  partsOrderHistory.push(entry);
+  return entry;
+}
+
 // Persistent parts orders array
 let partsOrders: PartsOrder[] = [];
 let nextPartsOrderId = 10; // Start after initial mock data
@@ -6945,6 +6988,101 @@ function initializePartsOrders(): PartsOrder[] {
 
 // Initialize parts orders on server start
 partsOrders = initializePartsOrders();
+
+// Initialize historical entries for existing orders
+function initializePartsOrderHistory(): void {
+  // Get mock users for history entries
+  const bobField = mockUsers.find(u => u.username === 'field_tech')!;
+  const janeDepot = mockUsers.find(u => u.username === 'depot_mgr')!;
+  const johnAdmin = mockUsers.find(u => u.username === 'admin')!;
+
+  // Add history for each existing order based on their current status
+  partsOrders.forEach(order => {
+    const requestor = mockUsers.find(u => u.user_id === order.requestor_id) || bobField;
+
+    // All orders start with a REQUEST action
+    addPartsOrderHistory(
+      order.order_id,
+      requestor,
+      'request',
+      'pending',
+      `Parts request created for ${order.part_name}`,
+      {
+        part_no: order.part_no,
+        qty_ordered: order.qty_ordered,
+        priority: order.priority,
+        asset_sn: order.asset_sn,
+        job_no: order.job_no,
+      }
+    );
+
+    // If acknowledged, add ACKNOWLEDGE action
+    if (order.acknowledged_date && order.acknowledged_by) {
+      const acknowledger = mockUsers.find(u => u.user_id === order.acknowledged_by) || janeDepot;
+      addPartsOrderHistory(
+        order.order_id,
+        acknowledger,
+        'acknowledge',
+        'acknowledged',
+        `Order acknowledged by depot`,
+        {
+          acknowledged_date: order.acknowledged_date,
+        }
+      );
+    }
+
+    // If filled, add FILL action
+    if (order.filled_date && order.filled_by) {
+      const filler = mockUsers.find(u => u.user_id === order.filled_by) || janeDepot;
+      addPartsOrderHistory(
+        order.order_id,
+        filler,
+        'fill',
+        'shipped',
+        `Order filled with replacement part ${order.replacement_serno || 'N/A'}`,
+        {
+          filled_date: order.filled_date,
+          replacement_serno: order.replacement_serno,
+          shipper: order.shipper,
+          tracking_number: order.shipping_tracking,
+          ship_date: order.ship_date,
+        }
+      );
+    }
+
+    // If received, add DELIVER action
+    if (order.received_date && order.received_by) {
+      const receiver = mockUsers.find(u => u.user_id === order.received_by) || bobField;
+      addPartsOrderHistory(
+        order.order_id,
+        receiver,
+        'deliver',
+        'received',
+        `Parts received and order completed`,
+        {
+          received_date: order.received_date,
+        }
+      );
+    }
+
+    // If PQDR flagged, add PQDR action
+    if (order.pqdr) {
+      addPartsOrderHistory(
+        order.order_id,
+        requestor,
+        'pqdr_flag',
+        order.status,
+        `Order flagged for PQDR (Product Quality Deficiency Report)`,
+        {
+          pqdr: true,
+        }
+      );
+    }
+  });
+}
+
+// Initialize history after orders are created
+initializePartsOrderHistory();
 
 // Dashboard: Get parts awaiting action (requires authentication)
 app.get('/api/dashboard/parts-awaiting-action', (req, res) => {
@@ -8916,6 +9054,9 @@ app.get('/api/parts-orders', (req, res) => {
   const statusFilter = req.query.status as string | undefined;
   const priorityFilter = req.query.priority as string | undefined;
   const searchQuery = req.query.search as string | undefined;
+  const pqdrFilter = req.query.pqdr as string | undefined;
+  const startDate = req.query.start_date as string | undefined;
+  const endDate = req.query.end_date as string | undefined;
 
   if (statusFilter) {
     filteredOrders = filteredOrders.filter(order => order.status === statusFilter);
@@ -8925,15 +9066,37 @@ app.get('/api/parts-orders', (req, res) => {
     filteredOrders = filteredOrders.filter(order => order.priority === priorityFilter);
   }
 
+  if (pqdrFilter === 'true') {
+    filteredOrders = filteredOrders.filter(order => order.pqdr === true);
+  }
+
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     filteredOrders = filteredOrders.filter(order =>
+      order.order_id.toString().includes(query) ||
       order.part_no.toLowerCase().includes(query) ||
       order.part_name.toLowerCase().includes(query) ||
       order.nsn.toLowerCase().includes(query) ||
       (order.asset_sn && order.asset_sn.toLowerCase().includes(query)) ||
       (order.job_no && order.job_no.toLowerCase().includes(query))
     );
+  }
+
+  // Apply date range filter
+  if (startDate) {
+    const startDateTime = new Date(startDate).getTime();
+    filteredOrders = filteredOrders.filter(order => {
+      const orderDate = new Date(order.order_date).getTime();
+      return orderDate >= startDateTime;
+    });
+  }
+
+  if (endDate) {
+    const endDateTime = new Date(endDate).getTime() + 86400000; // Add 24 hours to include the entire end date
+    filteredOrders = filteredOrders.filter(order => {
+      const orderDate = new Date(order.order_date).getTime();
+      return orderDate < endDateTime;
+    });
   }
 
   // Add program info for display
@@ -9040,6 +9203,18 @@ app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
   order.acknowledged_by = user.user_id;
   order.acknowledged_by_name = `${user.first_name} ${user.last_name}`;
 
+  // Log history entry
+  addPartsOrderHistory(
+    order.order_id,
+    user,
+    'acknowledge',
+    'acknowledged',
+    `Order acknowledged by depot`,
+    {
+      acknowledged_date: order.acknowledged_date,
+    }
+  );
+
   console.log(`[PARTS] Order #${orderId} acknowledged by ${user.first_name} ${user.last_name} (${user.role})`);
 
   // Return updated order with program info
@@ -9116,6 +9291,22 @@ app.patch('/api/parts-orders/:id/fill', (req, res) => {
   order.shipping_tracking = tracking_number;
   order.ship_date = ship_date;
 
+  // Log history entry
+  addPartsOrderHistory(
+    order.order_id,
+    user,
+    'fill',
+    'shipped',
+    `Order filled with replacement part ${replacement_serno}`,
+    {
+      filled_date: order.filled_date,
+      replacement_serno,
+      shipper,
+      tracking_number,
+      ship_date,
+    }
+  );
+
   console.log(`[PARTS] Order #${orderId} filled by ${user.first_name} ${user.last_name} (${user.role}) - Replacement: ${replacement_serno}`);
 
   // Return updated order with program info
@@ -9170,6 +9361,19 @@ app.patch('/api/parts-orders/:id/deliver', (req, res) => {
   order.received_by = user.user_id;
   order.received_by_name = `${user.first_name} ${user.last_name}`;
   order.qty_received = order.qty_ordered; // Mark full quantity as received
+
+  // Log history entry
+  addPartsOrderHistory(
+    order.order_id,
+    user,
+    'deliver',
+    'received',
+    `Parts received and order completed`,
+    {
+      received_date: order.received_date,
+      qty_received: order.qty_received,
+    }
+  );
 
   console.log(`[PARTS] Order #${orderId} received by ${user.first_name} ${user.last_name} (${user.role})`);
 
@@ -9311,6 +9515,40 @@ app.post('/api/parts-orders', (req, res) => {
   res.status(201).json({
     message: 'Parts order created successfully',
     order: newOrder,
+  });
+});
+
+// Get history for a specific parts order
+app.get('/api/parts-orders/:id/history', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const orderId = parseInt(req.params.id, 10);
+  const order = partsOrders.find(o => o.order_id === orderId);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Parts order not found' });
+  }
+
+  // Check if user has access to this order's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(order.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this parts order' });
+  }
+
+  // Get all history entries for this order, sorted by timestamp (oldest first)
+  const orderHistory = partsOrderHistory
+    .filter(h => h.order_id === orderId)
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  res.json({
+    history: orderHistory,
+    total: orderHistory.length,
   });
 });
 
