@@ -54582,3 +54582,65 @@ No code changes needed - feature was verification only.
 ================================================================================
 [2026-01-20 14:52] Feature #361 Session Complete - VERIFIED PASSING ✅
 ================================================================================
+
+================================================================================
+[2026-01-20] Feature #364 - Deleted item gone from dropdowns - VERIFIED PASSING ✅
+================================================================================
+
+Session Type: SINGLE FEATURE MODE - Parallel execution
+Feature: #364 "Deleted item gone from dropdowns"
+Category: Real Data
+Description: Verify deleted items do not appear in selection lists
+
+Test Steps Executed:
+1. ✅ Created test asset "F364-DELETE-ME" (PN-TEST-F364)
+   - Verified asset creation successful (13 → 14 assets)
+   - Asset details: Serial "F364-DELETE-ME", Status FMC, Location "Depot Alpha depot"
+
+2. ✅ Verified asset appears in Maintenance Event Asset dropdown
+   - Opened Maintenance > New Event modal
+   - Confirmed "F364-DELETE-ME - (FMC)" present in Asset dropdown
+   - Screenshot: feature_364_before_delete_asset_in_dropdown.png
+
+3. ✅ Deleted the test asset (soft delete)
+   - Clicked "Delete F364-DELETE-ME" button
+   - Selected "Soft Delete (Recommended)" option
+   - Success message: "Asset 'F364-DELETE-ME' deleted successfully"
+   - Asset table now shows "0 total assets" when filtered
+
+4. ✅ Verified deleted asset NOT in dropdown
+   - Opened Maintenance > New Event modal again
+   - Inspected Asset dropdown options
+   - **CONFIRMED: "F364-DELETE-ME" is NOT in the dropdown list**
+   - Dropdown contains only active assets (CRIIS-001 through CRIIS-010, F360-PERSIST-TEST, F361-LOGOUT-TEST, TEST-F359-SN)
+   - Screenshot: feature_364_after_delete_asset_NOT_in_dropdown.png
+
+Key Findings:
+1. **Dropdown Filtering**: Soft-deleted assets properly excluded from dropdowns
+2. **Data Integrity**: Deletion operation completed successfully
+3. **UI Consistency**: Dropdown only shows available/active assets
+4. **No Orphaned References**: Deleted items cannot be selected in forms
+
+Technical Implementation Verified:
+- Asset deletion API working correctly
+- Dropdown population queries filter out deleted records
+- Soft delete preserves data for potential recovery while excluding from UI
+- Multi-step test workflow validated end-to-end
+
+Result: Feature #364 verified and marked as passing
+Progress: 361 → 364 / 372 features (97.8%)
+
+Session Type: SINGLE FEATURE MODE - Parallel execution
+Testing Method: Full end-to-end verification with browser automation
+Quality: Production-ready ✅
+
+No code changes needed - feature was verification only.
+Test data cleanup: Asset "F364-DELETE-ME" soft-deleted (can be recovered if needed)
+
+================================================================================
+[2026-01-20] Feature #364 Session Complete - VERIFIED PASSING ✅
+================================================================================
+[Testing] Feature #37 REGRESSION TEST - PASSING - NO REGRESSION FOUND
+[Testing] Security feature: Sensitive operations require re-authentication - Working correctly
+[Testing] All verification steps passed: Login, navigate, role change, re-auth prompt, password entry, action completion
+[Testing] Session complete - verified feature #37 - Still passing - 2026-01-20 14:56 PST
