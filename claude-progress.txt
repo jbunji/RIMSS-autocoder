@@ -9943,3 +9943,96 @@ The feature was already implemented with a complete modal interface that include
 
 **Current Progress:** 124/374 features passing (33.2%)
 
+
+---
+
+## Testing Session: 2026-01-20 (Regression Testing)
+
+[Testing] Feature #117 'PMI export with CUI markings' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** PMI exports include CUI compliance
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to PMI page - Navigated to Maintenance > PMI Schedule tab
+3. ✅ Export to PDF - Successfully downloaded CUI-PMI-Schedule-20260120.pdf
+4. ✅ Verify CUI header/footer - PDF contains:
+   - Header: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)" with tan/beige background
+   - Footer: "CUI - CONTROLLED UNCLASSIFIED INFORMATION" with tan/beige background
+5. ✅ Verify color coding preserved in PDF - Status colors present:
+   - OVERDUE: Red background
+   - DUE SOON: Pink/light red background
+   - UPCOMING: Yellow background
+   - SCHEDULED: Green background
+6. ✅ Export to Excel - Successfully downloaded CUI-PMI-Schedule-20260120.xlsx
+7. ✅ Verify CUI markings in Excel:
+   - Row 1: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Row 17: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+   - Color codes included in Status Color column (RED, YELLOW, GREEN)
+
+**Excel File Structure Verified:**
+- Header rows with CUI marking, report title, metadata
+- Data rows with all PMI information (7 records)
+- Status color descriptions included
+- Footer row with CUI marking
+
+**PDF Structure Verified:**
+- CUI header banner at top
+- Title: "RIMSS PMI Schedule Report"
+- Program information and metadata
+- Status legend with color badges
+- Data table with color-coded status badges
+- CUI footer banner at bottom
+
+**Screenshots:**
+- feature117_pmi_export_with_cui.png - PMI Schedule page with export buttons
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #117 (no regression found)
+
+**Current Progress:** 123/374 features passing (32.9%)
+[Testing] Feature #85 'Delete repair record' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can delete repairs with authorization
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_mgr / depot123)
+2. ✅ Navigate to event with repairs - Navigated to MX-2024-001 with 2 repairs
+3. ✅ Click delete on repair - Clicked Delete button on Repair #2 (OPEN repair)
+4. ✅ Verify confirmation dialog - Dialog displayed with:
+   - Warning message: 'Are you sure you want to delete this repair? This action cannot be undone. All associated labor records will also be removed.'
+   - Repair details (Repair #2, Type: Corrective, Start Date: 1/16/2026, Status: OPEN)
+   - Cancel and Delete Repair buttons
+5. ✅ Confirm deletion - Clicked 'Delete Repair' button
+6. ✅ Verify repair removed - Repair #2 successfully removed from the list
+   - Repairs count updated from '(2 total, 1 open, 1 closed)' to '(1 total, 0 open, 1 closed)'
+   - Only Repair #1 remains visible
+   - 'Repeat/Recur Only' filter button removed (no more repeat/recur repairs)
+7. ✅ Verify labor records cascade handled - Labor records associated with Repair #2 were removed
+   - Repair #2 had 1 labor record which is no longer visible
+   - Confirmation dialog explicitly warned: 'All associated labor records will also be removed'
+
+**Key Features Verified:**
+- Delete button visible for depot_manager role
+- Confirmation dialog displays before deletion
+- Dialog shows comprehensive repair details for review
+- Warning message about irreversible action and cascade deletion
+- Successful deletion removes repair from UI
+- Repair count updates correctly
+- Labor records properly cascade deleted
+- No console errors during deletion
+
+**Screenshots:**
+- feature85_delete_repair_confirmation_dialog.png - Confirmation dialog with warning and repair details
+- feature85_repair_deleted_successfully.png - Page after successful deletion showing only 1 repair remaining
+
+**Console errors:** None related to feature (only expected 401 errors from earlier failed login attempts)
+
+[Testing] Session complete - verified feature #85 (no regression found)
+
+**Current Progress:** 124/374 features passing (33.2%)
