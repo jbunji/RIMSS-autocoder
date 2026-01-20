@@ -1304,6 +1304,40 @@ export default function MaintenanceDetailPage() {
       return
     }
 
+    // Validate crew_size if provided
+    if (addLaborForm.crew_size) {
+      const crewSize = parseInt(addLaborForm.crew_size, 10)
+      if (isNaN(crewSize)) {
+        setAddLaborError('Crew size must be a valid number')
+        return
+      }
+      if (crewSize < 1) {
+        setAddLaborError('Crew size must be at least 1')
+        return
+      }
+      if (crewSize > 100) {
+        setAddLaborError('Crew size cannot exceed 100')
+        return
+      }
+    }
+
+    // Validate hours if provided
+    if (addLaborForm.hours) {
+      const hours = parseFloat(addLaborForm.hours)
+      if (isNaN(hours)) {
+        setAddLaborError('Hours worked must be a valid number')
+        return
+      }
+      if (hours < 0) {
+        setAddLaborError('Hours worked cannot be negative')
+        return
+      }
+      if (hours > 1000) {
+        setAddLaborError('Hours worked cannot exceed 1000')
+        return
+      }
+    }
+
     setAddLaborLoading(true)
     setAddLaborError(null)
 
@@ -1463,6 +1497,40 @@ export default function MaintenanceDetailPage() {
     if (!editLaborForm.corrective.trim()) {
       setEditLaborError('Corrective action narrative is required')
       return
+    }
+
+    // Validate crew_size if provided
+    if (editLaborForm.crew_size) {
+      const crewSize = parseInt(editLaborForm.crew_size, 10)
+      if (isNaN(crewSize)) {
+        setEditLaborError('Crew size must be a valid number')
+        return
+      }
+      if (crewSize < 1) {
+        setEditLaborError('Crew size must be at least 1')
+        return
+      }
+      if (crewSize > 100) {
+        setEditLaborError('Crew size cannot exceed 100')
+        return
+      }
+    }
+
+    // Validate hours if provided
+    if (editLaborForm.hours) {
+      const hours = parseFloat(editLaborForm.hours)
+      if (isNaN(hours)) {
+        setEditLaborError('Hours worked must be a valid number')
+        return
+      }
+      if (hours < 0) {
+        setEditLaborError('Hours worked cannot be negative')
+        return
+      }
+      if (hours > 1000) {
+        setEditLaborError('Hours worked cannot exceed 1000')
+        return
+      }
     }
 
     setEditLaborLoading(true)
@@ -5857,6 +5925,7 @@ export default function MaintenanceDetailPage() {
                 <input
                   type="number"
                   min="1"
+                  max="100"
                   value={addLaborForm.crew_size}
                   onChange={(e) => setAddLaborForm(prev => ({ ...prev, crew_size: e.target.value }))}
                   placeholder="Number of workers"
@@ -5872,6 +5941,7 @@ export default function MaintenanceDetailPage() {
                 <input
                   type="number"
                   min="0"
+                  max="1000"
                   step="0.5"
                   value={addLaborForm.hours}
                   onChange={(e) => setAddLaborForm(prev => ({ ...prev, hours: e.target.value }))}
@@ -6399,6 +6469,7 @@ export default function MaintenanceDetailPage() {
                 <input
                   type="number"
                   min="1"
+                  max="100"
                   value={editLaborForm.crew_size}
                   onChange={(e) => setEditLaborForm(prev => ({ ...prev, crew_size: e.target.value }))}
                   placeholder="Number of workers"
@@ -6414,6 +6485,7 @@ export default function MaintenanceDetailPage() {
                 <input
                   type="number"
                   min="0"
+                  max="1000"
                   step="0.5"
                   value={editLaborForm.hours}
                   onChange={(e) => setEditLaborForm(prev => ({ ...prev, hours: e.target.value }))}
