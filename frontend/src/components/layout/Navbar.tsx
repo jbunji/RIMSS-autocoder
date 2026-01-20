@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
@@ -7,6 +7,7 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
 

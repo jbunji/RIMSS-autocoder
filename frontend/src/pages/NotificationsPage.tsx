@@ -177,11 +177,15 @@ export default function NotificationsPage() {
         throw new Error(errorData.error || 'Failed to acknowledge notification');
       }
 
+      // Get the updated notification from the response
+      const data = await response.json();
+      const updatedNotification = data.notification;
+
       // Update the notification in state
       setNotifications(prev =>
         prev.map(n =>
           n.msg_id === msgId
-            ? { ...n, acknowledged: true, ack_by: 'current_user', ack_date: new Date().toISOString() }
+            ? updatedNotification
             : n
         )
       );

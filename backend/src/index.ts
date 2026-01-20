@@ -11044,6 +11044,42 @@ app.put('/api/notifications/:id/acknowledge', (req, res) => {
   });
 });
 
+// GET /api/notifications/unread-count - Get count of unread notifications for current user
+app.get('/api/notifications/unread-count', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Filter notifications by program access, active status, and acknowledged status
+  const now = new Date().toISOString();
+  const unreadCount = notifications.filter(n => {
+    // Check program access
+    const hasAccess = userProgramIds.includes(n.pgm_id) || user.role === 'ADMIN';
+    if (!hasAccess) return false;
+
+    // Check active status
+    if (!n.active) return false;
+
+    // Check date range (only show if current date is within start_date and stop_date)
+    const isInDateRange = n.start_date <= now && (n.stop_date === null || n.stop_date >= now);
+    if (!isInDateRange) return false;
+
+    // Check if unread
+    if (n.acknowledged) return false;
+
+    return true;
+  }).length;
+
+  res.json({ count: unreadCount });
+});
+
 // GET /api/software - List all software for a program (requires authentication)
 app.get('/api/software', (req, res) => {
   const payload = authenticateRequest(req, res);
