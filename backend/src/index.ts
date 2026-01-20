@@ -1803,11 +1803,21 @@ interface Repair {
   doc_no: string | null;
   micap: boolean; // Mission Capable impacting flag
   micap_login: string | null; // User who flagged as MICAP
+  chief_review: boolean; // Flagged for chief review
+  chief_review_by: string | null; // User who flagged for chief review
+  super_review: boolean; // Flagged for supervisor review
+  super_review_by: string | null; // User who flagged for supervisor review
+  repeat_recur: boolean; // Flagged as repeat/recurring issue
+  repeat_recur_by: string | null; // User who flagged as repeat/recur
   // Cannibalization (Action T) fields
   donor_asset_id: number | null; // ID of asset being cannibalized from
   donor_asset_sn: string | null; // Serial number of donor asset
   donor_asset_pn: string | null; // Part number of donor asset
   donor_asset_name: string | null; // Name of donor asset
+  // ETI (Elapsed Time Indicator) tracking
+  eti_in: number | null; // ETI meter value at repair start
+  eti_out: number | null; // ETI meter value at repair end
+  eti_delta: number | null; // Calculated difference (eti_out - eti_in)
   created_by_name: string;
   created_at: string;
 }
@@ -1844,10 +1854,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-001',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 780.5,
+      eti_out: 782.0,
+      eti_delta: 1.5,
       created_by_name: 'Bob Field',
       created_at: addDays(-5),
     },
@@ -1868,10 +1887,19 @@ function initializeRepairs(): void {
       doc_no: null,
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: true, // This repair is flagged as repeat/recur
+      repeat_recur_by: 'bob_field',
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 782.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-3),
     },
@@ -1893,10 +1921,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-002',
       micap: true, // This repair is flagged as MICAP
       micap_login: 'jane_depot',
+      chief_review: false,
+      chief_review_by: null,
+      super_review: true, // This repair is flagged for supervisor review
+      super_review_by: 'jane_depot',
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 1500.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-10),
     },
@@ -1918,10 +1955,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-003',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 2100.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-2),
     },
@@ -1943,10 +1989,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-004',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 550.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-1),
     },
@@ -1968,10 +2023,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-005',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 1200.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-3),
     },
@@ -1993,10 +2057,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-006',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 890.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'Jane Depot',
       created_at: addDays(-5),
     },
@@ -2018,10 +2091,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-007',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 620.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'Bob Field',
       created_at: addDays(-7),
     },
@@ -2043,10 +2125,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-008',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 1235.0,
+      eti_out: 1238.5,
+      eti_delta: 3.5,
       created_by_name: 'Bob Field',
       created_at: addDays(-15),
     },
@@ -2067,10 +2158,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-009',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 1238.5,
+      eti_out: 1240.0,
+      eti_delta: 1.5,
       created_by_name: 'Bob Field',
       created_at: addDays(-14),
     },
@@ -2092,10 +2192,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-010',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 3450.0,
+      eti_out: 3455.0,
+      eti_delta: 5.0,
       created_by_name: 'Jane Depot',
       created_at: addDays(-20),
     },
@@ -2117,10 +2226,19 @@ function initializeRepairs(): void {
       doc_no: 'DOC-2024-011',
       micap: false,
       micap_login: null,
+      chief_review: false,
+      chief_review_by: null,
+      super_review: false,
+      super_review_by: null,
+      repeat_recur: false,
+      repeat_recur_by: null,
       donor_asset_id: null,
       donor_asset_sn: null,
       donor_asset_pn: null,
       donor_asset_name: null,
+      eti_in: 150.0,
+      eti_out: null,
+      eti_delta: null,
       created_by_name: 'John Admin',
       created_at: addDays(-4),
     },
@@ -2225,6 +2343,116 @@ function initializeRemovedParts(): void {
 
 // Initialize removed parts on server start
 initializeRemovedParts();
+
+// ============================================
+// LABOR RECORDS
+// ============================================
+
+// Labor interface for tracking labor records within repairs
+interface Labor {
+  labor_id: number;
+  repair_id: number;
+  labor_seq: number;
+  asset_id: number;
+  action_taken: string | null; // Action taken code
+  how_mal: string | null;
+  when_disc: string | null;
+  type_maint: string | null;
+  cat_labor: string | null; // Category of labor code
+  start_date: string;
+  stop_date: string | null;
+  hours: number | null;
+  crew_chief: string | null;
+  crew_size: number | null;
+  corrective: string | null; // Corrective action narrative
+  discrepancy: string | null; // Discrepancy description
+  remarks: string | null;
+  corrected_by: string | null;
+  inspected_by: string | null;
+  bit_log: string | null; // BIT (Built-In Test) log capture
+  sent_imds: boolean;
+  valid: boolean;
+  created_by: number;
+  created_by_name: string;
+  created_at: string;
+}
+
+// Persistent storage for labor records
+let laborRecords: Labor[] = [];
+let laborNextId = 1;
+
+// Initialize labor records with mock data
+function initializeLaborRecords(): void {
+  const today = new Date();
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  laborRecords = [
+    // Labor for Repair #1 (closed repair for Event 1)
+    {
+      labor_id: 1,
+      repair_id: 1,
+      labor_seq: 1,
+      asset_id: 1,
+      action_taken: 'R', // Repair
+      how_mal: 'D', // Discovered by operator
+      when_disc: 'OPS', // Operations
+      type_maint: 'U', // Unscheduled
+      cat_labor: 'R', // Repair
+      start_date: addDays(-5),
+      stop_date: addDays(-4),
+      hours: 4.5,
+      crew_chief: 'Bob Field',
+      crew_size: 2,
+      corrective: 'Replaced faulty power connector. Tested system functionality.',
+      discrepancy: 'Power connector failed causing intermittent connection issues.',
+      remarks: 'Used spare connector from inventory',
+      corrected_by: 'Bob Field',
+      inspected_by: 'Jane Depot',
+      bit_log: null,
+      sent_imds: false,
+      valid: true,
+      created_by: 3,
+      created_by_name: 'Bob Field',
+      created_at: addDays(-5),
+    },
+    // Labor for Repair #2 (open repair for Event 1)
+    {
+      labor_id: 2,
+      repair_id: 2,
+      labor_seq: 1,
+      asset_id: 1,
+      action_taken: 'I', // Inspect
+      how_mal: 'PMI', // Periodic Maintenance
+      when_disc: 'PMI', // PMI
+      type_maint: 'S', // Scheduled
+      cat_labor: 'I', // Inspection
+      start_date: addDays(-3),
+      stop_date: null,
+      hours: 2.0,
+      crew_chief: 'Bob Field',
+      crew_size: 1,
+      corrective: 'Initial inspection complete. Pending additional diagnostics.',
+      discrepancy: 'Visual inspection revealed minor wear on sensor housing.',
+      remarks: null,
+      corrected_by: null,
+      inspected_by: 'Bob Field',
+      bit_log: 'BIT passed all tests',
+      sent_imds: false,
+      valid: true,
+      created_by: 3,
+      created_by_name: 'Bob Field',
+      created_at: addDays(-3),
+    },
+  ];
+  laborNextId = 3;
+}
+
+// Initialize labor records on server start
+initializeLaborRecords();
 
 // Attachment interface for maintenance event attachments
 interface Attachment {
@@ -2800,7 +3028,7 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     return res.status(400).json({ error: 'Cannot add repairs to a closed maintenance event' });
   }
 
-  const { start_date, type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, micap, donor_asset_id } = req.body;
+  const { start_date, type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, micap, chief_review, super_review, repeat_recur, donor_asset_id, eti_in } = req.body;
 
   // Validate required fields
   if (!type_maint || !narrative) {
@@ -2827,19 +3055,18 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
   };
 
   if (action_taken === 'T' && donor_asset_id) {
-    const donorAsset = assets.find(a => a.asset_id === donor_asset_id);
+    const donorAsset = mockAssets.find(a => a.asset_id === donor_asset_id);
     if (donorAsset) {
-      const donorPart = parts.find(p => p.partno_id === donorAsset.partno_id);
       donorAssetDetails = {
         donor_asset_sn: donorAsset.serno,
-        donor_asset_pn: donorPart?.partno || null,
-        donor_asset_name: donorPart?.noun || null,
+        donor_asset_pn: donorAsset.partno,
+        donor_asset_name: donorAsset.name,
       };
 
       // Update donor asset status to NMCS (Not Mission Capable - Supply) since a part was cannibalized from it
-      const donorAssetIndex = assets.findIndex(a => a.asset_id === donor_asset_id);
+      const donorAssetIndex = mockAssets.findIndex(a => a.asset_id === donor_asset_id);
       if (donorAssetIndex !== -1) {
-        assets[donorAssetIndex].status_cd = 'NMCS';
+        mockAssets[donorAssetIndex].status_cd = 'NMCS';
         console.log(`[CANNIBALIZATION] Donor asset ${donorAsset.serno} status changed to NMCS`);
       }
     }
@@ -2862,10 +3089,20 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     doc_no: doc_no || null,
     micap: micap === true, // MICAP flag
     micap_login: micap === true ? user.username : null, // Track who set MICAP
+    chief_review: chief_review === true, // Chief review flag
+    chief_review_by: chief_review === true ? user.username : null, // Track who flagged for chief review
+    super_review: super_review === true, // Supervisor review flag
+    super_review_by: super_review === true ? user.username : null, // Track who flagged for supervisor review
+    repeat_recur: repeat_recur === true, // Repeat/Recur flag
+    repeat_recur_by: repeat_recur === true ? user.username : null, // Track who flagged as repeat/recur
     donor_asset_id: action_taken === 'T' ? donor_asset_id : null,
     donor_asset_sn: donorAssetDetails.donor_asset_sn,
     donor_asset_pn: donorAssetDetails.donor_asset_pn,
     donor_asset_name: donorAssetDetails.donor_asset_name,
+    // ETI tracking fields
+    eti_in: eti_in !== undefined && eti_in !== null && eti_in !== '' ? parseFloat(eti_in) : null,
+    eti_out: null, // Set when repair is closed
+    eti_delta: null, // Calculated when repair is closed
     created_by_name: `${user.first_name} ${user.last_name}`,
     created_at: new Date().toISOString().split('T')[0],
   };
@@ -2917,7 +3154,7 @@ app.put('/api/repairs/:id', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this repair' });
   }
 
-  const { type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, shop_status, stop_date, micap, donor_asset_id } = req.body;
+  const { type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, shop_status, stop_date, micap, chief_review, super_review, repeat_recur, donor_asset_id, eti_in, eti_out } = req.body;
 
   // Update fields
   if (type_maint !== undefined) {
@@ -2966,18 +3203,17 @@ app.put('/api/repairs/:id', (req, res) => {
     const currentActionTaken = action_taken !== undefined ? action_taken : repairs[repairIndex].action_taken;
 
     if (currentActionTaken === 'T' && donor_asset_id) {
-      const donorAsset = assets.find(a => a.asset_id === donor_asset_id);
+      const donorAsset = mockAssets.find(a => a.asset_id === donor_asset_id);
       if (donorAsset) {
-        const donorPart = parts.find(p => p.partno_id === donorAsset.partno_id);
         repairs[repairIndex].donor_asset_id = donor_asset_id;
         repairs[repairIndex].donor_asset_sn = donorAsset.serno;
-        repairs[repairIndex].donor_asset_pn = donorPart?.partno || null;
-        repairs[repairIndex].donor_asset_name = donorPart?.noun || null;
+        repairs[repairIndex].donor_asset_pn = donorAsset.partno;
+        repairs[repairIndex].donor_asset_name = donorAsset.name;
 
         // Update donor asset status to NMCS
-        const donorAssetIndex = assets.findIndex(a => a.asset_id === donor_asset_id);
+        const donorAssetIndex = mockAssets.findIndex(a => a.asset_id === donor_asset_id);
         if (donorAssetIndex !== -1) {
-          assets[donorAssetIndex].status_cd = 'NMCS';
+          mockAssets[donorAssetIndex].status_cd = 'NMCS';
           console.log(`[CANNIBALIZATION] Donor asset ${donorAsset.serno} status changed to NMCS`);
         }
       } else {
@@ -3007,6 +3243,51 @@ app.put('/api/repairs/:id', (req, res) => {
     console.log(`[REPAIRS] MICAP flag ${micap ? 'enabled' : 'disabled'} on repair ${repairId} by ${user.username}`);
   }
 
+  // Handle Chief Review flag toggle
+  if (chief_review !== undefined) {
+    const previousChiefReview = repairs[repairIndex].chief_review;
+    repairs[repairIndex].chief_review = chief_review === true;
+    // Track who set the Chief Review flag (only update if changing to true)
+    if (chief_review === true && !previousChiefReview) {
+      repairs[repairIndex].chief_review_by = user.username;
+    }
+    // Clear chief_review_by when turning off Chief Review
+    if (chief_review === false) {
+      repairs[repairIndex].chief_review_by = null;
+    }
+    console.log(`[REPAIRS] Chief Review flag ${chief_review ? 'enabled' : 'disabled'} on repair ${repairId} by ${user.username}`);
+  }
+
+  // Handle supervisor review flag update
+  if (super_review !== undefined) {
+    const previousSuperReview = repairs[repairIndex].super_review;
+    repairs[repairIndex].super_review = super_review === true;
+    // Track who set the Supervisor Review flag (only update if changing to true)
+    if (super_review === true && !previousSuperReview) {
+      repairs[repairIndex].super_review_by = user.username;
+    }
+    // Clear super_review_by when turning off Supervisor Review
+    if (super_review === false) {
+      repairs[repairIndex].super_review_by = null;
+    }
+    console.log(`[REPAIRS] Supervisor Review flag ${super_review ? 'enabled' : 'disabled'} on repair ${repairId} by ${user.username}`);
+  }
+
+  // Handle Repeat/Recur flag toggle
+  if (repeat_recur !== undefined) {
+    const previousRepeatRecur = repairs[repairIndex].repeat_recur;
+    repairs[repairIndex].repeat_recur = repeat_recur === true;
+    // Track who set the Repeat/Recur flag (only update if changing to true)
+    if (repeat_recur === true && !previousRepeatRecur) {
+      repairs[repairIndex].repeat_recur_by = user.username;
+    }
+    // Clear repeat_recur_by when turning off Repeat/Recur
+    if (repeat_recur === false) {
+      repairs[repairIndex].repeat_recur_by = null;
+    }
+    console.log(`[REPAIRS] Repeat/Recur flag ${repeat_recur ? 'enabled' : 'disabled'} on repair ${repairId} by ${user.username}`);
+  }
+
   // Handle status change to closed
   if (shop_status !== undefined && ['open', 'closed'].includes(shop_status)) {
     repairs[repairIndex].shop_status = shop_status;
@@ -3032,6 +3313,34 @@ app.put('/api/repairs/:id', (req, res) => {
     // Automatically set shop_status to closed when stop_date is set
     if (stop_date) {
       repairs[repairIndex].shop_status = 'closed';
+    }
+  }
+
+  // Handle ETI In update (can be updated while repair is open)
+  if (eti_in !== undefined) {
+    repairs[repairIndex].eti_in = eti_in !== null && eti_in !== '' ? parseFloat(eti_in) : null;
+  }
+
+  // Handle ETI Out update (typically set when closing repair)
+  if (eti_out !== undefined) {
+    const parsedEtiOut = eti_out !== null && eti_out !== '' ? parseFloat(eti_out) : null;
+    repairs[repairIndex].eti_out = parsedEtiOut;
+
+    // Calculate ETI delta when eti_out is set and eti_in exists
+    if (parsedEtiOut !== null && repairs[repairIndex].eti_in !== null) {
+      const delta = parsedEtiOut - repairs[repairIndex].eti_in;
+      repairs[repairIndex].eti_delta = Math.round(delta * 100) / 100; // Round to 2 decimal places
+      console.log(`[REPAIRS] ETI delta calculated: ${repairs[repairIndex].eti_delta} (in: ${repairs[repairIndex].eti_in}, out: ${parsedEtiOut})`);
+
+      // Update the asset's ETI hours if we have a valid delta
+      const assetIndex = detailedAssets.findIndex(a => a.asset_id === repairs[repairIndex].asset_id);
+      if (assetIndex !== -1 && detailedAssets[assetIndex].eti_hours !== null) {
+        // Update asset ETI to the new eti_out value (current meter reading)
+        detailedAssets[assetIndex].eti_hours = parsedEtiOut;
+        console.log(`[REPAIRS] Asset ${repairs[repairIndex].asset_id} ETI updated to ${parsedEtiOut} hours`);
+      }
+    } else if (parsedEtiOut === null) {
+      repairs[repairIndex].eti_delta = null;
     }
   }
 
@@ -3735,6 +4044,372 @@ app.get('/api/events/:eventId/removable-assets', (req, res) => {
       admin_loc: a.admin_loc,
     })),
     total: removableAssets.length,
+  });
+});
+
+// ============================================
+// LABOR RECORD ENDPOINTS
+// ============================================
+
+// Get labor records for a repair
+app.get('/api/repairs/:repairId/labor', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const repairId = parseInt(req.params.repairId, 10);
+  const repair = repairs.find(r => r.repair_id === repairId);
+
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  // Get associated event for program access check
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // Get labor records for this repair
+  const repairLabor = laborRecords.filter(l => l.repair_id === repairId);
+
+  // Calculate summary
+  const summary = {
+    total: repairLabor.length,
+    total_hours: repairLabor.reduce((sum, l) => sum + (l.hours || 0), 0),
+  };
+
+  console.log(`[LABOR] Fetched ${repairLabor.length} labor records for repair ${repairId} by ${user.username}`);
+
+  res.json({
+    labor: repairLabor,
+    summary,
+  });
+});
+
+// Get single labor record by ID
+app.get('/api/labor/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const laborId = parseInt(req.params.id, 10);
+  const labor = laborRecords.find(l => l.labor_id === laborId);
+
+  if (!labor) {
+    return res.status(404).json({ error: 'Labor record not found' });
+  }
+
+  // Get associated repair and event for program access check
+  const repair = repairs.find(r => r.repair_id === labor.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Associated repair not found' });
+  }
+
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this labor record' });
+  }
+
+  res.json(labor);
+});
+
+// Create a new labor record for a repair
+app.post('/api/repairs/:repairId/labor', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can create labor
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to create labor records.' });
+  }
+
+  const repairId = parseInt(req.params.repairId, 10);
+  const repair = repairs.find(r => r.repair_id === repairId);
+
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  // Get associated event for program access check
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  // Check if user has access to this event's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // Cannot add labor to closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot add labor records to a closed repair' });
+  }
+
+  const {
+    action_taken,
+    how_mal,
+    when_disc,
+    type_maint,
+    cat_labor,
+    start_date,
+    stop_date,
+    hours,
+    crew_chief,
+    crew_size,
+    corrective,
+    discrepancy,
+    remarks,
+    corrected_by,
+    inspected_by,
+    bit_log,
+  } = req.body;
+
+  // Validate required fields
+  if (!crew_chief) {
+    return res.status(400).json({ error: 'Crew chief name is required' });
+  }
+
+  // Calculate next labor sequence for this repair
+  const repairLabor = laborRecords.filter(l => l.repair_id === repairId);
+  const nextSeq = repairLabor.length > 0 ? Math.max(...repairLabor.map(l => l.labor_seq)) + 1 : 1;
+
+  // Use provided start_date or default to today
+  const laborStartDate = start_date || new Date().toISOString().split('T')[0];
+
+  // Validate stop_date if provided
+  if (stop_date) {
+    const startDateObj = new Date(laborStartDate);
+    const stopDateObj = new Date(stop_date);
+    if (stopDateObj < startDateObj) {
+      return res.status(400).json({ error: 'Stop time cannot be before start time' });
+    }
+  }
+
+  const newLabor: Labor = {
+    labor_id: laborNextId++,
+    repair_id: repairId,
+    labor_seq: nextSeq,
+    asset_id: repair.asset_id,
+    action_taken: action_taken || null,
+    how_mal: how_mal || null,
+    when_disc: when_disc || null,
+    type_maint: type_maint || null,
+    cat_labor: cat_labor || null,
+    start_date: laborStartDate,
+    stop_date: stop_date || null,
+    hours: hours !== undefined && hours !== null && hours !== '' ? parseFloat(hours) : null,
+    crew_chief: crew_chief,
+    crew_size: crew_size !== undefined && crew_size !== null && crew_size !== '' ? parseInt(crew_size, 10) : null,
+    corrective: corrective || null,
+    discrepancy: discrepancy || null,
+    remarks: remarks || null,
+    corrected_by: corrected_by || null,
+    inspected_by: inspected_by || null,
+    bit_log: bit_log || null,
+    sent_imds: false,
+    valid: true,
+    created_by: user.user_id,
+    created_by_name: `${user.first_name} ${user.last_name}`,
+    created_at: new Date().toISOString(),
+  };
+
+  laborRecords.push(newLabor);
+
+  console.log(`[LABOR] Created labor ${newLabor.labor_id} (seq ${newLabor.labor_seq}) for repair ${repairId} by ${user.username}`);
+
+  res.status(201).json({
+    message: 'Labor record created successfully',
+    labor: newLabor,
+  });
+});
+
+// Update a labor record
+app.put('/api/labor/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to update labor records.' });
+  }
+
+  const laborId = parseInt(req.params.id, 10);
+  const laborIndex = laborRecords.findIndex(l => l.labor_id === laborId);
+
+  if (laborIndex === -1) {
+    return res.status(404).json({ error: 'Labor record not found' });
+  }
+
+  const labor = laborRecords[laborIndex];
+
+  // Get associated repair for access check
+  const repair = repairs.find(r => r.repair_id === labor.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Associated repair not found' });
+  }
+
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this labor record' });
+  }
+
+  // Cannot update labor on closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot update labor records on a closed repair' });
+  }
+
+  const {
+    action_taken,
+    how_mal,
+    when_disc,
+    type_maint,
+    cat_labor,
+    start_date,
+    stop_date,
+    hours,
+    crew_chief,
+    crew_size,
+    corrective,
+    discrepancy,
+    remarks,
+    corrected_by,
+    inspected_by,
+    bit_log,
+  } = req.body;
+
+  // Update fields if provided
+  if (action_taken !== undefined) laborRecords[laborIndex].action_taken = action_taken || null;
+  if (how_mal !== undefined) laborRecords[laborIndex].how_mal = how_mal || null;
+  if (when_disc !== undefined) laborRecords[laborIndex].when_disc = when_disc || null;
+  if (type_maint !== undefined) laborRecords[laborIndex].type_maint = type_maint || null;
+  if (cat_labor !== undefined) laborRecords[laborIndex].cat_labor = cat_labor || null;
+  if (start_date !== undefined) laborRecords[laborIndex].start_date = start_date;
+  if (stop_date !== undefined) laborRecords[laborIndex].stop_date = stop_date || null;
+  if (hours !== undefined) laborRecords[laborIndex].hours = hours !== null && hours !== '' ? parseFloat(hours) : null;
+  if (crew_chief !== undefined) laborRecords[laborIndex].crew_chief = crew_chief || null;
+  if (crew_size !== undefined) laborRecords[laborIndex].crew_size = crew_size !== null && crew_size !== '' ? parseInt(crew_size, 10) : null;
+  if (corrective !== undefined) laborRecords[laborIndex].corrective = corrective || null;
+  if (discrepancy !== undefined) laborRecords[laborIndex].discrepancy = discrepancy || null;
+  if (remarks !== undefined) laborRecords[laborIndex].remarks = remarks || null;
+  if (corrected_by !== undefined) laborRecords[laborIndex].corrected_by = corrected_by || null;
+  if (inspected_by !== undefined) laborRecords[laborIndex].inspected_by = inspected_by || null;
+  if (bit_log !== undefined) laborRecords[laborIndex].bit_log = bit_log || null;
+
+  // Validate stop_date if provided
+  if (stop_date && laborRecords[laborIndex].start_date) {
+    const startDateObj = new Date(laborRecords[laborIndex].start_date);
+    const stopDateObj = new Date(stop_date);
+    if (stopDateObj < startDateObj) {
+      return res.status(400).json({ error: 'Stop time cannot be before start time' });
+    }
+  }
+
+  console.log(`[LABOR] Updated labor ${laborId} by ${user.username}`);
+
+  res.json({
+    message: 'Labor record updated successfully',
+    labor: laborRecords[laborIndex],
+  });
+});
+
+// Delete a labor record
+app.delete('/api/labor/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN and DEPOT_MANAGER can delete labor records
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. Only administrators and depot managers can delete labor records.' });
+  }
+
+  const laborId = parseInt(req.params.id, 10);
+  const laborIndex = laborRecords.findIndex(l => l.labor_id === laborId);
+
+  if (laborIndex === -1) {
+    return res.status(404).json({ error: 'Labor record not found' });
+  }
+
+  const labor = laborRecords[laborIndex];
+
+  // Get the associated repair for access check
+  const repair = repairs.find(r => r.repair_id === labor.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Associated repair not found' });
+  }
+
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Associated maintenance event not found' });
+  }
+
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this labor record' });
+  }
+
+  // Cannot delete labor from closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot delete labor records from a closed repair' });
+  }
+
+  const deletedInfo = {
+    labor_id: labor.labor_id,
+    labor_seq: labor.labor_seq,
+    repair_id: labor.repair_id,
+  };
+
+  // Remove the labor record
+  laborRecords.splice(laborIndex, 1);
+
+  console.log(`[LABOR] Deleted labor ${laborId} (seq ${labor.labor_seq}) from repair ${labor.repair_id} by ${user.username}`);
+
+  res.json({
+    message: 'Labor record deleted successfully',
+    labor: deletedInfo,
   });
 });
 
@@ -4925,6 +5600,40 @@ app.get('/api/assets', (req, res) => {
       pgm_name: program?.pgm_name || 'Unknown Program',
     },
   });
+});
+
+// GET /api/assets/available-for-install - Get assets available for installation/cannibalization
+app.get('/api/assets/available-for-install', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get assets that are FMC or PMC status (operational) from user's programs
+  const availableAssets = mockAssets
+    .filter(asset => {
+      if (!userProgramIds.includes(asset.pgm_id)) return false;
+      if (!asset.active) return false;
+      return asset.status_cd === 'FMC' || asset.status_cd === 'PMC';
+    })
+    .map(asset => ({
+      asset_id: asset.asset_id,
+      serno: asset.serno,
+      partno: asset.partno,
+      nomen: asset.name,
+      status: asset.status_cd,
+      location: asset.cust_loc || null,
+    }));
+
+  console.log(`[ASSETS] Available for install - User: ${user.username}, Count: ${availableAssets.length}`);
+
+  res.json({ assets: availableAssets });
 });
 
 // GET /api/assets/:id - Get single asset by ID (requires authentication)

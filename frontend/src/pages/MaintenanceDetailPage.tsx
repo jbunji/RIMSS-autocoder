@@ -21,6 +21,7 @@ import {
   CubeIcon,
   MagnifyingGlassIcon,
   InformationCircleIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -42,11 +43,21 @@ interface Repair {
   doc_no: string | null
   micap: boolean // Mission Capable impacting flag
   micap_login: string | null // User who flagged as MICAP
+  chief_review: boolean // Flagged for chief review
+  chief_review_by: string | null // User who flagged for chief review
+  super_review: boolean // Flagged for supervisor review
+  super_review_by: string | null // User who flagged for supervisor review
+  repeat_recur: boolean // Flagged as repeat/recurring issue
+  repeat_recur_by: string | null // User who flagged as repeat/recur
   // Cannibalization (Action T) fields
   donor_asset_id: number | null
   donor_asset_sn: string | null
   donor_asset_pn: string | null
   donor_asset_name: string | null
+  // ETI (Elapsed Time Indicator) tracking
+  eti_in: number | null // ETI meter value at repair start
+  eti_out: number | null // ETI meter value at repair end
+  eti_delta: number | null // Calculated difference (eti_out - eti_in)
   created_by_name: string
   created_at: string
 }
@@ -127,6 +138,35 @@ interface Attachment {
   description: string | null
 }
 
+// Labor record interface
+interface Labor {
+  labor_id: number
+  repair_id: number
+  labor_seq: number
+  asset_id: number
+  action_taken: string | null
+  how_mal: string | null
+  when_disc: string | null
+  type_maint: string | null
+  cat_labor: string | null
+  start_date: string
+  stop_date: string | null
+  hours: number | null
+  crew_chief: string | null
+  crew_size: number | null
+  corrective: string | null
+  discrepancy: string | null
+  remarks: string | null
+  corrected_by: string | null
+  inspected_by: string | null
+  bit_log: string | null
+  sent_imds: boolean
+  valid: boolean
+  created_by: number
+  created_by_name: string
+  created_at: string
+}
+
 interface MaintenanceEvent {
   event_id: number
   asset_id: number
@@ -182,6 +222,9 @@ interface EditRepairFormData {
   tag_no: string
   doc_no: string
   micap: boolean
+  chief_review: boolean
+  super_review: boolean
+  repeat_recur: boolean
   donor_asset_id: number | null
 }
 
@@ -256,6 +299,7 @@ export default function MaintenanceDetailPage() {
   const [repairs, setRepairs] = useState<Repair[]>([])
   const [repairsSummary, setRepairsSummary] = useState<RepairsSummary>({ total: 0, open: 0, closed: 0 })
   const [repairsLoading, setRepairsLoading] = useState(false)
+  const [repairFilter, setRepairFilter] = useState<'all' | 'repeat_recur'>('all')
 
   // Close event modal state
   const [isCloseEventModalOpen, setIsCloseEventModalOpen] = useState(false)
@@ -268,6 +312,7 @@ export default function MaintenanceDetailPage() {
   const [isCloseRepairModalOpen, setIsCloseRepairModalOpen] = useState(false)
   const [closingRepair, setClosingRepair] = useState<Repair | null>(null)
   const [closeRepairDate, setCloseRepairDate] = useState(new Date().toISOString().split('T')[0])
+  const [closeRepairEtiOut, setCloseRepairEtiOut] = useState<string>('') // ETI Out value for closing repair
   const [closeRepairLoading, setCloseRepairLoading] = useState(false)
   const [closeRepairError, setCloseRepairError] = useState<string | null>(null)
   const [closeRepairSuccess, setCloseRepairSuccess] = useState<string | null>(null)
@@ -295,7 +340,11 @@ export default function MaintenanceDetailPage() {
     action_taken: '',
     narrative: '',
     micap: false,
+    chief_review: false,
+    super_review: false,
+    repeat_recur: false,
     donor_asset_id: null as number | null,
+    eti_in: '', // ETI meter value at repair start
   })
   const [addRepairLoading, setAddRepairLoading] = useState(false)
   const [addRepairError, setAddRepairError] = useState<string | null>(null)
@@ -372,6 +421,14 @@ export default function MaintenanceDetailPage() {
   // Check if action taken is cannibalization
   const isCannibalization = (code: string | null) => code === 'T'
 
+  // Filter repairs based on selected filter
+  const filteredRepairs = repairFilter === 'all'
+    ? repairs
+    : repairs.filter(r => r.repeat_recur)
+
+  // Count of repeat/recur repairs for filter badge
+  const repeatRecurCount = repairs.filter(r => r.repeat_recur).length
+
   // Edit Repair modal state
   const [isEditRepairModalOpen, setIsEditRepairModalOpen] = useState(false)
   const [editingRepair, setEditingRepair] = useState<Repair | null>(null)
@@ -384,6 +441,9 @@ export default function MaintenanceDetailPage() {
     tag_no: '',
     doc_no: '',
     micap: false,
+    chief_review: false,
+    super_review: false,
+    repeat_recur: false,
     donor_asset_id: null,
   })
   const [editRepairLoading, setEditRepairLoading] = useState(false)
@@ -441,6 +501,30 @@ export default function MaintenanceDetailPage() {
   // Delete Removed Part state
   const [deletingRemovedPartId, setDeletingRemovedPartId] = useState<number | null>(null)
 
+  // Labor Records state
+  const [laborMap, setLaborMap] = useState<Map<number, Labor[]>>(new Map())
+  const [loadingLabor, setLoadingLabor] = useState<Set<number>>(new Set())
+
+  // Add Labor modal state
+  const [isAddLaborModalOpen, setIsAddLaborModalOpen] = useState(false)
+  const [addLaborRepair, setAddLaborRepair] = useState<Repair | null>(null)
+  const [addLaborForm, setAddLaborForm] = useState({
+    action_taken: '',
+    cat_labor: '',
+    crew_chief: '',
+    crew_size: '',
+    hours: '',
+    start_date: new Date().toISOString().split('T')[0],
+    stop_date: '',
+    corrective: '',
+  })
+  const [addLaborLoading, setAddLaborLoading] = useState(false)
+  const [addLaborError, setAddLaborError] = useState<string | null>(null)
+  const [addLaborSuccess, setAddLaborSuccess] = useState<string | null>(null)
+
+  // Delete Labor state
+  const [deletingLaborId, setDeletingLaborId] = useState<number | null>(null)
+
   // Removal reason options
   const removalReasonOptions = [
     { value: '', label: 'Select a reason...' },
@@ -461,6 +545,34 @@ export default function MaintenanceDetailPage() {
     { value: 'CNDM', label: 'CNDM - Condition Not Determined' },
     { value: 'FMC', label: 'FMC - Full Mission Capable' },
     { value: 'PMC', label: 'PMC - Partial Mission Capable' },
+  ]
+
+  // Action taken code options for labor records
+  const laborActionTakenOptions = [
+    { value: '', label: 'Select action...' },
+    { value: 'R', label: 'R - Repair' },
+    { value: 'I', label: 'I - Inspect' },
+    { value: 'T', label: 'T - Cannibalization' },
+    { value: 'A', label: 'A - Adjust/Align' },
+    { value: 'C', label: 'C - Clean' },
+    { value: 'E', label: 'E - Remove/Replace' },
+    { value: 'L', label: 'L - Lubricate' },
+    { value: 'S', label: 'S - Service' },
+    { value: 'Z', label: 'Z - Other' },
+  ]
+
+  // Category of labor code options
+  const catLaborOptions = [
+    { value: '', label: 'Select category...' },
+    { value: 'R', label: 'R - Repair' },
+    { value: 'I', label: 'I - Inspection' },
+    { value: 'S', label: 'S - Servicing' },
+    { value: 'M', label: 'M - Modification' },
+    { value: 'O', label: 'O - Overhaul' },
+    { value: 'T', label: 'T - Time Change' },
+    { value: 'C', label: 'C - Calibration' },
+    { value: 'P', label: 'P - PMI' },
+    { value: 'Z', label: 'Z - Other' },
   ]
 
   // Check if user can edit (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
@@ -785,6 +897,50 @@ export default function MaintenanceDetailPage() {
     }
   }, [repairs, token, fetchRemovedParts])
 
+  // Fetch labor records for a repair
+  const fetchLabor = useCallback(async (repairId: number) => {
+    if (!token) return
+
+    setLoadingLabor(prev => new Set(prev).add(repairId))
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}/labor`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch labor records')
+        return
+      }
+
+      const data = await response.json()
+      setLaborMap(prev => {
+        const newMap = new Map(prev)
+        newMap.set(repairId, data.labor || [])
+        return newMap
+      })
+    } catch (err) {
+      console.error('Error fetching labor records:', err)
+    } finally {
+      setLoadingLabor(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(repairId)
+        return newSet
+      })
+    }
+  }, [token])
+
+  // Fetch labor records for all repairs when repairs are loaded
+  useEffect(() => {
+    if (repairs.length > 0 && token) {
+      repairs.forEach(repair => {
+        fetchLabor(repair.repair_id)
+      })
+    }
+  }, [repairs, token, fetchLabor])
+
   // Search removable assets
   const searchRemovableAssets = useCallback(async (query: string) => {
     if (!token || !id) return
@@ -927,6 +1083,118 @@ export default function MaintenanceDetailPage() {
       alert(err instanceof Error ? err.message : 'Failed to delete removed part record')
     } finally {
       setDeletingRemovedPartId(null)
+    }
+  }
+
+  // Open Add Labor modal
+  const openAddLaborModal = (repair: Repair) => {
+    setAddLaborRepair(repair)
+    setAddLaborForm({
+      action_taken: '',
+      cat_labor: '',
+      crew_chief: '',
+      crew_size: '',
+      hours: '',
+      start_date: new Date().toISOString().split('T')[0],
+      stop_date: '',
+      corrective: '',
+    })
+    setAddLaborError(null)
+    setAddLaborSuccess(null)
+    setIsAddLaborModalOpen(true)
+  }
+
+  // Close Add Labor modal
+  const closeAddLaborModal = () => {
+    setIsAddLaborModalOpen(false)
+    setAddLaborRepair(null)
+  }
+
+  // Handle adding labor record
+  const handleAddLabor = async () => {
+    if (!token || !addLaborRepair) return
+
+    if (!addLaborForm.crew_chief.trim()) {
+      setAddLaborError('Crew chief name is required')
+      return
+    }
+
+    setAddLaborLoading(true)
+    setAddLaborError(null)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/repairs/${addLaborRepair.repair_id}/labor`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            action_taken: addLaborForm.action_taken || null,
+            cat_labor: addLaborForm.cat_labor || null,
+            crew_chief: addLaborForm.crew_chief,
+            crew_size: addLaborForm.crew_size ? parseInt(addLaborForm.crew_size, 10) : null,
+            hours: addLaborForm.hours ? parseFloat(addLaborForm.hours) : null,
+            start_date: addLaborForm.start_date,
+            stop_date: addLaborForm.stop_date || null,
+            corrective: addLaborForm.corrective || null,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create labor record')
+      }
+
+      const data = await response.json()
+      setAddLaborSuccess(`Labor #${data.labor.labor_seq} created successfully!`)
+
+      // Refresh labor records for this repair
+      await fetchLabor(addLaborRepair.repair_id)
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        closeAddLaborModal()
+      }, 1500)
+    } catch (err) {
+      setAddLaborError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setAddLaborLoading(false)
+    }
+  }
+
+  // Handle deleting labor record
+  const handleDeleteLabor = async (labor: Labor) => {
+    if (!token) return
+
+    setDeletingLaborId(labor.labor_id)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/labor/${labor.labor_id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete labor record')
+      }
+
+      // Refresh labor records for this repair
+      await fetchLabor(labor.repair_id)
+    } catch (err) {
+      console.error('Error deleting labor:', err)
+      alert(err instanceof Error ? err.message : 'Failed to delete labor record')
+    } finally {
+      setDeletingLaborId(null)
     }
   }
 
@@ -1163,6 +1431,7 @@ export default function MaintenanceDetailPage() {
   const openCloseRepairModal = (repair: Repair) => {
     setClosingRepair(repair)
     setCloseRepairDate(new Date().toISOString().split('T')[0])
+    setCloseRepairEtiOut('') // Reset ETI Out
     setCloseRepairError(null)
     setCloseRepairSuccess(null)
     setIsCloseRepairModalOpen(true)
@@ -1172,6 +1441,7 @@ export default function MaintenanceDetailPage() {
   const closeCloseRepairModal = () => {
     setIsCloseRepairModalOpen(false)
     setClosingRepair(null)
+    setCloseRepairEtiOut('')
     setCloseRepairError(null)
     setCloseRepairSuccess(null)
   }
@@ -1190,6 +1460,15 @@ export default function MaintenanceDetailPage() {
       return
     }
 
+    // Validate ETI Out >= ETI In if both are provided
+    if (closeRepairEtiOut && closingRepair.eti_in !== null) {
+      const etiOutValue = parseFloat(closeRepairEtiOut)
+      if (etiOutValue < closingRepair.eti_in) {
+        setCloseRepairError(`ETI Out (${etiOutValue}) cannot be less than ETI In (${closingRepair.eti_in})`)
+        return
+      }
+    }
+
     setCloseRepairLoading(true)
     setCloseRepairError(null)
 
@@ -1203,6 +1482,7 @@ export default function MaintenanceDetailPage() {
         body: JSON.stringify({
           stop_date: closeRepairDate,
           shop_status: 'closed',
+          eti_out: closeRepairEtiOut || null, // Include ETI Out value
         }),
       })
 
@@ -1262,7 +1542,11 @@ export default function MaintenanceDetailPage() {
       action_taken: '',
       narrative: '',
       micap: false,
+      chief_review: false,
+      super_review: false,
+      repeat_recur: false,
       donor_asset_id: null,
+      eti_in: '',
     })
     setAddRepairError(null)
     setAddRepairSuccess(null)
@@ -1331,7 +1615,11 @@ export default function MaintenanceDetailPage() {
           action_taken: addRepairForm.action_taken || null,
           narrative: addRepairForm.narrative.trim(),
           micap: addRepairForm.micap,
+          chief_review: addRepairForm.chief_review,
+          super_review: addRepairForm.super_review,
+          repeat_recur: addRepairForm.repeat_recur,
           donor_asset_id: addRepairForm.action_taken === 'T' ? addRepairForm.donor_asset_id : null,
+          eti_in: addRepairForm.eti_in || null, // ETI meter value at repair start
         }),
       })
 
@@ -1394,6 +1682,9 @@ export default function MaintenanceDetailPage() {
       tag_no: repair.tag_no || '',
       doc_no: repair.doc_no || '',
       micap: repair.micap || false,
+      chief_review: repair.chief_review || false,
+      super_review: repair.super_review || false,
+      repeat_recur: repair.repeat_recur || false,
       donor_asset_id: repair.donor_asset_id || null,
     })
     setEditRepairError(null)
@@ -1469,6 +1760,9 @@ export default function MaintenanceDetailPage() {
           tag_no: editRepairForm.tag_no || null,
           doc_no: editRepairForm.doc_no || null,
           micap: editRepairForm.micap,
+          chief_review: editRepairForm.chief_review,
+          super_review: editRepairForm.super_review,
+          repeat_recur: editRepairForm.repeat_recur,
           donor_asset_id: editRepairForm.action_taken === 'T' ? editRepairForm.donor_asset_id : null,
         }),
       })
@@ -1977,15 +2271,36 @@ export default function MaintenanceDetailPage() {
                   ({repairsSummary.total} total, {repairsSummary.open} open, {repairsSummary.closed} closed)
                 </span>
               </h2>
-              {canEdit && event.status === 'open' && (
-                <button
-                  onClick={openAddRepairModal}
-                  className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center"
-                >
-                  <PlusIcon className="h-4 w-4 mr-1" />
-                  Add Repair
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {/* Repeat/Recur Filter */}
+                {repeatRecurCount > 0 && (
+                  <button
+                    onClick={() => setRepairFilter(repairFilter === 'all' ? 'repeat_recur' : 'all')}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors flex items-center ${
+                      repairFilter === 'repeat_recur'
+                        ? 'bg-cyan-600 text-white'
+                        : 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200'
+                    }`}
+                  >
+                    <ArrowPathIcon className="h-4 w-4 mr-1" />
+                    Repeat/Recur Only
+                    <span className={`ml-1.5 px-1.5 py-0.5 rounded text-xs ${
+                      repairFilter === 'repeat_recur' ? 'bg-cyan-500' : 'bg-cyan-200'
+                    }`}>
+                      {repeatRecurCount}
+                    </span>
+                  </button>
+                )}
+                {canEdit && event.status === 'open' && (
+                  <button
+                    onClick={openAddRepairModal}
+                    className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors flex items-center"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-1" />
+                    Add Repair
+                  </button>
+                )}
+              </div>
             </div>
 
             {repairsLoading ? (
@@ -2005,14 +2320,31 @@ export default function MaintenanceDetailPage() {
                   </button>
                 )}
               </div>
+            ) : filteredRepairs.length === 0 && repairFilter === 'repeat_recur' ? (
+              <div className="text-center py-8 text-gray-500">
+                <ArrowPathIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                <p>No repeat/recur repairs found</p>
+                <button
+                  onClick={() => setRepairFilter('all')}
+                  className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium"
+                >
+                  Show all repairs
+                </button>
+              </div>
             ) : (
               <div className="space-y-4">
-                {repairs.map((repair) => (
+                {filteredRepairs.map((repair) => (
                   <div
                     key={repair.repair_id}
                     className={`border rounded-lg p-4 ${
                       repair.micap && repair.shop_status === 'open'
                         ? 'border-red-300 bg-red-50'
+                        : repair.super_review && repair.shop_status === 'open'
+                        ? 'border-purple-300 bg-purple-50'
+                        : repair.chief_review && repair.shop_status === 'open'
+                        ? 'border-amber-300 bg-amber-50'
+                        : repair.repeat_recur && repair.shop_status === 'open'
+                        ? 'border-cyan-300 bg-cyan-50'
                         : repair.shop_status === 'open'
                         ? 'border-yellow-200 bg-yellow-50'
                         : 'border-green-200 bg-green-50'
@@ -2043,6 +2375,33 @@ export default function MaintenanceDetailPage() {
                             >
                               <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
                               MICAP
+                            </span>
+                          )}
+                          {repair.chief_review && (
+                            <span
+                              className="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-600 text-white flex items-center"
+                              title={`Chief review flagged by ${repair.chief_review_by || 'unknown'}`}
+                            >
+                              <InformationCircleIcon className="h-3 w-3 mr-1" />
+                              CHIEF REVIEW
+                            </span>
+                          )}
+                          {repair.super_review && (
+                            <span
+                              className="px-2 py-0.5 text-xs font-bold rounded-full bg-purple-600 text-white flex items-center"
+                              title={`Supervisor review flagged by ${repair.super_review_by || 'unknown'}`}
+                            >
+                              <MagnifyingGlassIcon className="h-3 w-3 mr-1" />
+                              SUPER REVIEW
+                            </span>
+                          )}
+                          {repair.repeat_recur && (
+                            <span
+                              className="px-2 py-0.5 text-xs font-bold rounded-full bg-cyan-600 text-white flex items-center"
+                              title={`Repeat/Recur issue flagged by ${repair.repeat_recur_by || 'unknown'}`}
+                            >
+                              <ArrowPathIcon className="h-3 w-3 mr-1" />
+                              REPEAT/RECUR
                             </span>
                           )}
                           {isNoDefectCode(repair.how_mal) && (
@@ -2079,6 +2438,26 @@ export default function MaintenanceDetailPage() {
                           {repair.doc_no && <span>Doc: {repair.doc_no}</span>}
                           <span>By: {repair.created_by_name}</span>
                         </div>
+                        {/* ETI Tracking Display */}
+                        {(repair.eti_in !== null || repair.eti_out !== null) && (
+                          <div className="mt-2 flex flex-wrap gap-4 text-xs">
+                            {repair.eti_in !== null && (
+                              <span className="text-blue-600">
+                                <span className="font-medium">ETI In:</span> {repair.eti_in} hrs
+                              </span>
+                            )}
+                            {repair.eti_out !== null && (
+                              <span className="text-blue-600">
+                                <span className="font-medium">ETI Out:</span> {repair.eti_out} hrs
+                              </span>
+                            )}
+                            {repair.eti_delta !== null && (
+                              <span className="text-blue-800 font-medium">
+                                ETI Delta: {repair.eti_delta} hrs
+                              </span>
+                            )}
+                          </div>
+                        )}
 
                         {/* No-Defect Code Notice */}
                         {isNoDefectCode(repair.how_mal) && (
@@ -2091,6 +2470,32 @@ export default function MaintenanceDetailPage() {
                                   This repair uses a no-defect how-malfunctioned code, indicating no actual defect was found in the component.
                                   Parts tracking is not required for this type of repair.
                                 </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Cannibalization Notice */}
+                        {isCannibalization(repair.action_taken) && repair.donor_asset_sn && (
+                          <div className="mt-4 pt-3 border-t border-gray-200">
+                            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                              <ExclamationTriangleIcon className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-sm font-medium text-amber-800">Cannibalization (Action T)</p>
+                                <p className="text-xs text-amber-700 mt-1">
+                                  This repair involves cannibalization. A part was taken from a donor asset to complete the repair.
+                                </p>
+                                <div className="mt-2 p-2 bg-white border border-amber-200 rounded">
+                                  <p className="text-xs text-amber-800">
+                                    <strong>Donor Asset:</strong> {repair.donor_asset_sn}
+                                  </p>
+                                  <p className="text-xs text-amber-700">
+                                    Part Number: {repair.donor_asset_pn || 'N/A'} | Name: {repair.donor_asset_name || 'N/A'}
+                                  </p>
+                                  <p className="text-xs text-amber-600 mt-1 italic">
+                                    The donor asset status has been changed to NMCS (Not Mission Capable - Supply).
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -2253,6 +2658,105 @@ export default function MaintenanceDetailPage() {
                                     >
                                       {deletingRemovedPartId === removedPart.removed_part_id ? (
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                                      ) : (
+                                        <TrashIcon className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Labor Records */}
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-xs font-medium text-purple-700 flex items-center">
+                              <WrenchScrewdriverIcon className="h-3 w-3 mr-1" />
+                              Labor Records
+                              <span className="ml-1 text-gray-500">
+                                ({laborMap.get(repair.repair_id)?.length || 0})
+                              </span>
+                            </h4>
+                            {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                              <button
+                                onClick={() => openAddLaborModal(repair)}
+                                className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center"
+                              >
+                                <PlusIcon className="h-3 w-3 mr-0.5" />
+                                Add Labor
+                              </button>
+                            )}
+                          </div>
+
+                          {loadingLabor.has(repair.repair_id) ? (
+                            <div className="flex items-center justify-center py-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                            </div>
+                          ) : (laborMap.get(repair.repair_id)?.length || 0) === 0 ? (
+                            <p className="text-xs text-gray-400 italic">No labor records</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {laborMap.get(repair.repair_id)?.map((labor) => (
+                                <div
+                                  key={labor.labor_id}
+                                  className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded p-2"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <WrenchScrewdriverIcon className="h-4 w-4 text-purple-500 flex-shrink-0" />
+                                      <span className="text-sm font-medium text-gray-900">
+                                        Labor #{labor.labor_seq}
+                                      </span>
+                                      {labor.action_taken && (
+                                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-purple-100 text-purple-700">
+                                          {labor.action_taken}
+                                        </span>
+                                      )}
+                                      {labor.cat_labor && (
+                                        <span className="px-1.5 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
+                                          Cat: {labor.cat_labor}
+                                        </span>
+                                      )}
+                                      {labor.hours !== null && (
+                                        <span className="text-xs text-gray-600">
+                                          {labor.hours} hrs
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="ml-6 text-xs text-gray-500">
+                                      <span>Chief: {labor.crew_chief || 'N/A'}</span>
+                                      {labor.crew_size !== null && (
+                                        <>
+                                          <span className="mx-1">•</span>
+                                          <span>Crew: {labor.crew_size}</span>
+                                        </>
+                                      )}
+                                      <span className="mx-1">•</span>
+                                      <span>Start: {new Date(labor.start_date).toLocaleDateString()}</span>
+                                      {labor.stop_date && (
+                                        <>
+                                          <span className="mx-1">•</span>
+                                          <span>Stop: {new Date(labor.stop_date).toLocaleDateString()}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                    {labor.corrective && (
+                                      <p className="ml-6 text-xs text-gray-600 mt-1 italic line-clamp-2">
+                                        {labor.corrective}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {canDeleteRepairs && repair.shop_status === 'open' && event.status === 'open' && (
+                                    <button
+                                      onClick={() => handleDeleteLabor(labor)}
+                                      disabled={deletingLaborId === labor.labor_id}
+                                      className="ml-2 p-1 text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded disabled:opacity-50"
+                                      title="Delete labor record"
+                                    >
+                                      {deletingLaborId === labor.labor_id ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
                                       ) : (
                                         <TrashIcon className="h-4 w-4" />
                                       )}
@@ -3212,6 +3716,120 @@ export default function MaintenanceDetailPage() {
                   </p>
                 )}
               </div>
+
+              {/* Chief Review Flag */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <InformationCircleIcon className="h-5 w-5 text-amber-600 mr-2" />
+                    <div>
+                      <label htmlFor="edit_repair_chief_review" className="block text-sm font-medium text-amber-800">
+                        Chief Review Required
+                      </label>
+                      <p className="text-xs text-amber-600 mt-0.5">
+                        Flag this repair for chief review
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="edit_repair_chief_review"
+                    role="switch"
+                    aria-checked={editRepairForm.chief_review}
+                    onClick={() => setEditRepairForm(prev => ({ ...prev, chief_review: !prev.chief_review }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                      editRepairForm.chief_review ? 'bg-amber-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        editRepairForm.chief_review ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {editRepairForm.chief_review && editingRepair?.chief_review_by && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    Originally flagged by: {editingRepair.chief_review_by}
+                  </p>
+                )}
+              </div>
+
+              {/* Supervisor Review Flag */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <MagnifyingGlassIcon className="h-5 w-5 text-purple-600 mr-2" />
+                    <div>
+                      <label htmlFor="edit_repair_super_review" className="block text-sm font-medium text-purple-800">
+                        Supervisor Review Required
+                      </label>
+                      <p className="text-xs text-purple-600 mt-0.5">
+                        Flag this repair for supervisor review and approval
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="edit_repair_super_review"
+                    role="switch"
+                    aria-checked={editRepairForm.super_review}
+                    onClick={() => setEditRepairForm(prev => ({ ...prev, super_review: !prev.super_review }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                      editRepairForm.super_review ? 'bg-purple-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        editRepairForm.super_review ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {editRepairForm.super_review && editingRepair?.super_review_by && (
+                  <p className="text-xs text-purple-600 mt-2">
+                    Originally flagged by: {editingRepair.super_review_by}
+                  </p>
+                )}
+              </div>
+
+              {/* Repeat/Recur Flag */}
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ArrowPathIcon className="h-5 w-5 text-cyan-600 mr-2" />
+                    <div>
+                      <label htmlFor="edit_repair_repeat_recur" className="block text-sm font-medium text-cyan-800">
+                        Repeat/Recur Issue
+                      </label>
+                      <p className="text-xs text-cyan-600 mt-0.5">
+                        Flag this repair as a repeat or recurring issue
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="edit_repair_repeat_recur"
+                    role="switch"
+                    aria-checked={editRepairForm.repeat_recur}
+                    onClick={() => setEditRepairForm(prev => ({ ...prev, repeat_recur: !prev.repeat_recur }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 ${
+                      editRepairForm.repeat_recur ? 'bg-cyan-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        editRepairForm.repeat_recur ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {editRepairForm.repeat_recur && editingRepair?.repeat_recur_by && (
+                  <p className="text-xs text-cyan-600 mt-2">
+                    Originally flagged by: {editingRepair.repeat_recur_by}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Modal Footer */}
@@ -3452,6 +4070,29 @@ export default function MaintenanceDetailPage() {
                 />
               </div>
 
+              {/* ETI In (Elapsed Time Indicator at repair start) */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label htmlFor="repair_eti_in" className="block text-sm font-medium text-blue-800 mb-1">
+                  ETI In (Elapsed Time Indicator)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    id="repair_eti_in"
+                    value={addRepairForm.eti_in}
+                    onChange={(e) => setAddRepairForm(prev => ({ ...prev, eti_in: e.target.value }))}
+                    step="0.01"
+                    min="0"
+                    className="flex-1 px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter ETI meter reading at repair start"
+                  />
+                  <span className="text-sm text-blue-600 font-medium">hours</span>
+                </div>
+                <p className="text-xs text-blue-600 mt-1">
+                  Record the ETI meter value when the repair begins (optional)
+                </p>
+              </div>
+
               {/* MICAP Flag */}
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
@@ -3479,6 +4120,105 @@ export default function MaintenanceDetailPage() {
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                         addRepairForm.micap ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Chief Review Flag */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <InformationCircleIcon className="h-5 w-5 text-amber-600 mr-2" />
+                    <div>
+                      <label htmlFor="add_repair_chief_review" className="block text-sm font-medium text-amber-800">
+                        Chief Review Required
+                      </label>
+                      <p className="text-xs text-amber-600 mt-0.5">
+                        Flag this repair for chief review
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="add_repair_chief_review"
+                    role="switch"
+                    aria-checked={addRepairForm.chief_review}
+                    onClick={() => setAddRepairForm(prev => ({ ...prev, chief_review: !prev.chief_review }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 ${
+                      addRepairForm.chief_review ? 'bg-amber-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        addRepairForm.chief_review ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Supervisor Review Flag */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <MagnifyingGlassIcon className="h-5 w-5 text-purple-600 mr-2" />
+                    <div>
+                      <label htmlFor="add_repair_super_review" className="block text-sm font-medium text-purple-800">
+                        Supervisor Review Required
+                      </label>
+                      <p className="text-xs text-purple-600 mt-0.5">
+                        Flag this repair for supervisor review and approval
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="add_repair_super_review"
+                    role="switch"
+                    aria-checked={addRepairForm.super_review}
+                    onClick={() => setAddRepairForm(prev => ({ ...prev, super_review: !prev.super_review }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                      addRepairForm.super_review ? 'bg-purple-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        addRepairForm.super_review ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Repeat/Recur Flag */}
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ArrowPathIcon className="h-5 w-5 text-cyan-600 mr-2" />
+                    <div>
+                      <label htmlFor="add_repair_repeat_recur" className="block text-sm font-medium text-cyan-800">
+                        Repeat/Recur Issue
+                      </label>
+                      <p className="text-xs text-cyan-600 mt-0.5">
+                        Flag this repair as a repeat or recurring issue
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    id="add_repair_repeat_recur"
+                    role="switch"
+                    aria-checked={addRepairForm.repeat_recur}
+                    onClick={() => setAddRepairForm(prev => ({ ...prev, repeat_recur: !prev.repeat_recur }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 ${
+                      addRepairForm.repeat_recur ? 'bg-cyan-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        addRepairForm.repeat_recur ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
                   </button>
@@ -3618,6 +4358,40 @@ export default function MaintenanceDetailPage() {
                 <p className="text-xs text-gray-500 mt-1">
                   Must be on or after the start date ({closingRepair?.start_date ? new Date(closingRepair.start_date).toLocaleDateString() : 'N/A'})
                 </p>
+              </div>
+
+              {/* ETI Out Input */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label htmlFor="close_repair_eti_out" className="block text-sm font-medium text-blue-800 mb-1">
+                  ETI Out (Elapsed Time Indicator)
+                </label>
+                {closingRepair && closingRepair.eti_in !== null && (
+                  <p className="text-xs text-blue-600 mb-2">
+                    ETI In recorded: <strong>{closingRepair.eti_in} hours</strong>
+                  </p>
+                )}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    id="close_repair_eti_out"
+                    value={closeRepairEtiOut}
+                    onChange={(e) => setCloseRepairEtiOut(e.target.value)}
+                    step="0.01"
+                    min={closingRepair?.eti_in ?? 0}
+                    className="flex-1 px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter ETI meter reading at repair end"
+                    disabled={closeRepairLoading || !!closeRepairSuccess}
+                  />
+                  <span className="text-sm text-blue-600 font-medium">hours</span>
+                </div>
+                <p className="text-xs text-blue-600 mt-1">
+                  Record the ETI meter value when the repair ends (optional)
+                </p>
+                {closeRepairEtiOut && closingRepair && closingRepair.eti_in !== null && (
+                  <p className="text-sm text-blue-800 font-medium mt-2">
+                    ETI Delta: {(parseFloat(closeRepairEtiOut) - closingRepair.eti_in).toFixed(2)} hours
+                  </p>
+                )}
               </div>
             </div>
 
@@ -4141,6 +4915,191 @@ export default function MaintenanceDetailPage() {
                   <>
                     <CubeIcon className="h-4 w-4 mr-2" />
                     Add Removed Part
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Add Labor Modal */}
+      <Dialog open={isAddLaborModalOpen} onClose={closeAddLaborModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <WrenchScrewdriverIcon className="h-5 w-5 mr-2 text-purple-500" />
+                Add Labor
+                {addLaborRepair && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    (Repair #{addLaborRepair.repair_seq})
+                  </span>
+                )}
+              </Dialog.Title>
+              <button
+                onClick={closeAddLaborModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {addLaborSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center text-green-700 text-sm">
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {addLaborSuccess}
+                </div>
+              )}
+
+              {addLaborError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center text-red-700 text-sm">
+                  <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                  {addLaborError}
+                </div>
+              )}
+
+              {/* Action Taken Code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Action Taken Code
+                </label>
+                <select
+                  value={addLaborForm.action_taken}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, action_taken: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                >
+                  {actionTakenOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category of Labor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category of Labor
+                </label>
+                <select
+                  value={addLaborForm.cat_labor}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, cat_labor: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                >
+                  {catLaborOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Crew Chief Name (Required) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Crew Chief Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={addLaborForm.crew_chief}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, crew_chief: e.target.value }))}
+                  placeholder="Enter crew chief name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Crew Size */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Crew Size
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={addLaborForm.crew_size}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, crew_size: e.target.value }))}
+                  placeholder="Number of workers"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Hours Worked */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hours Worked
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={addLaborForm.hours}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, hours: e.target.value }))}
+                  placeholder="Enter hours worked"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Start Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={addLaborForm.start_date}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, start_date: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Stop Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stop Date
+                </label>
+                <input
+                  type="date"
+                  value={addLaborForm.stop_date}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, stop_date: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Corrective Action Narrative */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Corrective Action Narrative
+                </label>
+                <textarea
+                  value={addLaborForm.corrective}
+                  onChange={(e) => setAddLaborForm(prev => ({ ...prev, corrective: e.target.value }))}
+                  placeholder="Describe the corrective action taken..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 sticky bottom-0">
+              <button
+                onClick={closeAddLaborModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddLabor}
+                disabled={addLaborLoading || !addLaborForm.crew_chief.trim() || !!addLaborSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {addLaborLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <WrenchScrewdriverIcon className="h-4 w-4 mr-2" />
+                    Add Labor
                   </>
                 )}
               </button>
