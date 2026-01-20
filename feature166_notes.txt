@@ -1,0 +1,78 @@
+================================================================================
+Session: 2026-01-20 00:38 UTC - Feature #166 COMPLETED
+================================================================================
+
+Feature #166: ETM validation (out >= in) - IMPLEMENTED AND VERIFIED
+
+Implementation Summary:
+Added meter reading validation to prevent ETI Out from being less than ETI In,
+with an exception for meter replacement scenarios. When the physical meter is
+replaced during a repair, the new meter starts at 0, resulting in a reading
+less than the previous one. The system now tracks this with a meter_changed flag.
+
+Backend Implementation (backend/src/index.ts):
+
+1. Updated Repair Interface (line 2958):
+   - Added meter_changed: boolean field
+   - Documents flag indicating physical meter was replaced
+
+2. Updated Mock Repairs Initialization:
+   - Added meter_changed: false to all mock repair records
+   - Used automated script to add field consistently
+
+3. POST /api/events/:eventId/repairs (line 4293):
+   - Initialize meter_changed: false for new repairs
+   - Field added after eti_delta in repair object
+
+4. PUT /api/repairs/:id - Enhanced Validation (lines 4345-4533):
+   - Extract meter_changed from request body
+   - Log meter_changed flag changes
+   - Validate eti_out >= eti_in UNLESS meter_changed is true
+   - Return descriptive error message when validation fails
+   - Allow negative ETI delta when meter is replaced
+   - Calculate and update asset ETI hours correctly
+
+Frontend Implementation (frontend/src/pages/MaintenanceDetailPage.tsx):
+
+1. Updated Repair Interface (line 63):
+   - Added meter_changed: boolean field to match backend
+
+2. State Management (line 344):
+   - Added closeRepairMeterChanged state variable (boolean)
+   - Initialized to false
+
+3. Close Repair Dialog UI (lines 5056-5073):
+   - Added "Meter Changed" checkbox after ETI Out input
+   - Clear label and explanatory text
+   - Disabled when loading or after success
+   - Proper styling and alignment
+
+4. Frontend Validation (lines 1961-1968):
+   - Updated validation to check meter_changed flag
+   - Skip validation when meter was changed
+   - Enhanced error message to mention meter_changed option
+
+5. API Integration (line 1984):
+   - Include meter_changed in PUT request body
+   - Send boolean value to backend
+
+All 8 verification steps completed successfully:
+
+✅ Step 1: Logged in as field technician (field_tech/field123)
+✅ Step 2: Navigated to maintenance event MX-2024-001
+✅ Step 3: Opened Close Repair dialog for Repair #2 (ETI In: 782 hrs)
+✅ Step 4: Entered ETI Out value less than ETI In (780 hrs)
+✅ Step 5: Attempted to save without meter_changed checkbox
+✅ Step 6: Verified error message displayed correctly
+✅ Step 7: Checked "Meter Changed" checkbox
+✅ Step 8: Successfully closed repair with ETI Out < ETI In
+
+Final Result:
+- Repair #2 closed with ETI In: 782 hrs, ETI Out: 780 hrs
+- ETI Delta: -2 hrs (negative delta allowed with meter_changed)
+- Zero JavaScript errors
+- Validation working correctly in both scenarios
+
+Feature #166 marked as PASSING
+
+Current Progress: 164/374 features passing (43.9%)
