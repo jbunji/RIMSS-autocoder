@@ -1156,6 +1156,7 @@ interface PMIRecord {
   completed_date: string | null;
   pgm_id: number;
   status: 'overdue' | 'due_soon' | 'upcoming' | 'completed';
+  interval_days: number; // PMI interval in days (30, 60, 90, 180, 365)
 }
 
 // Helper to calculate days until due
@@ -1201,6 +1202,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 1, // CRIIS
       status: 'overdue',
+      interval_days: 30,
     },
     {
       pmi_id: 2,
@@ -1214,6 +1216,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 1, // CRIIS
       status: 'due_soon',
+      interval_days: 90,
     },
     {
       pmi_id: 3,
@@ -1227,6 +1230,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 1, // CRIIS
       status: 'due_soon',
+      interval_days: 60,
     },
     // Yellow items - due in 8-30 days
     {
@@ -1241,6 +1245,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 1, // CRIIS
       status: 'upcoming',
+      interval_days: 180,
     },
     {
       pmi_id: 5,
@@ -1254,6 +1259,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 1, // CRIIS
       status: 'upcoming',
+      interval_days: 365,
     },
     {
       pmi_id: 6,
@@ -1267,6 +1273,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 2, // ACTS
       status: 'upcoming',
+      interval_days: 30,
     },
     // Green items - due after 30 days
     {
@@ -1281,6 +1288,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 1, // CRIIS
       status: 'upcoming',
+      interval_days: 90,
     },
     {
       pmi_id: 8,
@@ -1294,6 +1302,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 3, // ARDS
       status: 'upcoming',
+      interval_days: 180,
     },
     {
       pmi_id: 9,
@@ -1307,6 +1316,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 1, // CRIIS
       status: 'upcoming',
+      interval_days: 365,
     },
     // Additional items for different programs
     {
@@ -1321,6 +1331,7 @@ function generateMockPMIData(): PMIRecord[] {
       completed_date: null,
       pgm_id: 2, // ACTS
       status: 'due_soon',
+      interval_days: 60,
     },
   ];
 
@@ -1351,6 +1362,9 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
+  // Get interval filter from query string (optional) - supports 30, 60, 90, 180, 365
+  const intervalFilter = req.query.interval_days ? parseInt(req.query.interval_days as string, 10) : null;
+
   // Generate fresh PMI data, including custom records and overrides
   const generatedPMI = generateMockPMIData();
   const customPMIIds = new Set(customPMIRecords.map(p => p.pmi_id));
@@ -1370,6 +1384,11 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
     filteredPMI = filteredPMI.filter(pmi => pmi.pgm_id === programIdFilter);
+  }
+
+  // Apply interval filter if specified (30, 60, 90, 180, 365 days)
+  if (intervalFilter && [30, 60, 90, 180, 365].includes(intervalFilter)) {
+    filteredPMI = filteredPMI.filter(pmi => pmi.interval_days === intervalFilter);
   }
 
   // Sort by days_until_due (most urgent first)
@@ -5350,6 +5369,103 @@ app.put('/api/pmi/:id', (req, res) => {
   });
 });
 
+// Complete PMI - marks as completed and schedules next occurrence
+app.post('/api/pmi/:id/complete', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Field technicians can complete PMI (they do the work)
+  if (!['FIELD_TECHNICIAN', 'DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Only field technicians, depot managers, and admins can complete PMI records' });
+  }
+
+  const pmiId = parseInt(req.params.id, 10);
+  const { completion_date, linked_event_id } = req.body;
+
+  // Validate completion date
+  if (!completion_date) {
+    return res.status(400).json({ error: 'Completion date is required' });
+  }
+
+  // Check both generated and custom PMI records
+  const generatedPMI = generateMockPMIData();
+  let pmi = generatedPMI.find(p => p.pmi_id === pmiId);
+  let isCustom = false;
+  let customIndex = -1;
+
+  // If not in generated, check custom records
+  if (!pmi) {
+    customIndex = customPMIRecords.findIndex(p => p.pmi_id === pmiId);
+    if (customIndex !== -1) {
+      pmi = customPMIRecords[customIndex];
+      isCustom = true;
+    }
+  }
+
+  if (!pmi) {
+    return res.status(404).json({ error: 'PMI record not found' });
+  }
+
+  // Check if user has access to this PMI's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(pmi.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this PMI record' });
+  }
+
+  // Validate linked_event_id if provided
+  if (linked_event_id !== undefined && linked_event_id !== null) {
+    const eventExists = mockMaintenanceEvents.find(e => e.event_id === linked_event_id);
+    if (!eventExists) {
+      return res.status(400).json({ error: 'Invalid maintenance event ID' });
+    }
+  }
+
+  // Calculate next due date based on completion date + interval
+  const completionDateObj = new Date(completion_date);
+  completionDateObj.setDate(completionDateObj.getDate() + pmi.interval_days);
+  const nextDueDate = completionDateObj.toISOString().split('T')[0];
+  const daysUntilDue = calculateDaysUntilDue(nextDueDate);
+
+  // Create completed PMI record with next due date calculated
+  const completedPMI: PMIRecord & { linked_event_id?: number | null } = {
+    ...pmi,
+    completed_date: completion_date,
+    next_due_date: nextDueDate,
+    days_until_due: daysUntilDue,
+    status: getPMIStatus(daysUntilDue), // Reset to active status with new due date
+    linked_event_id: linked_event_id || null,
+  };
+
+  // Store the completed/updated PMI
+  if (isCustom) {
+    customPMIRecords[customIndex] = completedPMI;
+  } else {
+    // For generated PMI, add to custom records as override
+    const existingOverrideIndex = customPMIRecords.findIndex(p => p.pmi_id === pmiId);
+    if (existingOverrideIndex !== -1) {
+      customPMIRecords[existingOverrideIndex] = completedPMI;
+    } else {
+      customPMIRecords.push(completedPMI);
+    }
+  }
+
+  console.log(`[PMI] Completed PMI #${completedPMI.pmi_id} by ${user.username} on ${completion_date} - Next due: ${nextDueDate}`);
+  if (linked_event_id) {
+    console.log(`[PMI] PMI #${completedPMI.pmi_id} linked to Maintenance Event #${linked_event_id}`);
+  }
+
+  res.json({
+    message: 'PMI completed successfully',
+    pmi: completedPMI,
+    next_due_date: nextDueDate,
+  });
+});
+
 // Mock Parts Order data for testing
 interface PartsOrder {
   order_id: number;
@@ -6014,7 +6130,7 @@ app.post('/api/pmi', (req, res) => {
     return res.status(403).json({ error: 'Only depot managers and admins can create PMI records' });
   }
 
-  const { asset_id, pmi_type, next_due_date, wuc_cd } = req.body;
+  const { asset_id, pmi_type, next_due_date, wuc_cd, interval_days } = req.body;
 
   // Validate required fields
   if (!asset_id) {
@@ -6042,6 +6158,12 @@ app.post('/api/pmi', (req, res) => {
   // Calculate days until due
   const daysUntilDue = calculateDaysUntilDue(next_due_date);
 
+  // Parse interval_days - default to 30 if not provided
+  const parsedIntervalDays = interval_days ? parseInt(interval_days, 10) : 30;
+  // Validate interval is one of the standard values
+  const validIntervals = [30, 60, 90, 180, 365];
+  const finalIntervalDays = validIntervals.includes(parsedIntervalDays) ? parsedIntervalDays : 30;
+
   // Create new PMI record
   const newPMI: PMIRecord = {
     pmi_id: nextCustomPMIId++,
@@ -6055,6 +6177,7 @@ app.post('/api/pmi', (req, res) => {
     completed_date: null,
     pgm_id: asset.pgm_id,
     status: getPMIStatus(daysUntilDue),
+    interval_days: finalIntervalDays,
   };
 
   customPMIRecords.push(newPMI);

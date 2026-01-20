@@ -185,6 +185,7 @@ export default function MaintenancePage() {
     completed_date: string | null
     pgm_id: number
     status: 'overdue' | 'due_soon' | 'upcoming' | 'completed'
+    interval_days: number // PMI interval in days (30, 60, 90, 180, 365)
   }
 
   interface PMISummary {
@@ -199,6 +200,7 @@ export default function MaintenancePage() {
   const [pmiSummary, setPmiSummary] = useState<PMISummary>({ overdue: 0, red: 0, yellow: 0, green: 0, total: 0 })
   const [pmiLoading, setPmiLoading] = useState(false)
   const [pmiError, setPmiError] = useState<string | null>(null)
+  const [pmiIntervalFilter, setPmiIntervalFilter] = useState<string>('') // Interval filter: '', '30', '60', '90', '180', '365'
 
   // View mode for Backlog tab: 'list' or 'grouped'
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
@@ -430,6 +432,11 @@ export default function MaintenancePage() {
         params.append('program_id', currentProgramId.toString())
       }
 
+      // Add interval filter if specified
+      if (pmiIntervalFilter) {
+        params.append('interval_days', pmiIntervalFilter)
+      }
+
       const response = await fetch(`http://localhost:3001/api/pmi/due-soon?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -449,14 +456,14 @@ export default function MaintenancePage() {
     } finally {
       setPmiLoading(false)
     }
-  }, [token, currentProgramId])
+  }, [token, currentProgramId, pmiIntervalFilter])
 
-  // Fetch PMI when tab changes to PMI or when program changes
+  // Fetch PMI when tab changes to PMI or when program/interval filter changes
   useEffect(() => {
     if (activeTab === 2) {
       fetchPMI()
     }
-  }, [activeTab, fetchPMI, currentProgramId])
+  }, [activeTab, fetchPMI, currentProgramId, pmiIntervalFilter])
 
   // Open new event modal
   const openNewEventModal = () => {
@@ -1838,17 +1845,20 @@ export default function MaintenancePage() {
                 <label htmlFor="pmi_interval" className="block text-sm font-medium text-gray-700 mb-1">
                   Interval (Days)
                 </label>
-                <input
-                  type="number"
+                <select
                   id="pmi_interval"
                   value={newPMIForm.interval_days}
                   onChange={(e) => handlePMIFormChange('interval_days', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="e.g., 30, 90, 365"
-                  min="1"
-                />
+                >
+                  <option value="30">30-Day</option>
+                  <option value="60">60-Day</option>
+                  <option value="90">90-Day</option>
+                  <option value="180">180-Day</option>
+                  <option value="365">365-Day (Annual)</option>
+                </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Recurring interval in days for this PMI
+                  Standard recurring interval for this PMI
                 </p>
               </div>
             </form>
@@ -2430,8 +2440,38 @@ export default function MaintenancePage() {
     return (
       <div className="space-y-6">
         {/* Add PMI Button */}
-        {canCreatePMI && (
-          <div className="flex justify-end">
+        {/* Filter and Actions Row */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          {/* PMI Interval Filter */}
+          <div className="flex items-center gap-2">
+            <label htmlFor="pmi_interval_filter" className="text-sm font-medium text-gray-700">
+              Filter by Interval:
+            </label>
+            <select
+              id="pmi_interval_filter"
+              value={pmiIntervalFilter}
+              onChange={(e) => setPmiIntervalFilter(e.target.value)}
+              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+            >
+              <option value="">All Intervals</option>
+              <option value="30">30-Day</option>
+              <option value="60">60-Day</option>
+              <option value="90">90-Day</option>
+              <option value="180">180-Day</option>
+              <option value="365">365-Day (Annual)</option>
+            </select>
+            {pmiIntervalFilter && (
+              <button
+                onClick={() => setPmiIntervalFilter('')}
+                className="text-sm text-gray-500 hover:text-gray-700 underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Add PMI Button */}
+          {canCreatePMI && (
             <button
               onClick={openNewPMIModal}
               className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
@@ -2439,8 +2479,8 @@ export default function MaintenancePage() {
               <PlusIcon className="h-5 w-5" />
               Add PMI
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* PMI Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -2507,6 +2547,9 @@ export default function MaintenancePage() {
                     PMI Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Interval
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     WUC
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -2550,6 +2593,11 @@ export default function MaintenancePage() {
                         <span className="text-sm text-gray-900">{pmi.pmi_type}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                          {pmi.interval_days}-Day
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-mono text-gray-600">{pmi.wuc_cd}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -2577,7 +2625,10 @@ export default function MaintenancePage() {
 
           {/* Total count */}
           <div className="bg-white px-4 py-3 border-t border-gray-200">
-            <p className="text-sm text-gray-500">{pmiRecords.length} total PMI schedule entries</p>
+            <p className="text-sm text-gray-500">
+              {pmiRecords.length} PMI schedule entries
+              {pmiIntervalFilter && ` (filtered by ${pmiIntervalFilter}-Day interval)`}
+            </p>
           </div>
         </div>
 
