@@ -2621,8 +2621,9 @@ export default function MaintenancePage() {
               <button
                 onClick={closeNewEventModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -2889,8 +2890,9 @@ export default function MaintenancePage() {
               <button
                 onClick={closeDeleteModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -3002,8 +3004,9 @@ export default function MaintenancePage() {
               <button
                 onClick={closeNewPMIModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -3170,8 +3173,9 @@ export default function MaintenancePage() {
               <button
                 onClick={closeNewTCTOModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -3398,8 +3402,9 @@ export default function MaintenancePage() {
               <button
                 onClick={closeEditTCTOModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -3562,8 +3567,9 @@ export default function MaintenancePage() {
                 onClick={closeDeleteTCTOModal}
                 className="text-gray-400 hover:text-gray-500"
                 disabled={deleteTCTOLoading}
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 

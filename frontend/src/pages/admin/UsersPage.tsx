@@ -571,15 +571,17 @@ export default function UsersPage() {
                       className="text-primary-600 hover:text-primary-900 mr-4"
                       onClick={() => openEditModal(user)}
                       title="Edit user"
+                      aria-label="Edit user"
                     >
-                      <PencilIcon className="h-4 w-4" />
+                      <PencilIcon className="h-4 w-4" aria-hidden="true" />
                     </button>
                     <button
                       className="text-red-600 hover:text-red-900"
                       title="Delete user"
                       onClick={() => openDeleteModal(user)}
+                      aria-label="Delete user"
                     >
-                      <TrashIcon className="h-4 w-4" />
+                      <TrashIcon className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </td>
                 </tr>
@@ -628,8 +630,9 @@ export default function UsersPage() {
                     type="button"
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
                     onClick={closeModal}
+                    aria-label="Close"
                   >
-                    <XMarkIcon className="h-6 w-6" />
+                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                   </button>
 
                   <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
@@ -872,8 +875,9 @@ export default function UsersPage() {
                     type="button"
                     className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
                     onClick={closeEditModal}
+                    aria-label="Close"
                   >
-                    <XMarkIcon className="h-6 w-6" />
+                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                   </button>
 
                   <form onSubmit={handleSubmitEdit(onEditSubmit)} className="mt-4 space-y-4">

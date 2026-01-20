@@ -1288,8 +1288,8 @@ export default function SortiesPage() {
               <Dialog.Title className="text-lg font-semibold text-gray-900">
                 Create New Sortie
               </Dialog.Title>
-              <button onClick={closeAddModal} className="text-gray-400 hover:text-gray-500" disabled={submitting}>
-                <XMarkIcon className="h-6 w-6" />
+              <button onClick={closeAddModal} className="text-gray-400 hover:text-gray-500" disabled={submitting} aria-label="Close">
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -1446,8 +1446,9 @@ export default function SortiesPage() {
                 onClick={closeEditModal}
                 className="text-gray-400 hover:text-gray-500"
                 disabled={submitting}
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 

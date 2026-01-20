@@ -1124,8 +1124,9 @@ export default function ConfigurationsPage() {
                       type="button"
                       className="text-gray-400 hover:text-gray-500"
                       onClick={closeEditModal}
+                      aria-label="Close"
                     >
-                      <XMarkIcon className="h-6 w-6" />
+                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   </Dialog.Title>
 

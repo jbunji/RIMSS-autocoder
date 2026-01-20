@@ -35,9 +35,9 @@ export default {
         },
         // PMI color coding
         pmi: {
-          red: '#DC2626',    // Due within 7 days
-          yellow: '#F59E0B', // Due 8-30 days
-          green: '#10B981',  // Due after 30 days
+          red: '#DC2626',    // Due within 7 days - Contrast: 4.83:1 ✓
+          yellow: '#F59E0B', // Due 8-30 days - Contrast: 9.78:1 ✓
+          green: '#047857',  // Due after 30 days - Contrast: 5.48:1 ✓ (was #10B981, 2.54:1)
         },
         // CUI Banner
         cui: {

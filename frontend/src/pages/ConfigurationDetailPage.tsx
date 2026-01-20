@@ -2053,8 +2053,9 @@ export default function ConfigurationDetailPage() {
                           type="button"
                           className="text-gray-400 hover:text-gray-500"
                           onClick={closeAddModal}
+                          aria-label="Close"
                         >
-                          <XMarkIcon className="h-6 w-6" />
+                          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                         </button>
                       </Dialog.Title>
 
@@ -2301,8 +2302,9 @@ export default function ConfigurationDetailPage() {
                       type="button"
                       className="text-gray-400 hover:text-gray-500"
                       onClick={closeAddSoftwareModal}
+                      aria-label="Close"
                     >
-                      <XMarkIcon className="h-6 w-6" />
+                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   </Dialog.Title>
 

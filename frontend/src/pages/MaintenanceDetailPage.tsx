@@ -3748,8 +3748,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeEditModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -3937,8 +3938,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeCloseEventModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -4076,8 +4078,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeUploadModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -4230,8 +4233,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeEditRepairModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -4634,8 +4638,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeAddRepairModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -5028,8 +5033,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeCloseRepairModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -5215,8 +5221,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeDeleteRepairModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -5342,8 +5349,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeDeleteLaborModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
@@ -5493,8 +5501,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeAddInstalledPartModal}
                 className="text-gray-400 hover:text-gray-500"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -5651,8 +5660,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeAddRemovedPartModal}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -5859,8 +5869,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeAddLaborModal}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -6109,8 +6120,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeRequestPartsModal}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -6264,8 +6276,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeAddLaborPartModal}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -6412,8 +6425,9 @@ export default function MaintenanceDetailPage() {
               <button
                 onClick={closeEditLaborModal}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 

@@ -145,18 +145,18 @@ const statusColors: Record<string, { bg: string; text: string; border: string }>
 function getPMIColorClass(daysUntilDue: number): { bg: string; text: string; border: string; dot: string } {
   if (daysUntilDue < 0) {
     // Overdue - red
-    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-red-600' }
+    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-pmi-red' }
   }
   if (daysUntilDue <= 7) {
     // Red - within 7 days
-    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-red-600' }
+    return { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-400', dot: 'bg-pmi-red' }
   }
   if (daysUntilDue <= 30) {
     // Yellow - 8-30 days
-    return { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-400', dot: 'bg-yellow-500' }
+    return { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-400', dot: 'bg-pmi-yellow' }
   }
-  // Green - after 30 days
-  return { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-400', dot: 'bg-green-600' }
+  // Green - after 30 days (WCAG AA compliant: 5.48:1 contrast ratio)
+  return { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-400', dot: 'bg-pmi-green' }
 }
 
 // Format due date display
@@ -720,15 +720,15 @@ export default function DashboardPage() {
             {pmiData && (
               <div className="flex items-center space-x-3 text-xs">
                 <span className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-red-600 mr-1"></span>
+                  <span className="w-2 h-2 rounded-full bg-pmi-red mr-1"></span>
                   <span className="text-gray-600">{pmiData.summary.overdue + pmiData.summary.red}</span>
                 </span>
                 <span className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
+                  <span className="w-2 h-2 rounded-full bg-pmi-yellow mr-1"></span>
                   <span className="text-gray-600">{pmiData.summary.yellow}</span>
                 </span>
                 <span className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-green-600 mr-1"></span>
+                  <span className="w-2 h-2 rounded-full bg-pmi-green mr-1"></span>
                   <span className="text-gray-600">{pmiData.summary.green}</span>
                 </span>
               </div>
@@ -788,15 +788,15 @@ export default function DashboardPage() {
             <div className="mt-4 pt-3 border-t border-gray-200">
               <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                 <span className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-red-600 mr-1"></span>
+                  <span className="w-2 h-2 rounded-full bg-pmi-red mr-1"></span>
                   Due in 7 days or less
                 </span>
                 <span className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
+                  <span className="w-2 h-2 rounded-full bg-pmi-yellow mr-1"></span>
                   Due in 8-30 days
                 </span>
                 <span className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-green-600 mr-1"></span>
+                  <span className="w-2 h-2 rounded-full bg-pmi-green mr-1"></span>
                   Due after 30 days
                 </span>
               </div>
