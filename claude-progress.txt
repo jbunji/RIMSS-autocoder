@@ -27193,3 +27193,38 @@ Next: Session complete - Feature #239 verified and committed
 [2026-01-20 09:52 UTC] Feature #239 session complete - PARALLEL SESSION
 ================================================================================
 
+
+================================================================================
+[2026-01-20 Testing Session] Feature #41 Regression Testing - AUTH BLOCKER
+================================================================================
+
+Feature: #41 - Asset detail view displays all fields
+Category: functional
+Status: BLOCKED - Cannot verify due to authentication failure
+
+ISSUE FOUND: Authentication System Not Working
+- Backend running on port 3001 ✓
+- Frontend running on port 5173 ✓
+- Backend responds to API calls ✓
+- BUT: No valid credentials work ✗
+
+Credentials Tested (all failed):
+1. admin / admin123 - 401 Unauthorized
+2. admin / Admin123!Pass - 401 Unauthorized  
+3. admin / password123 - 401 Unauthorized
+4. depot_mgr / password123 - 401 Unauthorized
+
+Evidence:
+- Backend logs show: "[AUTH] Password changed for user: admin"
+- Multiple backend processes running (port conflicts)
+- create_test_users.js uses password: "password123"
+- init.sh output claims: "admin / Admin123!Pass"
+- Progress notes show previous sessions used: "admin/admin123"
+
+Root Cause Investigation Needed:
+1. Which password hash is actually in the database?
+2. Was there a password change that broke authentication?
+3. Are there multiple databases or database states?
+
+This is a critical regression blocking all feature testing.
+
