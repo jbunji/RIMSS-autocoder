@@ -12308,3 +12308,79 @@ Edit Functionality:
 
 **Current Progress:** 141/374 features passing (37.7%)
 
+[Testing] 2026-01-19 23:47:51 - Feature #116 'PMI search and filtering' - VERIFIED PASSING - No regression found
+
+Verification Steps Completed:
+✅ 1. Logged in as admin user
+✅ 2. Navigated to Maintenance > PMI Schedule tab
+✅ 3. Searched by asset serial number (CRIIS-001)
+✅ 4. Verified matching PMIs display (filtered to 1 record)
+✅ 5. Clicked 'Overdue Only' filter button
+✅ 6. Verified only overdue PMIs show (1 overdue record displayed)
+✅ 7. Cleared filters with 'Clear All' button (all 7 records restored)
+
+Test Results:
+- Search functionality: WORKING ✓
+- Overdue filter: WORKING ✓
+- Clear filters: WORKING ✓
+- Console errors: NONE ✓
+- Visual appearance: CORRECT ✓
+
+Screenshots captured:
+- regression_test_feature116_dashboard.png
+- regression_test_feature116_pmi_page_empty.png (initial /pmi route - redirects to maintenance)
+- regression_test_feature116_search_criis001.png (search results)
+- regression_test_feature116_overdue_filter.png (overdue filter active)
+- regression_test_feature116_filters_cleared.png (filters cleared)
+
+Conclusion: Feature #116 is still passing. No regression detected.
+
+---
+
+## Session: 2026-01-20 (Feature #144) - PARALLEL EXECUTION
+
+[Feature] Feature #144 "Delete spare part record" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Users can delete spare records (soft delete)
+
+**Implementation:**
+
+**Backend Changes (backend/src/index.ts):**
+- Modified DELETE /api/assets/:id endpoint to use soft delete
+- Changed from hard delete (splice) to soft delete (set active = false)
+- Updated log message to indicate soft delete
+- Updated response message to mention recovery capability
+- Maintains audit trail in activity log
+
+**Frontend Changes (frontend/src/pages/SparesPage.tsx):**
+- Added TrashIcon and ExclamationTriangleIcon imports
+- Added delete modal state (isDeleteModalOpen, isDeleting)
+- Added handleDeleteClick and handleDeleteConfirm functions
+- Added Delete button next to Edit button in Actions column
+- Added delete confirmation modal with warning icon and soft delete message
+- Proper error handling and loading states
+
+**Verification Steps Completed (All 7):**
+✅ 1. Logged in as admin (John Admin)
+✅ 2. Navigated to Spares page
+✅ 3. Clicked delete on CRIIS-003 (Sensor Unit B)
+✅ 4. Verified confirmation dialog with soft delete message
+✅ 5. Confirmed deletion successfully
+✅ 6. Verified spare removed from list (5→4 spares)
+✅ 7. Verified soft delete allows recovery (CRIIS-003 still in Assets page)
+
+**Console Verification:**
+- Zero JavaScript errors ✓
+- Only expected React Router warnings ✓
+
+**Screenshots:**
+- feature144_spares_page_with_delete_buttons.png
+- feature144_delete_confirmation_dialog.png
+- feature144_spare_deleted_successfully.png
+- feature144_spare_removed_from_list.png
+- feature144_deletion_persists_after_refresh.png
+
+[Feature] Feature #144 marked as PASSING
+
+**Current Progress:** 142/374 features passing (38.0%)
+
