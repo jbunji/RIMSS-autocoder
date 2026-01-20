@@ -81,7 +81,7 @@ export default function SortiesPage() {
   const [newSortieForm, setNewSortieForm] = useState({
     asset_id: '',
     mission_id: '',
-    sortie_date: '',
+    sortie_date: new Date().toISOString().split('T')[0],
     sortie_effect: '',
     range: '',
     remarks: '',

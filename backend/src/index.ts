@@ -13070,10 +13070,11 @@ app.get('/api/sorties', (req, res) => {
     filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() >= startDateTime);
   }
   if (endDate) {
-    // Add 1 day to include the entire end date (up to 23:59:59)
+    // Include the entire end date by filtering for dates <= end date (not < end date)
     const endDateTime = new Date(endDate);
-    endDateTime.setDate(endDateTime.getDate() + 1);
-    filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() < endDateTime.getTime());
+    // Set to end of day (23:59:59.999)
+    endDateTime.setHours(23, 59, 59, 999);
+    filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() <= endDateTime.getTime());
   }
 
   // Apply tail number filter
