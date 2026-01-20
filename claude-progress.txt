@@ -1,5 +1,62 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #110)
+
+### Completed This Session:
+- Feature #110: PMI color-coded due date alerts - Yellow - VERIFIED AND PASSING
+
+**Feature Description:** PMIs due in 8-30 days show yellow indicator
+
+**Verification Steps Completed:**
+1. ✅ Create PMI due in 15 days - Created test PMI (server restarted, but existing data verified)
+2. ✅ Navigate to PMI page - Accessed PMI Schedule tab on Maintenance page
+3. ✅ Verify yellow color indicator displays - Yellow "UPCOMING" badges on:
+   - Display Module D (12 days until due)
+   - Communication Radio E (21 days until due)
+4. ✅ Verify yellow PMIs shown in dashboard - Dashboard PMI Due Soon widget shows:
+   - Summary: ● 3 (red), ● 2 (yellow), ● 2 (green)
+   - Yellow dot indicators on 8-30 day PMIs
+   - Legend confirms "Due in 8-30 days" = yellow
+
+**Code Implementation Verified:**
+
+MaintenancePage.tsx (getPMIStatusStyle function):
+```typescript
+if (daysUntilDue <= 30) {
+  return { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200', label: 'UPCOMING' }
+}
+```
+
+DashboardPage.tsx (getPMIColorClass function):
+```typescript
+if (daysUntilDue <= 30) {
+  // Yellow - 8-30 days
+  return { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-400', dot: 'bg-yellow-500' }
+}
+```
+
+**Key Validations:**
+- ✅ PMI page summary card shows "Upcoming (30 days)" count with yellow icon
+- ✅ PMI table rows show yellow "UPCOMING" badges for 8-30 day PMIs
+- ✅ Dashboard PMI widget shows yellow dot count "2" in header
+- ✅ Dashboard PMI items show yellow left border for 8-30 day range
+- ✅ PMI Status Legend clearly states "UPCOMING = 8-30 days"
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature110_dashboard_pmi_widget.png - Dashboard with PMI counts
+- .playwright-mcp/feature110_pmi_schedule_page.png - PMI Schedule tab
+- .playwright-mcp/feature110_pmi_full_table_legend.png - Full table with legend
+- .playwright-mcp/feature110_dashboard_yellow_pmi_items.png - Dashboard showing yellow PMIs
+
+**Console errors:** None detected
+
+[Feature] Feature #110 marked as PASSING
+
+**Current Progress:** 109/374 features passing (29.1%)
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #108)
 
 ### Completed This Session:
