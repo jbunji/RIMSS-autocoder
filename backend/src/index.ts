@@ -155,6 +155,17 @@ const mockUsers = [
       { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
     ],
   },
+  {
+    user_id: 5,
+    username: 'acts_user',
+    email: 'acts@example.mil',
+    first_name: 'Alice',
+    last_name: 'ACTS',
+    role: 'FIELD_TECHNICIAN',
+    programs: [
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+    ],
+  },
 ]
 
 // Mock passwords (in real app, these would be hashed)
@@ -163,6 +174,7 @@ const mockPasswords: Record<string, string> = {
   depot_mgr: 'depot123',
   field_tech: 'field123',
   viewer: 'viewer123',
+  acts_user: 'acts123',
 }
 
 // Mock JWT token generator (simple base64 encoding for testing)
