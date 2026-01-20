@@ -35833,3 +35833,57 @@ Progress: 280/374 features passing (74.9%)
 ================================================================================
 [Testing] Note: Bob Field role changed from Field Technician to Viewer during test
 [Testing] Session complete - Feature #208 verified PASSING - no regression found
+================================================================================
+[2026-01-20 11:30 UTC] Feature #282 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #282: Delete item updates related dropdowns - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #282
+Session Type: Single-feature implementation mode
+
+FEATURE DESCRIPTION:
+Deleted items removed from selectors. When a location is deleted, it should not
+appear in dropdown menus in forms (like the asset creation form). Other locations
+should remain available.
+
+IMPLEMENTATION APPROACH:
+
+Since the system was using static location arrays without delete functionality,
+I implemented a complete location CRUD system:
+
+Backend Changes:
+1. Added 'active' property to all location objects (default: true)
+2. Created POST /api/reference/locations endpoint:
+   - Admin-only access
+   - Creates new admin or custodial locations
+   - Validates location code uniqueness
+   - Returns 201 with created location object
+
+3. Created DELETE /api/reference/locations/:type/:loc_cd endpoint:
+   - Admin-only access
+   - Soft deletes by marking location.active = false
+   - Returns success message with updated location
+   - Logs deletion action
+
+4. Modified GET /api/reference/locations endpoint:
+   - Filters out inactive (deleted) locations
+   - Returns only locations where active !== false
+   - Maintains backward compatibility
+
+TEST EXECUTION - All 6 Steps PASSED:
+
+✅ Step 1: Log in as admin
+✅ Step 2: Delete a location (via API - created and deleted test location)
+✅ Step 3: Navigate to asset form
+✅ Step 4: Open location dropdown
+✅ Step 5: Verify deleted location not available
+✅ Step 6: Verify other locations still available
+
+Result: Feature #282 marked as PASSING ✅
+Progress: 281/374 features passing (75.1%)
+Git Commit: 114dd4a
+
+================================================================================
+[2026-01-20 11:30 UTC] Feature #282 session complete - PARALLEL SESSION
+================================================================================
