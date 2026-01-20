@@ -5,6 +5,8 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import { PrismaClient } from '@prisma/client'
+import * as trpcExpress from '@trpc/server/adapters/express'
+import { appRouter } from './trpc'
 
 // Load environment variables
 dotenv.config()
@@ -115,6 +117,15 @@ app.get('/api/health', (_req, res) => {
     version: '0.1.0',
   })
 })
+
+// tRPC middleware - type-safe API endpoints
+app.use(
+  '/api/trpc',
+  trpcExpress.createExpressMiddleware({
+    router: appRouter,
+    createContext: () => ({}), // Empty context for now
+  })
+)
 
 // Mock user data for testing
 const mockUsers = [
