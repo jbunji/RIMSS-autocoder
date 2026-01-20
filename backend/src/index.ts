@@ -13223,7 +13223,7 @@ app.post('/api/spares', async (req, res) => {
   const newAssetId = Math.max(...mockAssets.map(a => a.asset_id), ...detailedAssets.map(a => a.asset_id)) + 1;
 
   // Get location details
-  const location = mockLocations.find(l => l.loc_id === parseInt(loc_id || '0'));
+  const location = adminLocations.find(l => l.loc_id === parseInt(loc_id || '0'));
   const program = allPrograms.find(p => p.pgm_id === programId);
 
   // Create new asset in mockAssets

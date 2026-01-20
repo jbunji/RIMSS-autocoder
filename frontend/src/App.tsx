@@ -115,8 +115,24 @@ function App() {
           <Route path="/reports/parts-ordered" element={<PartsOrderedReportPage />} />
           <Route path="/reports/sorties" element={<SortieReportPage />} />
           <Route path="/reports/bad-actors" element={<BadActorReportPage />} />
-          <Route path="/admin" element={<PlaceholderPage title="Admin" />} />
-          <Route path="/admin/users" element={<UsersPage />} />
+
+          {/* Admin-only routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRoles={['ADMIN']}>
+              <PlaceholderPage title="Admin" />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute requiredRoles={['ADMIN']}>
+              <UsersPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/settings" element={
+            <ProtectedRoute requiredRoles={['ADMIN']}>
+              <PlaceholderPage title="Admin Settings" />
+            </ProtectedRoute>
+          } />
+
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           <Route path="/pmi" element={<PMIPage />} />

@@ -18322,3 +18322,105 @@ Next: Feature #191 complete - parallel session ending cleanly
 Session complete - Feature #191 verified successfully
 [Testing] Session 2026-01-20 06:30 UTC - Feature #136 verified - still passing
 [Testing] 2026-01-20 06:33 UTC - Starting regression test for Feature #142: Create spare part record
+[Testing] 2026-01-20 06:35 UTC - Feature #142 REGRESSION FOUND: Backend crash - mockLocations is not defined
+[Testing] 2026-01-20 06:36 UTC - Backend fixed, now running on port 3001. Retrying spare creation...
+
+================================================================================
+Session: 2026-01-20 06:36 UTC - Feature #193 COMPLETED (PARALLEL SESSION)
+================================================================================
+
+Feature #193: API returns 401 for unauthenticated requests - VERIFIED AND PASSING
+
+Summary:
+Successfully verified that the RIMSS backend API properly enforces authentication 
+on all protected endpoints. The authentication system returns HTTP 401 (Unauthorized) 
+status code for requests that lack valid authentication tokens.
+
+Test Execution - All 7 Steps PASSED:
+
+✅ Step 1: Clear all tokens
+   - No tokens used in test requests
+   - All requests made without Authorization headers
+
+✅ Step 2: Call GET /api/assets without token
+   - Request: GET http://localhost:3001/api/assets
+   - Response Status: 401
+   - Response Body: {"error":"Not authenticated"}
+
+✅ Step 3: Verify 401 response (GET /api/assets)
+   - Confirmed HTTP status code is 401
+   - Confirmed error message indicates authentication failure
+   - No data leakage
+
+✅ Step 4: Call POST /api/events without token
+   - Request: POST http://localhost:3001/api/events
+   - Response Status: 401
+   - Response Body: {"error":"Not authenticated"}
+
+✅ Step 5: Verify 401 response (POST /api/events)
+   - Confirmed HTTP status code is 401
+   - Confirmed error message indicates authentication failure
+
+✅ Step 6: Call GET /api/users without token
+   - Request: GET http://localhost:3001/api/users
+   - Response Status: 401
+   - Response Body: {"error":"Not authenticated"}
+
+✅ Step 7: Verify 401 response (GET /api/users)
+   - Confirmed HTTP status code is 401
+   - Admin-only endpoint properly protected
+
+Technical Implementation:
+
+1. authenticateRequest() Helper Function (line 913):
+   - Checks for Authorization header with "Bearer " prefix
+   - Parses and validates token
+   - Returns 401 if no token, invalid token, or expired token
+   - Returns user payload if token is valid
+
+2. Protected Endpoints:
+   - GET /api/assets: Protected by authenticateRequest()
+   - POST /api/events: Protected by authenticateRequest()
+   - GET /api/users: Protected by requireAdmin() (calls authenticateRequest())
+
+3. Security Features:
+   - No data leakage in error responses
+   - Consistent error format: {"error":"Not authenticated"}
+   - Proper HTTP 401 status code
+   - Token required in Authorization header
+   - All protected endpoints check authentication first
+
+Bug Fix During Testing:
+- Issue: Line 13226 referenced undefined mockLocations variable
+- Fix: Changed to use adminLocations (defined at line 454)
+- Impact: Backend was crashing when creating spare parts
+- Resolution: Backend restarted successfully after fix
+
+Test Method:
+- Used Node.js HTTP module for direct API calls
+- Test script: test_f193_node.js
+- All three endpoints tested without authentication tokens
+- Verified HTTP status codes and response bodies
+
+Test Results:
+```
+Test 1: GET /api/assets without token - Status: 401 ✅ PASS
+Test 2: POST /api/events without token - Status: 401 ✅ PASS
+Test 3: GET /api/users without token - Status: 401 ✅ PASS
+Overall: ✅ ALL TESTS PASSED
+```
+
+Files Modified:
+- backend/src/index.ts (bug fix: line 13226)
+- test_f193_node.js (created)
+- get_f193.js (created)
+- test_f193.sh (created)
+- FEATURE_193_COMPLETION.md (created)
+
+Feature #193 marked as PASSING
+
+Current Progress: 192/374 features passing (51.3%)
+
+Next: Session complete - Feature #193 verified and committed
+
+Session complete - Feature #193 verified successfully
