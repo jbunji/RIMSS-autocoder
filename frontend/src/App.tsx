@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { ActivityTracker } from './components/ActivityTracker'
 import { TokenRefreshManager } from './components/TokenRefreshManager'
 import { Layout } from './components/layout'
+import { ToastProvider } from './contexts/ToastContext'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import UsersPage from './pages/admin/UsersPage'
@@ -33,6 +34,7 @@ import PartsOrderedReportPage from './pages/PartsOrderedReportPage'
 import SortieReportPage from './pages/SortieReportPage'
 import BadActorReportPage from './pages/BadActorReportPage'
 import TestTimeoutPage from './pages/TestTimeoutPage'
+import TestToastsPage from './pages/TestToastsPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -83,9 +85,10 @@ function App() {
 
   return (
     <BrowserRouter>
-      <TokenRefreshManager>
-        <ActivityTracker>
-          <Routes>
+      <ToastProvider>
+        <TokenRefreshManager>
+          <ActivityTracker>
+            <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
 
@@ -137,6 +140,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           <Route path="/test-timeout" element={<TestTimeoutPage />} />
+          <Route path="/test-toasts" element={<TestToastsPage />} />
           <Route path="/pmi" element={<PMIPage />} />
           <Route path="/pmi/:id" element={<PMIDetailPage />} />
           <Route path="/maintenance/:id" element={<MaintenanceDetailPage />} />
@@ -178,9 +182,10 @@ function App() {
             </div>
           }
         />
-          </Routes>
-        </ActivityTracker>
-      </TokenRefreshManager>
+            </Routes>
+          </ActivityTracker>
+        </TokenRefreshManager>
+      </ToastProvider>
     </BrowserRouter>
   )
 }

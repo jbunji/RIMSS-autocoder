@@ -18,7 +18,6 @@ import {
 import { useAuthStore } from '../stores/authStore'
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { Toast } from '../components/Toast'
 import { useToast } from '../hooks/useToast'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -113,7 +112,7 @@ export default function AssetsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { token, currentProgramId, user } = useAuthStore()
-  const { toast, showSuccess, showError, hideToast } = useToast()
+  const { showSuccess, showError } = useToast()
 
   // Check if user can create assets
   const canCreateAsset = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
@@ -785,14 +784,6 @@ export default function AssetsPage() {
           )}
         </div>
       </div>
-
-      {/* Toast notifications */}
-      <Toast
-        isOpen={toast.isOpen}
-        type={toast.type}
-        message={toast.message}
-        onClose={hideToast}
-      />
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-4">
