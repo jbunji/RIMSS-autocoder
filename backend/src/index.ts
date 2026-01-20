@@ -7858,8 +7858,8 @@ app.get('/api/assets', (req, res) => {
   // Get detailed assets from mutable array
   const allAssets = detailedAssets;
 
-  // Filter by program
-  let filteredAssets = allAssets.filter(asset => asset.pgm_id === programIdFilter);
+  // Filter by program and only include active assets (exclude soft-deleted)
+  let filteredAssets = allAssets.filter(asset => asset.pgm_id === programIdFilter && asset.active !== false);
 
   // Apply optional status filter
   const statusFilter = req.query.status as string;
