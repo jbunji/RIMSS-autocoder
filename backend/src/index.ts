@@ -10204,6 +10204,104 @@ app.delete('/api/sorties/:id', (req, res) => {
   });
 });
 
+// Bulk import sorties from Excel (requires depot_manager or admin)
+app.post('/api/sorties/bulk-import', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Authorization: Only depot_manager and admin can bulk import sorties
+  if (!['DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions to bulk import sorties' });
+  }
+
+  const { sorties: importSorties } = req.body;
+
+  if (!importSorties || !Array.isArray(importSorties) || importSorties.length === 0) {
+    return res.status(400).json({ error: 'Invalid import data: sorties array is required' });
+  }
+
+  const errors: string[] = [];
+  const created: Sortie[] = [];
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  importSorties.forEach((sortieData, index) => {
+    const rowNum = index + 2; // +2 because Excel starts at row 2 (after header)
+
+    // Validate required fields
+    if (!sortieData.serno || !sortieData.mission_id || !sortieData.sortie_date) {
+      errors.push(`Row ${rowNum}: Missing required fields (serno, mission_id, or sortie_date)`);
+      return;
+    }
+
+    // Find asset by serial number
+    const asset = mockAssets.find(a => a.serno === sortieData.serno);
+    if (!asset) {
+      errors.push(`Row ${rowNum}: Asset with serial number '${sortieData.serno}' not found`);
+      return;
+    }
+
+    // Check program access
+    if (!userProgramIds.includes(asset.pgm_id)) {
+      errors.push(`Row ${rowNum}: Access denied to asset '${sortieData.serno}' (program mismatch)`);
+      return;
+    }
+
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(sortieData.sortie_date)) {
+      errors.push(`Row ${rowNum}: Invalid date format for '${sortieData.sortie_date}' (use YYYY-MM-DD)`);
+      return;
+    }
+
+    // Generate new sortie ID
+    const newSortieId = sorties.length > 0 ? Math.max(...sorties.map(s => s.sortie_id)) + 1 + created.length : 1 + created.length;
+
+    // Create new sortie
+    const newSortie: Sortie = {
+      sortie_id: newSortieId,
+      pgm_id: asset.pgm_id,
+      asset_id: asset.asset_id,
+      mission_id: sortieData.mission_id.trim(),
+      serno: asset.serno,
+      ac_tailno: asset.serno,
+      sortie_date: sortieData.sortie_date,
+      sortie_effect: sortieData.sortie_effect || null,
+      current_unit: user.programs.find(p => p.pgm_id === asset.pgm_id)?.pgm_cd || null,
+      assigned_unit: user.programs.find(p => p.pgm_id === asset.pgm_id)?.pgm_cd || null,
+      range: sortieData.range || null,
+      reason: null,
+      remarks: sortieData.remarks || null,
+    };
+
+    created.push(newSortie);
+  });
+
+  // If there are validation errors, don't import anything
+  if (errors.length > 0) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      errors,
+      imported: 0,
+    });
+  }
+
+  // Add all created sorties to the array
+  sorties.push(...created);
+
+  console.log(`[SORTIES] Bulk imported ${created.length} sortie(s) by ${user.username}`);
+
+  res.status(201).json({
+    message: 'Sorties imported successfully',
+    imported: created.length,
+    sorties: created,
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
