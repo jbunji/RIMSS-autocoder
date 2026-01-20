@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { DocumentArrowDownIcon, CalendarIcon } from '@heroicons/react/24/outline'
 import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface Sortie {
   sortie_id: number
