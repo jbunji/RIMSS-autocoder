@@ -855,6 +855,57 @@ export default function SparesPage() {
     }
   }
 
+  // Handle bulk delete - first confirmation
+  const handleBulkDeleteClick = () => {
+    setBulkDeleteError(null)
+    setIsBulkDeleteConfirm1Open(true)
+  }
+
+  // Handle first confirmation - proceed to second
+  const handleBulkDeleteConfirm1 = () => {
+    setIsBulkDeleteConfirm1Open(false)
+    setIsBulkDeleteConfirm2Open(true)
+  }
+
+  // Handle second confirmation - actually delete
+  const handleBulkDeleteConfirm2 = async () => {
+    if (!token || selectedSpareIds.length === 0) return
+
+    setBulkDeleteError(null)
+    setIsBulkDeleting(true)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/assets/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset_ids: selectedSpareIds,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete spares')
+      }
+
+      const result = await response.json()
+
+      // Success - close modal and refresh list
+      setIsBulkDeleteConfirm2Open(false)
+      setSelectedSpareIds([])
+      setSuccessMessage(`Successfully deleted ${result.deleted_count} spare(s)!`)
+      setTimeout(() => setSuccessMessage(null), 3000)
+      fetchSpares()
+    } catch (err) {
+      setBulkDeleteError(err instanceof Error ? err.message : 'Failed to delete spares')
+    } finally {
+      setIsBulkDeleting(false)
+    }
+  }
+
   return (
     <div>
       {/* Header */}
@@ -927,13 +978,22 @@ export default function SparesPage() {
             {canEditSpare && !showDeleted && (
               <>
                 {selectedSpareIds.length > 0 && (
-                  <button
-                    onClick={handleMassUpdateClick}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                    Mass Update ({selectedSpareIds.length})
-                  </button>
+                  <>
+                    <button
+                      onClick={handleMassUpdateClick}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                      Mass Update ({selectedSpareIds.length})
+                    </button>
+                    <button
+                      onClick={handleBulkDeleteClick}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                      Bulk Delete ({selectedSpareIds.length})
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={handleCreateClick}

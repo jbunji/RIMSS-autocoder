@@ -20521,3 +20521,101 @@ even though both are defined identically in mockUsers and mockPasswords.
 This did not affect feature testing as admin has all necessary permissions.
 
 [Testing] 2026-01-20 07:02 UTC - Feature #160 regression test completed successfully - All steps PASSED
+================================================================================
+Session: 2026-01-20 02:00 UTC - Feature #206 COMPLETED (PARALLEL SESSION)
+================================================================================
+
+Feature #206: Viewer cannot create, edit, or delete records - VERIFIED AND PASSING
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #206
+
+Implementation Status: PARTIALLY IMPLEMENTED - BUG FOUND AND FIXED
+
+Initial Testing - Steps 1-6:
+✅ Step 1: Logged in as viewer (Sam Viewer with password viewer123 from mockUsers)
+✅ Step 2: Navigated to Assets page
+✅ Step 3: Verified no Add Asset button visible - Only Export PDF/Excel
+✅ Step 4: Navigated to asset detail page
+✅ Step 5: Verified no Edit button visible on detail page
+✅ Step 6: Verified no Delete button visible on detail page
+✅ Step 7: Export PDF and Export Excel buttons work correctly
+
+Module-by-Module Testing (Step 8):
+
+✅ Assets Module:
+   - No "Add Asset" button
+   - No "Edit" buttons on detail pages
+   - No "Delete" buttons
+   - Export buttons work ✓
+
+✅ Configurations Module:
+   - No "Add Configuration" button
+   - No "Edit" buttons on detail pages
+   - Export buttons work ✓
+
+✅ Maintenance Module:
+   - No "Create Maintenance Job" button
+   - No "Add" buttons
+   - Export buttons work ✓
+
+🔧 Sorties Module - BUG FOUND:
+   - ❌ "Add Sortie" button WAS visible
+   - ❌ "Import" button WAS visible
+   - ❌ "Edit" buttons in table rows WERE visible
+   - Issue: Missing role-based conditional checks
+
+Fix Applied (frontend/src/pages/SortiesPage.tsx):
+   - Lines 1010-1027: Wrapped Import and Add Sortie buttons with role check
+   - Lines 1239-1248: Wrapped Edit button with role check
+   - Delete button already had proper role check (ADMIN || DEPOT_MANAGER)
+
+Post-Fix Verification:
+   ✅ Import button now hidden for VIEWER
+   ✅ Add Sortie button now hidden for VIEWER
+   ✅ Edit buttons now hidden for VIEWER
+   ✅ Export buttons still visible and functional
+   ✅ Table Actions column empty for VIEWER (as expected)
+
+✅ Spares Module:
+   - No "Add Spare" button
+   - Export buttons work ✓
+
+✅ Parts Ordered Module:
+   - No "Add Order" button
+   - Export buttons work ✓
+
+Security Verification:
+✅ All destructive operations (Create/Edit/Delete) hidden from VIEWER UI
+✅ Export/View operations remain available for VIEWER
+✅ Role checks properly implemented
+✅ Consistent pattern across all modules
+
+Test Results Summary:
+- Total Test Steps: 8 (all feature requirements)
+- Modules Tested: 6 (Assets, Configurations, Maintenance, Sorties, Spares, Parts Ordered)
+- Bugs Found: 1 (Sorties module missing role checks)
+- Bugs Fixed: 1 (Added role conditionals to Sorties)
+- Final Status: All PASSING ✅
+
+Screenshots Captured:
+- f206_step3_assets_page_no_add_button.png
+- f206_step4_asset_detail_no_edit_delete.png
+- f206_configurations_no_add_button.png
+- f206_maintenance_no_add_button.png
+- f206_ISSUE_sorties_has_add_edit_buttons.png (before fix)
+- f206_FIXED_sorties_no_add_edit_buttons.png (after fix)
+
+Code Changes:
+- File: frontend/src/pages/SortiesPage.tsx
+  - Added conditional wrapper for Import/Add buttons
+  - Added conditional wrapper for Edit buttons in table
+  - No backend changes needed (authorization already enforced)
+
+Result: Feature #206 marked as PASSING ✅
+
+Progress: 205/374 features passing (54.8%)
+
+Session Type: Bug fix + verification
+Session Duration: ~55 minutes
+Code Changes: 1 file modified (SortiesPage.tsx)
+Tests Executed: 8 steps across 6 modules
