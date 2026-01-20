@@ -1517,6 +1517,222 @@ app.get('/api/pmi', (req, res) => {
   });
 });
 
+// ============================================
+// TCTO (Time Compliance Technical Order) API
+// ============================================
+
+// Helper to calculate days until compliance deadline
+function calculateDaysUntilDeadline(dateString: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadlineDate = new Date(dateString);
+  deadlineDate.setHours(0, 0, 0, 0);
+  const diffTime = deadlineDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// GET /api/tcto - List all TCTOs for user's programs
+app.get('/api/tcto', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (optional)
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Get status filter from query string (optional)
+  const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
+
+  // Get search filter from query string (optional)
+  const searchFilter = req.query.search ? (req.query.search as string).toLowerCase().trim() : null;
+
+  // Filter TCTO records by user's accessible programs
+  let filteredTCTO = tctoRecords.filter(tcto => userProgramIds.includes(tcto.pgm_id));
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredTCTO = filteredTCTO.filter(tcto => tcto.pgm_id === programIdFilter);
+  }
+
+  // Apply status filter if specified
+  if (statusFilter === 'open' || statusFilter === 'closed') {
+    filteredTCTO = filteredTCTO.filter(tcto => tcto.status === statusFilter);
+  }
+
+  // Apply search filter if specified (searches TCTO number and title)
+  if (searchFilter) {
+    filteredTCTO = filteredTCTO.filter(tcto =>
+      tcto.tcto_no.toLowerCase().includes(searchFilter) ||
+      tcto.title.toLowerCase().includes(searchFilter) ||
+      tcto.description.toLowerCase().includes(searchFilter)
+    );
+  }
+
+  // Calculate compliance info for each TCTO
+  const tctoWithCompliance = filteredTCTO.map(tcto => {
+    const daysUntilDeadline = calculateDaysUntilDeadline(tcto.compliance_deadline);
+    const compliancePercentage = tcto.affected_assets.length > 0
+      ? Math.round((tcto.compliant_assets.length / tcto.affected_assets.length) * 100)
+      : 100;
+
+    // Get program info
+    const program = allPrograms.find(p => p.pgm_id === tcto.pgm_id);
+
+    return {
+      ...tcto,
+      days_until_deadline: daysUntilDeadline,
+      compliance_percentage: compliancePercentage,
+      assets_remaining: tcto.affected_assets.length - tcto.compliant_assets.length,
+      is_overdue: daysUntilDeadline < 0 && tcto.status === 'open',
+      program_code: program?.pgm_cd || '',
+      program_name: program?.pgm_name || '',
+    };
+  });
+
+  // Sort by deadline (most urgent first), then by TCTO number
+  tctoWithCompliance.sort((a, b) => {
+    // Open TCTOs first
+    if (a.status !== b.status) {
+      return a.status === 'open' ? -1 : 1;
+    }
+    // Then by days until deadline
+    return a.days_until_deadline - b.days_until_deadline;
+  });
+
+  // Calculate summary counts
+  const summary = {
+    total: tctoWithCompliance.length,
+    open: tctoWithCompliance.filter(t => t.status === 'open').length,
+    closed: tctoWithCompliance.filter(t => t.status === 'closed').length,
+    overdue: tctoWithCompliance.filter(t => t.is_overdue).length,
+    critical: tctoWithCompliance.filter(t => t.priority === 'Critical' && t.status === 'open').length,
+    urgent: tctoWithCompliance.filter(t => t.priority === 'Urgent' && t.status === 'open').length,
+    routine: tctoWithCompliance.filter(t => t.priority === 'Routine' && t.status === 'open').length,
+  };
+
+  console.log(`[TCTO] List request by ${user.username} - Total: ${summary.total}, Open: ${summary.open}, Closed: ${summary.closed}`);
+
+  res.json({
+    tcto: tctoWithCompliance,
+    summary,
+    total: tctoWithCompliance.length,
+  });
+});
+
+// POST /api/tcto - Create new TCTO record
+app.post('/api/tcto', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Only admin and depot_manager can create TCTOs
+  if (!['admin', 'depot_manager'].includes(user.role)) {
+    return res.status(403).json({ error: 'Only Admin and Depot Manager can create TCTO records' });
+  }
+
+  const {
+    tcto_no,
+    title,
+    tcto_type,
+    sys_type,
+    effective_date,
+    compliance_deadline,
+    priority,
+    description,
+    remarks,
+  } = req.body;
+
+  // Validation
+  if (!tcto_no || tcto_no.trim() === '') {
+    return res.status(400).json({ error: 'TCTO number is required' });
+  }
+  if (!title || title.trim() === '') {
+    return res.status(400).json({ error: 'TCTO title is required' });
+  }
+  if (!effective_date) {
+    return res.status(400).json({ error: 'Effective date is required' });
+  }
+  if (!compliance_deadline) {
+    return res.status(400).json({ error: 'Compliance deadline is required' });
+  }
+  if (!priority || !['Routine', 'Urgent', 'Critical'].includes(priority)) {
+    return res.status(400).json({ error: 'Valid priority is required (Routine, Urgent, Critical)' });
+  }
+
+  // Get the current program ID (user's first accessible program or specified in request)
+  const pgm_id = req.body.pgm_id || user.programs[0]?.pgm_id;
+  if (!pgm_id) {
+    return res.status(400).json({ error: 'Program ID is required' });
+  }
+
+  // Verify user has access to the program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Check for duplicate TCTO number within the program
+  const existingTcto = tctoRecords.find(t =>
+    t.tcto_no.toLowerCase() === tcto_no.trim().toLowerCase() && t.pgm_id === pgm_id
+  );
+  if (existingTcto) {
+    return res.status(400).json({ error: 'TCTO number already exists for this program' });
+  }
+
+  // Create new TCTO record
+  const newTCTO: TCTORecord = {
+    tcto_id: tctoNextId++,
+    tcto_no: tcto_no.trim(),
+    title: title.trim(),
+    effective_date,
+    compliance_deadline,
+    pgm_id,
+    status: 'open',
+    priority,
+    affected_assets: [], // Assets can be added later
+    compliant_assets: [],
+    description: description?.trim() || '',
+    created_by_id: user.user_id,
+    created_by_name: `${user.first_name} ${user.last_name}`,
+    created_at: new Date().toISOString().split('T')[0],
+  };
+
+  // Add to records
+  tctoRecords.push(newTCTO);
+
+  // Calculate compliance info for response
+  const daysUntilDeadline = calculateDaysUntilDeadline(newTCTO.compliance_deadline);
+  const program = allPrograms.find(p => p.pgm_id === pgm_id);
+
+  const responseData = {
+    ...newTCTO,
+    days_until_deadline: daysUntilDeadline,
+    compliance_percentage: 100, // No assets yet
+    assets_remaining: 0,
+    is_overdue: daysUntilDeadline < 0,
+    program_code: program?.pgm_cd || '',
+    program_name: program?.pgm_name || '',
+    tcto_type: tcto_type || '',
+    sys_type: sys_type || '',
+    remarks: remarks || '',
+  };
+
+  console.log(`[TCTO] Created TCTO ${newTCTO.tcto_no} (ID: ${newTCTO.tcto_id}) by ${user.username}`);
+
+  res.status(201).json(responseData);
+});
+
 // Mock Sortie data
 interface Sortie {
   sortie_id: number;
@@ -1676,6 +1892,127 @@ function initializeSorties(): void {
 
 // Initialize sorties on startup
 initializeSorties();
+
+// TCTO (Time Compliance Technical Order) Interface
+interface TCTORecord {
+  tcto_id: number;
+  tcto_no: string;        // TCTO number (unique per program)
+  title: string;          // TCTO title/description
+  effective_date: string; // Date TCTO became effective
+  compliance_deadline: string; // Deadline for compliance
+  pgm_id: number;
+  status: 'open' | 'closed'; // Overall TCTO status
+  priority: 'Routine' | 'Urgent' | 'Critical';
+  affected_assets: number[]; // Array of asset_ids that need compliance
+  compliant_assets: number[]; // Array of asset_ids that are compliant
+  description: string;    // Full TCTO description
+  created_by_id: number;
+  created_by_name: string;
+  created_at: string;
+}
+
+// Persistent storage for TCTO records
+let tctoRecords: TCTORecord[] = [];
+let tctoNextId = 6; // Start after mock data IDs
+
+// Initialize TCTO data
+function initializeTCTOData(): void {
+  const today = new Date();
+  const addDays = (days: number): string => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  tctoRecords = [
+    // CRIIS program TCTOs
+    {
+      tcto_id: 1,
+      tcto_no: 'TCTO-2024-001',
+      title: 'Sensor Firmware Update v2.3.1',
+      effective_date: addDays(-30),
+      compliance_deadline: addDays(15),
+      pgm_id: 1,
+      status: 'open',
+      priority: 'Urgent',
+      affected_assets: [1, 2, 3], // CRIIS-001, CRIIS-002, CRIIS-003
+      compliant_assets: [1], // CRIIS-001 is compliant
+      description: 'Critical firmware update addressing sensor calibration drift issue. All affected sensor units must be updated before deadline.',
+      created_by_id: 1,
+      created_by_name: 'John Admin',
+      created_at: addDays(-30),
+    },
+    {
+      tcto_id: 2,
+      tcto_no: 'TCTO-2024-002',
+      title: 'Communication System Software Patch',
+      effective_date: addDays(-45),
+      compliance_deadline: addDays(-5), // Overdue
+      pgm_id: 1,
+      status: 'open',
+      priority: 'Critical',
+      affected_assets: [8, 9, 10], // CRIIS-008, CRIIS-009, CRIIS-010
+      compliant_assets: [], // None compliant yet
+      description: 'Mandatory software patch to address communication security vulnerability CVE-2024-1234.',
+      created_by_id: 1,
+      created_by_name: 'John Admin',
+      created_at: addDays(-45),
+    },
+    {
+      tcto_id: 3,
+      tcto_no: 'TCTO-2024-003',
+      title: 'Radar Unit Calibration Procedure Update',
+      effective_date: addDays(-60),
+      compliance_deadline: addDays(-30),
+      pgm_id: 1,
+      status: 'closed',
+      priority: 'Routine',
+      affected_assets: [6, 7], // CRIIS-006, CRIIS-007
+      compliant_assets: [6, 7], // All compliant
+      description: 'Updated calibration procedure for improved accuracy in high-altitude operations.',
+      created_by_id: 1,
+      created_by_name: 'John Admin',
+      created_at: addDays(-60),
+    },
+    // ACTS program TCTOs
+    {
+      tcto_id: 4,
+      tcto_no: 'TCTO-2024-004',
+      title: 'Targeting System Optics Alignment',
+      effective_date: addDays(-20),
+      compliance_deadline: addDays(30),
+      pgm_id: 2,
+      status: 'open',
+      priority: 'Urgent',
+      affected_assets: [11, 12, 13], // ACTS-001, ACTS-002, ACTS-003
+      compliant_assets: [11], // ACTS-001 compliant
+      description: 'Realignment procedure for targeting optics to correct parallax error identified in field reports.',
+      created_by_id: 2,
+      created_by_name: 'Jane Depot',
+      created_at: addDays(-20),
+    },
+    // ARDS program TCTOs
+    {
+      tcto_id: 5,
+      tcto_no: 'TCTO-2024-005',
+      title: 'Data Processing Unit Memory Upgrade',
+      effective_date: addDays(-10),
+      compliance_deadline: addDays(60),
+      pgm_id: 3,
+      status: 'open',
+      priority: 'Routine',
+      affected_assets: [17, 18, 19], // ARDS-001, ARDS-002, ARDS-003
+      compliant_assets: [],
+      description: 'Memory module replacement to support new data processing algorithms in software update 3.0.',
+      created_by_id: 2,
+      created_by_name: 'Jane Depot',
+      created_at: addDays(-10),
+    },
+  ];
+}
+
+// Initialize TCTO data on startup
+initializeTCTOData();
 
 // Mock Maintenance Events data
 interface MaintenanceEvent {

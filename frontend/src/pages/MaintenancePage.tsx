@@ -170,7 +170,7 @@ export default function MaintenancePage() {
   const [pqdrFilter, setPqdrFilter] = useState(false) // false = show all, true = only PQDR flagged
   const [dateFromFilter, setDateFromFilter] = useState<string>('') // Date range start (YYYY-MM-DD)
   const [dateToFilter, setDateToFilter] = useState<string>('') // Date range end (YYYY-MM-DD)
-  const [activeTab, setActiveTab] = useState(0) // 0 = Backlog (open), 1 = History (closed), 2 = PMI
+  const [activeTab, setActiveTab] = useState(0) // 0 = Backlog (open), 1 = History (closed), 2 = PMI, 3 = TCTO
 
   // PMI Tab State
   interface PMIRecord {
@@ -204,6 +204,68 @@ export default function MaintenancePage() {
   const [pmiSearchQuery, setPmiSearchQuery] = useState<string>('') // Search by asset serial number
   const [debouncedPmiSearch, setDebouncedPmiSearch] = useState<string>('') // Debounced search value
   const [pmiOverdueOnly, setPmiOverdueOnly] = useState<boolean>(false) // Filter to show only overdue PMIs
+
+  // TCTO Tab State
+  interface TCTORecord {
+    tcto_id: number
+    tcto_no: string
+    title: string
+    effective_date: string
+    compliance_deadline: string
+    pgm_id: number
+    status: 'open' | 'closed'
+    priority: 'Routine' | 'Urgent' | 'Critical'
+    affected_assets: number[]
+    compliant_assets: number[]
+    description: string
+    created_by_id: number
+    created_by_name: string
+    created_at: string
+    // Calculated fields from API
+    days_until_deadline: number
+    compliance_percentage: number
+    assets_remaining: number
+    is_overdue: boolean
+    program_code: string
+    program_name: string
+  }
+
+  interface TCTOSummary {
+    total: number
+    open: number
+    closed: number
+    overdue: number
+    critical: number
+    urgent: number
+    routine: number
+  }
+
+  const [tctoRecords, setTctoRecords] = useState<TCTORecord[]>([])
+  const [tctoSummary, setTctoSummary] = useState<TCTOSummary>({ total: 0, open: 0, closed: 0, overdue: 0, critical: 0, urgent: 0, routine: 0 })
+  const [tctoLoading, setTctoLoading] = useState(false)
+  const [tctoError, setTctoError] = useState<string | null>(null)
+
+  // Edit TCTO Modal State
+  interface EditTCTOFormData {
+    effective_date: string
+    compliance_deadline: string
+    priority: 'Routine' | 'Urgent' | 'Critical'
+    status: 'open' | 'closed'
+    description: string
+  }
+
+  const [isEditTCTOModalOpen, setIsEditTCTOModalOpen] = useState(false)
+  const [tctoToEdit, setTctoToEdit] = useState<TCTORecord | null>(null)
+  const [editTCTOLoading, setEditTCTOLoading] = useState(false)
+  const [editTCTOError, setEditTCTOError] = useState<string | null>(null)
+  const [editTCTOSuccess, setEditTCTOSuccess] = useState<string | null>(null)
+  const [editTCTOForm, setEditTCTOForm] = useState<EditTCTOFormData>({
+    effective_date: '',
+    compliance_deadline: '',
+    priority: 'Routine',
+    status: 'open',
+    description: '',
+  })
 
   // View mode for Backlog tab: 'list' or 'grouped'
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
@@ -263,6 +325,36 @@ export default function MaintenancePage() {
   const canCreateEvent = user && ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)
   const canDeleteEvent = user && user.role === 'ADMIN'
   const canCreatePMI = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
+  const canCreateTCTO = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
+
+  // New TCTO Modal State
+  interface NewTCTOFormData {
+    tcto_no: string
+    title: string
+    tcto_type: string
+    sys_type: string
+    effective_date: string
+    compliance_deadline: string
+    priority: 'Routine' | 'Urgent' | 'Critical'
+    description: string
+    remarks: string
+  }
+
+  const [isNewTCTOModalOpen, setIsNewTCTOModalOpen] = useState(false)
+  const [newTCTOLoading, setNewTCTOLoading] = useState(false)
+  const [newTCTOError, setNewTCTOError] = useState<string | null>(null)
+  const [newTCTOSuccess, setNewTCTOSuccess] = useState<string | null>(null)
+  const [newTCTOForm, setNewTCTOForm] = useState<NewTCTOFormData>({
+    tcto_no: '',
+    title: '',
+    tcto_type: '',
+    sys_type: '',
+    effective_date: new Date().toISOString().split('T')[0],
+    compliance_deadline: '',
+    priority: 'Routine',
+    description: '',
+    remarks: '',
+  })
 
   // Debounce search input
   useEffect(() => {
@@ -486,6 +578,147 @@ export default function MaintenancePage() {
     }
   }, [activeTab, fetchPMI, currentProgramId, pmiIntervalFilter, debouncedPmiSearch, pmiOverdueOnly])
 
+  // Fetch TCTO records
+  const fetchTCTO = useCallback(async () => {
+    if (!token) return
+
+    setTctoLoading(true)
+    setTctoError(null)
+    try {
+      const params = new URLSearchParams()
+
+      if (currentProgramId) {
+        params.append('program_id', currentProgramId.toString())
+      }
+
+      const response = await fetch(`http://localhost:3001/api/tcto?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch TCTO records')
+      }
+
+      const data = await response.json()
+      setTctoRecords(data.tcto)
+      setTctoSummary(data.summary)
+    } catch (err) {
+      setTctoError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Error fetching TCTO:', err)
+    } finally {
+      setTctoLoading(false)
+    }
+  }, [token, currentProgramId])
+
+  // Fetch TCTO when tab changes to TCTO or when program changes
+  useEffect(() => {
+    if (activeTab === 3) {
+      fetchTCTO()
+    }
+  }, [activeTab, fetchTCTO, currentProgramId])
+
+  // Open Edit TCTO modal
+  const openEditTCTOModal = (tcto: TCTORecord, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+    }
+    setTctoToEdit(tcto)
+    setEditTCTOForm({
+      effective_date: tcto.effective_date,
+      compliance_deadline: tcto.compliance_deadline,
+      priority: tcto.priority,
+      status: tcto.status,
+      description: tcto.description,
+    })
+    setEditTCTOError(null)
+    setEditTCTOSuccess(null)
+    setIsEditTCTOModalOpen(true)
+  }
+
+  // Close Edit TCTO modal
+  const closeEditTCTOModal = () => {
+    setIsEditTCTOModalOpen(false)
+    setTctoToEdit(null)
+    setEditTCTOError(null)
+    setEditTCTOSuccess(null)
+  }
+
+  // Submit Edit TCTO form
+  const handleEditTCTOSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!tctoToEdit || !token) return
+
+    setEditTCTOLoading(true)
+    setEditTCTOError(null)
+    setEditTCTOSuccess(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/tcto/${tctoToEdit.tcto_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          effective_date: editTCTOForm.effective_date,
+          compliance_deadline: editTCTOForm.compliance_deadline,
+          priority: editTCTOForm.priority,
+          status: editTCTOForm.status,
+          description: editTCTOForm.description,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update TCTO')
+      }
+
+      const data = await response.json()
+      setEditTCTOSuccess(`TCTO ${data.tcto.tcto_no} updated successfully`)
+
+      // Refresh TCTO list
+      await fetchTCTO()
+
+      // Close modal after brief delay to show success message
+      setTimeout(() => {
+        closeEditTCTOModal()
+      }, 1500)
+    } catch (err) {
+      setEditTCTOError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Error updating TCTO:', err)
+    } finally {
+      setEditTCTOLoading(false)
+    }
+  }
+
+  // Check if user can edit TCTO (depot_manager or admin)
+  const canEditTCTO = user?.role === 'DEPOT_MANAGER' || user?.role === 'ADMIN'
+
+  // Format TCTO priority colors
+  const getTCTOPriorityStyle = (priority: string) => {
+    switch (priority) {
+      case 'Critical':
+        return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' }
+      case 'Urgent':
+        return { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200' }
+      default:
+        return { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' }
+    }
+  }
+
+  // Format TCTO status colors
+  const getTCTOStatusStyle = (status: string, isOverdue: boolean) => {
+    if (status === 'closed') {
+      return { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200', label: 'CLOSED' }
+    }
+    if (isOverdue) {
+      return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', label: 'OVERDUE' }
+    }
+    return { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', label: 'OPEN' }
+  }
+
   // Open new event modal
   const openNewEventModal = () => {
     setNewEventForm({
@@ -596,6 +829,105 @@ export default function MaintenancePage() {
       setNewPMIError(err instanceof Error ? err.message : 'Failed to create PMI record')
     } finally {
       setNewPMILoading(false)
+    }
+  }
+
+  // Open new TCTO modal
+  const openNewTCTOModal = () => {
+    setNewTCTOForm({
+      tcto_no: '',
+      title: '',
+      tcto_type: '',
+      sys_type: '',
+      effective_date: new Date().toISOString().split('T')[0],
+      compliance_deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      priority: 'Routine',
+      description: '',
+      remarks: '',
+    })
+    setNewTCTOError(null)
+    setNewTCTOSuccess(null)
+    setIsNewTCTOModalOpen(true)
+  }
+
+  // Close new TCTO modal
+  const closeNewTCTOModal = () => {
+    setIsNewTCTOModalOpen(false)
+    setNewTCTOError(null)
+    setNewTCTOSuccess(null)
+  }
+
+  // Handle TCTO form input changes
+  const handleTCTOFormChange = (field: keyof NewTCTOFormData, value: string) => {
+    setNewTCTOForm(prev => ({ ...prev, [field]: value }))
+    setNewTCTOError(null)
+  }
+
+  // Handle TCTO creation
+  const handleCreateTCTO = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validate required fields
+    if (!newTCTOForm.tcto_no.trim()) {
+      setNewTCTOError('Please enter a TCTO number')
+      return
+    }
+    if (!newTCTOForm.title.trim()) {
+      setNewTCTOError('Please enter a TCTO title')
+      return
+    }
+    if (!newTCTOForm.effective_date) {
+      setNewTCTOError('Please select an effective date')
+      return
+    }
+    if (!newTCTOForm.compliance_deadline) {
+      setNewTCTOError('Please select a compliance deadline')
+      return
+    }
+
+    setNewTCTOLoading(true)
+    setNewTCTOError(null)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/tcto', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tcto_no: newTCTOForm.tcto_no.trim(),
+          title: newTCTOForm.title.trim(),
+          tcto_type: newTCTOForm.tcto_type.trim() || undefined,
+          sys_type: newTCTOForm.sys_type.trim() || undefined,
+          effective_date: newTCTOForm.effective_date,
+          compliance_deadline: newTCTOForm.compliance_deadline,
+          priority: newTCTOForm.priority,
+          description: newTCTOForm.description.trim() || undefined,
+          remarks: newTCTOForm.remarks.trim() || undefined,
+          pgm_id: currentProgramId,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create TCTO record')
+      }
+
+      const data = await response.json()
+      setNewTCTOSuccess(`TCTO "${data.tcto_no}" created successfully`)
+
+      // Refresh TCTO data after successful creation
+      fetchTCTO()
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        closeNewTCTOModal()
+      }, 1500)
+    } catch (err) {
+      setNewTCTOError(err instanceof Error ? err.message : 'Failed to create TCTO record')
+    } finally {
+      setNewTCTOLoading(false)
     }
   }
 
@@ -1701,6 +2033,19 @@ export default function MaintenancePage() {
           >
             PMI Schedule ({pmiSummary.total})
           </Tab>
+          <Tab
+            className={({ selected }) =>
+              classNames(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                'focus:outline-none focus:ring-2 ring-offset-2 ring-offset-primary-400 ring-white ring-opacity-60',
+                selected
+                  ? 'bg-white shadow text-primary-700'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
+              )
+            }
+          >
+            TCTO ({tctoSummary.total})
+          </Tab>
         </Tab.List>
 
         <Tab.Panels>
@@ -1771,6 +2116,11 @@ export default function MaintenancePage() {
           {/* PMI Schedule Tab */}
           <Tab.Panel>
             {renderPMITable()}
+          </Tab.Panel>
+
+          {/* TCTO Tab */}
+          <Tab.Panel>
+            {renderTCTOTable()}
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
@@ -2265,6 +2615,234 @@ export default function MaintenancePage() {
                   <>
                     <PlusIcon className="h-4 w-4 mr-2" />
                     Create PMI
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* New TCTO Modal */}
+      <Dialog open={isNewTCTOModalOpen} onClose={closeNewTCTOModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Create New TCTO
+              </Dialog.Title>
+              <button
+                onClick={closeNewTCTOModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleCreateTCTO} className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* Success Message */}
+              {newTCTOSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{newTCTOSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {newTCTOError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{newTCTOError}</p>
+                </div>
+              )}
+
+              {/* TCTO Number */}
+              <div>
+                <label htmlFor="tcto_no" className="block text-sm font-medium text-gray-700 mb-1">
+                  TCTO Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="tcto_no"
+                  type="text"
+                  value={newTCTOForm.tcto_no}
+                  onChange={(e) => handleTCTOFormChange('tcto_no', e.target.value)}
+                  placeholder="e.g., TCTO-2024-006"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={newTCTOLoading || !!newTCTOSuccess}
+                />
+              </div>
+
+              {/* Title */}
+              <div>
+                <label htmlFor="tcto_title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="tcto_title"
+                  type="text"
+                  value={newTCTOForm.title}
+                  onChange={(e) => handleTCTOFormChange('title', e.target.value)}
+                  placeholder="e.g., Firmware Update for Sensor Module"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={newTCTOLoading || !!newTCTOSuccess}
+                />
+              </div>
+
+              {/* TCTO Type and System Type in a row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="tcto_type" className="block text-sm font-medium text-gray-700 mb-1">
+                    TCTO Type
+                  </label>
+                  <select
+                    id="tcto_type"
+                    value={newTCTOForm.tcto_type}
+                    onChange={(e) => handleTCTOFormChange('tcto_type', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    disabled={newTCTOLoading || !!newTCTOSuccess}
+                  >
+                    <option value="">Select type...</option>
+                    <option value="Software">Software</option>
+                    <option value="Hardware">Hardware</option>
+                    <option value="Firmware">Firmware</option>
+                    <option value="Calibration">Calibration</option>
+                    <option value="Modification">Modification</option>
+                    <option value="Inspection">Inspection</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="sys_type" className="block text-sm font-medium text-gray-700 mb-1">
+                    System Type
+                  </label>
+                  <select
+                    id="sys_type"
+                    value={newTCTOForm.sys_type}
+                    onChange={(e) => handleTCTOFormChange('sys_type', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    disabled={newTCTOLoading || !!newTCTOSuccess}
+                  >
+                    <option value="">Select system...</option>
+                    <option value="Sensor">Sensor</option>
+                    <option value="Radar">Radar</option>
+                    <option value="Camera">Camera</option>
+                    <option value="Communication">Communication</option>
+                    <option value="Navigation">Navigation</option>
+                    <option value="Power">Power</option>
+                    <option value="All">All Systems</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Effective Date */}
+              <div>
+                <label htmlFor="effective_date" className="block text-sm font-medium text-gray-700 mb-1">
+                  Effective Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="effective_date"
+                  type="date"
+                  value={newTCTOForm.effective_date}
+                  onChange={(e) => handleTCTOFormChange('effective_date', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={newTCTOLoading || !!newTCTOSuccess}
+                />
+                <p className="text-xs text-gray-500 mt-1">Date the TCTO becomes effective</p>
+              </div>
+
+              {/* Compliance Deadline */}
+              <div>
+                <label htmlFor="compliance_deadline" className="block text-sm font-medium text-gray-700 mb-1">
+                  Compliance Deadline <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="compliance_deadline"
+                  type="date"
+                  value={newTCTOForm.compliance_deadline}
+                  onChange={(e) => handleTCTOFormChange('compliance_deadline', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={newTCTOLoading || !!newTCTOSuccess}
+                />
+                <p className="text-xs text-gray-500 mt-1">Final deadline for all assets to be compliant</p>
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label htmlFor="tcto_priority" className="block text-sm font-medium text-gray-700 mb-1">
+                  Priority <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="tcto_priority"
+                  value={newTCTOForm.priority}
+                  onChange={(e) => handleTCTOFormChange('priority', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={newTCTOLoading || !!newTCTOSuccess}
+                >
+                  <option value="Routine">Routine</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label htmlFor="tcto_description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="tcto_description"
+                  rows={3}
+                  value={newTCTOForm.description}
+                  onChange={(e) => handleTCTOFormChange('description', e.target.value)}
+                  placeholder="Detailed description of the TCTO..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={newTCTOLoading || !!newTCTOSuccess}
+                />
+              </div>
+
+              {/* Remarks */}
+              <div>
+                <label htmlFor="tcto_remarks" className="block text-sm font-medium text-gray-700 mb-1">
+                  Remarks
+                </label>
+                <textarea
+                  id="tcto_remarks"
+                  rows={2}
+                  value={newTCTOForm.remarks}
+                  onChange={(e) => handleTCTOFormChange('remarks', e.target.value)}
+                  placeholder="Additional notes or remarks..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={newTCTOLoading || !!newTCTOSuccess}
+                />
+              </div>
+            </form>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeNewTCTOModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={newTCTOLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateTCTO}
+                disabled={newTCTOLoading || !!newTCTOSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {newTCTOLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Create TCTO
                   </>
                 )}
               </button>
@@ -3128,6 +3706,317 @@ export default function MaintenancePage() {
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 text-xs font-medium rounded-full border bg-green-100 text-green-800 border-green-200">SCHEDULED</span>
               <span className="text-xs text-gray-600">More than 30 days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  function renderTCTOTable() {
+    if (tctoLoading) {
+      return (
+        <div className="bg-white shadow rounded-lg p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        </div>
+      )
+    }
+
+    if (tctoError) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600">{tctoError}</p>
+          <button
+            onClick={fetchTCTO}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      )
+    }
+
+    if (tctoRecords.length === 0) {
+      return (
+        <div className="space-y-6">
+          {canCreateTCTO && (
+            <div className="flex justify-end">
+              <button
+                onClick={openNewTCTOModal}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              >
+                <PlusIcon className="h-4 w-4" />
+                Add TCTO
+              </button>
+            </div>
+          )}
+          <div className="bg-white shadow rounded-lg p-8 text-center">
+            <ClockIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No TCTO records found for the current program.</p>
+            {canCreateTCTO && (
+              <button
+                onClick={openNewTCTOModal}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                <PlusIcon className="h-4 w-4" />
+                Create First TCTO
+              </button>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    // TCTO status color helpers
+    const getTCTODeadlineStyle = (daysUntilDeadline: number, status: string) => {
+      if (status === 'closed') {
+        return { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', label: 'COMPLETED' }
+      }
+      if (daysUntilDeadline < 0) {
+        return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', label: 'OVERDUE' }
+      }
+      if (daysUntilDeadline <= 7) {
+        return { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', label: 'DUE SOON' }
+      }
+      if (daysUntilDeadline <= 30) {
+        return { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200', label: 'UPCOMING' }
+      }
+      return { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', label: 'ON TRACK' }
+    }
+
+    const getComplianceStyle = (percentage: number) => {
+      if (percentage === 100) {
+        return { bg: 'bg-green-100', text: 'text-green-800' }
+      }
+      if (percentage >= 50) {
+        return { bg: 'bg-yellow-100', text: 'text-yellow-800' }
+      }
+      return { bg: 'bg-red-100', text: 'text-red-800' }
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100">
+                <ClockIcon className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{tctoSummary.open}</p>
+                <p className="text-sm text-gray-500">Open TCTOs</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-red-100">
+                <ExclamationCircleIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{tctoSummary.overdue}</p>
+                <p className="text-sm text-gray-500">Overdue</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-100">
+                <ExclamationTriangleIcon className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{tctoSummary.critical}</p>
+                <p className="text-sm text-gray-500">Critical</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-100">
+                <CheckCircleIcon className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{tctoSummary.closed}</p>
+                <p className="text-sm text-gray-500">Completed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions Row */}
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={fetchTCTO}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            Refresh
+          </button>
+          {canCreateTCTO && (
+            <button
+              onClick={openNewTCTOModal}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add TCTO
+            </button>
+          )}
+        </div>
+
+        {/* TCTO Table */}
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    TCTO Number
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Priority
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Deadline
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Days Until
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Compliance
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {tctoRecords.map((tcto) => {
+                  const deadlineStyle = getTCTODeadlineStyle(tcto.days_until_deadline, tcto.status)
+                  const complianceStyle = getComplianceStyle(tcto.compliance_percentage)
+                  return (
+                    <tr
+                      key={tcto.tcto_id}
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-primary-600">{tcto.tcto_no}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900 max-w-xs truncate" title={tcto.title}>
+                          {tcto.title}
+                        </div>
+                        <div className="text-xs text-gray-500 max-w-xs truncate" title={tcto.description}>
+                          {tcto.description}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={classNames(
+                          'px-2 py-1 text-xs font-medium rounded-full border',
+                          priorityColors[tcto.priority]?.bg || 'bg-gray-100',
+                          priorityColors[tcto.priority]?.text || 'text-gray-800',
+                          priorityColors[tcto.priority]?.border || 'border-gray-200'
+                        )}>
+                          {tcto.priority}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {new Date(tcto.compliance_deadline).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Effective: {new Date(tcto.effective_date).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={classNames(
+                          'text-sm font-medium',
+                          tcto.days_until_deadline < 0 ? 'text-red-600' :
+                          tcto.days_until_deadline <= 7 ? 'text-red-600' :
+                          tcto.days_until_deadline <= 30 ? 'text-yellow-600' : 'text-green-600'
+                        )}>
+                          {tcto.status === 'closed' ? '-' :
+                            tcto.days_until_deadline < 0
+                              ? `${Math.abs(tcto.days_until_deadline)} days overdue`
+                              : `${tcto.days_until_deadline} days`}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 bg-gray-200 rounded-full w-20 overflow-hidden">
+                            <div
+                              className={classNames(
+                                'h-full rounded-full transition-all',
+                                tcto.compliance_percentage === 100 ? 'bg-green-500' :
+                                tcto.compliance_percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                              )}
+                              style={{ width: `${tcto.compliance_percentage}%` }}
+                            />
+                          </div>
+                          <span className={classNames(
+                            'text-xs font-medium',
+                            complianceStyle.text
+                          )}>
+                            {tcto.compliance_percentage}%
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {tcto.compliant_assets.length}/{tcto.affected_assets.length} assets
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={classNames(
+                          'px-2 py-1 text-xs font-medium rounded-full border',
+                          deadlineStyle.bg,
+                          deadlineStyle.text,
+                          deadlineStyle.border
+                        )}>
+                          {deadlineStyle.label}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Count message */}
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <p className="text-sm text-gray-700">
+              {tctoSummary.total} TCTO record{tctoSummary.total !== 1 ? 's' : ''} for {program?.pgm_name || 'current program'}
+            </p>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">TCTO Status Legend</h4>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-red-100 text-red-800 border-red-200">OVERDUE</span>
+              <span className="text-xs text-gray-600">Past deadline</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-red-100 text-red-800 border-red-200">DUE SOON</span>
+              <span className="text-xs text-gray-600">Within 7 days</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-yellow-100 text-yellow-800 border-yellow-200">UPCOMING</span>
+              <span className="text-xs text-gray-600">8-30 days</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-green-100 text-green-800 border-green-200">ON TRACK</span>
+              <span className="text-xs text-gray-600">More than 30 days</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-1 text-xs font-medium rounded-full border bg-green-100 text-green-800 border-green-200">COMPLETED</span>
+              <span className="text-xs text-gray-600">All assets compliant</span>
             </div>
           </div>
         </div>

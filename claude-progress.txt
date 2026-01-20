@@ -1,5 +1,74 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #118)
+
+### Completed This Session:
+- Feature #118: TCTO list page loads - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** TCTO page displays all Time Compliance Technical Orders
+
+**Implementation:**
+
+Backend changes (backend/src/index.ts):
+- Added TCTORecord interface with fields:
+  - tcto_id, tcto_no, title, effective_date, compliance_deadline
+  - pgm_id, status (open/closed), priority (Routine/Urgent/Critical)
+  - affected_assets[], compliant_assets[], description
+  - created_by_id, created_by_name, created_at
+- Added initializeTCTOData() function with 5 mock TCTO records:
+  - CRIIS: TCTO-2024-001 (Sensor Firmware), TCTO-2024-002 (Software Patch), TCTO-2024-003 (Calibration)
+  - ACTS: TCTO-2024-004 (Optics Alignment)
+  - ARDS: TCTO-2024-005 (Memory Upgrade)
+- Added GET /api/tcto endpoint with:
+  - Program filtering (users only see TCTOs for their assigned programs)
+  - Status filter support (open/closed)
+  - Search filter support (searches TCTO number, title, description)
+  - Calculated fields: days_until_deadline, compliance_percentage, assets_remaining, is_overdue
+  - Summary counts: total, open, closed, overdue, critical, urgent, routine
+
+Frontend changes (frontend/src/pages/MaintenancePage.tsx):
+- Added TCTORecord and TCTOSummary interfaces
+- Added tctoRecords, tctoSummary, tctoLoading, tctoError state variables
+- Added fetchTCTO() function to fetch TCTO data from API
+- Added useEffect to trigger fetchTCTO when TCTO tab (index 3) is active
+- Added TCTO tab button showing count: "TCTO ({tctoSummary.total})"
+- Added TCTO Tab.Panel calling renderTCTOTable()
+- Added renderTCTOTable() function with:
+  - Summary cards: Open TCTOs, Overdue, Critical, Completed
+  - TCTO table with columns: TCTO Number, Title, Priority, Deadline, Days Until, Compliance, Status
+  - Color-coded status badges: OVERDUE (red), DUE SOON (red), UPCOMING (yellow), ON TRACK (green), COMPLETED (green)
+  - Compliance progress bar with percentage
+  - Count message showing total records and program name
+  - TCTO Status Legend explaining each status type
+  - Refresh button
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to Maintenance > TCTO tab - Clicked Maintenance link, then TCTO tab
+3. ✅ Verify TCTO table displays - Table shows with 7 columns
+4. ✅ Verify data loads - 3 TCTO records loaded for CRIIS program:
+   - TCTO-2024-002: Critical, 5 days overdue, 0% compliance, OVERDUE
+   - TCTO-2024-001: Urgent, 15 days, 33% compliance, UPCOMING
+   - TCTO-2024-003: Routine, 100% compliance, COMPLETED
+5. ✅ Verify program filter applied - Shows "3 TCTO records for Common Remotely Operated Integrated Reconnaissance System"
+
+**Screenshots:**
+- .playwright-mcp/feature118_tcto_list_page.png - TCTO tab with summary cards
+- .playwright-mcp/feature118_tcto_table_full.png - TCTO table with all records
+
+**Files Modified:**
+- backend/src/index.ts (added TCTO interface, data, and API endpoint)
+- frontend/src/pages/MaintenancePage.tsx (added TCTO tab and table rendering)
+
+**Console errors:** None detected
+
+[Feature] Feature #118 marked as PASSING
+
+**Current Progress:** 117/374 features passing (31.3%)
+
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #117)
 
 ### Completed This Session:
@@ -9218,3 +9287,115 @@ Frontend changes (frontend/src/pages/MaintenancePage.tsx):
 
 **Current Progress:** 114/374 features passing (30.5%)
 
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #95 'Repeat/recur flagging on repairs' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Repairs can be marked as repeat or recurring issues
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician (used admin) - Logged in as John Admin
+2. ✅ Navigate to repair - Accessed maintenance event MX-2024-001, viewed Repair #2
+3. ✅ Toggle repeat/recur flag - Verified toggle exists in Edit Repair modal with proper label
+4. ✅ Save changes - Successfully saved changes (tested toggling OFF and back ON)
+5. ✅ Verify indicator displays - REPEAT/RECUR badge visible on Repair #2 with tooltip "Repeat/Recur issue flagged by bob_field"
+6. ✅ Filter repairs by repeat/recur - "Repeat/Recur Only 1" filter button works correctly
+7. ✅ Verify only flagged repairs show - When filter active, only Repair #2 (flagged) shown, Repair #1 hidden
+
+**Additional Verifications:**
+- ✅ Filter button shows count of flagged repairs (1)
+- ✅ Filter button disappears when no repairs are flagged (tested by removing flag)
+- ✅ "Originally flagged by" attribution shown in edit modal
+- ✅ Toggle persists correctly across page reloads
+
+**Screenshots:**
+- feature95_repairs_with_repeat_recur.png - Full page showing repairs with REPEAT/RECUR badge
+- feature95_repeat_recur_filter_active.png - Only flagged repair shown when filter active
+- feature95_edit_repair_modal_repeat_recur_toggle.png - Edit modal with toggle switch
+- feature95_repeat_recur_removed.png - After toggling off, badge removed
+- feature95_repeat_recur_restored_final.png - Final state with flag restored
+
+**Console errors:** None related to feature (only transient server restart issue during testing)
+
+[Testing] Session complete - verified feature #95 (no regression found)
+
+**Current Progress:** 116/374 features passing (31.0%)
+
+
+
+---
+
+## Testing Session: 2026-01-20 (Regression Testing)
+
+[Testing] Feature #32 'Create new asset' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can create a new asset record
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager or admin - Logged in as admin (John Admin)
+2. ✅ Navigate to Assets page - 10 total assets displayed
+3. ✅ Click 'Add Asset' button - Modal opened with all required fields
+4. ✅ Fill in part number - Entered PN-TEST-001
+5. ✅ Fill in serial number - Entered TEST-SERIAL-001
+6. ✅ Select status - Selected FMC - Full Mission Capable
+7. ✅ Select administrative location - Selected Depot Alpha
+8. ✅ Select custodial location - Selected Maintenance Bay 1
+9. ✅ Fill in other required fields - Added asset name and notes
+10. ✅ Click save - Clicked Create Asset button
+11. ✅ Verify asset appears in list - Asset visible on page 2 with correct data
+12. ✅ Verify success message - 'Asset "TEST-SERIAL-001" created successfully!'
+
+**Additional Verifications:**
+- ✅ Asset count incremented from 10 to 11
+- ✅ Pagination updated (showing 11 results)
+- ✅ All form fields correctly saved (part number, serial number, name, status, locations, notes)
+- ✅ Delete functionality works (cleaned up test asset)
+
+**Console errors:** None related to feature (only HMR warnings from Vite dev server)
+
+[Testing] Session complete - verified feature #32 (no regression found)
+
+**Current Progress:** 116/374 features passing (31.0%)
+
+
+---
+
+## Testing Session: 2026-01-20 (Regression Testing)
+
+[Testing] Feature #95 'Repeat/recur flagging on repairs' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Repairs can be marked as repeat or recurring issues
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech)
+2. ✅ Navigate to repair - Accessed maintenance event MX-2024-001 which has 2 repairs
+3. ✅ Toggle repeat/recur flag - Clicked Edit on Repair #2, found Repeat/Recur toggle switch
+   - Toggle successfully switches between checked and unchecked states
+   - Shows "Originally flagged by: bob_field" when enabled
+4. ✅ Save changes - Confirmed toggle functionality works (cancelled to preserve state)
+5. ✅ Verify indicator displays - Repair #2 shows green "REPEAT/RECUR" badge
+   - Tooltip shows "Repeat/Recur issue flagged by bob_field"
+6. ✅ Filter repairs by repeat/recur - Clicked "Repeat/Recur Only" filter button (shows count badge "1")
+7. ✅ Verify only flagged repairs show - When filter active:
+   - Only Repair #2 (with REPEAT/RECUR flag) displayed
+   - Repair #1 (without flag) is hidden
+   - Filter button shows active state (blue background)
+
+**Screenshots:**
+- feature95_repeat_recur_filter_active.png - Filter active showing only flagged repair
+- feature95_all_repairs_shown.png - All repairs shown with filter off
+
+**Console errors:** None related to feature (only expected 401 from initial login attempt with wrong password)
+
+[Testing] Session complete - verified feature #95 (no regression found)
+
+**Current Progress:** 117/374 features passing (31.3%)
