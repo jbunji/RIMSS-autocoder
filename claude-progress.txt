@@ -14524,3 +14524,138 @@ Feature #31 remains PASSING - Assets list page loads correctly
 Screenshot captured: feature31_assets_page_loaded.png
 
 [Testing] Session complete - verified feature #31 (no regression)
+
+---
+
+## Session: 2026-01-20 (Feature #162) - PARALLEL EXECUTION - COMPLETED
+
+[Feature] Feature #162 "Parts order export with CUI markings" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Parts order exports include CUI compliance
+
+**Implementation Summary:**
+
+Added comprehensive export functionality to the Parts Ordered page with full CUI (Controlled Unclassified Information) compliance. Both PDF and Excel exports include proper CUI header/footer markings following the same pattern as other modules (Assets, Spares).
+
+**Frontend Changes (frontend/src/pages/PartsOrderedPage.tsx):**
+
+1. **Added Dependencies:**
+   - Imported DocumentArrowDownIcon from Heroicons
+   - Imported XLSX library for Excel exports
+   - Imported jsPDF and jspdf-autotable for PDF exports
+
+2. **Helper Functions:**
+   - getZuluTimestamp(): Returns ISO timestamp in ZULU format
+   - getZuluDateForFilename(): Returns YYYYMMDD format for filenames
+
+3. **exportToPDF Function:**
+   - Creates landscape-oriented A4 PDF
+   - Yellow CUI header banner on all pages: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Yellow CUI footer banner on all pages: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+   - Report title: "RIMSS Parts Orders Report"
+   - Metadata: Generated timestamp, total orders, program info
+   - Applied filters displayed
+   - Table with 8 columns: Order Date, Part Number, Part Name, Qty, Status, Priority, Requestor, Asset S/N
+   - Page numbers in footer
+   - Filename format: CUI-Parts-Orders-YYYYMMDD.pdf
+
+4. **exportToExcel Function:**
+   - CUI header row (merged across all columns)
+   - Report title and metadata (generated timestamp, total orders, program info)
+   - Applied filters displayed
+   - Blank rows for spacing
+   - Table headers (19 columns): Order ID, Order Date, Request Date, Part Number, Part Name, NSN, Qty Ordered, Qty Received, Unit Price, Status, Priority, Requestor, Asset S/N, Asset Name, Job No, Tracking Number, Est. Delivery, PQDR, Notes
+   - Data rows with all order details
+   - CUI footer row (merged across all columns)
+   - Proper column widths for readability
+   - Sheet name: "Parts Orders"
+   - Filename format: CUI-Parts-Orders-YYYYMMDD.xlsx
+
+5. **UI Updates:**
+   - Added "Export PDF" button (gray background) in header
+   - Added "Export Excel" button (green background) in header
+   - Both buttons positioned in top-right of page header
+   - Icons and hover effects included
+
+**Verification Steps Completed (All 6):**
+
+✅ Step 1: Logged in as admin user (John Admin)
+✅ Step 2: Navigated to Parts Ordered page
+✅ Step 3: Clicked "Export PDF" button
+   - File downloaded: CUI-Parts-Orders-20260120.pdf (22KB)
+✅ Step 4: Verified CUI header/footer in PDF
+   - CUI Header: ✅ FOUND - "CONTROLLED UNCLASSIFIED INFORMATION"
+   - CUI Footer: ✅ FOUND - "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+   - Report Title: ✅ FOUND - "RIMSS Parts Orders Report"
+✅ Step 5: Clicked "Export Excel" button
+   - File downloaded: CUI-Parts-Orders-20260120.xlsx (25KB)
+✅ Step 6: Verified CUI markings in Excel
+   - CUI Header (Row 1): ✅ FOUND - "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Report Title (Row 3): ✅ FOUND - "RIMSS Parts Orders Report"
+   - CUI Footer (Last Row): ✅ FOUND - "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+   - Data Headers: ✅ FOUND - Row 7
+   - Data Rows: 9 orders exported successfully
+
+**Key Features Verified:**
+
+**Export Buttons:**
+- Both buttons visible in page header ✓
+- PDF button (gray) and Excel button (green) ✓
+- Icons present (DocumentArrowDownIcon) ✓
+- Buttons clickable and functional ✓
+
+**PDF Export:**
+- Yellow CUI header banner (RGB: 254, 243, 199) ✓
+- Yellow CUI footer banner on all pages ✓
+- Report metadata (timestamp, total, program) ✓
+- Applied filters shown when active ✓
+- Table with proper formatting ✓
+- Page numbers in footer ✓
+- Filename includes ZULU date ✓
+
+**Excel Export:**
+- CUI header row merged across all columns ✓
+- Report title and metadata ✓
+- Applied filters shown when active ✓
+- 19-column data structure ✓
+- All order details included ✓
+- CUI footer row merged across all columns ✓
+- Proper column widths ✓
+- Sheet named "Parts Orders" ✓
+- Filename includes ZULU date ✓
+
+**Console Status:**
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- No API errors ✓
+
+**Data Accuracy:**
+- All 9 parts orders exported ✓
+- Status values correct (Pending, Acknowledged, Shipped, Received) ✓
+- Priority values correct (Routine, Urgent, Critical) ✓
+- PQDR flag captured in Excel ✓
+- Tracking numbers included ✓
+- All metadata fields populated ✓
+
+**Screenshots Captured:**
+- feature162_parts_ordered_page_with_export_buttons.png - Page with export buttons
+- feature162_verification_complete.png - Final verification
+
+**Verification Script:**
+- Created verify_parts_orders_exports.js to automate CUI marking checks
+- Script validates both PDF and Excel formats
+- Confirms presence of all required CUI elements
+
+**Files Modified:**
+- frontend/src/pages/PartsOrderedPage.tsx (added export functions and buttons)
+
+**Files Created:**
+- verify_parts_orders_exports.js (verification script)
+- .playwright-mcp/CUI-Parts-Orders-20260120.pdf (test export)
+- .playwright-mcp/CUI-Parts-Orders-20260120.xlsx (test export)
+
+[Feature] Feature #162 marked as PASSING
+
+**Current Progress:** 161/374 features passing (43.0%)
+
+[Session] Feature #162 complete - All verification steps passed successfully
