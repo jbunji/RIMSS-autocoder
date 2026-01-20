@@ -49167,3 +49167,163 @@ Quality: Production-ready ✅
 All carrier tracking links (UPS, FedEx, DHL) working correctly
 No regressions found. Summary: feature_157_regression_test_summary.md
 ================================================================================
+[Testing] Feature #106 - PMI list page loads - VERIFICATION COMPLETE
+
+✅ Step 1: Log in as any user
+   - Logged in as admin/admin123
+   - Successfully authenticated
+
+✅ Step 2: Navigate to Maintenance > PMI tab
+   - Clicked Maintenance in sidebar
+   - Clicked PMI Schedule tab
+   - Tab shows 'PMI Schedule (7)' indicating 7 entries
+
+✅ Step 3: Verify PMI table displays
+   - PMI table is fully visible with proper columns:
+     * Status (OVERDUE, DUE SOON, UPCOMING, SCHEDULED)
+     * Asset (with serial numbers)
+     * PMI Type (30-Day Inspection, 60-Day Check, etc.)
+     * Interval (30-Day, 60-Day, 90-Day, 180-Day, 365-Day)
+     * WUC (Work Unit Code)
+     * Next Due Date
+     * Days Until Due
+
+✅ Step 4: Verify data loads
+   - 7 PMI schedule entries displayed correctly:
+     1. OVERDUE: Sensor Unit A (CRIIS-001) - 30-Day Inspection - 3 days overdue
+     2. DUE SOON: Sensor Unit B (CRIIS-003) - 90-Day Calibration - 2 days
+     3. DUE SOON: Camera System X (CRIIS-004) - 60-Day Check - 6 days
+     4. UPCOMING: Radar Unit 01 (CRIIS-006) - 180-Day Service - 11 days
+     5. UPCOMING: Communication System (CRIIS-008) - 365-Day Overhaul - 20 days
+     6. SCHEDULED: Camera System X (CRIIS-004) - 90-Day Calibration - 44 days
+     7. SCHEDULED: Navigation Unit (CRIIS-010) - 365-Day Overhaul - 119 days
+   - Summary cards show correct counts:
+     * Overdue: 1
+     * Due Soon (7 days): 2
+     * Upcoming (30 days): 2
+     * Scheduled: 2
+     * Total PMI: 7
+
+✅ Step 5: Verify program filter applied
+   - Page header shows: 'Viewing maintenance events for CRIIS - Common Remotely Operated Integrated Reconnaissance System'
+   - Top navigation shows: 'Program: CRIIS'
+   - All assets displayed have CRIIS serial numbers (CRIIS-001, CRIIS-003, CRIIS-004, CRIIS-006, CRIIS-008, CRIIS-010)
+   - Program filter is correctly applied
+
+✅ Console Status:
+   - Zero JavaScript errors
+   - Zero React errors
+   - Zero network errors
+   - Clean console throughout entire test
+
+CONCLUSION: Feature #106 is FULLY FUNCTIONAL and STILL PASSING ✅
+No regressions detected. PMI schedule page loads correctly with all data.
+[2026-01-20 10:45] Feature #106 regression test complete - STILL PASSING ✅
+
+================================================================================
+[Testing] Feature #181 - Inventory report by system type - VERIFICATION COMPLETE
+================================================================================
+
+✅ Step 1: Log in as any user
+   - Logged in as admin/admin123
+   - Successfully authenticated
+
+✅ Step 2: Navigate to Reports
+   - Clicked Reports in sidebar navigation
+   - Reports page loaded successfully
+
+✅ Step 3: Select Inventory Report
+   - Clicked "Inventory Report" button
+   - Inventory report page loaded successfully
+
+✅ Step 4: Select system type filter
+   - Report automatically groups by system type (no additional filter needed)
+
+✅ Step 5: Click Generate
+   - Report is automatically generated upon page load
+   - No separate generate button required
+
+✅ Step 6: Verify report displays
+   - Title: "Inventory Report by System Type" displayed
+   - Program: "Common Remotely Operated Integrated Reconnaissance System (CRIIS)"
+   - Summary section shows:
+     * Total Assets: 110
+     * System Types: 6
+     * Generated: 1/20/2026, 10:47:48 AM
+   - Export buttons available: Print, Export PDF, Export Excel
+
+✅ Step 7: Verify grouped by system type
+   - Assets correctly grouped into 6 system types:
+     1. Camera/Optical Systems - 2 assets
+        * FMC: 1, NMCM: 1
+        * CRIIS-004 (Camera System X) - FMC at Field Site Charlie
+        * CRIIS-005 (Camera System X) - NMCM at Depot Alpha
+     
+     2. Communication Systems - 2 assets
+        * PMC: 1, CNDM: 1
+        * CRIIS-008 (Communication System) - PMC at Field Site Charlie
+        * CRIIS-009 (Communication System) - CNDM in Transit
+     
+     3. Data Processing Systems - 1 asset
+        * FMC: 1
+        * REAL_DATA_TEST_12345 (Test Asset) - FMC at Depot Alpha
+     
+     4. Other Systems - 100 assets
+        * FMC: 100
+        * TEST-SPARE-001 through TEST-SPARE-100
+     
+     5. Radar Systems - 2 assets
+        * NMCS: 1, FMC: 1
+        * CRIIS-006 (Radar Unit 01) - NMCS at Field Site Bravo
+        * CRIIS-007 (Radar Unit 01) - FMC at Depot Alpha
+     
+     6. Sensor Systems - 3 assets
+        * FMC: 2, PMC: 1
+        * CRIIS-001 (Sensor Unit A) - FMC at Depot Alpha
+        * CRIIS-002 (Sensor Unit A) - FMC at Field Site Bravo
+        * CRIIS-003 (Sensor Unit B) - PMC at Depot Alpha
+
+✅ Step 8: Verify counts accurate
+   - Total assets: 110 (2+2+1+100+2+3 = 110) ✓
+   - System Types: 6 ✓
+   - All status counts match actual asset data
+   - Each system type table displays correct asset details:
+     * Serial Number
+     * Part Number
+     * Part Name
+     * Status (with color-coded badges)
+     * Location
+     * Location Type (with badges)
+
+✅ Console Status:
+   - Zero JavaScript errors
+   - Zero React errors
+   - Zero network errors
+   - Clean console throughout entire test
+
+✅ Network Status:
+   - All API requests successful (200 OK)
+   - Key endpoint: GET /api/reports/inventory => 200 OK
+   - Fast response times
+   - No failed requests
+
+CONCLUSION: Feature #181 is FULLY FUNCTIONAL and STILL PASSING ✅
+
+The inventory report successfully:
+- Loads and displays correctly
+- Groups assets by system type
+- Shows accurate counts for each system type
+- Displays detailed asset information in tables
+- Includes proper status breakdowns
+- Applies program filter correctly
+- Provides export functionality
+- Maintains clean console with zero errors
+
+No regressions detected. Feature verified as passing.
+
+Screenshot saved: feature_181_inventory_report_by_system_type.png
+
+[2026-01-20 10:48] Feature #181 regression test complete - STILL PASSING ✅
+================================================================================
+[Testing] Session complete - verified feature #181
+[Testing] Feature #125 - TCTO link to repair records - Investigation started

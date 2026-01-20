@@ -1,0 +1,135 @@
+================================================================================
+[2026-01-20 10:46] Feature #346 FAILED - Mock Data Detected (Critical Issue) ❌
+================================================================================
+
+Session Type: SINGLE FEATURE MODE (Parallel Execution)
+Feature: #346 - Create unique test data - appears in UI
+Category: data
+Status: FAILED - MOCK DATA DETECTED ❌
+
+CRITICAL FINDING:
+===============================================================================
+The Assets API endpoints are using IN-MEMORY MOCK DATA instead of the real
+PostgreSQL database. This is a critical issue that affects data integrity.
+
+FEATURE REQUIREMENTS:
+===============================================================================
+Real data verification test - ensure the application uses real database data,
+not mock/placeholder data. Steps:
+1. Log in as depot manager
+2. Create asset with serial 'REAL_DATA_TEST_12345'
+3. Navigate to assets list
+4. Search for 'REAL_DATA_TEST_12345'
+5. Verify exact asset appears
+6. Verify no mock data substituted
+
+TEST EXECUTION:
+===============================================================================
+
+✅ Step 1: Logged in as admin (has depot manager permissions)
+✅ Step 2: Created asset with serial "REAL_DATA_TEST_12345"
+   - Filled form with:
+     * Part Number: PN-TEST-REAL-DATA
+     * Serial Number: REAL_DATA_TEST_12345
+     * Name: Test Asset for Real Data Verification
+   - Success message displayed: "Asset 'REAL_DATA_TEST_12345' created successfully!"
+
+✅ Step 3: Navigated to assets list
+   - Assets page loaded
+   - Counter shows "110 total assets" (increased from 109)
+
+✅ Step 4: Searched for 'REAL_DATA_TEST_12345'
+   - Search executed successfully
+   - Asset appears in search results
+
+✅ Step 5: Verified exact asset appears in UI
+   - Serial Number: REAL_DATA_TEST_12345 ✅
+   - Part Number: PN-TEST-REAL-DATA ✅
+   - Name: Test Asset for Real Data Verification ✅
+   - Status: FMC - Full Mission Capable
+   - Location: Depot Alpha depot
+
+❌ Step 6: FAILED - Mock data detected!
+
+DATABASE VERIFICATION:
+===============================================================================
+
+Queried PostgreSQL database directly using Prisma:
+
+const testAsset = await prisma.asset.findFirst({
+  where: { serno: 'REAL_DATA_TEST_12345' }
+});
+
+Result: ❌ Asset NOT FOUND in database
+
+Additional verification:
+- Total assets in database for CRIIS program: 0 assets
+- Assets with "REAL" or "TEST" in serial number: 0 assets
+- Database is EMPTY for this program
+
+CODE ANALYSIS - ROOT CAUSE:
+===============================================================================
+
+File: backend/src/index.ts
+
+GET /api/assets endpoint (line 7931):
+- Line 7958: Using mock data array instead of database query
+  const allAssets = detailedAssets;  // ❌ MOCK DATA
+
+POST /api/assets endpoint (line 9514):
+- Line 9588: Adding to in-memory array instead of database
+  mockAssets.push(newAsset);  // ❌ MOCK DATA
+- Line 9596: Also updating detailedAssets array
+  detailedAssets.push(newDetailedAsset);  // ❌ MOCK DATA
+- No database insertion!
+
+IMPACT ANALYSIS:
+===============================================================================
+
+This is a CRITICAL PRODUCTION BLOCKER:
+
+1. Data Loss: All created assets are stored in memory and will be LOST
+   when the server restarts
+
+2. No Persistence: Asset data doesn't survive server restarts
+
+3. Session Isolation: Different server instances (load balancing) would
+   have different data
+
+4. Data Integrity: No database constraints, no referential integrity
+
+5. Audit Trail: No persistent audit logs for asset creation/modification
+
+6. Scalability: In-memory storage doesn't scale
+
+REQUIRED FIX:
+===============================================================================
+
+Both endpoints MUST be refactored to use Prisma ORM and PostgreSQL database.
+The Assets module needs to be completely rewritten to use real database
+operations instead of in-memory arrays.
+
+SCREENSHOTS:
+===============================================================================
+- feature_346_asset_search_verification.png - UI showing the "created" asset
+- feature_346_mock_data_detected.png - Asset appears in search results
+
+CONCLUSION:
+===============================================================================
+Feature #346 is FAILING. The application is using mock data for the Assets
+module instead of real database operations. This is a critical issue that
+must be fixed before production deployment.
+
+The feature test correctly identified this issue - it's exactly what this
+test was designed to catch!
+
+TEST RESULT: FAILED ❌
+REASON: Mock data detected - no database persistence
+SEVERITY: Critical - Production Blocker
+
+Progress: 343/374 features passing (91.7%)
+Note: Feature #346 remains in_progress (NOT marked as passing)
+
+Session Type: SINGLE FEATURE MODE - Parallel execution
+Testing Method: Real data verification + database inspection
+Quality: Test successfully detected critical bug ✅
