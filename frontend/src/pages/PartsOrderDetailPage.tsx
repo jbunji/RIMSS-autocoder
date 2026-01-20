@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { CheckCircleIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, TruckIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 interface PartsOrder {
   order_id: number
@@ -28,6 +28,28 @@ interface PartsOrder {
   acknowledged_date: string | null
   acknowledged_by: number | null
   acknowledged_by_name: string | null
+  filled_date: string | null
+  filled_by: number | null
+  filled_by_name: string | null
+  replacement_asset_id: number | null
+  replacement_serno: string | null
+  shipper: string | null
+  ship_date: string | null
+}
+
+interface Spare {
+  asset_id: number
+  serno: string
+  partno: string
+  part_name: string
+  pgm_id: number
+  status_cd: string
+  status_name: string
+  location: string
+  loc_type: 'depot' | 'field'
+  admin_loc: string
+  cust_loc: string
+  uii: string | null
 }
 
 // Status badge styling
@@ -62,6 +84,49 @@ function getPriorityBadge(priority: PartsOrder['priority']): { bg: string; text:
   }
 }
 
+// Get tracking URL for carrier websites
+function getTrackingUrl(trackingNumber: string): { url: string; carrier: string } | null {
+  if (!trackingNumber) return null
+
+  const upperTracking = trackingNumber.toUpperCase()
+
+  // FedEx patterns: FDX-, 1234-5678-9012, starts with 96/61/02
+  if (upperTracking.includes('FDX') || upperTracking.includes('FEDEX')) {
+    // Extract just the tracking number (remove prefix like "FDX-2024-")
+    const trackingNum = trackingNumber.replace(/^(FDX|FEDEX)[-_]/i, '')
+    return {
+      url: `https://www.fedex.com/fedextrack/?trknbr=${trackingNum}`,
+      carrier: 'FedEx'
+    }
+  }
+
+  // UPS patterns: UPS-, 1Z, starts with tracking number
+  if (upperTracking.includes('UPS') || upperTracking.startsWith('1Z')) {
+    // Extract just the tracking number (remove prefix like "UPS-2024-")
+    const trackingNum = trackingNumber.replace(/^UPS[-_]/i, '')
+    return {
+      url: `https://www.ups.com/track?tracknum=${trackingNum}`,
+      carrier: 'UPS'
+    }
+  }
+
+  // DHL patterns: DHL-, starts with 10-digit number
+  if (upperTracking.includes('DHL') || /^\d{10,}$/.test(trackingNumber)) {
+    // Extract just the tracking number (remove prefix like "DHL-")
+    const trackingNum = trackingNumber.replace(/^DHL[-_]/i, '')
+    return {
+      url: `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNum}&brand=DHL`,
+      carrier: 'DHL'
+    }
+  }
+
+  // Default: try FedEx if no pattern matches
+  return {
+    url: `https://www.fedex.com/fedextrack/?trknbr=${trackingNumber}`,
+    carrier: 'Unknown'
+  }
+}
+
 export default function PartsOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -71,6 +136,15 @@ export default function PartsOrderDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [showAcknowledgeDialog, setShowAcknowledgeDialog] = useState(false)
   const [acknowledging, setAcknowledging] = useState(false)
+  const [showFillDialog, setShowFillDialog] = useState(false)
+  const [filling, setFilling] = useState(false)
+  const [searchingSpares, setSearchingSpares] = useState(false)
+  const [spares, setSpares] = useState<Spare[]>([])
+  const [selectedSpare, setSelectedSpare] = useState<Spare | null>(null)
+  const [spareSearchQuery, setSpareSearchQuery] = useState('')
+  const [shipper, setShipper] = useState('')
+  const [trackingNumber, setTrackingNumber] = useState('')
+  const [shipDate, setShipDate] = useState('')
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -138,7 +212,82 @@ export default function PartsOrderDetailPage() {
     }
   }
 
+  const searchSpares = async (query: string) => {
+    if (!token) return
+
+    setSearchingSpares(true)
+
+    try {
+      const params = new URLSearchParams({ search: query })
+      const response = await fetch(`http://localhost:3001/api/spares?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to search spares')
+      }
+
+      const data = await response.json()
+      setSpares(data.spares || [])
+    } catch (err) {
+      console.error('Spare search error:', err)
+      setSpares([])
+    } finally {
+      setSearchingSpares(false)
+    }
+  }
+
+  const handleFill = async () => {
+    if (!token || !id || !selectedSpare || !shipper || !trackingNumber || !shipDate) {
+      setError('Please complete all required fields')
+      return
+    }
+
+    setFilling(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/fill`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          replacement_asset_id: selectedSpare.asset_id,
+          replacement_serno: selectedSpare.serno,
+          shipper,
+          tracking_number: trackingNumber,
+          ship_date: shipDate,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to fill order')
+      }
+
+      const data = await response.json()
+      setOrder(data.order)
+      setShowFillDialog(false)
+      // Reset form
+      setSelectedSpare(null)
+      setShipper('')
+      setTrackingNumber('')
+      setShipDate('')
+      setSpareSearchQuery('')
+      setSpares([])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setFilling(false)
+    }
+  }
+
   const canAcknowledge = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'pending'
+  const canFill = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'acknowledged'
 
   if (loading) {
     return (
@@ -206,6 +355,15 @@ export default function PartsOrderDetailPage() {
               >
                 <CheckCircleIcon className="h-5 w-5 mr-2" />
                 Acknowledge
+              </button>
+            )}
+            {canFill && (
+              <button
+                onClick={() => setShowFillDialog(true)}
+                className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+              >
+                <TruckIcon className="h-5 w-5 mr-2" />
+                Fill Order
               </button>
             )}
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${priorityBadge.bg} ${priorityBadge.text}`}>
@@ -344,9 +502,30 @@ export default function PartsOrderDetailPage() {
               </>
             )}
             {order.shipping_tracking ? (
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <dt className="text-sm text-gray-500">Tracking Number</dt>
-                <dd className="text-sm font-medium text-blue-600 font-mono">{order.shipping_tracking}</dd>
+                <dd className="text-sm font-medium font-mono">
+                  {(() => {
+                    const trackingInfo = getTrackingUrl(order.shipping_tracking)
+                    if (trackingInfo) {
+                      return (
+                        <a
+                          href={trackingInfo.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
+                          title={`Track with ${trackingInfo.carrier}`}
+                        >
+                          {order.shipping_tracking}
+                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      )
+                    }
+                    return <span className="text-gray-900">{order.shipping_tracking}</span>
+                  })()}
+                </dd>
               </div>
             ) : (
               <div className="flex justify-between">

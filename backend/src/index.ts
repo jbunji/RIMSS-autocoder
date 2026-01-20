@@ -6582,6 +6582,16 @@ interface PartsOrder {
   acknowledged_date: string | null; // Date/time when depot acknowledged the request
   acknowledged_by: number | null; // User ID of depot manager who acknowledged
   acknowledged_by_name: string | null; // Name of depot manager who acknowledged
+  filled_date: string | null; // Date/time when depot filled the order
+  filled_by: number | null; // User ID of depot manager who filled
+  filled_by_name: string | null; // Name of depot manager who filled
+  replacement_asset_id: number | null; // Asset ID of replacement spare part
+  replacement_serno: string | null; // Serial number of replacement spare
+  shipper: string | null; // Shipper name (FedEx, UPS, DHL, GOV)
+  ship_date: string | null; // Date when shipment was sent
+  received_date: string | null; // Date/time when field tech received the part
+  received_by: number | null; // User ID of field tech who received
+  received_by_name: string | null; // Name of field tech who received
 }
 
 // Persistent parts orders array
@@ -6623,6 +6633,16 @@ function initializePartsOrders(): PartsOrder[] {
       acknowledged_date: null,
       acknowledged_by: null,
       acknowledged_by_name: null,
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     {
       order_id: 2,
@@ -6648,6 +6668,16 @@ function initializePartsOrders(): PartsOrder[] {
       acknowledged_date: null,
       acknowledged_by: null,
       acknowledged_by_name: null,
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     // Acknowledged orders (being processed) - CRIIS
     {
@@ -6674,6 +6704,16 @@ function initializePartsOrders(): PartsOrder[] {
       acknowledged_date: addDays(-6),
       acknowledged_by: 2,
       acknowledged_by_name: 'Jane Depot',
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     {
       order_id: 4,
@@ -6699,6 +6739,16 @@ function initializePartsOrders(): PartsOrder[] {
       acknowledged_date: addDays(-4),
       acknowledged_by: 2,
       acknowledged_by_name: 'Jane Depot',
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     // Shipped orders - CRIIS
     {
@@ -6722,9 +6772,19 @@ function initializePartsOrders(): PartsOrder[] {
       notes: 'Replacement optics for camera recalibration',
       shipping_tracking: 'FDX-2024-123456789',
       estimated_delivery: addDays(2),
-    acknowledged_date: null,
-    acknowledged_by: null,
-    acknowledged_by_name: null,
+      acknowledged_date: null,
+      acknowledged_by: null,
+      acknowledged_by_name: null,
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     // More pending orders - ACTS
     {
@@ -6748,9 +6808,16 @@ function initializePartsOrders(): PartsOrder[] {
       notes: 'Required for optical alignment issue fix',
       shipping_tracking: null,
       estimated_delivery: null,
-    acknowledged_date: null,
-    acknowledged_by: null,
-    acknowledged_by_name: null,
+      acknowledged_date: null,
+      acknowledged_by: null,
+      acknowledged_by_name: null,
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
     },
     // Acknowledged - Program 236
     {
@@ -6774,9 +6841,16 @@ function initializePartsOrders(): PartsOrder[] {
       notes: 'Classified component - special handling required',
       shipping_tracking: null,
       estimated_delivery: addDays(14),
-    acknowledged_date: null,
-    acknowledged_by: null,
-    acknowledged_by_name: null,
+      acknowledged_date: null,
+      acknowledged_by: null,
+      acknowledged_by_name: null,
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
     },
     // Received orders (for history)
     {
@@ -6800,9 +6874,16 @@ function initializePartsOrders(): PartsOrder[] {
       notes: 'Stock replenishment - received complete',
       shipping_tracking: 'UPS-2024-987654321',
       estimated_delivery: addDays(-5),
-    acknowledged_date: null,
-    acknowledged_by: null,
-    acknowledged_by_name: null,
+      acknowledged_date: null,
+      acknowledged_by: null,
+      acknowledged_by_name: null,
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
     },
     // More pending items for CRIIS
     {
@@ -6826,9 +6907,19 @@ function initializePartsOrders(): PartsOrder[] {
       notes: 'Battery replacement for intermittent power issue',
       shipping_tracking: null,
       estimated_delivery: null,
-    acknowledged_date: null,
-    acknowledged_by: null,
-    acknowledged_by_name: null,
+      acknowledged_date: null,
+      acknowledged_by: null,
+      acknowledged_by_name: null,
+      filled_date: null,
+      filled_by: null,
+      filled_by_name: null,
+      replacement_asset_id: null,
+      replacement_serno: null,
+      shipper: null,
+      ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
   ];
 }
@@ -8931,6 +9022,82 @@ app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
   order.acknowledged_by_name = `${user.first_name} ${user.last_name}`;
 
   console.log(`[PARTS] Order #${orderId} acknowledged by ${user.first_name} ${user.last_name} (${user.role})`);
+
+  // Return updated order with program info
+  const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
+
+  res.json({
+    success: true,
+    order: {
+      ...order,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    }
+  });
+});
+
+// Fill parts order with replacement spare (depot manager action)
+app.patch('/api/parts-orders/:id/fill', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only depot_manager and admin can fill orders
+  if (user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only depot managers can fill parts orders' });
+  }
+
+  const orderId = parseInt(req.params.id, 10);
+  const order = partsOrders.find(o => o.order_id === orderId);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Parts order not found' });
+  }
+
+  // Check if user has access to this order's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(order.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this parts order' });
+  }
+
+  // Check if order is in acknowledged status
+  if (order.status !== 'acknowledged') {
+    return res.status(400).json({ error: `Cannot fill order with status: ${order.status}. Order must be acknowledged first.` });
+  }
+
+  // Validate request body
+  const {
+    replacement_asset_id,
+    replacement_serno,
+    shipper,
+    tracking_number,
+    ship_date
+  } = req.body;
+
+  if (!replacement_asset_id || !replacement_serno) {
+    return res.status(400).json({ error: 'Replacement part information is required' });
+  }
+
+  if (!shipper || !tracking_number || !ship_date) {
+    return res.status(400).json({ error: 'Shipping information (shipper, tracking number, ship date) is required' });
+  }
+
+  // Update order status to shipped (filled)
+  order.status = 'shipped';
+  order.filled_date = new Date().toISOString();
+  order.filled_by = user.user_id;
+  order.filled_by_name = `${user.first_name} ${user.last_name}`;
+  order.replacement_asset_id = replacement_asset_id;
+  order.replacement_serno = replacement_serno;
+  order.shipper = shipper;
+  order.shipping_tracking = tracking_number;
+  order.ship_date = ship_date;
+
+  console.log(`[PARTS] Order #${orderId} filled by ${user.first_name} ${user.last_name} (${user.role}) - Replacement: ${replacement_serno}`);
 
   // Return updated order with program info
   const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
