@@ -1,5 +1,75 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #108)
+
+### Completed This Session:
+- Feature #108: Edit PMI record - IMPLEMENTED AND PASSING
+
+**Feature Description:** Users can modify PMI details
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_mgr/depot123)
+2. ✅ Navigate to PMI page - Successfully navigated to /pmi
+3. ✅ Click edit on existing PMI - Clicked Edit button (pencil icon) on SN-2024-001
+4. ✅ Modify due date - Changed from 2026-01-18 to 2026-03-01
+5. ✅ Save changes - Clicked "Save Changes" button, changes saved successfully
+6. ✅ Verify changes persist - PMI updated in list with new date and status
+
+**Implementation Details:**
+
+Backend Changes (backend/src/index.ts):
+- Added PUT /api/pmi/:id endpoint for updating PMI records
+- Fixed GET /api/pmi/:id to check both generated and custom PMI records
+- Updated GET /api/pmi endpoint to dedupe overrides (when editing a generated PMI, it gets stored in customPMIRecords as an override)
+- Updated GET /api/pmi/due-soon endpoint with same deduplication logic
+- PUT endpoint validates:
+  - User authentication
+  - Role-based access (only depot_manager and admin can edit)
+  - PMI existence
+  - Program access
+  - PMI type not empty
+
+Frontend Changes (frontend/src/pages/PMIPage.tsx):
+- Added Edit PMI modal with:
+  - Asset info (read-only)
+  - PMI Type dropdown (pre-populated)
+  - Due Date field (pre-populated)
+  - WUC Code field (pre-populated)
+  - Cancel and Save Changes buttons
+- Added Edit button (pencil icon) on each PMI row
+- Edit button only visible to users with depot_manager or admin role
+- Edit modal opens with pre-populated values from selected PMI
+- On save, PUT request sent to backend
+- List refreshes after successful edit
+
+**Key Validations:**
+- ✅ Edit button appears on PMI rows for authorized users
+- ✅ Edit modal opens with correct pre-populated values
+- ✅ Due date can be modified
+- ✅ PMI type can be modified
+- ✅ WUC code can be modified
+- ✅ Changes saved successfully via PUT API
+- ✅ PMI list updates to reflect changes
+- ✅ Summary cards update (Overdue: 1→0, Upcoming: 2→3, Scheduled: 2→3)
+- ✅ PMI re-sorted in list based on new due date
+- ✅ No console errors detected
+
+**Screenshots:**
+- feature108_pmi_page_with_edit_buttons.png - PMI page showing edit buttons
+- feature108_edit_pmi_modal.png - Edit modal with pre-populated fields
+- feature108_edit_pmi_modified_date.png - Edit modal with changed date
+- feature108_pmi_after_edit.png - PMI page after edit (summary cards updated)
+- feature108_pmi_edited_record_visible.png - Edited PMI record visible in list
+- feature108_pmi_edit_verified.png - Final verification screenshot
+
+**Files Modified:**
+- backend/src/index.ts (added PUT /api/pmi/:id endpoint, fixed GET endpoints)
+- frontend/src/pages/PMIPage.tsx (added Edit modal and button)
+
+**Current Progress:** 107/374 features passing (28.6%)
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #104)
 
 ### Completed This Session:
@@ -8148,4 +8218,174 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 **Console errors:** None related to feature (only a 401 from initial login with wrong password - expected)
 
 [Testing] Session complete - verified feature #51 (no regression found)
+
+
+=== Feature #105: Inspected by and corrected by fields ===
+Date: Mon Jan 19 19:26:42 EST 2026
+Status: PASSED
+
+Implementation:
+- Added 'Inspected By' and 'Corrected By' fields to Labor record forms
+- Fields available in both Add Labor and Edit Labor modals
+- Data persists correctly through create/update operations
+
+Testing performed:
+1. Created new labor record with inspected_by='Inspector John', corrected_by='Tech Smith'
+2. Verified record saved successfully
+3. Edited record to update fields to 'Inspector John (Updated)', 'Tech Smith (Updated)'
+4. Verified updates persisted after save
+5. Reopened edit modal to confirm persistence
+
+Files changed:
+- frontend/src/pages/MaintenanceDetailPage.tsx (already committed in a500b86)
+
+Note: Implementation was already committed as part of a previous session's work.
+Feature verified working and marked as passing.
+
+
+
+---
+
+## Session: 2026-01-20 (Feature #106)
+
+[Feature] Feature #106 'PMI list page loads' - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** PMI schedule page displays all periodic maintenance
+
+**Implementation:**
+- Added PMI Schedule tab to MaintenancePage.tsx as third tab (after Backlog and History)
+- Created PMI state management with pmiRecords, pmiSummary, pmiLoading, pmiError
+- Added fetchPMI function to call /api/pmi/due-soon endpoint
+- Implemented useEffect to fetch PMI data when tab changes or program changes
+- Created renderPMITable function with:
+  - Summary cards showing Overdue, Due Soon (7 days), Upcoming (30 days), Scheduled, Total PMI counts
+  - PMI table with columns: Status, Asset, PMI Type, WUC, Next Due Date, Days Until Due
+  - Color-coded status badges (OVERDUE/DUE SOON = red, UPCOMING = yellow, SCHEDULED = green)
+  - Clickable rows navigating to /pmi/:id detail page
+  - Status legend explaining color meanings
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to Maintenance > PMI tab - PMI Schedule tab visible and clickable
+3. ✅ Verify PMI table displays - Table shows with all required columns
+4. ✅ Verify data loads - 7 PMI records for CRIIS, 2 for ACTS
+5. ✅ Verify program filter applied - Switching CRIIS→ACTS updates PMI data correctly
+
+**Additional Verifications:**
+- ✅ Summary cards show correct counts
+- ✅ Status badges with proper color coding
+- ✅ Row clicks navigate to PMI detail page (/pmi/:id)
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature106_pmi_tab_initial.png - PMI tab with CRIIS data (7 items)
+- .playwright-mcp/feature106_pmi_table_full.png - Full PMI table view
+- .playwright-mcp/feature106_pmi_acts_program.png - PMI tab after switching to ACTS (2 items)
+
+**Files Modified:**
+- frontend/src/pages/MaintenancePage.tsx (added PMI tab and table rendering)
+
+**Console errors:** None detected
+
+[Feature] Feature #106 marked as PASSING
+
+**Current Progress:** 106/374 features passing (28.3%)
+
+
+---
+
+## Testing Session: 2026-01-19 19:27 (Regression Testing)
+
+[Testing] Feature #6 'User can log in with valid credentials' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can authenticate with valid username and password
+
+**Verification Steps Completed:**
+1. ✅ Navigate to login page - Loaded /login with username/password fields
+2. ✅ Enter valid username - Entered 'admin'
+3. ✅ Enter valid password - Entered 'admin123'
+4. ✅ Click login button - Clicked 'Sign In' button
+5. ✅ Verify redirect to dashboard - URL changed to /dashboard
+6. ✅ Verify user session is established - Shows 'Welcome, John Admin' and 'ADMIN' role
+7. ✅ Verify JWT token is stored - Token stored in rimss-auth-storage with valid JWT
+
+**Screenshots:**
+- .playwright-mcp/feature6_login_success_dashboard.png - Dashboard after successful login
+
+**Console errors:** None related to feature (HMR connection errors are dev server noise)
+
+[Testing] Session complete - verified feature #6 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 19:31 (Regression Testing)
+
+[Testing] Feature #36 'Asset status transitions validate correctly' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Asset status changes follow business rules
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin (acting as depot manager role for this test)
+2. ✅ Created test asset with FMC status - Created 'TEST-ASSET-001' with FMC status
+3. ✅ Changed status to NMCM - Successfully changed CRIIS-001 from FMC to NMCM
+4. ✅ Verified transition allowed - Success message: 'Asset updated successfully! Changes: Status: Full Mission Capable → Not Mission Capable Maintenance'
+5. ✅ Verified status updated - Asset now shows NMCM status
+6. ✅ Attempted invalid transition - Tried CNDM → FMC on CRIIS-009
+7. ✅ Verified error message - Correctly displayed: 'Invalid status transition: Cannot change directly from Cannot Determine Mission to Full Mission Capable. Assets with undetermined status must first be placed in maintenance (NMCM) or supply wait (NMCS) before becoming mission capable.'
+
+**Business Rules Verified:**
+- FMC → NMCM: Allowed ✅
+- CNDM → FMC: Blocked with helpful error message ✅
+- Status transition rules enforced server-side
+
+**Screenshots:**
+- .playwright-mcp/feature36_status_nmcm_updated.png - Successful FMC→NMCM transition
+- .playwright-mcp/feature36_invalid_transition_error_top.png - Error message for invalid CNDM→FMC transition
+
+**Console errors:** Only expected errors (401 initial login, 400 invalid transition - both expected behavior)
+
+[Testing] Session complete - verified feature #36 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 19:32 (Regression Testing)
+
+[Testing] Feature #62 'Configuration export with CUI markings' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Configuration exports include CUI compliance
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to Configurations page - Successfully navigated to /configurations (4 configurations)
+3. ✅ Click Export PDF - PDF downloaded successfully
+4. ✅ Verify PDF has CUI header/footer:
+   - Header: 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)' at top
+   - Footer: 'CUI - CONTROLLED UNCLASSIFIED INFORMATION' at bottom
+5. ✅ Verify filename starts with CUI_ - Downloaded as 'CUI_Configurations_20260120.pdf'
+6. ✅ Export Excel - Excel file downloaded successfully
+7. ✅ Verify Excel has CUI markings:
+   - Header row: 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+   - Footer row: 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+   - Filename: 'CUI_Configurations_20260120.xlsx'
+
+**Screenshots:**
+- .playwright-mcp/feature62_configurations_page.png - Configurations page with Export buttons
+- .playwright-mcp/feature62_export_complete.png - Page after both exports completed
+
+**Downloaded Files:**
+- CUI_Configurations_20260120.pdf - PDF with proper CUI markings
+- CUI_Configurations_20260120.xlsx - Excel with proper CUI markings
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #62 (no regression found)
 
