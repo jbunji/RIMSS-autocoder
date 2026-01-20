@@ -7769,6 +7769,9 @@ interface AssetDetails {
   // Meter tracking fields
   meter_type: 'hours' | 'cycles' | 'eti' | null;  // Type of meter for this asset
   cycles_count: number | null;  // Cycles count (for assets that track cycles instead of/in addition to hours)
+  // Audit fields
+  created_date: string;  // Creation timestamp (ISO format)
+  modified_date: string | null;  // Last modification timestamp (ISO format)
 }
 
 // Generate detailed asset data - initialize once and make mutable
@@ -7832,7 +7835,18 @@ function initializeDetailedAssets(): AssetDetails[] {
     { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', part_name: 'Special System Beta', pgm_id: 4, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(28), next_pmi_date: addDays(32), eti_hours: 890, remarks: 'Mode 3 limited', uii: generateUII(24, 'PN-SPEC-002'), mfg_date: '2021-06-22', acceptance_date: '2021-09-30', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-A', cust_loc_name: 'Vault A', nha_asset_id: 22, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
     // Special System Gamma is a child SRA of Special System Alpha (236-001)
     { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(50), next_pmi_date: addDays(40), eti_hours: 340, remarks: null, uii: generateUII(25, 'PN-SPEC-003'), mfg_date: '2022-03-18', acceptance_date: '2022-06-25', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-C', cust_loc_name: 'Vault C', nha_asset_id: 22, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
-  ];
+  ].map(asset => {
+    // Add created_date and modified_date to all assets
+    // Use a timestamp from the past to simulate when these assets were created
+    const daysAgo = Math.floor(Math.random() * 365) + 30; // Random date between 30-395 days ago
+    const createdDate = new Date();
+    createdDate.setDate(createdDate.getDate() - daysAgo);
+    return {
+      ...asset,
+      created_date: createdDate.toISOString(),
+      modified_date: asset.last_maint_date ? new Date(asset.last_maint_date).toISOString() : null,
+    };
+  });
 }
 
 // Mutable array of detailed assets - initialized once, persists modifications
@@ -9580,6 +9594,7 @@ app.post('/api/assets', (req, res) => {
   const statusInfo = assetStatusCodes.find(s => s.status_cd === status_cd);
 
   // Also add to detailedAssets for GET endpoint to show the new asset
+  const createdTimestamp = new Date().toISOString();
   const newDetailedAsset: AssetDetails = {
     asset_id: newAssetId,
     serno,
@@ -9597,6 +9612,21 @@ app.post('/api/assets', (req, res) => {
     next_pmi_date: null,
     eti_hours: 0,
     remarks: notes || null,
+    uii: null,
+    mfg_date: null,
+    acceptance_date: null,
+    admin_loc: admin_loc,
+    admin_loc_name: adminLocInfo?.loc_name || admin_loc,
+    cust_loc: cust_loc,
+    cust_loc_name: custLocInfo?.loc_name || cust_loc,
+    nha_asset_id: null,
+    carrier: null,
+    tracking_number: null,
+    ship_date: null,
+    meter_type: null,
+    cycles_count: null,
+    created_date: createdTimestamp,
+    modified_date: null,
   };
   detailedAssets.push(newDetailedAsset);
 

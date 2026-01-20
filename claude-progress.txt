@@ -45476,3 +45476,23 @@ Quality: Production-ready ✅
 [2026-01-20] Feature #326 parallel session complete - VERIFIED PASSING ✅
 ================================================================================
 
+[Testing] Feature #109 'PMI color-coded due date alerts - Red' verified - PASSING ✅
+
+Verification Results:
+=====================
+✅ PMI Schedule page displays red 'OVERDUE' badge for overdue PMIs (Sensor Unit A - 3 days overdue)
+✅ PMI Schedule page displays red 'DUE SOON' badges for PMIs due within 7 days (Sensor Unit B - 2 days, Camera System X - 6 days)
+✅ Dashboard PMI widget displays red dot indicators for PMIs due within 7 days or overdue
+✅ Red indicator legend correctly shows 'Due in 7 days or less'
+✅ Statistics widget shows correct count: 3 red items (1 overdue + 2 due soon)
+✅ Zero console errors
+✅ Color coding matches requirement: Red for PMIs due within 7 days
+
+Screenshots captured:
+- feature_109_pmi_red_indicators.png (PMI Schedule page)
+- feature_109_pmi_table_red_rows.png (Full page with table rows)
+- feature_109_dashboard_pmi_widget.png (Dashboard widget)
+
+Testing session: Tue Jan 20 10:05:05 EST 2026
+Status: Feature still passing - no regression detected
+
