@@ -24526,3 +24526,85 @@ Code Quality: Production-ready ✅
 [2026-01-20 09:31 UTC] Feature #227 PARALLEL SESSION COMPLETE
 ================================================================================
 
+[Testing] 2026-01-20 09:31 UTC - Feature #87 regression test PASSED - MICAP flagging on repairs working correctly
+[Testing] 2026-01-20 09:31 UTC - Feature #32 regression test PASSED - Create new asset working correctly
+[Testing] 2026-01-20 09:33 UTC - Feature #154 regression test PASSED - Parts order ACKNOWLEDGE stage working correctly
+
+================================================================================
+[2026-01-20 09:32 UTC] REGRESSION TEST SESSION COMPLETE - Feature #154
+================================================================================
+
+Feature #154: Parts order ACKNOWLEDGE stage - VERIFIED AND PASSING ✅
+
+Test Execution Summary:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as admin (John Admin) with admin/admin123
+   - Authentication successful
+   - Admin has depot manager permissions
+
+✅ Step 2: Navigate to Parts Ordered page
+   - Successfully navigated to /parts-ordered
+   - Page loaded with 9 orders
+
+✅ Step 3: Find request in REQUEST/Pending status
+   - Found Lithium Battery Pack (Order #9)
+   - Status: Pending
+   - Priority: Urgent
+   - Part Number: PN-BATT-009
+
+✅ Step 4: Click Acknowledge button
+   - Clicked "Acknowledge" button on order detail page
+   - Button interaction successful
+
+✅ Step 5: Verify confirmation dialog
+   - Confirmation dialog appeared correctly
+   - Dialog title: "Acknowledge Parts Order"
+   - Clear message explaining the action
+   - Two buttons: Cancel and Confirm Acknowledgment
+
+✅ Step 6: Confirm acknowledgment
+   - Clicked "Confirm Acknowledgment" button
+   - Action processed successfully
+
+✅ Step 7: Verify status changes to ACKNOWLEDGED
+   - Status badge updated from "Pending" to "Acknowledged"
+   - Button changed from "Acknowledge" to "Fill Order"
+   - Status visible in Shipping Information section
+
+✅ Step 8: Verify acknowledge timestamp captured
+   - Acknowledged Date: January 20, 2026 at 04:32 AM
+   - Timestamp displayed correctly in Shipping Information
+   - Format: readable date and time
+
+✅ Step 9: Verify acknowledged by user captured
+   - Acknowledged By: John Admin
+   - User name displayed correctly
+   - Proper attribution recorded
+
+Technical Verification:
+✓ UI rendering correct
+✓ State management working
+✓ API calls successful
+✓ Database updates persisted
+✓ Button states updated appropriately
+✓ Status transitions working correctly
+✓ Audit trail captured (timestamp + user)
+✓ No console errors (only expected login failures from testing)
+
+Screenshots Captured:
+- feature_154_acknowledge_verified.png - Order after acknowledgment
+- feature_154_acknowledge_details.png - Full page showing all details
+
+Result: NO REGRESSION FOUND ✅
+
+Feature Status: Remains PASSING (no changes needed)
+Progress: 227/374 features passing (60.7%)
+Session Duration: ~12 minutes
+Code Changes: 0 files modified (feature already working correctly)
+
+Next: Session complete - Feature verified and documented
+
+================================================================================
+[2026-01-20 09:32 UTC] Feature #154 regression test session complete
+================================================================================
