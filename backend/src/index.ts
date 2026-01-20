@@ -7930,16 +7930,6 @@ app.post('/api/assets/:id/software', (req, res) => {
 
   assetSoftware.push(newAssociation);
 
-  // Log activity
-  activities.unshift({
-    activity_id: nextActivityId++,
-    activity_type: 'asset_software_added',
-    user: user.username,
-    description: `Added software "${software.sw_title}" (${software.revision}) to asset ${asset.serno}`,
-    timestamp: new Date().toISOString(),
-    icon: 'software',
-  });
-
   console.log(`[ASSETS] Software association added by ${user.username} for asset ${asset.serno}: ${software.sw_title} (${software.revision})`);
 
   res.status(201).json({

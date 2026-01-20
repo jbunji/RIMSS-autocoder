@@ -12816,3 +12816,9 @@ Screenshots captured:
 
 Conclusion: Feature #60 is still passing. No regression detected.
 
+[Testing] 2026-01-20 - Feature #74 REGRESSION FIXED
+Testing Feature #12: Admin can edit existing user
+[Testing] 2026-01-20 - Feature #12 'Admin can edit existing user' - VERIFIED PASSING - No regression found
+Verification Steps: Logged in as admin, navigated to Users, edited Jane Depot, changed name to Janet and added ACTS program, saved changes, verified persistence and success message
+All checks passed: Edit functionality working, data persistence confirmed, success message displayed, zero console errors
+[Testing] Session complete - verified feature #12

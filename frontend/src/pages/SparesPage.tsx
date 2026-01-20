@@ -125,11 +125,19 @@ export default function SparesPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isMassUpdateModalOpen, setIsMassUpdateModalOpen] = useState(false)
   const [selectedSpare, setSelectedSpare] = useState<Spare | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [modalError, setModalError] = useState<string | null>(null)
   const [createModalError, setCreateModalError] = useState<string | null>(null)
+  const [massUpdateError, setMassUpdateError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isMassUpdating, setIsMassUpdating] = useState(false)
+
+  // Mass update state
+  const [selectedSpareIds, setSelectedSpareIds] = useState<number[]>([])
+  const [massUpdateField, setMassUpdateField] = useState<string>('status_cd')
+  const [massUpdateValue, setMassUpdateValue] = useState<string>('')
 
   // Reference data for form
   const [adminLocations, setAdminLocations] = useState<Location[]>([])
@@ -479,6 +487,77 @@ export default function SparesPage() {
     }
   }
 
+  // Handle checkbox selection
+  const handleCheckboxChange = (assetId: number) => {
+    setSelectedSpareIds((prev) => {
+      if (prev.includes(assetId)) {
+        return prev.filter((id) => id !== assetId)
+      } else {
+        return [...prev, assetId]
+      }
+    })
+  }
+
+  // Handle select all checkbox
+  const handleSelectAll = () => {
+    if (selectedSpareIds.length === spares.length) {
+      // Unselect all
+      setSelectedSpareIds([])
+    } else {
+      // Select all
+      setSelectedSpareIds(spares.map((spare) => spare.asset_id))
+    }
+  }
+
+  // Open mass update modal
+  const handleMassUpdateClick = () => {
+    setMassUpdateError(null)
+    setMassUpdateField('status_cd')
+    setMassUpdateValue('')
+    setIsMassUpdateModalOpen(true)
+  }
+
+  // Handle mass update submission
+  const handleMassUpdateSubmit = async () => {
+    if (!token || selectedSpareIds.length === 0 || !massUpdateValue) return
+
+    setMassUpdateError(null)
+    setIsMassUpdating(true)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/assets/mass-update', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          asset_ids: selectedSpareIds,
+          field: massUpdateField,
+          value: massUpdateValue,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update spares')
+      }
+
+      const result = await response.json()
+
+      // Success - close modal and refresh list
+      setIsMassUpdateModalOpen(false)
+      setSelectedSpareIds([])
+      setSuccessMessage(`Successfully updated ${result.updated_count} spare(s)!`)
+      setTimeout(() => setSuccessMessage(null), 3000)
+      fetchSpares()
+    } catch (err) {
+      setMassUpdateError(err instanceof Error ? err.message : 'Failed to update spares')
+    } finally {
+      setIsMassUpdating(false)
+    }
+  }
+
   return (
     <div>
       {/* Header */}
@@ -529,13 +608,24 @@ export default function SparesPage() {
             )}
           </div>
           {canEditSpare && !showDeleted && (
-            <button
-              onClick={handleCreateClick}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              <PlusIcon className="h-5 w-5" />
-              Add Spare
-            </button>
+            <div className="flex items-center gap-3">
+              {selectedSpareIds.length > 0 && (
+                <button
+                  onClick={handleMassUpdateClick}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                >
+                  <PencilIcon className="h-5 w-5" />
+                  Mass Update ({selectedSpareIds.length})
+                </button>
+              )}
+              <button
+                onClick={handleCreateClick}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                <PlusIcon className="h-5 w-5" />
+                Add Spare
+              </button>
+            </div>
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -644,6 +734,19 @@ export default function SparesPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  {canEditSpare && !showDeleted && (
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSpareIds.length === spares.length && spares.length > 0}
+                        onChange={handleSelectAll}
+                        className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                    </th>
+                  )}
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -707,7 +810,7 @@ export default function SparesPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {spares.length === 0 ? (
                   <tr>
-                    <td colSpan={canEditSpare ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={canEditSpare && !showDeleted ? 7 : canEditSpare ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
                       <CubeIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" />
                       <p>No spare parts found</p>
                       {(searchQuery || statusFilter) && (
@@ -718,6 +821,16 @@ export default function SparesPage() {
                 ) : (
                   spares.map((spare) => (
                     <tr key={spare.asset_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/assets/${spare.asset_id}`)}>
+                      {canEditSpare && !showDeleted && (
+                        <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedSpareIds.includes(spare.asset_id)}
+                            onChange={() => handleCheckboxChange(spare.asset_id)}
+                            className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                          />
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="text-sm font-medium text-gray-900">{spare.serno}</div>
