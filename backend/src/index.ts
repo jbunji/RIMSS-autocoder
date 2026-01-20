@@ -1366,6 +1366,12 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Get interval filter from query string (optional) - supports 30, 60, 90, 180, 365
   const intervalFilter = req.query.interval_days ? parseInt(req.query.interval_days as string, 10) : null;
 
+  // Get search filter from query string (optional) - searches asset serial number and name
+  const searchFilter = req.query.search ? (req.query.search as string).toLowerCase().trim() : null;
+
+  // Get overdue_only filter from query string (optional) - shows only overdue PMIs
+  const overdueOnlyFilter = req.query.overdue_only === 'true';
+
   // Generate fresh PMI data, including custom records and overrides
   const generatedPMI = generateMockPMIData();
   const customPMIIds = new Set(customPMIRecords.map(p => p.pmi_id));
@@ -1390,6 +1396,20 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Apply interval filter if specified (30, 60, 90, 180, 365 days)
   if (intervalFilter && [30, 60, 90, 180, 365].includes(intervalFilter)) {
     filteredPMI = filteredPMI.filter(pmi => pmi.interval_days === intervalFilter);
+  }
+
+  // Apply search filter if specified (searches asset serial number and asset name)
+  if (searchFilter) {
+    filteredPMI = filteredPMI.filter(pmi =>
+      pmi.asset_sn.toLowerCase().includes(searchFilter) ||
+      pmi.asset_name.toLowerCase().includes(searchFilter) ||
+      pmi.pmi_type.toLowerCase().includes(searchFilter)
+    );
+  }
+
+  // Apply overdue only filter if specified
+  if (overdueOnlyFilter) {
+    filteredPMI = filteredPMI.filter(pmi => pmi.days_until_due < 0);
   }
 
   // Sort by days_until_due (most urgent first)
@@ -1432,6 +1452,15 @@ app.get('/api/pmi', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
+  // Get search filter from query string (optional) - searches asset serial number, name, and PMI type
+  const searchFilter = req.query.search ? (req.query.search as string).toLowerCase().trim() : null;
+
+  // Get overdue_only filter from query string (optional) - shows only overdue PMIs
+  const overdueOnlyFilter = req.query.overdue_only === 'true';
+
+  // Get interval filter from query string (optional) - supports 30, 60, 90, 180, 365
+  const intervalFilter = req.query.interval_days ? parseInt(req.query.interval_days as string, 10) : null;
+
   // Get both generated and custom PMI data
   // Custom records may include overrides for generated PMIs, so we need to dedupe
   const generatedPMI = generateMockPMIData();
@@ -1458,10 +1487,29 @@ app.get('/api/pmi', (req, res) => {
     };
   });
 
+  // Apply search filter if specified (searches asset serial number, name, and PMI type)
+  if (searchFilter) {
+    filteredPMI = filteredPMI.filter(pmi =>
+      pmi.asset_sn.toLowerCase().includes(searchFilter) ||
+      pmi.asset_name.toLowerCase().includes(searchFilter) ||
+      pmi.pmi_type.toLowerCase().includes(searchFilter)
+    );
+  }
+
+  // Apply overdue only filter if specified
+  if (overdueOnlyFilter) {
+    filteredPMI = filteredPMI.filter(pmi => pmi.days_until_due < 0);
+  }
+
+  // Apply interval filter if specified (30, 60, 90, 180, 365 days)
+  if (intervalFilter && [30, 60, 90, 180, 365].includes(intervalFilter)) {
+    filteredPMI = filteredPMI.filter(pmi => pmi.interval_days === intervalFilter);
+  }
+
   // Sort by days_until_due (most urgent first)
   filteredPMI.sort((a, b) => a.days_until_due - b.days_until_due);
 
-  console.log(`[PMI] List request by ${user.username} - Total: ${filteredPMI.length}`);
+  console.log(`[PMI] List request by ${user.username} - Total: ${filteredPMI.length}${searchFilter ? ` (search: "${searchFilter}")` : ''}${overdueOnlyFilter ? ' (overdue only)' : ''}`);
 
   res.json({
     pmi: filteredPMI,

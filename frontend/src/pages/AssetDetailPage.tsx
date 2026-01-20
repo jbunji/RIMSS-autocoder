@@ -159,8 +159,33 @@ const eventTypeColors: Record<string, { bg: string; text: string; border: string
   'BIT/PC': { bg: 'bg-cyan-100', text: 'text-cyan-800', border: 'border-cyan-200' },
 }
 
+// PMI History interfaces
+interface PMIHistoryRecord {
+  pmi_id: number
+  asset_id: number
+  asset_sn: string
+  asset_name: string
+  pmi_type: string
+  wuc_cd: string
+  next_due_date: string
+  days_until_due: number
+  completed_date: string | null
+  pgm_id: number
+  status: 'overdue' | 'due_soon' | 'upcoming' | 'completed'
+  interval_days: number
+}
+
+interface PMIHistorySummary {
+  total: number
+  completed: number
+  pending: number
+  overdue: number
+  due_soon: number
+  upcoming: number
+}
+
 // Tab type
-type TabType = 'details' | 'history' | 'eti' | 'maintenance'
+type TabType = 'details' | 'history' | 'eti' | 'maintenance' | 'pmi'
 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -206,6 +231,12 @@ export default function AssetDetailPage() {
   const [maintenanceEventsSummary, setMaintenanceEventsSummary] = useState<MaintenanceEventsSummary | null>(null)
   const [maintenanceEventsLoading, setMaintenanceEventsLoading] = useState(false)
   const [maintenanceEventsError, setMaintenanceEventsError] = useState<string | null>(null)
+
+  // PMI History state
+  const [pmiHistory, setPmiHistory] = useState<PMIHistoryRecord[]>([])
+  const [pmiHistorySummary, setPmiHistorySummary] = useState<PMIHistorySummary | null>(null)
+  const [pmiHistoryLoading, setPmiHistoryLoading] = useState(false)
+  const [pmiHistoryError, setPmiHistoryError] = useState<string | null>(null)
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false)
@@ -383,6 +414,38 @@ export default function AssetDetailPage() {
     }
 
     fetchMaintenanceEvents()
+  }, [token, id, activeTab])
+
+  // Fetch PMI history when PMI tab is selected
+  useEffect(() => {
+    const fetchPMIHistory = async () => {
+      if (!token || !id || activeTab !== 'pmi') return
+
+      setPmiHistoryLoading(true)
+      setPmiHistoryError(null)
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/assets/${id}/pmi-history`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch PMI history')
+        }
+
+        const data = await response.json()
+        setPmiHistory(data.pmi_history)
+        setPmiHistorySummary(data.summary)
+      } catch (err) {
+        setPmiHistoryError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setPmiHistoryLoading(false)
+      }
+    }
+
+    fetchPMIHistory()
   }, [token, id, activeTab])
 
   // Handle ETI update form submission
@@ -750,6 +813,16 @@ export default function AssetDetailPage() {
             }`}
           >
             Maintenance Events
+          </button>
+          <button
+            onClick={() => setActiveTab('pmi')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'pmi'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            PMI History
           </button>
         </nav>
       </div>
@@ -1632,6 +1705,198 @@ export default function AssetDetailPage() {
                   </div>
                 )
               })}
+            </div>
+          )}
+        </div>
+      ) : activeTab === 'pmi' ? (
+        /* PMI History Tab */
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">PMI History</h2>
+              <p className="mt-1 text-sm text-gray-500">Periodic maintenance inspection history for this asset</p>
+            </div>
+            <button
+              onClick={() => navigate('/maintenance')}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              View All PMI
+            </button>
+          </div>
+
+          {/* PMI Summary Statistics */}
+          {pmiHistorySummary && (
+            <div className="px-6 py-4 bg-purple-50 border-b border-purple-100">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-purple-900">{pmiHistorySummary.total}</p>
+                  <p className="text-sm text-purple-700">Total PMIs</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-green-600">{pmiHistorySummary.completed}</p>
+                  <p className="text-sm text-green-700">Completed</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-600">{pmiHistorySummary.pending}</p>
+                  <p className="text-sm text-gray-700">Pending</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-red-600">{pmiHistorySummary.overdue}</p>
+                  <p className="text-sm text-red-700">Overdue</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-orange-600">{pmiHistorySummary.due_soon}</p>
+                  <p className="text-sm text-orange-700">Due Soon</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-yellow-600">{pmiHistorySummary.upcoming}</p>
+                  <p className="text-sm text-yellow-700">Upcoming</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PMI History List */}
+          {pmiHistoryLoading ? (
+            <div className="px-6 py-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+              <p className="mt-4 text-sm text-gray-500">Loading PMI history...</p>
+            </div>
+          ) : pmiHistoryError ? (
+            <div className="px-6 py-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="mt-4 text-sm text-red-600">{pmiHistoryError}</p>
+            </div>
+          ) : pmiHistory.length === 0 ? (
+            <div className="px-6 py-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <p className="mt-4 text-sm text-gray-500">No PMI records for this asset</p>
+              <button
+                onClick={() => navigate('/maintenance')}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200"
+              >
+                Schedule First PMI
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      PMI Type
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      WUC
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Interval
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Completed Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Next Due Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Days Until Due
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {pmiHistory.map((pmi) => {
+                    // Determine status colors
+                    let statusBg = 'bg-gray-100'
+                    let statusText = 'text-gray-800'
+                    let statusLabel = 'Scheduled'
+
+                    if (pmi.completed_date) {
+                      statusBg = 'bg-green-100'
+                      statusText = 'text-green-800'
+                      statusLabel = 'Completed'
+                    } else if (pmi.days_until_due < 0) {
+                      statusBg = 'bg-red-100'
+                      statusText = 'text-red-800'
+                      statusLabel = 'Overdue'
+                    } else if (pmi.days_until_due <= 7) {
+                      statusBg = 'bg-red-100'
+                      statusText = 'text-red-800'
+                      statusLabel = 'Due Soon'
+                    } else if (pmi.days_until_due <= 30) {
+                      statusBg = 'bg-yellow-100'
+                      statusText = 'text-yellow-800'
+                      statusLabel = 'Upcoming'
+                    } else {
+                      statusBg = 'bg-green-100'
+                      statusText = 'text-green-800'
+                      statusLabel = 'Scheduled'
+                    }
+
+                    return (
+                      <tr
+                        key={pmi.pmi_id}
+                        onClick={() => navigate(`/pmi/${pmi.pmi_id}`)}
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{pmi.pmi_type}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBg} ${statusText}`}>
+                            {statusLabel}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-mono text-gray-600">{pmi.wuc_cd || '-'}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                            {pmi.interval_days}-Day
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {pmi.completed_date ? (
+                            <span className="text-sm text-green-600 font-medium">
+                              {new Date(pmi.completed_date).toLocaleDateString()}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">Not completed</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">
+                            {new Date(pmi.next_due_date).toLocaleDateString()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {pmi.completed_date ? (
+                            <span className="text-sm text-gray-400">-</span>
+                          ) : (
+                            <span className={`text-sm font-medium ${
+                              pmi.days_until_due < 0 ? 'text-red-600' :
+                              pmi.days_until_due <= 7 ? 'text-red-600' :
+                              pmi.days_until_due <= 30 ? 'text-yellow-600' :
+                              'text-green-600'
+                            }`}>
+                              {pmi.days_until_due < 0 ? `${Math.abs(pmi.days_until_due)} days overdue` : `${pmi.days_until_due} days`}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
