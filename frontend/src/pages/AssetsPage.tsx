@@ -7,7 +7,6 @@ import { Dialog, Transition } from '@headlessui/react'
 import {
   PlusIcon,
   XMarkIcon,
-  CheckIcon,
   CubeIcon,
   TrashIcon,
   ExclamationTriangleIcon,
@@ -19,6 +18,8 @@ import {
 import { useAuthStore } from '../stores/authStore'
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Toast } from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
@@ -112,6 +113,7 @@ export default function AssetsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { token, currentProgramId, user } = useAuthStore()
+  const { toast, showSuccess, showError, hideToast } = useToast()
 
   // Check if user can create assets
   const canCreateAsset = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
@@ -127,7 +129,6 @@ export default function AssetsPage() {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [modalError, setModalError] = useState<string | null>(null)
 
   // Delete confirmation modal state
@@ -307,13 +308,10 @@ export default function AssetsPage() {
 
       if (response.ok) {
         const result = await response.json()
-        setSuccessMessage(`Asset "${result.asset.serno}" created successfully!`)
+        showSuccess(`Asset "${result.asset.serno}" created successfully!`)
         setIsModalOpen(false)
         reset()
         fetchAssets(1) // Refresh the asset list
-
-        // Clear success message after 5 seconds
-        setTimeout(() => setSuccessMessage(null), 5000)
       } else {
         const errorData = await response.json()
         setModalError(errorData.error || 'Failed to create asset')
@@ -367,12 +365,9 @@ export default function AssetsPage() {
 
       if (response.ok) {
         const result = await response.json()
-        setSuccessMessage(result.message || `Asset "${assetToDelete.serno}" deleted successfully!`)
+        showSuccess(result.message || `Asset "${assetToDelete.serno}" deleted successfully!`)
         closeDeleteModal()
         fetchAssets(pagination.page) // Refresh the list
-
-        // Clear success message after 5 seconds
-        setTimeout(() => setSuccessMessage(null), 5000)
       } else {
         const errorData = await response.json()
         setDeleteError(errorData.error || 'Failed to delete asset')
@@ -402,12 +397,9 @@ export default function AssetsPage() {
 
       if (response.ok) {
         const result = await response.json()
-        setSuccessMessage(result.message || `Asset "${assetToDelete.serno}" permanently deleted!`)
+        showSuccess(result.message || `Asset "${assetToDelete.serno}" permanently deleted!`)
         closeDeleteModal()
         fetchAssets(pagination.page) // Refresh the list
-
-        // Clear success message after 5 seconds
-        setTimeout(() => setSuccessMessage(null), 5000)
       } else {
         const errorData = await response.json()
         setDeleteError(errorData.error || 'Failed to permanently delete asset')
@@ -794,19 +786,13 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="rounded-md bg-green-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <CheckIcon className="h-5 w-5 text-green-400" aria-hidden="true" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-green-800">{successMessage}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Toast notifications */}
+      <Toast
+        isOpen={toast.isOpen}
+        type={toast.type}
+        message={toast.message}
+        onClose={hideToast}
+      />
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-4">
