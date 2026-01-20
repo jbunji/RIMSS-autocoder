@@ -18424,3 +18424,40 @@ Current Progress: 192/374 features passing (51.3%)
 Next: Session complete - Feature #193 verified and committed
 
 Session complete - Feature #193 verified successfully
+
+================================================================================
+Session: 2026-01-20 01:36 UTC - Feature #142 REGRESSION TEST AND FIX
+================================================================================
+
+Feature #142: Create spare part record - REGRESSION FOUND AND FIXED
+
+REGRESSION DISCOVERED:
+- Backend crashed with: ReferenceError: mockLocations is not defined
+- Line 13226 in backend/src/index.ts referenced undefined variable
+- This prevented the entire backend from starting
+
+ROOT CAUSE:
+- Variable name mismatch: code used mockLocations but actual variable is adminLocations
+
+FIX APPLIED:
+- Changed line 13226 to use adminLocations instead of mockLocations
+
+VERIFICATION - All Steps PASSED:
+- Logged in as depot manager
+- Navigated to Spares page
+- Clicked Add Spare button
+- Entered all required fields
+- Successfully created spare part PN-TEST-002
+- Spare appears in list
+- Zero console errors
+
+Result: Feature #142 marked as PASSING after fixing regression
+Current Progress: 190/374 features passing (50.8%)
+
+Git Commit: ea2b78a
+Session complete
+
+[Testing] Session 2026-01-20 01:37 UTC - Feature #122 REGRESSION TEST
+Feature: TCTO number unique per program
+Status: Starting test with admin user (depot_mgr only has CRIIS access)
+[Testing] Session 2026-01-20 06:38 UTC - Starting regression test for Feature #15: Admin can assign programs to users
