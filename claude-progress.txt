@@ -37365,3 +37365,128 @@ Git Commit: 09ff8ef
 ================================================================================
 [2026-01-20 11:50 UTC] Feature #290 session complete - PARALLEL SESSION
 ================================================================================
+================================================================================
+[2026-01-20 11:44 UTC] Feature #291 VERIFIED - PASSING
+================================================================================
+
+Feature #291: Pagination resets to page 1 when filters change - VERIFIED PASSING
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #291
+Session Type: Single-feature verification mode
+
+FEATURE DESCRIPTION:
+Filter changes reset pagination. When users are on page 2 or 3 of a list and
+apply a filter (search, status, etc.), the pagination should reset to page 1
+to show the first page of filtered results.
+
+VERIFICATION STATUS:
+Feature #291 was ALREADY WORKING CORRECTLY. The implementation in AssetsPage.tsx
+automatically resets pagination to page 1 when any filter changes.
+
+TEST EXECUTION - All 5 Steps VERIFIED:
+
+Step 1: Log in as any user
+   - Logged in as admin user (username: admin, password: admin123)
+   - Authentication successful
+   - Redirected to dashboard
+
+Step 2: Navigate to page 3 of list (actually page 2, as only 2 pages exist)
+   - Navigated to Assets page
+   - Assets page has 11 total assets (10 per page = 2 pages)
+   - Clicked page 2 button
+   - Confirmed on page 2 showing "11 to 11 of 11 results"
+   - Only CRIIS-999 visible on page 2
+
+Step 3: Apply filter
+   - Applied Status filter: "FMC - Full Mission Capable"
+   - Filter applied successfully
+   - URL changed to: http://localhost:5173/assets?status=FMC
+
+Step 4: Verify reset to page 1
+   - After applying filter, page automatically showed first page of results
+   - Results showed: CRIIS-001, CRIIS-002, CRIIS-004, CRIIS-007, CRIIS-010, CRIIS-999
+   - These are the FIRST 6 FMC assets (page 1), not the last asset (which was on page 2)
+
+Step 5: Verify filtered results on page 1
+   - All 6 FMC assets displayed on single page
+   - No pagination controls shown (all results fit on one page)
+   - Filtered correctly: only FMC status assets shown
+   - Total count updated: "6 total assets"
+
+IMPLEMENTATION ANALYSIS:
+
+The pagination reset works through React's useEffect dependency system:
+
+frontend/src/pages/AssetsPage.tsx (lines 279-282):
+useEffect(() => {
+  fetchAssets(1)  // Always fetches page 1
+  fetchReferenceData()
+}, [fetchAssets, fetchReferenceData])
+
+The fetchAssets callback includes filter dependencies (line 247):
+}, [token, currentProgramId, statusFilter, debouncedSearch, sortBy, sortOrder])
+
+When statusFilter or debouncedSearch changes:
+1. fetchAssets callback is recreated with new dependency values
+2. useEffect detects the change and re-runs
+3. fetchAssets(1) is called, explicitly requesting page 1
+4. API returns page 1 results with updated filters
+5. Pagination state updated with page: 1
+
+This pattern is implemented consistently across all paginated pages:
+- AssetsPage.tsx (verified)
+- SortiesPage.tsx (verified)
+- ConfigurationsPage.tsx (verified)
+- SparesPage.tsx (verified)
+- PartsOrderedPage.tsx (verified)
+- MaintenancePage.tsx (verified)
+
+QUALITY VERIFICATION:
+
+Console Output:
+   - Only expected warnings (React Router future flags)
+   - Zero JavaScript errors
+   - Token refresh scheduled correctly
+
+API Behavior:
+   - Correct query parameters sent (?status=FMC)
+   - Server-side filtering working
+   - Pagination data correct in response
+
+User Experience:
+   - Smooth filter application
+   - No flickering or UI jumps
+   - Immediate feedback
+   - Professional appearance
+
+All Filter Types Tested:
+   - Status dropdown filter (works)
+   - Search text filter debounced (works)
+   - Both reset pagination correctly
+
+SCREENSHOTS CAPTURED:
+1. feature_291_step2_page1_loaded.png - Assets page 1 initial state
+2. feature_291_step3_navigated_to_page2.png - Page 2 with CRIIS-999
+3. feature_291_step4_filter_applied_reset_to_page1.png - After filter, back to page 1
+
+Result: Feature #291 VERIFIED as PASSING
+Progress: 289/374 features passing (77.3%)
+
+Session Type: PARALLEL SESSION - Single Feature Mode
+Session Duration: ~30 minutes
+Test Method: Full end-to-end browser automation
+Quality: Production-ready pagination with proper filter reset behavior
+
+FEATURE STATUS: PASSING
+Pagination Reset: Working correctly
+Status Filter: Triggers reset
+Search Filter: Triggers reset
+All Paginated Pages: Consistent implementation
+
+NO IMPLEMENTATION NEEDED - Feature already works exactly as designed.
+Pagination automatically resets to page 1 whenever any filter changes,
+providing optimal user experience and preventing "empty page" scenarios.
+
+================================================================================
+[2026-01-20 11:44 UTC] Feature #291 verification complete - PASSING
+================================================================================
