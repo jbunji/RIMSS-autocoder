@@ -13492,3 +13492,212 @@ New parts order #10 created and appears in Parts Ordered page.
 
 Current Progress: 151/374 features passing (40.4%)
 
+## Session: 2026-01-20 (Feature #154) - PARALLEL EXECUTION - COMPLETED
+
+Feature #154 "Parts order ACKNOWLEDGE stage" - IMPLEMENTED AND VERIFIED
+
+**Implementation:**
+- Added acknowledged_date, acknowledged_by, acknowledged_by_name fields to PartsOrder interface
+- Created PATCH /api/parts-orders/:id/acknowledge endpoint with role validation
+- Added Acknowledge button to detail page (visible only to DEPOT_MANAGER/ADMIN)
+- Implemented confirmation dialog with loading states
+- Display acknowledged date and user name after acknowledgement
+- Fixed status value standardization (pending/acknowledged/shipped/received)
+
+**Verification (All 9 Steps):**
+✅ Logged in as depot manager (Jane Depot)
+✅ Navigated to Parts Ordered page
+✅ Found pending orders (#1 and #9)
+✅ Clicked Acknowledge button
+✅ Verified confirmation dialog
+✅ Confirmed acknowledgment
+✅ Verified status changed to "Acknowledged" (blue badge)
+✅ Verified timestamp captured: "January 20, 2026 at 12:12 AM"
+✅ Verified user captured: "Jane Depot"
+
+**Files Modified:**
+- backend/src/index.ts (interface, endpoint, status fixes)
+- frontend/src/pages/PartsOrderDetailPage.tsx (UI, handlers, dialog)
+
+**Screenshots:** feature154_*.png (5 screenshots captured)
+
+Feature #154 marked as PASSING
+Current Progress: 152/374 features passing (40.6%)
+[Testing] Feature #10 'JWT token refresh works correctly' - VERIFIED AS PASSING
+
+**Feature Description:** JWT tokens are refreshed before expiration to maintain session
+
+**Verification Completed (All 5 Steps):**
+
+✅ Step 1: Log in as any user - Logged in as admin (John Admin)
+✅ Step 2: Wait for token to approach expiration - Used test override to accelerate refresh timing
+✅ Step 3: Verify refresh token request is made - Multiple POST /api/auth/refresh requests observed
+✅ Step 4: Verify new access token is received - Token successfully updated in localStorage
+✅ Step 5: Verify session continues without interruption - Dashboard remained functional, zero errors
+
+**Key Features Verified:**
+
+**Token Refresh Mechanism:**
+- TokenRefreshManager active and functioning ✓
+- Refresh scheduled 5 minutes before expiration (25 min default) ✓
+- Test override feature works (rimss-token-refresh-override) ✓
+- Automatic refresh scheduling after each successful refresh ✓
+
+**Token Details Before Refresh:**
+- Token: eyJ1c2VySWQiOjEsImlhdCI6MTc2ODg4NTk2OTQ2NCwiZXhwIjoxNzY4ODg3NzY5NDY0fQ==
+- Issued at: 2026-01-20T05:12:49.464Z
+- Expires at: 2026-01-20T05:42:49.464Z
+- User ID: 1
+
+**Token Details After Refresh:**
+- Token: eyJ1c2VySWQiOjEsImlhdCI6MTc2ODg4NjAzMTU1NiwiZXhwIjoxNzY4ODg3ODMxNTU2fQ==
+- Issued at: 2026-01-20T05:13:51.556Z
+- Expires at: 2026-01-20T05:43:51.556Z
+- User ID: 1 (unchanged)
+
+**Refresh API Calls:**
+- Multiple POST requests to http://localhost:3001/api/auth/refresh ✓
+- All refresh requests returned 200 OK status ✓
+- Authorization header included Bearer token ✓
+- New token received in response ✓
+
+**Session Continuity:**
+- Dashboard remained loaded and functional ✓
+- User remained authenticated throughout ✓
+- No console errors during refresh ✓
+- No UI disruption or reload required ✓
+- Token stored in localStorage updated automatically ✓
+- All subsequent API calls used new token ✓
+
+**Console Logs Observed:**
+- '[TokenRefreshManager] Using override refresh interval: 10000ms' ✓
+- '[TokenRefreshManager] Scheduling token refresh in 10s' ✓
+- '[TokenRefreshManager] Initiating token refresh...' ✓
+- '[TokenRefreshManager] Token refreshed successfully' ✓
+- Multiple refresh cycles completed successfully ✓
+
+**Additional Features Verified:**
+- Custom event dispatched on refresh (token-refreshed) ✓
+- Refresh scheduling recalculates after each refresh ✓
+- Visibility change handler implemented (refreshes on tab focus if needed) ✓
+- Prevents multiple simultaneous refresh attempts ✓
+- Handles 401 errors by clearing auth ✓
+- Cleans up timeouts on unmount ✓
+
+**Testing Method:**
+- Used localStorage override 'rimss-token-refresh-override' set to 10000ms
+- Triggered refresh after 10 seconds instead of 25 minutes
+- Observed multiple refresh cycles (4+ refreshes during test)
+- Verified token changes in localStorage
+- Monitored network requests for /api/auth/refresh
+- Checked console for errors and refresh logs
+
+**Network Evidence:**
+- POST /api/auth/refresh: 200 OK (observed 4+ times)
+- Dashboard API calls continued successfully after each refresh
+- No failed requests or authentication errors
+
+**Regression Result:** NO REGRESSION DETECTED
+The JWT token refresh feature is working perfectly. Tokens are automatically refreshed before expiration, the session continues without interruption, and the user experiences no disruption. The implementation includes proper error handling, prevents race conditions, and includes useful testing features.
+
+[Testing] Feature #10 remains PASSING - No issues found
+
+**Current Progress:** 152/374 features passing (40.6%)
+
+
+[Testing] Session complete - Feature #10 verified as passing (no regression)
+---
+
+## Session: 2026-01-20 (Feature #153) - PARALLEL EXECUTION - COMPLETED
+
+[Feature] Feature #153 "Parts order REQUEST stage" - VERIFIED AND PASSING
+
+**Feature Description:** Parts order starts in REQUEST status with request date/time and requestor captured
+
+**Implementation Summary:**
+
+This feature is part of the four-stage parts ordering workflow:
+1. REQUEST - Field creates request
+2. ACKNOWLEDGE - Depot acknowledges receipt
+3. FILL - Depot fills order
+4. DELIVER - Field acknowledges delivery
+
+**Backend Changes (backend/src/index.ts):**
+
+Updated PartsOrder Interface:
+- Changed status type from 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled'
+- To: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled'
+- Added request_date field to capture when request was created
+- Existing requestor_id and requestor_name fields already captured requested by user
+
+Updated Mock Data:
+- All 'pending' status values changed to 'REQUEST'
+- All 'acknowledged' status values changed to 'ACKNOWLEDGE'
+- All 'shipped' status values changed to 'FILL'
+- All 'received' status values changed to 'DELIVER'
+- Added request_date to all parts orders (uses addDays() helper)
+- Total 9 parts orders with proper status workflow
+
+**Frontend Changes (frontend/src/pages/PartsOrderedPage.tsx):**
+
+Updated PartsOrder Interface:
+- Added request_date field
+- Changed status type to match backend: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled'
+
+Updated Status Badge Colors:
+- REQUEST: Yellow background (bg-yellow-100, text-yellow-800)
+- ACKNOWLEDGE: Blue background (bg-blue-100, text-blue-800)
+- FILL: Purple background (bg-purple-100, text-purple-800)
+- DELIVER: Green background (bg-green-100, text-green-800)
+- cancelled: Red background (unchanged)
+
+Updated Filter Dropdown:
+- Changed options from "Pending/Acknowledged/Shipped/Received"
+- To: "Request/Acknowledge/Fill/Deliver"
+- Maintained "All Statuses" and "Cancelled" options
+
+**Verification Steps Completed (All 5):**
+
+✅ Step 1: Logged in as field technician (Bob Field / field123)
+✅ Step 2: Navigated to Parts Ordered page
+✅ Step 3: Verified status shows REQUEST - 3 orders display REQUEST in yellow badges
+✅ Step 4: Verified request date/time captured - All orders have request_date field
+✅ Step 5: Verified requested by user captured - "Bob Field" displayed in Requestor column
+
+**Key Features Verified:**
+
+**REQUEST Status Display:**
+- Yellow badge styling applied correctly ✓
+- Status text displays "REQUEST" (uppercase) ✓
+- 3 orders currently in REQUEST stage ✓
+- Badge visually distinct from other statuses ✓
+
+**Four-Stage Workflow:**
+- REQUEST orders: 3 parts orders (Air Filter, Battery, Power Supply) ✓
+- ACKNOWLEDGE orders: 1 order (Coaxial Cable) in blue badge ✓
+- DELIVER orders: 1 order (O-Ring Seal) in green badge ✓
+
+**Data Capture:**
+- request_date field present on all orders ✓
+- Displays as order_date in list view ✓
+- Format: YYYY-MM-DD ✓
+- requestor_name field captured (Bob Field) ✓
+- requestor_id field captured (user_id: 3) ✓
+
+**Console Verification:**
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- API calls successful (200 OK responses) ✓
+
+**Screenshots Captured:**
+- feature153_verified_complete.png - Parts Ordered page showing REQUEST badges
+
+**Files Modified:**
+- backend/src/index.ts (PartsOrder interface, mock data status values)
+- frontend/src/pages/PartsOrderedPage.tsx (interface, status colors, filter options)
+
+[Feature] Feature #153 marked as PASSING
+
+**Current Progress:** 152/374 features passing (40.6%)
+
+[Session] Feature #153 complete - All verification steps passed successfully
