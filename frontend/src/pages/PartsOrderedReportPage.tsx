@@ -159,6 +159,29 @@ export default function PartsOrderedReportPage() {
     }
   }
 
+  // Quick filter functions
+  const setTodayFilter = () => {
+    const today = new Date()
+    const todayStr = today.toISOString().split('T')[0]
+    setStartDate(todayStr)
+    setEndDate(todayStr)
+  }
+
+  const setThisWeekFilter = () => {
+    const today = new Date()
+    const dayOfWeek = today.getDay() // 0 (Sunday) to 6 (Saturday)
+
+    // Calculate start of week (Sunday)
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - dayOfWeek)
+
+    // End of week is today (or Saturday if you want full week)
+    const endOfWeek = new Date(today)
+
+    setStartDate(startOfWeek.toISOString().split('T')[0])
+    setEndDate(endOfWeek.toISOString().split('T')[0])
+  }
+
   // Generate report on mount and when date range changes
   useEffect(() => {
     if (token && currentProgramId) {
@@ -508,6 +531,22 @@ export default function PartsOrderedReportPage() {
 
       {/* Date Range Filter */}
       <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        {/* Quick Filters */}
+        <div className="mb-4 flex gap-2">
+          <button
+            onClick={setTodayFilter}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
+          >
+            Today
+          </button>
+          <button
+            onClick={setThisWeekFilter}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
+          >
+            This Week
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

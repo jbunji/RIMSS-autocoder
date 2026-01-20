@@ -133,6 +133,29 @@ export default function SortieReportPage() {
     fetchSortieReport()
   }
 
+  // Quick filter functions
+  const setTodayFilter = () => {
+    const today = new Date()
+    const todayStr = today.toISOString().split('T')[0]
+    setStartDate(todayStr)
+    setEndDate(todayStr)
+  }
+
+  const setThisWeekFilter = () => {
+    const today = new Date()
+    const dayOfWeek = today.getDay() // 0 (Sunday) to 6 (Saturday)
+
+    // Calculate start of week (Sunday)
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - dayOfWeek)
+
+    // End of week is today (or Saturday if you want full week)
+    const endOfWeek = new Date(today)
+
+    setStartDate(startOfWeek.toISOString().split('T')[0])
+    setEndDate(endOfWeek.toISOString().split('T')[0])
+  }
+
   // Helper function to get ZULU timestamp
   const getZuluTimestamp = (): string => {
     const now = new Date()
@@ -428,6 +451,23 @@ export default function SortieReportPage() {
           <CalendarIcon className="h-5 w-5 mr-2 text-gray-400" />
           Date Range
         </h2>
+
+        {/* Quick Filters */}
+        <div className="mb-4 flex gap-2">
+          <button
+            onClick={setTodayFilter}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
+          >
+            Today
+          </button>
+          <button
+            onClick={setThisWeekFilter}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition-colors"
+          >
+            This Week
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
