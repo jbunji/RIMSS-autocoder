@@ -15320,3 +15320,19 @@ Testing Results:
 Feature #167 marked as PASSING
 Current Progress: 168/374 features passing (44.9%)
 
+[Testing] Starting regression test for Feature #95: Repeat/recur flagging on repairs
+
+================================================================================
+Testing Session: 2026-01-20 00:49 UTC - Feature #151 REGRESSION TEST
+================================================================================
+
+Feature #151: Parts ordering list page loads - VERIFIED AS PASSING
+
+All 5 verification steps completed successfully:
+
+Regression Result: NO REGRESSION DETECTED
+
+Feature #151 remains PASSING - Parts ordering list page loads correctly.
+
+[Testing] Session complete - verified feature #151 (no regression)
+Current Progress: 168/374 features passing (44.9%)

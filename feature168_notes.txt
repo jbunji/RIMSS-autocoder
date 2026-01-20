@@ -1,0 +1,126 @@
+================================================================================
+Session: 2026-01-20 00:45 UTC - Feature #168 COMPLETED
+================================================================================
+
+Feature #168: Software catalog list page - IMPLEMENTED AND VERIFIED
+
+Implementation Summary:
+Created a comprehensive software catalog list page that displays all software
+versions with search, filtering, and sorting capabilities.
+
+Frontend Implementation (frontend/src/pages/SoftwarePage.tsx):
+- Created new SoftwarePage component (337 lines)
+- Software interface matching backend structure:
+  * sw_id, sw_number, sw_title, sw_type, sys_id
+  * revision, revision_date, eff_date
+  * cpin_flag (boolean), sw_desc, pgm_id, active
+  * program_cd, program_name (from API join)
+- State management:
+  * software array, loading, error states
+  * searchTerm for text filtering
+  * sortField and sortDirection for column sorting
+  * typeFilter for software type filtering
+- Search functionality:
+  * Filters by sw_number, sw_title, revision, sw_desc
+  * Case-insensitive search
+  * Real-time filtering as user types
+- Type filter dropdown:
+  * Options: All Types, APPLICATION, DSP, FIRMWARE
+  * Triggers API call with type parameter
+- Sortable table columns:
+  * All columns clickable for sorting
+  * Visual indicators (up/down/neutral chevron icons)
+  * Supports: sw_number, sw_title, sw_type, revision, revision_date, eff_date
+  * Date fields sorted numerically by timestamp
+- Table display (8 columns):
+  * Software Number (font-medium)
+  * Title (with description truncated below)
+  * Type (color-coded badge: blue for all types)
+  * Version (font-medium)
+  * Revision Date (formatted MMM DD, YYYY)
+  * Effective Date (formatted MMM DD, YYYY)
+  * CPIN (Yes or —)
+  * Program (pgm_cd)
+- Loading state with spinner
+- Empty state when no results
+- Results count display
+
+Routing Updates (frontend/src/App.tsx):
+- Imported SoftwarePage component
+- Added route: /software → <SoftwarePage />
+- Route positioned between /parts-ordered and /notifications
+
+Navigation Updates (frontend/src/components/layout/Sidebar.tsx):
+- Imported CodeBracketIcon from heroicons
+- Added Software link to navigation array:
+  * Name: "Software"
+  * Href: "/software"
+  * Icon: CodeBracketIcon (</> symbol)
+  * Positioned between "Parts Ordered" and "Notifications"
+
+Backend API (already implemented):
+- GET /api/software endpoint (line 10685)
+- Program-based filtering (respects user's assigned programs)
+- Optional query parameters: program_id, search, type
+- Returns software array with program info joined
+- Sorts by revision_date descending
+
+All 4 verification steps completed successfully:
+
+✅ Step 1: Logged in as admin user (John Admin)
+✅ Step 2: Navigated to Software page via sidebar link
+✅ Step 3: Verified software table displays
+   - Table shows 10 software versions
+   - All 8 columns displayed correctly
+   - Professional layout with proper spacing
+✅ Step 4: Verified data loads
+   - 10 software versions loaded from backend
+   - Data fields properly populated:
+     * Software numbers (SW-CAM-CTRL-001, etc.)
+     * Titles and descriptions
+     * Types (APPLICATION, DSP, FIRMWARE)
+     * Versions (2.1.5, 3.4.2, etc.)
+     * Dates formatted correctly
+     * CPIN flags (Yes or —)
+     * Program codes (CRIIS, ACTS, ARDS)
+
+Additional Testing:
+
+Search Functionality:
+- Tested search term "radar"
+- Filtered to 1 result: "SW-RADAR-DSP-001 Radar Signal Processing"
+- Shows "Showing 1 of 10 software versions"
+- Search works across all text fields ✓
+
+Type Filter:
+- Selected "FIRMWARE" from dropdown
+- Filtered to 5 results (only FIRMWARE type software)
+- Shows "Showing 5 of 5 software versions"
+- Filter properly triggers backend API call ✓
+
+Console Verification:
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- No API errors ✓
+- All network requests successful ✓
+
+Screenshots Captured:
+- feature168_software_catalog_page.png - Initial page load
+- feature168_software_catalog_working.png - Full table with proper dates
+- feature168_software_catalog_filtered.png - FIRMWARE filter applied
+
+Technical Implementation Notes:
+- Fixed interface mismatch between frontend and backend:
+  * Backend uses: eff_date, cpin_flag, program_cd
+  * Initial frontend had: effective_date, cpin, program.pgm_cd
+  * Updated frontend to match backend structure
+- Sort functionality handles both string and date fields
+- Date formatting uses toLocaleDateString for consistency
+- Type filter dynamically populated from available software types
+- Software descriptions truncated with max-w-xs class
+- Hover effects on table rows for better UX
+- Color-coded type badges for visual distinction
+
+Feature #168 marked as PASSING
+
+Current Progress: 167/374 features passing (44.7%)

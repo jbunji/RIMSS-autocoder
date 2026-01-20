@@ -10871,6 +10871,125 @@ app.post('/api/software', (req, res) => {
   });
 });
 
+// PUT /api/software/:id - Update software version (admin only)
+app.put('/api/software/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Only admins can update software
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only administrators can update software versions' });
+  }
+
+  const swId = parseInt(req.params.id, 10);
+  if (isNaN(swId)) {
+    return res.status(400).json({ error: 'Invalid software ID' });
+  }
+
+  // Find existing software
+  const softwareIndex = softwareCatalog.findIndex(sw => sw.sw_id === swId);
+  if (softwareIndex === -1) {
+    return res.status(404).json({ error: 'Software not found' });
+  }
+
+  const existingSoftware = softwareCatalog[softwareIndex];
+
+  // Extract and validate fields
+  const {
+    sw_number,
+    sw_type,
+    revision,
+    sw_title,
+    sw_desc,
+    effective_date,
+    cpin,
+    pgm_id,
+  } = req.body;
+
+  // Validate required fields
+  if (!sw_number || typeof sw_number !== 'string' || sw_number.trim() === '') {
+    return res.status(400).json({ error: 'Software number is required' });
+  }
+
+  if (!sw_type || typeof sw_type !== 'string' || sw_type.trim() === '') {
+    return res.status(400).json({ error: 'Software type is required' });
+  }
+
+  if (!revision || typeof revision !== 'string' || revision.trim() === '') {
+    return res.status(400).json({ error: 'Revision is required' });
+  }
+
+  if (!sw_title || typeof sw_title !== 'string' || sw_title.trim() === '') {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  if (!effective_date || typeof effective_date !== 'string') {
+    return res.status(400).json({ error: 'Effective date is required' });
+  }
+
+  if (pgm_id === undefined || typeof pgm_id !== 'number') {
+    return res.status(400).json({ error: 'Program ID is required' });
+  }
+
+  // Validate program exists
+  const program = allPrograms.find(p => p.pgm_id === pgm_id);
+  if (!program) {
+    return res.status(400).json({ error: 'Invalid program ID' });
+  }
+
+  // Check for duplicate software number (excluding current software)
+  const duplicateSoftware = softwareCatalog.find(
+    sw => sw.sw_number === sw_number.trim() && sw.active && sw.sw_id !== swId
+  );
+  if (duplicateSoftware) {
+    return res.status(400).json({ error: 'Software number already exists' });
+  }
+
+  // Update software record
+  const updatedSoftware: Software = {
+    ...existingSoftware,
+    sw_number: sw_number.trim(),
+    sw_type: sw_type.trim(),
+    revision: revision.trim(),
+    revision_date: new Date().toISOString().split('T')[0], // Update revision date to today
+    sw_title: sw_title.trim(),
+    sw_desc: sw_desc && typeof sw_desc === 'string' ? sw_desc.trim() : null,
+    eff_date: effective_date,
+    cpin_flag: cpin === true || cpin === 'true',
+    pgm_id: pgm_id,
+  };
+
+  // Replace in catalog
+  softwareCatalog[softwareIndex] = updatedSoftware;
+
+  console.log(`[SOFTWARE] Updated software version ${updatedSoftware.sw_number} (ID: ${updatedSoftware.sw_id}) by ${user.username}`);
+
+  // Return the updated software with transformed field names for frontend
+  res.status(200).json({
+    sw_id: updatedSoftware.sw_id,
+    sw_number: updatedSoftware.sw_number,
+    sw_title: updatedSoftware.sw_title,
+    sw_type: updatedSoftware.sw_type,
+    revision: updatedSoftware.revision,
+    revision_date: updatedSoftware.revision_date,
+    effective_date: updatedSoftware.eff_date,
+    cpin: updatedSoftware.cpin_flag ? 'Yes' : null,
+    sw_desc: updatedSoftware.sw_desc,
+    pgm_id: updatedSoftware.pgm_id,
+    active: updatedSoftware.active,
+    program: {
+      pgm_id: program.pgm_id,
+      pgm_cd: program.pgm_cd,
+      pgm_name: program.pgm_name,
+    },
+  });
+});
+
 // GET /api/configurations/:id/software - Get software associations for a configuration
 app.get('/api/configurations/:id/software', (req, res) => {
   const payload = authenticateRequest(req, res);

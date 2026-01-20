@@ -1,29 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import {
   CodeBracketIcon,
   MagnifyingGlassIcon,
   ChevronUpIcon,
   ChevronDownIcon,
   ChevronUpDownIcon,
+  PlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
+import { Dialog, Transition } from '@headlessui/react'
 import { useAuthStore } from '../stores/authStore'
 
-// Software interface matching backend
+// Software interface matching backend response
 interface Software {
   sw_id: number
   sw_number: string
   sw_title: string
   sw_type: string
-  sys_id: string
   revision: string
   revision_date: string
-  eff_date: string
-  cpin_flag: boolean
+  effective_date: string
+  cpin: string | null
   sw_desc: string | null
   pgm_id: number
   active: boolean
-  program_cd?: string
-  program_name?: string
+  program?: {
+    pgm_id: number
+    pgm_cd: string
+    pgm_name: string
+  }
 }
 
 interface SoftwareResponse {
@@ -31,8 +36,15 @@ interface SoftwareResponse {
   total: number
 }
 
-type SortField = 'sw_number' | 'sw_title' | 'revision' | 'sw_type' | 'revision_date' | 'eff_date'
+type SortField = 'sw_number' | 'sw_title' | 'revision' | 'sw_type' | 'revision_date' | 'effective_date'
 type SortDirection = 'asc' | 'desc'
+
+// Programs interface
+interface Program {
+  pgm_id: number
+  pgm_cd: string
+  pgm_name: string
+}
 
 export default function SoftwarePage() {
   const { token, user } = useAuthStore()
@@ -43,6 +55,24 @@ export default function SoftwarePage() {
   const [sortField, setSortField] = useState<SortField>('sw_number')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [typeFilter, setTypeFilter] = useState<string>('all')
+
+  // Modal state
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [programs, setPrograms] = useState<Program[]>([])
+
+  // Form state
+  const [formData, setFormData] = useState({
+    sw_number: '',
+    sw_type: 'FIRMWARE',
+    revision: '',
+    sw_title: '',
+    sw_desc: '',
+    effective_date: new Date().toISOString().split('T')[0],
+    cpin: false,
+    pgm_id: user?.programs?.[0]?.pgm_id || 1,
+  })
 
   // Fetch software catalog
   const fetchSoftware = async () => {
@@ -77,6 +107,13 @@ export default function SoftwarePage() {
     }
   }
 
+  // Set programs from user's assigned programs
+  useEffect(() => {
+    if (user && user.programs) {
+      setPrograms(user.programs)
+    }
+  }, [user])
+
   useEffect(() => {
     fetchSoftware()
   }, [typeFilter])
@@ -96,7 +133,7 @@ export default function SoftwarePage() {
       let aValue: string | number
       let bValue: string | number
 
-      if (sortField === 'revision_date' || sortField === 'eff_date') {
+      if (sortField === 'revision_date' || sortField === 'effective_date') {
         aValue = new Date(a[sortField]).getTime()
         bValue = new Date(b[sortField]).getTime()
       } else {
@@ -138,6 +175,51 @@ export default function SoftwarePage() {
   // Get unique software types for filter
   const softwareTypes = Array.from(new Set(software.map(sw => sw.sw_type))).sort()
 
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setSaveError(null)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/software', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create software')
+      }
+
+      // Success - close modal and refresh list
+      setShowAddModal(false)
+      setFormData({
+        sw_number: '',
+        sw_type: 'FIRMWARE',
+        revision: '',
+        sw_title: '',
+        sw_desc: '',
+        effective_date: new Date().toISOString().split('T')[0],
+        cpin: false,
+        pgm_id: user?.programs?.[0]?.pgm_id || 1,
+      })
+      fetchSoftware()
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Error creating software:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Check if user can create software (admin only)
+  const canCreate = user?.role === 'ADMIN'
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -151,6 +233,18 @@ export default function SoftwarePage() {
             Manage software versions and configurations
           </p>
         </div>
+        {canCreate && (
+          <div className="mt-4 sm:mt-0">
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+            >
+              <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
+              Add Software
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -266,11 +360,11 @@ export default function SoftwarePage() {
                   <th
                     scope="col"
                     className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('eff_date')}
+                    onClick={() => handleSort('effective_date')}
                   >
                     <div className="flex items-center">
                       Effective Date
-                      {getSortIcon('eff_date')}
+                      {getSortIcon('effective_date')}
                     </div>
                   </th>
                   <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -307,13 +401,13 @@ export default function SoftwarePage() {
                       {formatDate(sw.revision_date)}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {formatDate(sw.eff_date)}
+                      {formatDate(sw.effective_date)}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {sw.cpin_flag ? 'Yes' : '—'}
+                      {sw.cpin || '—'}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {sw.program_cd || '—'}
+                      {sw.program?.pgm_cd || '—'}
                     </td>
                   </tr>
                 ))}
@@ -329,6 +423,235 @@ export default function SoftwarePage() {
           Showing {filteredAndSortedSoftware.length} of {software.length} software version{software.length !== 1 ? 's' : ''}
         </div>
       )}
+
+      {/* Add Software Modal */}
+      <Transition.Root show={showAddModal} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={setShowAddModal}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+                  <div className="absolute right-0 top-0 pr-4 pt-4">
+                    <button
+                      type="button"
+                      className="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                      onClick={() => setShowAddModal(false)}
+                    >
+                      <span className="sr-only">Close</span>
+                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  <div className="sm:flex sm:items-start">
+                    <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <CodeBracketIcon className="h-6 w-6 text-primary-600" aria-hidden="true" />
+                    </div>
+                    <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left flex-1">
+                      <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+                        Add New Software Version
+                      </Dialog.Title>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">
+                          Create a new software version record in the catalog.
+                        </p>
+                      </div>
+
+                      {/* Form */}
+                      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                        {/* Software Number */}
+                        <div>
+                          <label htmlFor="sw_number" className="block text-sm font-medium text-gray-700">
+                            Software Number <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="sw_number"
+                            required
+                            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                            value={formData.sw_number}
+                            onChange={(e) => setFormData({ ...formData, sw_number: e.target.value })}
+                            placeholder="e.g., SW-CAM-CTRL-001"
+                          />
+                        </div>
+
+                        {/* Software Type */}
+                        <div>
+                          <label htmlFor="sw_type" className="block text-sm font-medium text-gray-700">
+                            Software Type <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="sw_type"
+                            required
+                            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                            value={formData.sw_type}
+                            onChange={(e) => setFormData({ ...formData, sw_type: e.target.value })}
+                          >
+                            <option value="FIRMWARE">FIRMWARE</option>
+                            <option value="APPLICATION">APPLICATION</option>
+                            <option value="DSP">DSP</option>
+                            <option value="OS">OS</option>
+                            <option value="DRIVER">DRIVER</option>
+                            <option value="UTILITY">UTILITY</option>
+                          </select>
+                        </div>
+
+                        {/* Revision */}
+                        <div>
+                          <label htmlFor="revision" className="block text-sm font-medium text-gray-700">
+                            Revision/Version <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="revision"
+                            required
+                            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                            value={formData.revision}
+                            onChange={(e) => setFormData({ ...formData, revision: e.target.value })}
+                            placeholder="e.g., 2.1.5"
+                          />
+                        </div>
+
+                        {/* Title */}
+                        <div>
+                          <label htmlFor="sw_title" className="block text-sm font-medium text-gray-700">
+                            Title <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="sw_title"
+                            required
+                            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                            value={formData.sw_title}
+                            onChange={(e) => setFormData({ ...formData, sw_title: e.target.value })}
+                            placeholder="e.g., Camera Control Software"
+                          />
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                          <label htmlFor="sw_desc" className="block text-sm font-medium text-gray-700">
+                            Description
+                          </label>
+                          <textarea
+                            id="sw_desc"
+                            rows={3}
+                            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                            value={formData.sw_desc}
+                            onChange={(e) => setFormData({ ...formData, sw_desc: e.target.value })}
+                            placeholder="Brief description of the software"
+                          />
+                        </div>
+
+                        {/* Effective Date */}
+                        <div>
+                          <label htmlFor="effective_date" className="block text-sm font-medium text-gray-700">
+                            Effective Date <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            id="effective_date"
+                            required
+                            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                            value={formData.effective_date}
+                            onChange={(e) => setFormData({ ...formData, effective_date: e.target.value })}
+                          />
+                        </div>
+
+                        {/* Program */}
+                        <div>
+                          <label htmlFor="pgm_id" className="block text-sm font-medium text-gray-700">
+                            Program <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="pgm_id"
+                            required
+                            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
+                            value={formData.pgm_id}
+                            onChange={(e) => setFormData({ ...formData, pgm_id: parseInt(e.target.value, 10) })}
+                          >
+                            {programs.map((program) => (
+                              <option key={program.pgm_id} value={program.pgm_id}>
+                                {program.pgm_cd} - {program.pgm_name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* CPIN Flag */}
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="cpin"
+                            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600"
+                            checked={formData.cpin}
+                            onChange={(e) => setFormData({ ...formData, cpin: e.target.checked })}
+                          />
+                          <label htmlFor="cpin" className="ml-2 block text-sm text-gray-900">
+                            CPIN (Computer Program Identification Number)
+                          </label>
+                        </div>
+
+                        {/* Error Message */}
+                        {saveError && (
+                          <div className="rounded-md bg-red-50 p-3">
+                            <p className="text-sm text-red-800">{saveError}</p>
+                          </div>
+                        )}
+
+                        {/* Buttons */}
+                        <div className="mt-6 flex gap-3 justify-end">
+                          <button
+                            type="button"
+                            className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                            onClick={() => setShowAddModal(false)}
+                            disabled={saving}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={saving}
+                          >
+                            {saving ? (
+                              <>
+                                <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent mr-2"></div>
+                                Creating...
+                              </>
+                            ) : (
+                              'Create Software'
+                            )}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </div>
   )
 }

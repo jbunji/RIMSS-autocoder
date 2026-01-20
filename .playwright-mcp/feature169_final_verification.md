@@ -1,0 +1,260 @@
+### Page state
+- Page URL: http://localhost:5173/software
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]: CUI - Controlled Unclassified Information
+  - navigation [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - button "Toggle sidebar" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+        - generic [ref=e13]:
+          - generic [ref=e14]: RIMSS
+          - generic [ref=e15]: Remote Independent Maintenance Status System
+      - generic [ref=e16]:
+        - 'button "Program: CRIIS" [ref=e18] [cursor=pointer]':
+          - generic [ref=e19]: "Program:"
+          - generic [ref=e20]: CRIIS
+          - img [ref=e21]
+        - button "John Admin" [ref=e24] [cursor=pointer]:
+          - img [ref=e25]
+          - generic [ref=e27]: John Admin
+          - img [ref=e28]
+  - generic [ref=e32]:
+    - navigation [ref=e33]:
+      - generic [ref=e34]:
+        - link "Dashboard" [ref=e35] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e36]
+          - text: Dashboard
+        - link "Assets" [ref=e38] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e39]
+          - text: Assets
+        - link "Configurations" [ref=e41] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e42]
+          - text: Configurations
+        - link "Maintenance" [ref=e45] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e46]
+          - text: Maintenance
+        - link "Sorties" [ref=e48] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e49]
+          - text: Sorties
+        - link "Spares" [ref=e51] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e52]
+          - text: Spares
+        - link "Parts Ordered" [ref=e54] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e55]
+          - text: Parts Ordered
+        - link "Software" [ref=e57] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e58]
+          - text: Software
+        - link "Notifications" [ref=e60] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e61]
+          - text: Notifications
+        - link "Reports" [ref=e63] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e64]
+          - text: Reports
+      - generic [ref=e66]:
+        - paragraph [ref=e67]: Administration
+        - link "Users" [ref=e68] [cursor=pointer]:
+          - /url: /admin/users
+          - img [ref=e69]
+          - text: Users
+    - paragraph [ref=e72]: RIMSS v0.1.0
+  - main [ref=e74]:
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - img [ref=e80]
+            - heading "Software Catalog" [level=1] [ref=e82]
+          - paragraph [ref=e83]: Manage software versions and configurations
+        - button "Add Software" [active] [ref=e85] [cursor=pointer]:
+          - img [ref=e86]
+          - text: Add Software
+      - generic [ref=e89]:
+        - generic [ref=e90]:
+          - generic:
+            - img
+          - textbox "Search software..." [ref=e91]
+        - combobox [ref=e93]:
+          - option "All Types" [selected]
+          - option "APPLICATION"
+          - option "DSP"
+          - option "FIRMWARE"
+      - table [ref=e293]:
+        - rowgroup [ref=e294]:
+          - row "Software Number Title Type Version Revision Date Effective Date CPIN Program" [ref=e295]:
+            - columnheader "Software Number" [ref=e296] [cursor=pointer]:
+              - generic [ref=e297]:
+                - text: Software Number
+                - img [ref=e298]
+            - columnheader "Title" [ref=e300] [cursor=pointer]:
+              - generic [ref=e301]:
+                - text: Title
+                - img [ref=e302]
+            - columnheader "Type" [ref=e304] [cursor=pointer]:
+              - generic [ref=e305]:
+                - text: Type
+                - img [ref=e306]
+            - columnheader "Version" [ref=e308] [cursor=pointer]:
+              - generic [ref=e309]:
+                - text: Version
+                - img [ref=e310]
+            - columnheader "Revision Date" [ref=e312] [cursor=pointer]:
+              - generic [ref=e313]:
+                - text: Revision Date
+                - img [ref=e314]
+            - columnheader "Effective Date" [ref=e316] [cursor=pointer]:
+              - generic [ref=e317]:
+                - text: Effective Date
+                - img [ref=e318]
+            - columnheader "CPIN" [ref=e320]
+            - columnheader "Program" [ref=e321]
+        - rowgroup [ref=e322]:
+          - row "SW-CAM-CTRL-001 Camera Control Software Primary camera control firmware for image capture and processing FIRMWARE 2.1.5 Dec 20, 2025 Dec 20, 2025 Yes CRIIS" [ref=e323]:
+            - cell "SW-CAM-CTRL-001" [ref=e324]
+            - cell "Camera Control Software Primary camera control firmware for image capture and processing" [ref=e325]:
+              - generic [ref=e326]: Camera Control Software
+              - generic [ref=e327]: Primary camera control firmware for image capture and processing
+            - cell "FIRMWARE" [ref=e328]:
+              - generic [ref=e329]: FIRMWARE
+            - cell "2.1.5" [ref=e330]
+            - cell "Dec 20, 2025" [ref=e331]
+            - cell "Dec 20, 2025" [ref=e332]
+            - cell "Yes" [ref=e333]
+            - cell "CRIIS" [ref=e334]
+          - row "SW-CAM-CTRL-002 Camera Control Software (Legacy) Previous version of camera control firmware FIRMWARE 2.0.8 Sep 21, 2025 Sep 21, 2025 Yes CRIIS" [ref=e335]:
+            - cell "SW-CAM-CTRL-002" [ref=e336]
+            - cell "Camera Control Software (Legacy) Previous version of camera control firmware" [ref=e337]:
+              - generic [ref=e338]: Camera Control Software (Legacy)
+              - generic [ref=e339]: Previous version of camera control firmware
+            - cell "FIRMWARE" [ref=e340]:
+              - generic [ref=e341]: FIRMWARE
+            - cell "2.0.8" [ref=e342]
+            - cell "Sep 21, 2025" [ref=e343]
+            - cell "Sep 21, 2025" [ref=e344]
+            - cell "Yes" [ref=e345]
+            - cell "CRIIS" [ref=e346]
+          - row "SW-COMM-ENC-001 Communication Encryption Module Secure communication encryption software APPLICATION 4.0.1 Jan 4, 2026 Jan 4, 2026 Yes CRIIS" [ref=e347]:
+            - cell "SW-COMM-ENC-001" [ref=e348]
+            - cell "Communication Encryption Module Secure communication encryption software" [ref=e349]:
+              - generic [ref=e350]: Communication Encryption Module
+              - generic [ref=e351]: Secure communication encryption software
+            - cell "APPLICATION" [ref=e352]:
+              - generic [ref=e353]: APPLICATION
+            - cell "4.0.1" [ref=e354]
+            - cell "Jan 4, 2026" [ref=e355]
+            - cell "Jan 4, 2026" [ref=e356]
+            - cell "Yes" [ref=e357]
+            - cell "CRIIS" [ref=e358]
+          - row "SW-LASER-CAL-001 Laser Calibration Firmware Laser designator calibration and control firmware FIRMWARE 1.3.7 Nov 5, 2025 Nov 5, 2025 Yes ACTS" [ref=e359]:
+            - cell "SW-LASER-CAL-001" [ref=e360]
+            - cell "Laser Calibration Firmware Laser designator calibration and control firmware" [ref=e361]:
+              - generic [ref=e362]: Laser Calibration Firmware
+              - generic [ref=e363]: Laser designator calibration and control firmware
+            - cell "FIRMWARE" [ref=e364]:
+              - generic [ref=e365]: FIRMWARE
+            - cell "1.3.7" [ref=e366]
+            - cell "Nov 5, 2025" [ref=e367]
+            - cell "Nov 5, 2025" [ref=e368]
+            - cell "Yes" [ref=e369]
+            - cell "ACTS" [ref=e370]
+          - row "SW-NAV-GPS-001 GPS Navigation Software GPS positioning and navigation algorithms FIRMWARE 1.8.3 Oct 21, 2025 Oct 21, 2025 — CRIIS" [ref=e371]:
+            - cell "SW-NAV-GPS-001" [ref=e372]
+            - cell "GPS Navigation Software GPS positioning and navigation algorithms" [ref=e373]:
+              - generic [ref=e374]: GPS Navigation Software
+              - generic [ref=e375]: GPS positioning and navigation algorithms
+            - cell "FIRMWARE" [ref=e376]:
+              - generic [ref=e377]: FIRMWARE
+            - cell "1.8.3" [ref=e378]
+            - cell "Oct 21, 2025" [ref=e379]
+            - cell "Oct 21, 2025" [ref=e380]
+            - cell "—" [ref=e381]
+            - cell "CRIIS" [ref=e382]
+          - row "SW-NAV-INS-001 Inertial Navigation Software Inertial navigation system integration software FIRMWARE 2.2.1 Nov 20, 2025 Nov 20, 2025 — CRIIS" [ref=e383]:
+            - cell "SW-NAV-INS-001" [ref=e384]
+            - cell "Inertial Navigation Software Inertial navigation system integration software" [ref=e385]:
+              - generic [ref=e386]: Inertial Navigation Software
+              - generic [ref=e387]: Inertial navigation system integration software
+            - cell "FIRMWARE" [ref=e388]:
+              - generic [ref=e389]: FIRMWARE
+            - cell "2.2.1" [ref=e390]
+            - cell "Nov 20, 2025" [ref=e391]
+            - cell "Nov 20, 2025" [ref=e392]
+            - cell "—" [ref=e393]
+            - cell "CRIIS" [ref=e394]
+          - row "SW-RADAR-DSP-001 Radar Signal Processing Digital signal processing software for radar systems DSP 3.4.2 Dec 5, 2025 Dec 5, 2025 Yes CRIIS" [ref=e395]:
+            - cell "SW-RADAR-DSP-001" [ref=e396]
+            - cell "Radar Signal Processing Digital signal processing software for radar systems" [ref=e397]:
+              - generic [ref=e398]: Radar Signal Processing
+              - generic [ref=e399]: Digital signal processing software for radar systems
+            - cell "DSP" [ref=e400]:
+              - generic [ref=e401]: DSP
+            - cell "3.4.2" [ref=e402]
+            - cell "Dec 5, 2025" [ref=e403]
+            - cell "Dec 5, 2025" [ref=e404]
+            - cell "Yes" [ref=e405]
+            - cell "CRIIS" [ref=e406]
+          - row "SW-RECON-DATA-001 Reconnaissance Data Handler Data handling and transmission software for reconnaissance systems APPLICATION 3.0.2 Dec 15, 2025 Dec 15, 2025 Yes ARDS" [ref=e407]:
+            - cell "SW-RECON-DATA-001" [ref=e408]
+            - cell "Reconnaissance Data Handler Data handling and transmission software for reconnaissance systems" [ref=e409]:
+              - generic [ref=e410]: Reconnaissance Data Handler
+              - generic [ref=e411]: Data handling and transmission software for reconnaissance systems
+            - cell "APPLICATION" [ref=e412]:
+              - generic [ref=e413]: APPLICATION
+            - cell "3.0.2" [ref=e414]
+            - cell "Dec 15, 2025" [ref=e415]
+            - cell "Dec 15, 2025" [ref=e416]
+            - cell "Yes" [ref=e417]
+            - cell "ARDS" [ref=e418]
+          - row "SW-TEST-AUTO-002 Automated Test Software Software for automated testing of military aviation systems APPLICATION 1.0.0 Jan 19, 2026 Jan 19, 2026 Yes CRIIS" [ref=e419]:
+            - cell "SW-TEST-AUTO-002" [ref=e420]
+            - cell "Automated Test Software Software for automated testing of military aviation systems" [ref=e421]:
+              - generic [ref=e422]: Automated Test Software
+              - generic [ref=e423]: Software for automated testing of military aviation systems
+            - cell "APPLICATION" [ref=e424]:
+              - generic [ref=e425]: APPLICATION
+            - cell "1.0.0" [ref=e426]
+            - cell "Jan 19, 2026" [ref=e427]
+            - cell "Jan 19, 2026" [ref=e428]
+            - cell "Yes" [ref=e429]
+            - cell "CRIIS" [ref=e430]
+          - row "SW-TGT-CTRL-001 Targeting Control Software Primary targeting system control software APPLICATION 5.1.0 Dec 30, 2025 Dec 30, 2025 Yes ACTS" [ref=e431]:
+            - cell "SW-TGT-CTRL-001" [ref=e432]
+            - cell "Targeting Control Software Primary targeting system control software" [ref=e433]:
+              - generic [ref=e434]: Targeting Control Software
+              - generic [ref=e435]: Primary targeting system control software
+            - cell "APPLICATION" [ref=e436]:
+              - generic [ref=e437]: APPLICATION
+            - cell "5.1.0" [ref=e438]
+            - cell "Dec 30, 2025" [ref=e439]
+            - cell "Dec 30, 2025" [ref=e440]
+            - cell "Yes" [ref=e441]
+            - cell "ACTS" [ref=e442]
+          - row "SW-THERM-IMG-001 Thermal Imaging Processor Thermal image processing and enhancement software DSP 2.5.4 Nov 30, 2025 Nov 30, 2025 — ACTS" [ref=e443]:
+            - cell "SW-THERM-IMG-001" [ref=e444]
+            - cell "Thermal Imaging Processor Thermal image processing and enhancement software" [ref=e445]:
+              - generic [ref=e446]: Thermal Imaging Processor
+              - generic [ref=e447]: Thermal image processing and enhancement software
+            - cell "DSP" [ref=e448]:
+              - generic [ref=e449]: DSP
+            - cell "2.5.4" [ref=e450]
+            - cell "Nov 30, 2025" [ref=e451]
+            - cell "Nov 30, 2025" [ref=e452]
+            - cell "—" [ref=e453]
+            - cell "ACTS" [ref=e454]
+      - generic [ref=e455]: Showing 11 of 11 software versions
+  - contentinfo [ref=e247]: CUI - Controlled Unclassified Information
+```
