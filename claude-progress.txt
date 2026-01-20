@@ -45598,3 +45598,30 @@ Screenshots captured:
 Testing session: Tue Jan 20 10:09:43 EST 2026
 Status: Feature still passing - no regression detected
 Progress: 328/374 features passing (87.7%)
+[Testing] Feature #104 'Corrective action narrative required' verified - PASSING ✅
+
+Verification Results:
+=====================
+✅ Labor record form requires corrective action description
+✅ 'Add Labor' button is disabled when corrective action field is empty
+✅ 'Add Labor' button becomes enabled when corrective action is filled
+✅ Labor record saves successfully with corrective action
+✅ Visual indicators show required field (red asterisk, help text)
+✅ Zero console errors during testing
+
+Test Details:
+- Crew Chief Name: Test Technician
+- Category: R - Repair
+- Corrective Action: 'Completed circuit board diagnostics and replaced faulty component.'
+- Labor record successfully saved as Labor #2 in Repair #2
+- Form validation works correctly (button disabled until required field filled)
+
+Screenshots captured:
+- feature_104_step1_disabled_button.png (Button disabled without corrective action)
+- feature_104_step2_corrective_action_empty.png (Empty corrective action field)
+- feature_104_step3_corrective_action_filled.png (Filled corrective action, button enabled)
+- feature_104_step4_labor_saved_successfully.png (Successfully saved labor record)
+
+Testing session: Tue Jan 20 10:12:43 EST 2026
+Status: Feature still passing - no regression detected
+Progress: 329/374 features passing (88.0%)

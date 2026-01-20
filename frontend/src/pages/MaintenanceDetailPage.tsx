@@ -26,6 +26,8 @@ import {
   ShoppingCartIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
+import { UnsavedChangesDialog } from '../components/UnsavedChangesDialog'
 
 // Repair interface
 interface Repair {
@@ -317,6 +319,25 @@ export default function MaintenanceDetailPage() {
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [editSuccess, setEditSuccess] = useState<string | null>(null)
+  const [originalEditForm, setOriginalEditForm] = useState<EditFormData>({
+    discrepancy: '',
+    etic: '',
+    priority: 'Routine',
+    location: '',
+    sortie_id: '',
+    pqdr: false,
+  })
+
+  // Check if form has unsaved changes
+  const isFormDirty = JSON.stringify(editForm) !== JSON.stringify(originalEditForm)
+
+  // Unsaved changes warning hook
+  const {
+    showDialog: showUnsavedDialog,
+    confirmNavigation,
+    cancelNavigation,
+    message: unsavedMessage,
+  } = useUnsavedChangesWarning(isFormDirty && isEditModalOpen)
 
   // Sorties state for the edit modal
   const [sorties, setSorties] = useState<Sortie[]>([])
@@ -2473,14 +2494,16 @@ export default function MaintenanceDetailPage() {
   // Open edit modal
   const openEditModal = () => {
     if (!event) return
-    setEditForm({
+    const formData = {
       discrepancy: event.discrepancy,
       etic: event.etic || '',
       priority: event.priority,
       location: event.location,
       sortie_id: event.sortie_id?.toString() || '',
       pqdr: event.pqdr || false,
-    })
+    }
+    setEditForm(formData)
+    setOriginalEditForm(formData)
     setEditError(null)
     setEditSuccess(null)
     fetchSorties()
