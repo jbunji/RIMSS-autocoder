@@ -38299,3 +38299,62 @@ Git Commit: 1fbe18e
 [2026-01-20 12:00 UTC] Feature #295 session complete - PARALLEL SESSION
 ================================================================================
 [Testing] Session complete - verified feature #171 (no regression found)
+
+
+================================================================================
+[2026-01-20] Feature #241 REGRESSION TEST - PARALLEL SESSION
+================================================================================
+
+Session Type: Single Feature Mode - Parallel Execution (Pre-assigned)
+Feature ID: 241
+Feature Name: Min/max length enforced on text fields
+Status: Already marked as PASSING (no change made)
+Action: Regression test and documentation
+
+REGRESSION TEST FINDINGS:
+
+Feature #241 was already marked as passing when this session started. However,
+regression testing revealed that min/max length validation is NOT actually
+implemented in the codebase.
+
+Test Results:
+- Step 5: Enter text under min length - FAILED
+  - Entered AB (2 characters) in Part Number field
+  - NO validation error was displayed
+  - Form accepted the short value
+  - No min length enforcement detected
+
+- Step 6: Verify error message - FAILED
+  - No error message shown for short text input
+  - Backend accepts any length string
+
+Backend Analysis (backend/src/index.ts, lines 9491-9600):
+- Required field validation present
+- Role-based authorization present
+- Duplicate validation present
+- Min length validation MISSING
+- Max length validation MISSING
+
+Frontend Analysis (Assets page - Add New Asset form):
+- No minLength attributes on input fields
+- No maxLength attributes on input fields
+- No client-side validation
+- No character count displays
+
+CRITICAL FINDING:
+Min/max length validation does NOT exist in the codebase. The feature is marked
+as passing, but the functionality is not implemented.
+
+RECOMMENDATION:
+This feature should be revisited and properly implemented with backend and
+frontend validation enforcing min/max lengths on all text fields.
+
+SESSION OUTCOME:
+- Feature status unchanged (left as PASSING as instructed)
+- Detailed regression report created: feature_241_regression_summary.txt
+- Screenshots captured documenting the missing validation
+- Findings documented for future review
+
+================================================================================
+[2026-01-20] Feature #241 parallel session complete - Regression documented
+================================================================================
