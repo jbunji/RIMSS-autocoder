@@ -27798,3 +27798,82 @@ Result: Feature #140 remains PASSING ✅
 
 ================================================================================
 
+
+================================================================================
+[2026-01-20 Testing Session] Feature #5 Regression Testing - COMPLETE
+================================================================================
+
+Feature: #5 - CUI marking displays correctly in footer
+Category: style
+Status: ✅ PASSING - No regression found
+
+Test Duration: ~10 minutes
+Browser: Playwright automation
+User Role: Admin (John Admin)
+Program: CRIIS
+
+Verification Results:
+✅ Step 1: Navigated to login page (unauthenticated)
+✅ Step 2: Verified CUI marking in footer ("CUI - Controlled Unclassified Information")
+✅ Step 3: Verified footer is fixed at bottom (position: fixed, bottom: 0)
+✅ Step 4: Verified proper styling matches design system
+
+PAGES TESTED:
+1. Login Page (unauthenticated) ✓
+2. Dashboard (authenticated) ✓
+3. Assets Page (authenticated) ✓
+4. Maintenance Page (authenticated) ✓
+
+IMPLEMENTATION VERIFIED:
+- Layout.tsx (authenticated pages): footer with class "fixed bottom-0 left-0 right-0 bg-cui-bg text-cui-text text-center text-sm py-1 font-medium z-50"
+- LoginPage.tsx (login page): footer with identical class "fixed bottom-0 left-0 right-0 bg-cui-bg text-cui-text text-center text-sm py-1 font-medium z-50"
+- Tailwind config: CUI colors defined (bg: #FEF3C7 - yellow, text: #000000 - black)
+
+STYLING VERIFIED:
+✅ Footer positioning: fixed at bottom-0
+✅ Footer width: left-0 right-0 (full width)
+✅ Footer background: bg-cui-bg (#FEF3C7 - light yellow)
+✅ Footer text: text-cui-text (#000000 - black)
+✅ Footer alignment: text-center
+✅ Footer padding: py-1 (small vertical padding)
+✅ Footer z-index: z-50 (appears above content)
+✅ Footer font: font-medium text-sm
+
+CONSISTENCY VERIFIED:
+✅ Same CUI text on all pages: "CUI - Controlled Unclassified Information"
+✅ Same styling across all pages (authenticated and unauthenticated)
+✅ Fixed positioning ensures footer always visible at bottom
+✅ Yellow background matches military CUI marking standards
+
+CONSOLE STATUS:
+✅ Zero JavaScript errors
+✅ Zero console warnings (only expected React DevTools info)
+
+SCREENSHOTS CAPTURED:
+1. feature_5_login_footer.png - Login page with CUI footer
+2. feature_5_dashboard_footer.png - Dashboard with CUI footer
+3. feature_5_assets_footer.png - Assets page with CUI footer
+4. feature_5_maintenance_footer.png - Maintenance page with CUI footer
+
+DESIGN COMPLIANCE:
+✅ CUI marking visible and readable
+✅ Yellow background (#FEF3C7) provides high contrast
+✅ Black text (#000000) ensures readability
+✅ Fixed positioning keeps footer visible during scrolling
+✅ Consistent implementation across all pages
+✅ Professional appearance matching military standards
+
+QUALITY ASSESSMENT:
+✅ Production-ready implementation
+✅ Meets security marking requirements
+✅ Consistent user experience
+✅ Accessible and readable
+✅ No regressions detected
+
+Git Commit: Not needed (feature still passing)
+Session Type: Regression Testing (Testing Agent)
+Result: Feature #5 remains PASSING ✅
+
+Progress: 240/374 features passing (64.2%)
+
+================================================================================
