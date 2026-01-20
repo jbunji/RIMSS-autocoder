@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { CalendarDaysIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { CalendarDaysIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
 import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface PMI {
   pmi_id: number
@@ -145,6 +147,143 @@ export default function PMIScheduleReportPage() {
     const month = String(now.getUTCMonth() + 1).padStart(2, '0')
     const day = String(now.getUTCDate()).padStart(2, '0')
     return `${year}${month}${day}`
+  }
+
+  const handleExportToPDF = () => {
+    if (!reportData) return
+
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+    }
+
+    // Add header
+    addCuiHeader()
+
+    // Title
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text('RIMSS PMI Schedule Report', pageWidth / 2, 20, { align: 'center' })
+
+    // Metadata
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
+    if (reportData.program) {
+      doc.text(`Program: ${reportData.program.name}`, 14, 33)
+    }
+    const statsText = `Total: ${reportData.total} | Overdue: ${reportData.by_status.overdue} | Due Soon: ${reportData.by_status.due_soon} | Upcoming: ${reportData.by_status.upcoming} | Completed: ${reportData.by_status.completed}`
+    doc.text(statsText, 14, reportData.program ? 38 : 33)
+
+    let yPos = reportData.program ? 43 : 38
+
+    // Add each status section
+    const sections: Array<{ title: string; pmis: PMI[]; color: number[] }> = [
+      { title: 'OVERDUE PMIs', pmis: reportData.grouped_by_status.overdue, color: [220, 38, 38] },
+      { title: 'DUE SOON - Within 7 Days', pmis: reportData.grouped_by_status.due_soon, color: [245, 158, 11] },
+      { title: 'UPCOMING PMIs', pmis: reportData.grouped_by_status.upcoming, color: [22, 163, 74] },
+      { title: 'COMPLETED PMIs', pmis: reportData.grouped_by_status.completed, color: [107, 114, 128] }
+    ]
+
+    sections.forEach((section, index) => {
+      if (section.pmis.length > 0) {
+        // Check if we need a new page
+        if (yPos > pageHeight - 40) {
+          doc.addPage()
+          addCuiHeader()
+          yPos = 18
+        }
+
+        // Section header
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(section.color[0], section.color[1], section.color[2])
+        doc.text(`${section.title} (${section.pmis.length})`, 14, yPos)
+        doc.setTextColor(0, 0, 0)
+        yPos += 6
+
+        // Table headers
+        const tableHeaders = ['Asset S/N', 'Asset Name', 'PMI Type', 'WUC', 'Next Due', 'Days Until', 'Status']
+
+        const tableData = section.pmis.map(pmi => [
+          pmi.asset_sn,
+          pmi.asset_name ? pmi.asset_name.substring(0, 20) : '',
+          pmi.pmi_type.substring(0, 25),
+          pmi.wuc_cd || '',
+          formatDate(pmi.next_due_date),
+          pmi.days_until_due.toString(),
+          pmi.status.toUpperCase().replace('_', ' ')
+        ])
+
+        autoTable(doc, {
+          head: [tableHeaders],
+          body: tableData,
+          startY: yPos,
+          margin: { left: 14, right: 14 },
+          styles: {
+            fontSize: 7,
+            cellPadding: 1.5,
+          },
+          headStyles: {
+            fillColor: section.color,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+          },
+          alternateRowStyles: {
+            fillColor: [249, 250, 251],
+          },
+          didDrawPage: (data: any) => {
+            const pageCount = (doc as any).internal.pages.length - 1
+            const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+            addCuiFooter(currentPage, pageCount)
+          },
+        })
+
+        // Update yPos after table
+        const finalY = (doc as any).lastAutoTable.finalY
+        yPos = finalY + 8
+      }
+    })
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-PMI-Schedule-Report-${zuluDate}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
   }
 
   const handleExportToExcel = () => {
@@ -700,15 +839,25 @@ export default function PMIScheduleReportPage() {
         )}
       </div>
 
-      {/* Export Button */}
-      <div className="mt-6 flex justify-end">
+      {/* Export Buttons */}
+      <div className="mt-6 flex justify-end space-x-2">
+        <button
+          type="button"
+          onClick={handleExportToPDF}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          title="Export to PDF"
+        >
+          <DocumentArrowDownIcon className="h-5 w-5" />
+          Export PDF
+        </button>
         <button
           type="button"
           onClick={handleExportToExcel}
-          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          title="Export to Excel"
         >
-          <CalendarDaysIcon className="-ml-1 mr-2 h-5 w-5 text-gray-500" aria-hidden="true" />
-          Export to Excel
+          <DocumentArrowDownIcon className="h-5 w-5" />
+          Export Excel
         </button>
       </div>
     </div>
