@@ -60,6 +60,7 @@ interface Repair {
   eti_in: number | null // ETI meter value at repair start
   eti_out: number | null // ETI meter value at repair end
   eti_delta: number | null // Calculated difference (eti_out - eti_in)
+  meter_changed: boolean // Flag indicating physical meter was replaced
   created_by_name: string
   created_at: string
   // Linked TCTO (from TCTO completion linking)

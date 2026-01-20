@@ -4290,6 +4290,7 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     eti_in: eti_in !== undefined && eti_in !== null && eti_in !== '' ? parseFloat(eti_in) : null,
     eti_out: null, // Set when repair is closed
     eti_delta: null, // Calculated when repair is closed
+    meter_changed: false, // Set to true if physical meter was replaced
     created_by_name: `${user.first_name} ${user.last_name}`,
     created_at: new Date().toISOString().split('T')[0],
   };
@@ -4341,7 +4342,7 @@ app.put('/api/repairs/:id', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this repair' });
   }
 
-  const { type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, shop_status, stop_date, micap, chief_review, super_review, repeat_recur, donor_asset_id, eti_in, eti_out } = req.body;
+  const { type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, shop_status, stop_date, micap, chief_review, super_review, repeat_recur, donor_asset_id, eti_in, eti_out, meter_changed } = req.body;
 
   // Update fields
   if (type_maint !== undefined) {
@@ -4508,9 +4509,25 @@ app.put('/api/repairs/:id', (req, res) => {
     repairs[repairIndex].eti_in = eti_in !== null && eti_in !== '' ? parseFloat(eti_in) : null;
   }
 
+  // Handle meter_changed flag update
+  if (meter_changed !== undefined) {
+    repairs[repairIndex].meter_changed = meter_changed === true;
+    console.log(`[REPAIRS] Meter changed flag ${meter_changed ? 'enabled' : 'disabled'} on repair ${repairId}`);
+  }
+
   // Handle ETI Out update (typically set when closing repair)
   if (eti_out !== undefined) {
     const parsedEtiOut = eti_out !== null && eti_out !== '' ? parseFloat(eti_out) : null;
+
+    // Validate eti_out >= eti_in unless meter_changed is true
+    if (parsedEtiOut !== null && repairs[repairIndex].eti_in !== null && !repairs[repairIndex].meter_changed) {
+      if (parsedEtiOut < repairs[repairIndex].eti_in) {
+        return res.status(400).json({
+          error: `ETI Out (${parsedEtiOut}) cannot be less than ETI In (${repairs[repairIndex].eti_in}) unless the meter was replaced. Check the "Meter Changed" checkbox if the physical meter was replaced.`
+        });
+      }
+    }
+
     repairs[repairIndex].eti_out = parsedEtiOut;
 
     // Calculate ETI delta when eti_out is set and eti_in exists
