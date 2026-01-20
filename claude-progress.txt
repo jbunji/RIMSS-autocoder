@@ -13029,3 +13029,131 @@ The progress notes mentioned a regression where changes didn't persist. This was
 
 **Current Progress:** 146/374 features passing (39.0%)
 
+[Testing] Feature #117 'PMI export with CUI markings' - VERIFIED STILL PASSING
+
+All verification steps completed successfully:
+✓ Logged in as admin
+✓ Navigated to Maintenance > PMI Schedule tab
+✓ PDF export working with CUI header/footer and color coding
+✓ Excel export working with CUI markings and color indicators
+✓ Zero console errors
+✓ Feature continues to work correctly - NO REGRESSION
+
+Screenshots: feature117_pmi_tab_with_export_buttons.png, feature117_verification_complete.png
+Files verified: CUI-PMI-Schedule-20260120.pdf, CUI-PMI-Schedule-20260120.xlsx
+
+---
+
+## Testing Session: 2026-01-20 - Feature #80 Regression Test - PASSED
+
+[Testing] Feature #80 "Maintenance event search and filtering" - VERIFIED AS PASSING
+
+**Feature Description:** Users can search and filter maintenance events
+
+**Verification Completed (All 9 Steps):**
+
+✅ Step 1: Logged in as field_tech (Bob Field)
+✅ Step 2: Navigated to Maintenance page
+✅ Step 3: Searched by job number "MX-2024-001"
+✅ Step 4: Verified matching events display - Only MX-2024-001 shown (4→1 events)
+✅ Step 5: Filtered by date range (2026-01-15 to 2026-01-18)
+✅ Step 6: Verified filtered results - 2 events shown matching date range
+✅ Step 7: Filtered by event type "PMI (Periodic Maintenance)"
+✅ Step 8: Cleared all filters - "Clear All Filters" button worked correctly
+✅ Step 9: Verified all events display - All 4 events restored
+
+**Key Features Verified:**
+
+**Search Functionality:**
+- Search box accepts text input ✓
+- Search filters by job number (MX-2024-001) ✓
+- Results update immediately as search is applied ✓
+- Stats cards update to reflect filtered results ✓
+- "Clear All Filters" button appears when search is active ✓
+
+**Date Range Filter:**
+- Date inputs accept ISO format dates (yyyy-MM-dd) ✓
+- "From" date field filters events starting from specified date ✓
+- "To" date field narrows results to date range ✓
+- Events filtered correctly based on "Started" date ✓
+- Stats update to show counts for filtered events ✓
+
+**Event Type Filter:**
+- Dropdown displays all event types (All, Standard, PMI, TCTO, BIT/PC) ✓
+- Selecting "PMI (Periodic Maintenance)" filters to only PMI events ✓
+- Only MX-2024-003 (PMI type) displayed when PMI filter active ✓
+- Stats reflect filtered event counts accurately ✓
+
+**Clear Filters:**
+- "Clear All Filters" button visible when any filter active ✓
+- Button clears search text ✓
+- Button clears date range (both From and To) ✓
+- Button resets event type dropdown to "All Event Types" ✓
+- All 4 events display after clearing filters ✓
+- Stats return to original values (Critical: 1, Urgent: 2, Routine: 1, Open: 4) ✓
+
+**UI/UX Features:**
+- Stats cards dynamically update with filter changes ✓
+- Tab title shows filtered count "Backlog (X)" ✓
+- Table displays correctly with filtered results ✓
+- No pagination issues with filtering ✓
+- Filters work independently and in combination ✓
+
+**Console Verification:**
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- No network errors ✓
+- API calls successful ✓
+
+**Screenshots Captured:**
+- feature80_search_by_job_number.png - Search filtering by job number
+- feature80_date_range_filter.png - Date range filter applied
+- feature80_event_type_filter.png - Event type filter (PMI only)
+- feature80_all_filters_cleared.png - All filters cleared, all events visible
+
+**Technical Implementation:**
+- Search applies to job number, asset, discrepancy, and location fields
+- Date filtering uses ISO date format (yyyy-MM-dd)
+- Event type dropdown filters by maintenance event type
+- Multiple filters can be combined
+- Stats cards recalculate based on filtered dataset
+- Clear button removes all active filters at once
+
+**Browser Automation:**
+- All interactions performed via Playwright
+- Form filling, dropdown selection, and button clicks tested
+- Visual verification through screenshots
+- Console error monitoring confirmed no issues
+
+**Test Data Used:**
+- MX-2024-001: Camera System X, Critical, Standard (Jan 14, 2026) - PQDR flagged
+- MX-2024-002: Radar Unit 01, Urgent, Standard (Jan 9, 2026)
+- MX-2024-003: Sensor Unit B, Routine, PMI (Jan 17, 2026)
+- MX-2024-004: Communication System, Urgent, TCTO (Jan 18, 2026)
+
+**Regression Result:** NO REGRESSION DETECTED
+The feature works exactly as specified. All search and filtering functionality operates correctly with proper UI feedback and accurate results.
+
+[Testing] Feature #80 remains PASSING - No issues found
+
+**Current Progress:** 148/374 features passing (39.6%)
+
+
+## Session: 2026-01-20 (Feature #149) - COMPLETE
+
+Feature #149: Spare mass update capability - IMPLEMENTED AND VERIFIED
+
+Added checkbox-based mass update interface for spare parts.
+Users can select multiple spares and update status, admin location, or custodial location in one operation.
+
+Frontend: Added checkboxes, Mass Update button, and modal with field/value selectors
+Backend: Added POST /api/assets/mass-update endpoint with validation and audit trail
+
+Verification: All 8 steps completed successfully
+- Selected 3 spares, updated to NMCM status
+- Select All functionality tested
+- Data persists after refresh
+- Zero console errors
+- Role-based access control working
+
+Current Progress: 148/374 features passing (39.6%)
