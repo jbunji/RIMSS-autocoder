@@ -737,7 +737,7 @@ export default function AssetsPage() {
   }
 
   return (
-    <div className="space-y-6 overflow-x-hidden">
+    <div className="space-y-6">
       {/* Page Header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
@@ -861,7 +861,7 @@ export default function AssetsPage() {
       )}
 
       {/* Assets Table */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-white shadow rounded-lg overflow-y-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center">
@@ -917,18 +917,18 @@ export default function AssetsPage() {
                       key={asset.asset_id}
                       className={`hover:bg-gray-50 ${asset.bad_actor ? 'bg-red-50' : ''}`}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 truncate max-w-xs" title={asset.serno}>
                             {asset.serno}
                           </div>
                           {asset.bad_actor && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800" title="Bad Actor">
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 flex-shrink-0" title="Bad Actor">
                               BA
                             </span>
                           )}
                           {asset.in_transit && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800" title="In Transit">
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 flex-shrink-0" title="In Transit">
                               Transit
                             </span>
                           )}
@@ -937,8 +937,10 @@ export default function AssetsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {asset.partno}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{asset.part_name}</div>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900 truncate max-w-xs" title={asset.part_name}>
+                          {asset.part_name}
+                        </div>
                         {asset.remarks && (
                           <div className="text-xs text-gray-500 truncate max-w-xs" title={asset.remarks}>
                             {asset.remarks}
