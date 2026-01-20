@@ -51,7 +51,17 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     // Refresh count every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000)
 
-    return () => clearInterval(interval)
+    // Listen for notification acknowledgment events to refresh count immediately
+    const handleNotificationChange = () => {
+      fetchUnreadCount()
+    }
+
+    window.addEventListener('notificationAcknowledged', handleNotificationChange)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('notificationAcknowledged', handleNotificationChange)
+    }
   }, [token])
 
   const handleLogout = async () => {

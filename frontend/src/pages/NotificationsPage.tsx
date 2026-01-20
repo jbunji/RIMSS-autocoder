@@ -193,6 +193,9 @@ export default function NotificationsPage() {
       // Show success message
       setSuccessMessage('Notification acknowledged successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
+
+      // Dispatch event to notify other components (like Navbar) to refresh unread count
+      window.dispatchEvent(new Event('notificationAcknowledged'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

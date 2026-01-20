@@ -3094,6 +3094,14 @@ export default function AssetDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Unsaved Changes Warning Dialog */}
+      <UnsavedChangesDialog
+        isOpen={unsavedChangesWarning.showDialog}
+        message={unsavedChangesWarning.message}
+        onConfirm={unsavedChangesWarning.confirmNavigation}
+        onCancel={unsavedChangesWarning.cancelNavigation}
+      />
     </div>
   )
 }
