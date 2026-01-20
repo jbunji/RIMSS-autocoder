@@ -31178,3 +31178,140 @@ Quality: Production-ready ✅
 [2026-01-20 10:35 UTC] Feature #118 testing session complete
 ================================================================================
 
+================================================================================
+[2026-01-20 11:35 UTC] Feature #258 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #258: Duplicate entry error is clear - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #258
+Session Type: Single-feature verification mode
+
+FEATURE DESCRIPTION:
+Unique constraint violations are explained. When users attempt to create an asset
+with a serial number + part number combination that already exists, the system
+displays a clear error message indicating which fields are duplicates.
+
+IMPLEMENTATION STATUS:
+Feature was already fully implemented before this session. No code changes required.
+
+EXISTING IMPLEMENTATION:
+
+Backend (backend/src/index.ts:9513-9521):
+- Checks for duplicate serial number + part number combination within same program
+- Case-insensitive comparison for better UX
+- Program-scoped duplicate prevention
+- Clear error message showing both field names and values
+
+Frontend (frontend/src/pages/AssetsPage.tsx:289, 1104-1108):
+- Error displayed prominently at top of modal
+- Red alert styling for visibility
+- Form stays open with all data preserved
+- User can correct and retry without re-entering all data
+
+TEST EXECUTION - All 6 Verification Steps PASSED:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as depot_mgr (Jane Depot)
+   - Role: DEPOT_MANAGER
+   - Program: CRIIS
+
+✅ Step 2: Create asset with existing serial+part
+   - Attempted to create asset with:
+     * Serial Number: CRIIS-005
+     * Part Number: PN-CAMERA-X
+     * Status: FMC - Full Mission Capable
+     * Administrative Location: Depot Alpha
+     * Custodial Location: Maintenance Bay 1
+   - These values already exist in the database (asset CRIIS-005)
+
+✅ Step 3: Verify error message mentions duplicate
+   - Error message displayed: "An asset with serial number 'CRIIS-005' and part number 'PN-CAMERA-X' already exists in this program"
+   - Message clearly indicates duplicate with phrase "already exists"
+   - Error appears in red alert box at top of modal
+
+✅ Step 4: Verify indicates which field is duplicate
+   - Error message explicitly identifies BOTH duplicate fields:
+     * "serial number" 'CRIIS-005'
+     * "part number" 'PN-CAMERA-X'
+   - Shows actual values that are duplicates
+   - Clear and unambiguous field identification
+
+✅ Step 5: Modify to unique value
+   - Changed Serial Number from "CRIIS-005" to "CRIIS-TEST-258"
+   - Kept Part Number as "PN-CAMERA-X"
+   - Note: Only ONE field needs to change to make combination unique
+   - All other form data preserved from previous attempt
+
+✅ Step 6: Verify success
+   - Asset created successfully!
+   - Success message: "Asset 'CRIIS-TEST-258' created successfully!"
+   - Asset count increased from 10 to 11 total assets
+   - Modal closed automatically
+   - New asset appears in table (pagination updated)
+   - No JavaScript errors in console
+
+QUALITY VERIFICATION:
+
+✅ Error Message Quality:
+   - Clear and user-friendly language
+   - Identifies exact problem (duplicate combination)
+   - Shows both field names (serial number AND part number)
+   - Includes actual duplicate values
+   - Scoped to program ("in this program")
+
+✅ User Experience:
+   - Form stays open after error (no data loss)
+   - Error prominently displayed in red alert box
+   - User can immediately correct and retry
+   - All form fields preserved for easy correction
+
+✅ Technical Implementation:
+   - Case-insensitive duplicate detection
+   - Program-scoped (allows same S/N+P/N in different programs)
+   - Proper 400 Bad Request status code
+   - Consistent error handling pattern
+
+SCREENSHOTS CAPTURED:
+
+1. feature_258_step1_modal_open.png
+   - Add Asset modal with all form fields visible
+   - Clean initial state
+
+2. feature_258_step2_duplicate_error.png
+   - Error message displayed at top of modal
+   - Shows clear duplicate error message
+   - All form data preserved
+   - Red alert styling visible
+
+3. feature_258_step6_success.png
+   - Success state after creating unique asset
+   - Asset count shows "11 total assets"
+   - Success message visible
+   - Table updated with new assets
+
+Console Status:
+- Zero JavaScript errors related to feature ✅
+- Auth errors from previous backend restart (unrelated)
+- Expected 400 error for duplicate attempt (correct behavior)
+
+Result: Feature #258 marked as PASSING ✅
+
+Progress: 257/374 features passing (68.7%)
+
+Session Type: PARALLEL SESSION - Single Feature Mode
+Session Duration: ~35 minutes
+Code Changes: None required (already implemented)
+Tests Executed: All 6 verification steps via browser automation
+Quality: Production-ready error handling ✅
+
+Git Commit: 2b3be56
+
+Feature Status: PASSING ✅
+Code Quality: Production-ready ✅
+User Experience: Excellent ✅
+Error Messaging: Clear and helpful ✅
+
+================================================================================
+[2026-01-20 11:35 UTC] Feature #258 session complete - PARALLEL SESSION
+================================================================================
