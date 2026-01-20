@@ -45000,3 +45000,53 @@ All 7 form fields in Add Asset form now screen reader accessible.
 Progress: 325/374 features passing (86.9%)
 Session Type: SINGLE FEATURE MODE - Parallel execution
 Quality: Production-ready accessibility implementation ✅
+[Testing] Feature #272: Double-click submit creates only one record - VERIFIED PASSING
+
+Test Details:
+=============
+Date: 2026-01-20 10:00:03
+Tester: Testing Agent (Playwright automation)
+User: depot_mgr (DEPOT_MANAGER role)
+Program: CRIIS
+
+Test Steps Executed:
+1. ✅ Logged in as depot manager (depot_mgr/depot123)
+2. ✅ Navigated to Assets page
+3. ✅ Opened 'Add New Asset' form
+4. ✅ Filled in form with test data:
+   - Part Number: PN-TEST-DBL
+   - Serial Number: TEST-DBL-001
+   - Status: FMC (pre-selected)
+   - Admin Location: Depot Alpha (pre-selected)
+   - Custodial Location: Maintenance Bay 1 (pre-selected)
+5. ✅ Double-clicked 'Create Asset' button
+6. ✅ Verified only one record created
+
+Results:
+========
+✅ PASSED - Only ONE asset was created despite double-click
+✅ Total assets increased from 10 to 11 (not 12)
+✅ Page 2 shows only ONE test asset (TEST-DBL-001)
+✅ Network logs show:
+   - First POST /api/assets => 201 Created
+   - Second POST /api/assets => 400 Bad Request
+✅ Console error shows 400 Bad Request on duplicate attempt
+✅ Success message appeared: 'Asset TEST-DBL-001 created successfully!'
+
+Idempotency Mechanism:
+======================
+Backend code (backend/src/index.ts lines 9545-9553) implements duplicate prevention:
+- Checks for existing asset with same serial number + part number + program
+- Returns 400 error if duplicate found
+- Prevents race conditions from rapid clicks
+
+Quality Metrics:
+================
+✅ No duplicate records created
+✅ Proper error handling (400 Bad Request)
+✅ User receives success message only once
+✅ Database consistency maintained
+✅ Idempotency protection working as expected
+
+Feature #272 Status: PASSING ✅
+
