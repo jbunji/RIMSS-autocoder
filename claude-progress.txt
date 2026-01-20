@@ -14784,3 +14784,105 @@ Screenshots captured:
 - feature154_acknowledged_successfully.png
 
 [Testing] Session complete - verified feature #154 (no regression)
+
+================================================================================
+Session: 2026-01-20 00:31 UTC - Feature #163 COMPLETED
+================================================================================
+
+Feature #163: ETM meter history tracking - IMPLEMENTED AND VERIFIED
+
+Implementation Summary:
+Added comprehensive meter history tracking that displays all meter in/out 
+readings from maintenance events, providing visibility into how asset meters 
+(Engineering Time Meters - ETM) change over time during repairs.
+
+Backend Implementation (backend/src/index.ts):
+- Added GET /api/assets/:id/meter-history endpoint (line 8082)
+- Fetches all repairs for an asset that have meter readings
+- Filters repairs where eti_in or eti_out is not null
+- Links repairs to maintenance events for job number context
+- Returns sorted history (most recent first) with:
+  * repair_id, event_id, job_no
+  * start_date, stop_date
+  * type_maint, shop_status
+  * eti_in, eti_out, eti_delta
+  * narrative, created_by, created_at
+- Respects program-based authorization
+- Comprehensive error handling and logging
+
+Frontend Implementation (frontend/src/pages/AssetDetailPage.tsx):
+- Extended TabType to include 'meters' (line 227)
+- Created MeterHistoryEntry interface (lines 109-121)
+- Added meter history state management:
+  * meterHistory array (line 259)
+  * meterHistoryLoading boolean (line 260)
+  * meterHistoryError string (line 261)
+- Added useEffect to fetch meter history when tab selected (lines 500-528)
+- Added "Meter History" tab button in navigation (lines 1055-1066)
+- Created comprehensive meter history table (lines 1905-2050):
+  * Current meter reading display (green background)
+  * Responsive table with 8 columns
+  * Date formatting (MMM DD, YYYY)
+  * Event/Job No with maintenance narrative
+  * Meter In values (numeric, formatted with commas)
+  * Meter Out values (numeric, formatted with commas)
+  * Hours Added (delta with +/- and color coding)
+  * Maintenance Type
+  * Status (open/closed with color-coded badges)
+  * Created By (user name)
+- Added loading state with spinner
+- Added error state with error message
+- Added empty state for no meter readings
+
+All 6 verification steps completed successfully:
+✅ Step 1: Logged in as admin user (John Admin)
+✅ Step 2: Navigated to assets with ETM (CRIIS-001, CRIIS-005)
+✅ Step 3: Viewed Meter History tab (new tab visible between ETI Tracking and Maintenance Events)
+✅ Step 4: Verified all meter readings display (table shows all repairs with meter data)
+✅ Step 5: Verified meter in/out values show (columns display numeric values like 780.5 → 782)
+✅ Step 6: Verified dates and events linked (dates formatted, job numbers displayed, narratives included)
+
+Testing Results:
+
+Asset CRIIS-001:
+- Current reading: 1,250 hrs
+- 2 meter history entries (Preventive maintenance)
+  1. Jan 5, 2026: 1,238.5 → 1,240 (+1.5 hrs) - Lubrication and cable inspection
+  2. Jan 4, 2026: 1,235 → 1,238.5 (+3.5 hrs) - 30-day inspection
+
+Asset CRIIS-005:
+- Current reading: 3,200 hrs
+- 2 meter history entries (Corrective maintenance, both for MX-2024-001)
+  1. Jan 16, 2026: 782 → - (-) - Additional power fault (OPEN repair)
+  2. Jan 14, 2026: 780.5 → 782 (+1.5 hrs) - Power supply connector replacement (CLOSED)
+
+Key Features Verified:
+- Meter In/Out values displayed as numeric readings
+- Hours Added calculated and color-coded (green for positive)
+- Open repairs show dash (-) for Meter Out (not yet completed)
+- Closed repairs show complete meter readings
+- Job numbers linked to maintenance events
+- Maintenance narratives provide context
+- Status badges visually distinguish open/closed repairs
+- Current meter reading prominently displayed
+- Zero JavaScript errors in console
+- All data properly formatted and linked
+
+Screenshots captured:
+- feature163_meter_history_tab.png - CRIIS-001 meter history
+- feature163_meter_history_criis005.png - CRIIS-005 with open/closed repairs
+
+Technical Implementation Notes:
+- ETM (Engineering Time Meters) is a broader concept than ETI (Elapsed Time Indicator)
+- ETI is one type of meter (hours), others could be cycles, etc.
+- System tracks meter_in and meter_out readings at repair start/end
+- Meter history provides audit trail of all meter readings
+- Complements ETI Tracking tab which shows cumulative changes
+- Meter History shows granular in/out readings from each repair
+- Backend filters to only show repairs with meter data
+- Frontend handles null values gracefully (displays dash)
+
+Feature #163 marked as PASSING
+
+Current Progress: 162/374 features passing (43.3%)
+
