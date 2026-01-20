@@ -1,0 +1,371 @@
+### Page state
+- Page URL: http://localhost:5173/assets
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e28]:
+  - link "Skip to main content" [ref=e29] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e30]: CUI - Controlled Unclassified Information
+  - navigation [ref=e32]:
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - button "Toggle sidebar" [ref=e36] [cursor=pointer]:
+          - img [ref=e37]
+        - generic [ref=e39]:
+          - generic [ref=e40]: RIMSS
+          - generic [ref=e41]: Remote Independent Maintenance Status System
+      - generic [ref=e42]:
+        - link "View notifications" [ref=e43] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e44]
+          - generic [ref=e46]: "3"
+        - 'button "Program: CRIIS" [ref=e48] [cursor=pointer]':
+          - generic [ref=e49]: "Program:"
+          - generic [ref=e50]: CRIIS
+          - img [ref=e51]
+        - button "Bob Field" [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+          - generic [ref=e57]: Bob Field
+          - img [ref=e58]
+  - generic [ref=e62]:
+    - navigation [ref=e63]:
+      - generic [ref=e64]:
+        - link "Dashboard" [ref=e65] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e66]
+          - text: Dashboard
+        - link "Assets" [active] [ref=e68] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e69]
+          - text: Assets
+        - link "Configurations" [ref=e71] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e72]
+          - text: Configurations
+        - link "Maintenance" [ref=e75] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e76]
+          - text: Maintenance
+        - link "Sorties" [ref=e78] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e79]
+          - text: Sorties
+        - link "Spares" [ref=e81] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e82]
+          - text: Spares
+        - link "Parts Ordered" [ref=e84] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e85]
+          - text: Parts Ordered
+        - link "Software" [ref=e87] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e88]
+          - text: Software
+        - link "Notifications" [ref=e90] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e91]
+          - text: Notifications
+        - link "Reports" [ref=e93] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e94]
+          - text: Reports
+    - paragraph [ref=e97]: RIMSS v0.1.0
+  - main [ref=e99]:
+    - generic [ref=e515]:
+      - generic [ref=e516]:
+        - generic [ref=e517]:
+          - heading "Assets" [level=1] [ref=e518]
+          - paragraph [ref=e519]: Viewing assets for CRIIS - Common Remotely Operated Integrated Reconnaissance System
+        - generic [ref=e520]:
+          - generic [ref=e521]: 12 total assets
+          - button "Export PDF" [ref=e522] [cursor=pointer]:
+            - img [ref=e523]
+            - text: Export PDF
+          - button "Export Excel" [ref=e525] [cursor=pointer]:
+            - img [ref=e526]
+            - text: Export Excel
+      - generic [ref=e529]:
+        - generic [ref=e530]:
+          - generic [ref=e531]: Search
+          - generic [ref=e532]:
+            - generic:
+              - img
+            - textbox "Search" [ref=e533]:
+              - /placeholder: Search by S/N, P/N, or name...
+        - generic [ref=e534]:
+          - generic [ref=e535]: Status
+          - combobox "Status" [ref=e536]:
+            - option "All Statuses" [selected]
+            - option "FMC - Full Mission Capable"
+            - option "PMC - Partial Mission Capable"
+            - option "NMCM - Not Mission Capable (Maintenance)"
+            - option "NMCS - Not Mission Capable (Supply)"
+            - option "CNDM - Cannot Determine Mission"
+        - button "Refresh" [ref=e538] [cursor=pointer]:
+          - img [ref=e539]
+          - text: Refresh
+      - generic [ref=e541]:
+        - table [ref=e543]:
+          - rowgroup [ref=e544]:
+            - row "Serial Number Part Number Name Status Location ETI Hours Next PMI Actions" [ref=e545]:
+              - columnheader "Serial Number" [ref=e546]:
+                - button "Serial Number" [ref=e547] [cursor=pointer]:
+                  - text: Serial Number
+                  - img [ref=e549]
+              - columnheader "Part Number" [ref=e551]:
+                - button "Part Number" [ref=e552] [cursor=pointer]:
+                  - text: Part Number
+                  - img [ref=e554]
+              - columnheader "Name" [ref=e556]:
+                - button "Name" [ref=e557] [cursor=pointer]:
+                  - text: Name
+                  - img [ref=e559]
+              - columnheader "Status" [ref=e561]:
+                - button "Status" [ref=e562] [cursor=pointer]:
+                  - text: Status
+                  - img [ref=e564]
+              - columnheader "Location" [ref=e566]:
+                - button "Location" [ref=e567] [cursor=pointer]:
+                  - text: Location
+                  - img [ref=e569]
+              - columnheader "ETI Hours" [ref=e571]:
+                - button "ETI Hours" [ref=e572] [cursor=pointer]:
+                  - text: ETI Hours
+                  - img [ref=e574]
+              - columnheader "Next PMI" [ref=e576]:
+                - button "Next PMI" [ref=e577] [cursor=pointer]:
+                  - text: Next PMI
+                  - img [ref=e579]
+              - columnheader "Actions" [ref=e581]:
+                - generic [ref=e582]: Actions
+          - rowgroup [ref=e583]:
+            - 'row "CRIIS-001 PN-SENSOR-A Sensor Unit A - EDITED FOR FEATURE 362 TEST - 2026-01-20 THIS IS A TEST EDIT FOR FEATURE #362 - Edit changes persist after refresh. This unique text was added on 2026-01-20 at 14:47 PST to verify that edited data survives a page refresh. If you can see this text after refreshing the page, the feature is working correctly. FMC - Full Mission Capable Depot Alpha depot 1,250 Mar 5, 2026 View" [ref=e584]':
+              - cell "CRIIS-001" [ref=e585]:
+                - generic "CRIIS-001" [ref=e587]
+              - cell "PN-SENSOR-A" [ref=e588]
+              - 'cell "Sensor Unit A - EDITED FOR FEATURE 362 TEST - 2026-01-20 THIS IS A TEST EDIT FOR FEATURE #362 - Edit changes persist after refresh. This unique text was added on 2026-01-20 at 14:47 PST to verify that edited data survives a page refresh. If you can see this text after refreshing the page, the feature is working correctly." [ref=e589]':
+                - generic "Sensor Unit A - EDITED FOR FEATURE 362 TEST - 2026-01-20" [ref=e590]
+                - 'generic "THIS IS A TEST EDIT FOR FEATURE #362 - Edit changes persist after refresh. This unique text was added on 2026-01-20 at 14:47 PST to verify that edited data survives a page refresh. If you can see this text after refreshing the page, the feature is working correctly." [ref=e591]'
+              - cell "FMC - Full Mission Capable" [ref=e592]:
+                - generic [ref=e593]:
+                  - text: FMC
+                  - generic [ref=e594]: "- Full Mission Capable"
+              - cell "Depot Alpha depot" [ref=e595]:
+                - generic [ref=e596]: Depot Alpha
+                - generic [ref=e597]: depot
+              - cell "1,250" [ref=e598]
+              - cell "Mar 5, 2026" [ref=e599]
+              - cell "View" [ref=e600]:
+                - button "View" [ref=e602] [cursor=pointer]
+            - row "CRIIS-002 PN-SENSOR-A Sensor Unit A FMC - Full Mission Capable Field Site Bravo field 980 Feb 18, 2026 View" [ref=e603]:
+              - cell "CRIIS-002" [ref=e604]:
+                - generic "CRIIS-002" [ref=e606]
+              - cell "PN-SENSOR-A" [ref=e607]
+              - cell "Sensor Unit A" [ref=e608]:
+                - generic "Sensor Unit A" [ref=e609]
+              - cell "FMC - Full Mission Capable" [ref=e610]:
+                - generic [ref=e611]:
+                  - text: FMC
+                  - generic [ref=e612]: "- Full Mission Capable"
+              - cell "Field Site Bravo field" [ref=e613]:
+                - generic [ref=e614]: Field Site Bravo
+                - generic [ref=e615]: field
+              - cell "980" [ref=e616]
+              - cell "Feb 18, 2026" [ref=e617]
+              - cell "View" [ref=e618]:
+                - button "View" [ref=e620] [cursor=pointer]
+            - row "CRIIS-003 PN-SENSOR-B Sensor Unit B Awaiting software update PMC - Partial Mission Capable Depot Alpha depot 2,100 Apr 14, 2026 View" [ref=e621]:
+              - cell "CRIIS-003" [ref=e622]:
+                - generic "CRIIS-003" [ref=e624]
+              - cell "PN-SENSOR-B" [ref=e625]
+              - cell "Sensor Unit B Awaiting software update" [ref=e626]:
+                - generic "Sensor Unit B" [ref=e627]
+                - generic "Awaiting software update" [ref=e628]
+              - cell "PMC - Partial Mission Capable" [ref=e629]:
+                - generic [ref=e630]:
+                  - text: PMC
+                  - generic [ref=e631]: "- Partial Mission Capable"
+              - cell "Depot Alpha depot" [ref=e632]:
+                - generic [ref=e633]: Depot Alpha
+                - generic [ref=e634]: depot
+              - cell "2,100" [ref=e635]
+              - cell "Apr 14, 2026" [ref=e636]
+              - cell "View" [ref=e637]:
+                - button "View" [ref=e639] [cursor=pointer]
+            - row "CRIIS-004 PN-CAMERA-X Camera System X FMC - Full Mission Capable Field Site Charlie field 450 May 19, 2026 View" [ref=e640]:
+              - cell "CRIIS-004" [ref=e641]:
+                - generic "CRIIS-004" [ref=e643]
+              - cell "PN-CAMERA-X" [ref=e644]
+              - cell "Camera System X" [ref=e645]:
+                - generic "Camera System X" [ref=e646]
+              - cell "FMC - Full Mission Capable" [ref=e647]:
+                - generic [ref=e648]:
+                  - text: FMC
+                  - generic [ref=e649]: "- Full Mission Capable"
+              - cell "Field Site Charlie field" [ref=e650]:
+                - generic [ref=e651]: Field Site Charlie
+                - generic [ref=e652]: field
+              - cell "450" [ref=e653]
+              - cell "May 19, 2026" [ref=e654]
+              - cell "View" [ref=e655]:
+                - button "View" [ref=e657] [cursor=pointer]
+            - row "CRIIS-005 BA PN-CAMERA-X Camera System X Intermittent power failure - MX-2024-001 NMCM - Not Mission Capable Maintenance Depot Alpha depot 3,200 - View" [ref=e658]:
+              - cell "CRIIS-005 BA" [ref=e659]:
+                - generic [ref=e660]:
+                  - generic "CRIIS-005" [ref=e661]
+                  - generic "Bad Actor" [ref=e662]: BA
+              - cell "PN-CAMERA-X" [ref=e663]
+              - cell "Camera System X Intermittent power failure - MX-2024-001" [ref=e664]:
+                - generic "Camera System X" [ref=e665]
+                - generic "Intermittent power failure - MX-2024-001" [ref=e666]
+              - cell "NMCM - Not Mission Capable Maintenance" [ref=e667]:
+                - generic [ref=e668]:
+                  - text: NMCM
+                  - generic [ref=e669]: "- Not Mission Capable Maintenance"
+              - cell "Depot Alpha depot" [ref=e670]:
+                - generic [ref=e671]: Depot Alpha
+                - generic [ref=e672]: depot
+              - cell "3,200" [ref=e673]
+              - cell "-" [ref=e674]
+              - cell "View" [ref=e675]:
+                - button "View" [ref=e677] [cursor=pointer]
+            - row "CRIIS-006 PN-RADAR-01 Radar Unit 01 Awaiting power supply - MX-2024-002 NMCS - Not Mission Capable Supply Field Site Bravo field 1,800 - View" [ref=e678]:
+              - cell "CRIIS-006" [ref=e679]:
+                - generic "CRIIS-006" [ref=e681]
+              - cell "PN-RADAR-01" [ref=e682]
+              - cell "Radar Unit 01 Awaiting power supply - MX-2024-002" [ref=e683]:
+                - generic "Radar Unit 01" [ref=e684]
+                - generic "Awaiting power supply - MX-2024-002" [ref=e685]
+              - cell "NMCS - Not Mission Capable Supply" [ref=e686]:
+                - generic [ref=e687]:
+                  - text: NMCS
+                  - generic [ref=e688]: "- Not Mission Capable Supply"
+              - cell "Field Site Bravo field" [ref=e689]:
+                - generic [ref=e690]: Field Site Bravo
+                - generic [ref=e691]: field
+              - cell "1,800" [ref=e692]
+              - cell "-" [ref=e693]
+              - cell "View" [ref=e694]:
+                - button "View" [ref=e696] [cursor=pointer]
+            - row "CRIIS-007 PN-RADAR-01 Radar Unit 01 FMC - Full Mission Capable Depot Alpha depot 2,500 Feb 3, 2026 View" [ref=e697]:
+              - cell "CRIIS-007" [ref=e698]:
+                - generic "CRIIS-007" [ref=e700]
+              - cell "PN-RADAR-01" [ref=e701]
+              - cell "Radar Unit 01" [ref=e702]:
+                - generic "Radar Unit 01" [ref=e703]
+              - cell "FMC - Full Mission Capable" [ref=e704]:
+                - generic [ref=e705]:
+                  - text: FMC
+                  - generic [ref=e706]: "- Full Mission Capable"
+              - cell "Depot Alpha depot" [ref=e707]:
+                - generic [ref=e708]: Depot Alpha
+                - generic [ref=e709]: depot
+              - cell "2,500" [ref=e710]
+              - cell "Feb 3, 2026" [ref=e711]
+              - cell "View" [ref=e712]:
+                - button "View" [ref=e714] [cursor=pointer]
+            - row "CRIIS-008 PN-COMM-SYS Communication System TCTO-2024-15 pending PMC - Partial Mission Capable Field Site Charlie field 890 Mar 20, 2026 View" [ref=e715]:
+              - cell "CRIIS-008" [ref=e716]:
+                - generic "CRIIS-008" [ref=e718]
+              - cell "PN-COMM-SYS" [ref=e719]
+              - cell "Communication System TCTO-2024-15 pending" [ref=e720]:
+                - generic "Communication System" [ref=e721]
+                - generic "TCTO-2024-15 pending" [ref=e722]
+              - cell "PMC - Partial Mission Capable" [ref=e723]:
+                - generic [ref=e724]:
+                  - text: PMC
+                  - generic [ref=e725]: "- Partial Mission Capable"
+              - cell "Field Site Charlie field" [ref=e726]:
+                - generic [ref=e727]: Field Site Charlie
+                - generic [ref=e728]: field
+              - cell "890" [ref=e729]
+              - cell "Mar 20, 2026" [ref=e730]
+              - cell "View" [ref=e731]:
+                - button "View" [ref=e733] [cursor=pointer]
+            - row "CRIIS-009 Transit PN-COMM-SYS Communication System En route from vendor repair CNDM - Cannot Determine Mission In Transit depot - - View" [ref=e734]:
+              - cell "CRIIS-009 Transit" [ref=e735]:
+                - generic [ref=e736]:
+                  - generic "CRIIS-009" [ref=e737]
+                  - generic "In Transit" [ref=e738]: Transit
+              - cell "PN-COMM-SYS" [ref=e739]
+              - cell "Communication System En route from vendor repair" [ref=e740]:
+                - generic "Communication System" [ref=e741]
+                - generic "En route from vendor repair" [ref=e742]
+              - cell "CNDM - Cannot Determine Mission" [ref=e743]:
+                - generic [ref=e744]:
+                  - text: CNDM
+                  - generic [ref=e745]: "- Cannot Determine Mission"
+              - cell "In Transit depot" [ref=e746]:
+                - generic [ref=e747]: In Transit
+                - generic [ref=e748]: depot
+              - cell "-" [ref=e749]
+              - cell "-" [ref=e750]
+              - cell "View" [ref=e751]:
+                - button "View" [ref=e753] [cursor=pointer]
+            - row "CRIIS-010 PN-NAV-UNIT Navigation Unit FMC - Full Mission Capable Field Site Bravo field 1,100 Mar 30, 2026 View" [ref=e754]:
+              - cell "CRIIS-010" [ref=e755]:
+                - generic "CRIIS-010" [ref=e757]
+              - cell "PN-NAV-UNIT" [ref=e758]
+              - cell "Navigation Unit" [ref=e759]:
+                - generic "Navigation Unit" [ref=e760]
+              - cell "FMC - Full Mission Capable" [ref=e761]:
+                - generic [ref=e762]:
+                  - text: FMC
+                  - generic [ref=e763]: "- Full Mission Capable"
+              - cell "Field Site Bravo field" [ref=e764]:
+                - generic [ref=e765]: Field Site Bravo
+                - generic [ref=e766]: field
+              - cell "1,100" [ref=e767]
+              - cell "Mar 30, 2026" [ref=e768]
+              - cell "View" [ref=e769]:
+                - button "View" [ref=e771] [cursor=pointer]
+        - generic [ref=e773]:
+          - paragraph [ref=e775]: Showing 1 to 10 of 12 results
+          - navigation "Pagination" [ref=e777]:
+            - button "Previous" [disabled] [ref=e778]:
+              - generic [ref=e779]: Previous
+              - img [ref=e780]
+            - button "1" [ref=e782] [cursor=pointer]
+            - button "2" [ref=e783] [cursor=pointer]
+            - button "Next" [ref=e784] [cursor=pointer]:
+              - generic [ref=e785]: Next
+              - img [ref=e786]
+      - generic [ref=e788]:
+        - heading "Status Legend" [level=3] [ref=e789]
+        - generic [ref=e790]:
+          - generic [ref=e791]:
+            - generic [ref=e792]:
+              - text: FMC
+              - generic [ref=e793]: "- Full Mission Capable"
+            - generic [ref=e794]: Full Mission Capable
+          - generic [ref=e795]:
+            - generic [ref=e796]:
+              - text: PMC
+              - generic [ref=e797]: "- Partial Mission Capable"
+            - generic [ref=e798]: Partial Mission Capable
+          - generic [ref=e799]:
+            - generic [ref=e800]:
+              - text: NMCM
+              - generic [ref=e801]: "- Not Mission Capable Maintenance"
+            - generic [ref=e802]: Not Mission Capable (Maint)
+          - generic [ref=e803]:
+            - generic [ref=e804]:
+              - text: NMCS
+              - generic [ref=e805]: "- Not Mission Capable Supply"
+            - generic [ref=e806]: Not Mission Capable (Supply)
+          - generic [ref=e807]:
+            - generic [ref=e808]:
+              - text: CNDM
+              - generic [ref=e809]: "- Cannot Determine Mission"
+            - generic [ref=e810]: Cannot Determine Mission
+        - generic [ref=e811]:
+          - generic [ref=e812]:
+            - generic [ref=e813]: BA
+            - generic [ref=e814]: = Bad Actor (chronic failures)
+          - generic [ref=e815]:
+            - generic [ref=e816]: Transit
+            - generic [ref=e817]: = In Transit
+  - contentinfo [ref=e514]: CUI - Controlled Unclassified Information
+```
