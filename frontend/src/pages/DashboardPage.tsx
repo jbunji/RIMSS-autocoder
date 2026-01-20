@@ -480,7 +480,7 @@ export default function DashboardPage() {
         const data = await response.json()
         setActivityData(data)
       } catch (err) {
-        setActivityError(err instanceof Error ? err.message : 'An error occurred')
+        setActivityError(handleError(err, 'loading activity data'))
       } finally {
         setActivityLoading(false)
       }
@@ -659,7 +659,11 @@ export default function DashboardPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : error ? (
-            <div className="text-red-600 py-4">{error}</div>
+            <ErrorDisplay
+              error={error}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setError(null)}
+            />
           ) : assetStatus ? (
             <div>
               {/* Mission Capability Rate */}
@@ -730,7 +734,11 @@ export default function DashboardPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : pmiError ? (
-            <div className="text-red-600 py-4">{pmiError}</div>
+            <ErrorDisplay
+              error={pmiError}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setPmiError(null)}
+            />
           ) : pmiData && pmiData.pmi.length > 0 ? (
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {pmiData.pmi.map((pmi) => {
@@ -817,7 +825,11 @@ export default function DashboardPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : maintenanceError ? (
-            <div className="text-red-600 py-4">{maintenanceError}</div>
+            <ErrorDisplay
+              error={maintenanceError}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setMaintenanceError(null)}
+            />
           ) : maintenanceData && maintenanceData.events.length > 0 ? (
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {maintenanceData.events.map((event) => {
@@ -904,7 +916,11 @@ export default function DashboardPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : partsError ? (
-            <div className="text-red-600 py-4">{partsError}</div>
+            <ErrorDisplay
+              error={partsError}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setPartsError(null)}
+            />
           ) : partsData && partsData.orders.length > 0 ? (
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {partsData.orders.map((order) => {
@@ -987,7 +1003,11 @@ export default function DashboardPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : activityError ? (
-            <div className="text-red-600 py-4">{activityError}</div>
+            <ErrorDisplay
+              error={activityError}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setActivityError(null)}
+            />
           ) : activityData && activityData.activities.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {activityData.activities.map((activity) => {
