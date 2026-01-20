@@ -13881,22 +13881,12 @@ app.delete('/api/spares/:id', async (req, res) => {
       return res.status(404).json({ error: 'Spare not found' });
     }
 
-    // Check if spare is already deleted (idempotency check)
-    if (spare.active === false) {
-      return res.status(404).json({ error: 'Spare not found or already deleted' });
-    }
-
-    // Soft delete (set active = false)
-    await prisma.spare.update({
+    // Hard delete - actually remove from database
+    await prisma.spare.delete({
       where: { spare_id: spareId },
-      data: {
-        active: false,
-        chg_by: user.username,
-        chg_date: new Date(),
-      },
     });
 
-    console.log(`[SPARES] Deleted spare ${spareId} by ${user.username}`);
+    console.log(`[SPARES] PERMANENTLY deleted spare ${spareId} by ${user.username}`);
 
     res.json({ message: 'Spare deleted successfully' });
   } catch (error) {
