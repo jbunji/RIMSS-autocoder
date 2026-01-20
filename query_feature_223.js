@@ -1,0 +1,7 @@
+const Database = require('better-sqlite3');
+const db = new Database('assistant.db');
+
+const feature = db.prepare('SELECT id, category, name, description, steps FROM features WHERE id = ?').get(223);
+console.log(JSON.stringify(feature, null, 2));
+
+db.close();
