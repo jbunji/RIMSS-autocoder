@@ -8450,3 +8450,43 @@ Feature verified working and marked as passing.
 [Feature] Feature #107 marked as PASSING
 
 **Current Progress:** 107/374 features passing (28.6%)
+
+
+---
+
+## Session: 2026-01-20 (Feature #109)
+
+[Feature] Feature #109 'PMI color-coded due date alerts - Red' - VERIFIED AND PASSING
+
+**Feature Description:** PMIs due within 7 days show red indicator
+
+**Verification Steps Completed:**
+1. ✅ Create PMI due in 3 days - Already exists: Sensor Unit B - 90-Day Calibration (due in 3 days)
+2. ✅ Navigate to PMI page - Navigated to Maintenance > PMI Schedule tab
+3. ✅ Verify red color indicator displays - Confirmed:
+   - PMI Schedule table shows 'DUE SOON' badges in RED for items within 7 days
+   - Sensor Unit B (3 days) - RED 'DUE SOON' badge
+   - Power Supply C (7 days) - RED 'DUE SOON' badge
+4. ✅ Verify red PMIs highlighted in dashboard widget - Confirmed:
+   - Dashboard PMI Due Soon widget shows red dot indicators (● 2 in red)
+   - Individual entries show red dots next to items due in 3 and 7 days
+   - Legend: '● Due in 7 days or less' with red indicator
+
+**Key Validations:**
+- Red color coding (bg-red-100, text-red-800) applied to PMIs due within 7 days
+- 'DUE SOON' status label displayed for items in red range (≤7 days)
+- Dashboard widget correctly categorizes and color-codes PMIs
+- Legend correctly explains: Red = Due in 7 days or less
+
+**Screenshots:**
+- .playwright-mcp/feature109_dashboard_pmi_widget.png - Dashboard with PMI widget showing red indicators
+- .playwright-mcp/feature109_pmi_schedule_table.png - PMI Schedule tab header
+- .playwright-mcp/feature109_pmi_table_scrolled.png - PMI table showing DUE SOON badges in red
+- .playwright-mcp/feature109_dashboard_pmi_header.png - Dashboard PMI widget with red count indicators
+
+**Console errors:** None detected
+
+[Feature] Feature #109 marked as PASSING - PMI red color-coded due date alerts working correctly
+
+**Current Progress:** 107/374 features passing (28.6%)
+

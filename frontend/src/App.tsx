@@ -10,6 +10,7 @@ import DashboardPage from './pages/DashboardPage'
 import UsersPage from './pages/admin/UsersPage'
 import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
+import PMIPage from './pages/PMIPage'
 import MaintenanceDetailPage from './pages/MaintenanceDetailPage'
 import PartsOrderDetailPage from './pages/PartsOrderDetailPage'
 import AssetsPage from './pages/AssetsPage'
@@ -96,6 +97,7 @@ function App() {
           <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+          <Route path="/pmi" element={<PMIPage />} />
           <Route path="/pmi/:id" element={<PMIDetailPage />} />
           <Route path="/maintenance/:id" element={<MaintenanceDetailPage />} />
           <Route path="/parts-orders/:id" element={<PartsOrderDetailPage />} />
