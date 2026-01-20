@@ -1,5 +1,31 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #115)
+
+### Completed This Session:
+- Feature #115: PMI history per asset - VERIFIED AND PASSING
+
+**Feature Description:** View PMI completion history for an asset
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin
+2. ✅ Navigate to asset detail - Accessed /assets/1 (CRIIS-001) and /assets/4 (CRIIS-004)
+3. ✅ Click PMI History tab - New "PMI History" tab visible and functional
+4. ✅ Verify past PMI completions list - Shows PMI records in table format
+5. ✅ Verify completion dates show - "Completed Date" column shows completion status
+6. ✅ Verify next due dates show - "Next Due Date" column shows scheduled dates
+
+**Implementation:**
+- Backend: Added GET /api/assets/:id/pmi-history endpoint
+- Frontend: Added PMI History tab to Asset Detail page with summary stats and table
+- Updated mock PMI data to use real asset IDs
+
+**Screenshots:**
+- .playwright-mcp/pmi-history-asset-1.png
+- .playwright-mcp/pmi-history-asset-4-multiple.png
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #110)
 
 ### Completed This Session:
@@ -8937,4 +8963,39 @@ Frontend (PMIDetailPage.tsx):
 [Feature] Feature #113 marked as PASSING
 
 **Current Progress:** 111/374 features passing (29.7%)
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #63 'Configuration filtered by program' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users only see configurations for assigned programs
+
+**Verification Steps Completed:**
+1. ✅ Log in as user with single program - Logged in as field_tech (Bob Field) with CRIIS program only
+2. ✅ Navigate to Configurations page - Page loaded with 4 CRIIS configurations
+3. ✅ Verify only program-specific configs display - Only CRIIS configs shown:
+   - Camera System X Configuration
+   - Communication System Config
+   - Navigation Unit Standard
+   - Radar Unit Configuration
+4. ✅ Log in as admin - Logged in as John Admin (access to all 4 programs)
+5. ✅ Verify all program configs accessible - Admin successfully switched to ACTS program and saw 3 different configs:
+   - Laser Designator Config
+   - Targeting System A Config
+   - Targeting System B Config
+
+**Screenshots:**
+- feature63_field_tech_configurations.png - Field tech sees only CRIIS configs (4 total)
+- feature63_admin_acts_configurations.png - Admin viewing ACTS program configs (3 total)
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #63 (no regression found)
+
+**Current Progress:** 113/374 features passing (30.2%)
 
