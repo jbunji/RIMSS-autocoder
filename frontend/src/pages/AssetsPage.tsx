@@ -17,6 +17,7 @@ import {
   DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
@@ -154,7 +155,7 @@ export default function AssetsPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetSchema),
     defaultValues: {
@@ -167,6 +168,9 @@ export default function AssetsPage() {
       notes: '',
     },
   })
+
+  // Warn user about unsaved changes on page refresh/close
+  useUnsavedChangesWarning(isDirty && isModalOpen)
 
   // Debounce search input
   useEffect(() => {

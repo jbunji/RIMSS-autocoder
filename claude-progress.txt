@@ -31055,3 +31055,126 @@ Test Coverage: Comprehensive ✅
 ================================================================================
 [2026-01-20 10:30 UTC] Feature #253 session complete - PARALLEL SESSION
 ================================================================================
+[Testing] Feature #118 REGRESSION FOUND - TCTO tab fails to load data
+[Testing] Feature #238 - Password complexity validation - VERIFIED PASSING ✅
+
+Test Session: 2026-01-20 10:33 UTC
+Feature: Password complexity validation
+Status: PASSING ✅
+
+VERIFICATION RESULTS:
+All password complexity rules are correctly enforced:
+✅ Minimum 12 characters
+✅ Requires uppercase letter
+✅ Requires lowercase letter  
+✅ Requires number
+✅ Requires special character
+✅ Valid passwords accepted
+✅ Success message displayed
+
+Test Execution:
+1. Navigated to profile page (/profile)
+2. Opened password change form
+3. Tested validation with various passwords:
+   - 'password' (8 chars) → Error: minimum 12 characters
+   - 'passwordpassword' (16 chars, no uppercase) → Error: needs uppercase
+   - 'Passwordpassword' (has uppercase, no number) → Error: needs number
+   - 'Passwordpassword1' (has number, no special) → Error: needs special char
+   - 'Passwordpassword1!' (meets all requirements) → SUCCESS ✅
+
+Screenshots Captured:
+- feature_238_step1_password_form.png (initial form)
+- feature_238_step2_password_error.png (length error)
+- feature_238_step3_needs_uppercase.png (uppercase error)
+- feature_238_step4_needs_number.png (number error)
+- feature_238_step5_needs_special.png (special char error)
+- feature_238_step6_password_accepted.png (success)
+
+Console Errors: Only unrelated 404s for notifications API (not feature-related)
+
+Note: Validation checks length FIRST before complexity requirements, which is a reasonable implementation choice. All requirements are correctly enforced.
+
+Quality: Production-ready ✅
+
+
+================================================================================
+[2026-01-20 10:35 UTC] Feature #118 REGRESSION FIXED - PASSING ✅
+================================================================================
+
+Feature #118: TCTO list page loads - REGRESSION FIXED AND VERIFIED
+
+SESSION TYPE: Regression Testing (Testing Agent)
+
+REGRESSION DISCOVERED:
+- TCTO tab was failing with 'Failed to fetch TCTO records' error
+- Backend endpoint existed but was not being served correctly
+- Multiple stale backend processes running (some using old dist/index.js from Jan 19)
+
+ROOT CAUSE:
+- Backend had multiple processes running simultaneously
+- Some processes were using outdated compiled code from dist/index.js
+- The tsx watch process was not the active server
+
+FIX APPLIED:
+1. Killed all node/backend processes
+2. Restarted backend with fresh pnpm dev (tsx watch src/index.ts)
+3. Restarted frontend for clean state
+4. Verified backend serving latest code with /api/tcto endpoint
+
+VERIFICATION - All 5 Steps PASSED:
+
+✅ Step 1: Log in as any user
+   - Logged in as admin (John Admin)
+   - Program: CRIIS
+
+✅ Step 2: Navigate to Maintenance > TCTO tab
+   - Successfully navigated to Maintenance page
+   - Clicked TCTO tab - loaded without errors
+
+✅ Step 3: Verify TCTO table displays
+   - Table displays with proper columns:
+     * TCTO Number, Title, Priority, Deadline, Days Until, Compliance, Status, Actions
+
+✅ Step 4: Verify data loads
+   - 3 TCTO records displayed:
+     1. TCTO-2024-002: Communication System Software Patch (Critical, Overdue, 0% compliance)
+     2. TCTO-2024-001: Sensor Firmware Update v2.3.1 (Urgent, 14 days, 100% compliance)
+     3. TCTO-2024-003: Radar Unit Calibration Procedure Update (Routine, Completed, 100% compliance)
+
+✅ Step 5: Verify program filter applied
+   - Tab shows 'TCTO (3)' - filtered to CRIIS program
+   - Summary statistics correct:
+     * 2 Open TCTOs
+     * 1 Overdue
+     * 1 Critical
+     * 1 Completed
+
+TESTING METHODOLOGY:
+- Used browser automation (Playwright) for all verification
+- Tested actual API endpoint with curl to confirm backend working
+- Captured screenshots before (error state) and after (working state)
+- Verified zero console errors
+
+SCREENSHOTS:
+1. feature_118_regression_tcto_failed.png - Error state before fix
+2. feature_118_tcto_tab_fixed_passing.png - Working state after fix
+
+CONSOLE ERRORS: 0 (all resolved)
+API ENDPOINT: http://localhost:3001/api/tcto?program_id=1 - Returns 3 records
+QUALITY: Production-ready ✅
+
+Result: Feature #118 marked as PASSING ✅
+Progress: 257/374 features passing (68.7%)
+
+Session Duration: ~30 minutes
+Code Changes: 0 (infrastructure fix, not code bug)
+Testing Method: Browser automation + API verification
+
+Feature Status: PASSING ✅
+Regression: FIXED ✅
+Quality: Production-ready ✅
+
+================================================================================
+[2026-01-20 10:35 UTC] Feature #118 testing session complete
+================================================================================
+

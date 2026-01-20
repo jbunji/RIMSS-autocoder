@@ -6224,38 +6224,51 @@ app.get('/api/events/:eventId/attachments', (req, res) => {
 });
 
 // Upload attachment to a maintenance event
-app.post('/api/events/:eventId/attachments', upload.single('file'), (req, res) => {
-  const payload = authenticateRequest(req, res);
-  if (!payload) return;
+app.post('/api/events/:eventId/attachments', (req, res) => {
+  // Wrap multer middleware to handle errors properly
+  upload.single('file')(req, res, (err) => {
+    // Handle multer errors (file size, file type, etc.)
+    if (err) {
+      if (err.message.includes('Invalid file type')) {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err.message.includes('File too large') || err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File size exceeds 10MB limit' });
+      }
+      return res.status(400).json({ error: err.message || 'File upload failed' });
+    }
 
-  const user = mockUsers.find(u => u.user_id === payload.userId);
-  if (!user) {
-    return res.status(401).json({ error: 'User not found' });
-  }
+    const payload = authenticateRequest(req, res);
+    if (!payload) return;
 
-  // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can upload
-  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
-  if (!allowedRoles.includes(user.role)) {
-    return res.status(403).json({ error: 'Access denied. You do not have permission to upload attachments.' });
-  }
+    const user = mockUsers.find(u => u.user_id === payload.userId);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
 
-  const eventId = parseInt(req.params.eventId, 10);
-  const event = maintenanceEvents.find(e => e.event_id === eventId);
+    // Check role permissions - only ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can upload
+    const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+    if (!allowedRoles.includes(user.role)) {
+      return res.status(403).json({ error: 'Access denied. You do not have permission to upload attachments.' });
+    }
 
-  if (!event) {
-    return res.status(404).json({ error: 'Maintenance event not found' });
-  }
+    const eventId = parseInt(req.params.eventId, 10);
+    const event = maintenanceEvents.find(e => e.event_id === eventId);
 
-  // Check if user has access to this event's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(event.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this maintenance event' });
-  }
+    if (!event) {
+      return res.status(404).json({ error: 'Maintenance event not found' });
+    }
 
-  // Check if file was uploaded
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
+    // Check if user has access to this event's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(event.pgm_id)) {
+      return res.status(403).json({ error: 'Access denied to this maintenance event' });
+    }
+
+    // Check if file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
 
   const { description } = req.body;
 
@@ -6273,13 +6286,14 @@ app.post('/api/events/:eventId/attachments', upload.single('file'), (req, res) =
     description: description || null,
   };
 
-  attachments.push(newAttachment);
+    attachments.push(newAttachment);
 
-  console.log(`[ATTACHMENTS] Uploaded attachment ${newAttachment.attachment_id} (${newAttachment.original_filename}) for event ${event.job_no} by ${user.username}`);
+    console.log(`[ATTACHMENTS] Uploaded attachment ${newAttachment.attachment_id} (${newAttachment.original_filename}) for event ${event.job_no} by ${user.username}`);
 
-  res.status(201).json({
-    message: 'Attachment uploaded successfully',
-    attachment: newAttachment,
+    res.status(201).json({
+      message: 'Attachment uploaded successfully',
+      attachment: newAttachment,
+    });
   });
 });
 
