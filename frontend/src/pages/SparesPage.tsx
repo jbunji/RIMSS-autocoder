@@ -130,13 +130,17 @@ export default function SparesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isMassUpdateModalOpen, setIsMassUpdateModalOpen] = useState(false)
+  const [isBulkDeleteConfirm1Open, setIsBulkDeleteConfirm1Open] = useState(false)
+  const [isBulkDeleteConfirm2Open, setIsBulkDeleteConfirm2Open] = useState(false)
   const [selectedSpare, setSelectedSpare] = useState<Spare | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [modalError, setModalError] = useState<string | null>(null)
   const [createModalError, setCreateModalError] = useState<string | null>(null)
   const [massUpdateError, setMassUpdateError] = useState<string | null>(null)
+  const [bulkDeleteError, setBulkDeleteError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isMassUpdating, setIsMassUpdating] = useState(false)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
   // Mass update state
   const [selectedSpareIds, setSelectedSpareIds] = useState<number[]>([])

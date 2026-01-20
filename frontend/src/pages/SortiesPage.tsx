@@ -1236,14 +1236,16 @@ export default function SortiesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={(e) => openEditModal(sortie, e)}
-                          className="text-primary-600 hover:text-primary-900 inline-flex items-center"
-                          title="Edit sortie"
-                        >
-                          <PencilIcon className="h-4 w-4 mr-1" />
-                          Edit
-                        </button>
+                        {user?.role !== 'VIEWER' && (
+                          <button
+                            onClick={(e) => openEditModal(sortie, e)}
+                            className="text-primary-600 hover:text-primary-900 inline-flex items-center"
+                            title="Edit sortie"
+                          >
+                            <PencilIcon className="h-4 w-4 mr-1" />
+                            Edit
+                          </button>
+                        )}
                         {(user?.role === 'ADMIN' || user?.role === 'DEPOT_MANAGER') && (
                           <button
                             onClick={(e) => openDeleteDialog(sortie, e)}

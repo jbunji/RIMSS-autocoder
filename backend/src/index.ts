@@ -9269,6 +9269,113 @@ app.post('/api/assets/mass-update', (req, res) => {
   });
 });
 
+// POST /api/assets/bulk-delete - Delete multiple assets (requires authentication and depot_manager/admin role)
+app.post('/api/assets/bulk-delete', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN and DEPOT_MANAGER can delete assets
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to delete assets' });
+  }
+
+  const { asset_ids } = req.body;
+
+  // Validate inputs
+  if (!asset_ids || !Array.isArray(asset_ids) || asset_ids.length === 0) {
+    return res.status(400).json({ error: 'asset_ids must be a non-empty array' });
+  }
+
+  // Track results
+  let deleted_count = 0;
+  const failed_deletes: Array<{ asset_id: number; reason: string }> = [];
+
+  // Get user's program IDs for access check
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Delete each asset
+  asset_ids.forEach((assetId: number) => {
+    const assetIndex = mockAssets.findIndex(a => a.asset_id === assetId);
+
+    if (assetIndex === -1) {
+      failed_deletes.push({ asset_id: assetId, reason: 'Asset not found' });
+      return;
+    }
+
+    const asset = mockAssets[assetIndex];
+
+    // Check if user has access to this asset's program
+    if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+      failed_deletes.push({ asset_id: assetId, reason: 'Access denied to this asset' });
+      return;
+    }
+
+    // Check if this is an active asset (don't delete already deleted assets)
+    if (!asset.active) {
+      failed_deletes.push({ asset_id: assetId, reason: 'Asset is already inactive/deleted' });
+      return;
+    }
+
+    // Soft delete the asset
+    asset.active = false;
+
+    // Update detailed assets if present
+    const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
+    if (detailedAsset) {
+      detailedAsset.active = false;
+    }
+
+    // Add to asset history
+    const historyChange: AssetHistoryChange = {
+      field: 'active',
+      field_label: 'Active Status',
+      old_value: 'true',
+      new_value: 'false',
+    };
+
+    addAssetHistory(
+      assetId,
+      user,
+      'delete',
+      [historyChange],
+      `Asset deleted via bulk delete`
+    );
+
+    // Add to activity log
+    const now = new Date();
+    const newActivity: ActivityLogEntry = {
+      activity_id: 1000 + dynamicActivityLog.length + 1,
+      timestamp: now.toISOString(),
+      user_id: user.user_id,
+      username: user.username,
+      user_full_name: `${user.first_name} ${user.last_name}`,
+      action_type: 'delete',
+      entity_type: 'asset',
+      entity_id: assetId,
+      entity_name: asset.serno,
+      description: `Bulk deleted asset ${asset.serno}`,
+      pgm_id: asset.pgm_id,
+    };
+    dynamicActivityLog.push(newActivity);
+
+    deleted_count++;
+  });
+
+  console.log(`[ASSETS] Bulk delete by ${user.username}: Deleted ${deleted_count} asset(s), ${failed_deletes.length} failed`);
+
+  res.json({
+    message: `Successfully deleted ${deleted_count} asset(s)`,
+    deleted_count,
+    failed_count: failed_deletes.length,
+    failed_deletes: failed_deletes.length > 0 ? failed_deletes : undefined,
+  });
+});
+
 // POST /api/assets - Create a new asset (requires authentication and depot_manager/admin role)
 app.post('/api/assets', (req, res) => {
   const payload = authenticateRequest(req, res);
