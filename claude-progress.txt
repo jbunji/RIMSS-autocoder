@@ -48656,3 +48656,111 @@ Quality: Production-ready ✅
 ================================================================================
 [2026-01-20 10:40] Feature #343 parallel session complete - VERIFIED PASSING ✅
 ================================================================================
+
+================================================================================
+[2026-01-20 10:41] Feature #31 REGRESSION TEST - PASSING ✅
+================================================================================
+Feature: Assets list page loads
+Category: functional
+Test Type: Regression Testing
+
+VERIFICATION RESULTS:
+✅ Step 1: Logged in as admin user
+✅ Step 2: Navigated to Assets page (/assets)
+✅ Step 3: Assets table displays correctly with 10 visible records
+✅ Step 4: Data loaded from database (confirmed via network request)
+   - API Call: GET /api/assets?program_id=1&page=1&limit=10&sort_by=serno&sort_order=asc
+   - Response: 200 OK
+✅ Step 5: Program filter applied (viewing CRIIS program data only)
+   - Page header shows: "Viewing assets for CRIIS - Common Remotely Operated Integrated Reconnaissance System"
+   - Shows "109 total assets" for CRIIS program
+   - All displayed assets have CRIIS serial numbers
+
+QUALITY METRICS:
+✅ Zero JavaScript errors (only React DevTools info and Router warnings)
+✅ Assets table renders with proper columns: Serial Number, Part Number, Name, Status, Location, ETI Hours, Next PMI, Actions
+✅ Pagination working: "Showing 1 to 10 of 109 results" with 11 pages
+✅ Search and filter UI present and functional
+✅ Export buttons (PDF/Excel) available
+✅ Add Asset button present for authorized users
+
+TECHNICAL VERIFICATION:
+- Database query successful with program isolation (program_id=1)
+- Server-side pagination implemented (page=1, limit=10)
+- Sorting applied (sort_by=serno, sort_order=asc)
+- Reference data loaded (locations, asset-statuses)
+- All API responses returned 200 OK status
+
+VISUAL VERIFICATION:
+- Assets table properly styled with Tailwind CSS
+- Status badges display correctly (FMC=green, PMC=yellow, NMCM/NMCS=red, CNDM=gray)
+- Special indicators visible: "BA" badge for Bad Actor, "Transit" badge for in-transit assets
+- Location type badges show (depot/field)
+- Action buttons (View/Delete) present for each row
+
+CONCLUSION: Feature #31 is FULLY FUNCTIONAL and STILL PASSING
+No regressions detected. The Assets page loads correctly with proper data isolation,
+pagination, and all expected UI elements.
+
+Progress: 342/374 features passing (91.4%)
+
+[2026-01-20 10:41] Feature #31 regression test complete - STILL PASSING ✅
+================================================================================
+[Testing] Session complete - verified feature #31 - still passing
+
+
+================================================================================
+[2026-01-20 10:42] Feature #260 REGRESSION TEST - PASSING ✅
+================================================================================
+Feature: Close browser, reopen - session handled correctly
+Category: state
+Test Type: Regression Testing
+
+VERIFICATION RESULTS:
+✅ Step 1: Logged in as admin user - SUCCESS
+✅ Step 2: Closed browser completely - SUCCESS
+✅ Step 3: Reopened browser and navigated to app - SUCCESS
+✅ Step 4: Verified session state - Session expired (redirected to login) ✅
+✅ Step 5: Consistent behavior - No errors, clean redirect ✅
+✅ Step 6: Logged in again successfully - SUCCESS ✅
+
+EXPECTED BEHAVIOR:
+When browser is completely closed and reopened, the session should NOT be 
+maintained (security best practice). User should be redirected to login page.
+
+ACTUAL BEHAVIOR:
+✅ Browser close cleared the session
+✅ Reopening browser redirected to /login
+✅ No console errors
+✅ User can log in again without issues
+✅ Dashboard loads correctly after re-login
+
+QUALITY METRICS:
+- Zero JavaScript errors
+- Zero console errors
+- Clean session handling
+- Proper redirect to login page
+- Successful re-authentication
+- Normal application operation after re-login
+
+TECHNICAL NOTES:
+- Session tokens are stored in memory and cleared on browser close
+- No persistent session storage across browser restarts (correct behavior)
+- Login flow works consistently after browser restart
+- Token refresh manager initializes correctly on new session
+
+SCREENSHOTS CAPTURED:
+1. feature_260_step1_logged_in.png - Initial logged-in state
+2. feature_260_step3_after_browser_reopen.png - Login page after reopen
+3. feature_260_step6_logged_in_again.png - Successfully logged in again
+
+CONCLUSION: 
+Feature #260 is FULLY FUNCTIONAL and STILL PASSING ✅
+No regressions detected. Session handling works correctly.
+
+Progress: 342/374 features passing (91.4%)
+
+[2026-01-20 10:42] Feature #260 regression test complete - STILL PASSING ✅
+================================================================================
+
+[Testing] Session complete - verified feature #260 - STILL PASSING ✅
