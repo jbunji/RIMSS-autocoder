@@ -231,6 +231,8 @@ interface SoftwareAssociation {
   sw_version_id: number
   sw_version: string
   sw_name: string
+  sw_number: string
+  sw_type: string
   effective_date: string
   end_date: string | null
   created_by: string

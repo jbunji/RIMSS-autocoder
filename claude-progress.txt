@@ -15336,3 +15336,84 @@ Feature #151 remains PASSING - Parts ordering list page loads correctly.
 
 [Testing] Session complete - verified feature #151 (no regression)
 Current Progress: 168/374 features passing (44.9%)
+
+================================================================================
+Session: $(date -u +"%Y-%m-%d %H:%M UTC") - Feature #95 REGRESSION TEST
+================================================================================
+
+Feature #95: Repeat/recur flagging on repairs - VERIFIED (NO REGRESSION)
+
+Testing Summary:
+Performed comprehensive regression testing of the repeat/recur flagging feature
+for repairs in maintenance events. All verification steps passed successfully.
+
+Verification Steps Completed:
+
+✅ Step 1: Log in as field technician
+   - Logged in successfully as Bob Field (field_tech/field123)
+   - Screenshot: feature95_step1_logged_in.png
+
+✅ Step 2: Navigate to repair
+   - Navigated to Maintenance page
+   - Clicked on maintenance event MX-2024-001
+   - Successfully accessed event detail page
+   - Screenshot: feature95_step2_event_detail.png
+
+✅ Step 3: Toggle repeat/recur flag
+   - Opened Edit Repair modal for Repair #2
+   - Found "Repeat/Recur Issue" toggle switch
+   - Toggle was already checked (enabled)
+   - Screenshot: feature95_step3_edit_modal.png
+
+✅ Step 4: Save changes
+   - Toggled the switch off, then back on
+   - Clicked "Save Changes" button
+   - Modal closed successfully
+   - Screenshot: feature95_step5_changes_saved.png
+
+✅ Step 5: Verify indicator displays
+   - Repair #2 displays "REPEAT/RECUR" badge with icon
+   - Badge is visually distinct (teal background)
+   - Shows attribution: "Originally flagged by: bob_field"
+   - Screenshot: feature95_step6_filter_active.png
+
+✅ Step 6: Filter repairs by repeat/recur
+   - Clicked "Repeat/Recur Only" filter button
+   - Filter activated (button shows active state)
+   - Only Repair #2 (flagged) is visible
+   - Counter shows "1" flagged repair
+   - Screenshot: feature95_step6_filter_active.png
+
+✅ Step 7: Verify only flagged repairs show
+   - With filter ON: Only Repair #2 visible (has flag)
+   - Clicked filter again to turn OFF
+   - Both repairs now visible (Repair #1 and #2)
+   - Repair #1 does NOT have repeat/recur flag
+   - Repair #2 still shows repeat/recur badge
+   - Screenshot: feature95_step7_all_repairs_visible.png
+
+Technical Verification:
+- Zero JavaScript errors related to repeat/recur functionality ✓
+- Only console error is expected 401 from initial login attempt ✓
+- Toggle switch state properly maintained ✓
+- Filter functionality working correctly ✓
+- Visual indicators displaying correctly ✓
+- Backend API calls successful ✓
+- UI updates properly after save ✓
+
+Feature Implementation Details:
+- Repeat/recur flag stored in repair record
+- Toggle switch in Edit Repair modal
+- Visual badge displayed on flagged repairs
+- Filter button with counter showing flagged count
+- Attribution tracking (who flagged the repair)
+- Filter persists until manually toggled off
+
+Regression Result: ✅ NO REGRESSION DETECTED
+
+Feature #95 remains PASSING - All functionality working as designed.
+
+Current Progress: 168/374 features passing (44.9%)
+
+[Testing] Session complete - verified feature #95 (no regression)
+[Testing] Feature #95 regression test complete - NO REGRESSION FOUND
