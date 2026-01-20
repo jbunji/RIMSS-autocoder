@@ -6717,6 +6717,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+    pqdr: false,
     },
     {
       order_id: 4,
@@ -6752,6 +6753,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+    pqdr: false,
     },
     // Shipped orders - CRIIS
     {
@@ -6788,6 +6790,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+    pqdr: false,
     },
     // More pending orders - ACTS
     {
@@ -6824,6 +6827,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+    pqdr: false,
     },
     // Acknowledged - Program 236
     {
@@ -6860,6 +6864,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+    pqdr: true, // Flagged for PQDR - suspected quality issue
     },
     // Received orders (for history)
     {
@@ -6896,6 +6901,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+    pqdr: false,
     },
     // More pending items for CRIIS
     {
@@ -6932,6 +6938,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+    pqdr: false,
     },
   ];
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { CheckCircleIcon, TruckIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, TruckIcon, MagnifyingGlassIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 interface PartsOrder {
   order_id: number
@@ -38,6 +38,7 @@ interface PartsOrder {
   received_date: string | null
   received_by: number | null
   received_by_name: string | null
+  pqdr: boolean
 }
 
 interface Spare {
