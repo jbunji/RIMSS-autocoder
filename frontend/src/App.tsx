@@ -32,6 +32,7 @@ import PMIScheduleReportPage from './pages/PMIScheduleReportPage'
 import PartsOrderedReportPage from './pages/PartsOrderedReportPage'
 import SortieReportPage from './pages/SortieReportPage'
 import BadActorReportPage from './pages/BadActorReportPage'
+import TestTimeoutPage from './pages/TestTimeoutPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -135,6 +136,7 @@ function App() {
 
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+          <Route path="/test-timeout" element={<TestTimeoutPage />} />
           <Route path="/pmi" element={<PMIPage />} />
           <Route path="/pmi/:id" element={<PMIDetailPage />} />
           <Route path="/maintenance/:id" element={<MaintenanceDetailPage />} />

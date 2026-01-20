@@ -13945,6 +13945,22 @@ app.get('/api/reports/bad-actors', (req, res) => {
   }
 });
 
+// Test endpoint for timeout testing (Feature #255)
+// This endpoint simulates a slow response to test timeout handling
+app.get('/api/test/slow', (req, res) => {
+  const delayMs = parseInt(req.query.delay as string) || 5000;
+
+  console.log(`[TEST] Slow endpoint called with ${delayMs}ms delay`);
+
+  setTimeout(() => {
+    res.json({
+      message: 'Slow response completed',
+      delay: delayMs,
+      timestamp: new Date().toISOString(),
+    });
+  }, delayMs);
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`
