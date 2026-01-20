@@ -5018,9 +5018,9 @@ export default function MaintenanceDetailPage() {
       <Dialog open={isCloseRepairModalOpen} onClose={closeCloseRepairModal} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
               <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
                 <CheckCircleIcon className="h-5 w-5 mr-2 text-green-500" />
                 Close Repair #{closingRepair?.repair_seq}
@@ -5034,7 +5034,7 @@ export default function MaintenanceDetailPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {/* Success Message */}
               {closeRepairSuccess && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -5171,7 +5171,7 @@ export default function MaintenanceDetailPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl flex-shrink-0">
               <button
                 onClick={closeCloseRepairModal}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
