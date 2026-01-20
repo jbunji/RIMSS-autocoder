@@ -1,5 +1,75 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #117)
+
+### Completed This Session:
+- Feature #117: PMI export with CUI markings - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** PMI exports include CUI compliance
+
+**Implementation:**
+
+Frontend changes (frontend/src/pages/MaintenancePage.tsx):
+- Added `exportPMIToPdf()` function with:
+  - CUI header banner: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+  - CUI footer banner: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+  - Color-coded status legend in PDF (red, yellow, green badges)
+  - Color-coded status column with background colors
+  - Color-coded "Days Until Due" column with status-appropriate text colors
+  - ZULU timestamp and page numbers in footer
+  - Filename format: `CUI_PMI_Schedule_YYYYMMDD.pdf`
+
+- Added `exportPMIToExcel()` function with:
+  - CUI header row: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+  - CUI footer row: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+  - Status Color column for accessibility (e.g., "RED - Overdue", "YELLOW - Due within 30 days")
+  - Summary row with count breakdown by status
+  - ZULU timestamps for dates
+  - Filename format: `CUI_PMI_Schedule_YYYYMMDD.xlsx`
+
+- Added Export PDF and Export Excel buttons in PMI Schedule tab UI
+  - Located after "Add PMI" button in filter row
+  - Buttons disabled when no PMI records exist
+  - Tooltips explain CUI marking compliance
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to PMI page - Navigated to Maintenance > PMI Schedule tab
+3. ✅ Export to PDF - Clicked "Export PDF" button, file downloaded
+4. ✅ Verify CUI header/footer - PDF contains:
+   - Yellow CUI banner at top: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Yellow CUI banner at bottom: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+   - Page numbers and timestamps in footer
+5. ✅ Verify color coding preserved in PDF:
+   - Status Legend shows OVERDUE (red), DUE SOON (red), UPCOMING (yellow), SCHEDULED (green)
+   - Status column cells have colored backgrounds matching status
+   - Days Until Due column has color-coded text (red/yellow/green)
+6. ✅ Export to Excel - Clicked "Export Excel" button, file downloaded
+7. ✅ Verify CUI markings in Excel:
+   - Row 0: "CONTROLLED UNCLASSIFIED INFORMATION (CUI)"
+   - Last row: "CUI - CONTROLLED UNCLASSIFIED INFORMATION"
+   - Status Color column describes colors (e.g., "RED - Overdue")
+   - Filename starts with "CUI_"
+
+**Downloaded Files:**
+- CUI_PMI_Schedule_20260120.pdf (25.3 KB)
+- CUI_PMI_Schedule_20260120.xlsx
+
+**Screenshots:**
+- .playwright-mcp/feature117_pmi_tab_with_export_buttons.png - PMI tab with export buttons visible
+- .playwright-mcp/feature117_pmi_table_with_color_coding.png - Full PMI table with color-coded status
+
+**Files Modified:**
+- frontend/src/pages/MaintenancePage.tsx (added exportPMIToPdf, exportPMIToExcel functions and UI buttons)
+
+**Console errors:** None detected
+
+[Feature] Feature #117 marked as PASSING
+
+**Current Progress:** 115/374 features passing (30.7%)
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #114)
 
 ### Completed This Session:
