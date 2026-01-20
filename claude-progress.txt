@@ -12822,3 +12822,101 @@ Testing Feature #12: Admin can edit existing user
 Verification Steps: Logged in as admin, navigated to Users, edited Jane Depot, changed name to Janet and added ACTS program, saved changes, verified persistence and success message
 All checks passed: Edit functionality working, data persistence confirmed, success message displayed, zero console errors
 [Testing] Session complete - verified feature #12
+---
+
+## Session: 2026-01-20 (Feature #74) - PARALLEL EXECUTION - COMPLETED
+
+[Feature] Feature #74 "PQDR flagging on maintenance events" - VERIFIED AND PASSING
+
+**Feature Description:** Events can be flagged for Product Quality Deficiency Report
+
+**Previous Status:** Feature was previously marked as passing but had a regression detected due to in-memory data reset on server restart. The underlying implementation was correct - the backend update endpoint (lines 3944-3947) properly handles PQDR flag updates. The issue was related to the development environment's hot-reload behavior resetting seed data.
+
+**Verification Completed (All 8 Steps):**
+
+✅ Step 1: Logged in as depot manager (Jane Depot / depot_mgr)
+✅ Step 2: Navigated to maintenance event MX-2024-001
+✅ Step 3: Toggled PQDR flag ON using Edit Event modal checkbox
+✅ Step 4: Saved changes - Detail page shows "PQDR Flagged" with warning icon and yellow warning box
+✅ Step 5: Returned to maintenance list - MX-2024-001 shows "PQDR" badge in job number column
+✅ Step 6: PQDR indicator visible as red badge next to job number "MX-2024-001PQDR"
+✅ Step 7: Activated "PQDR Only" filter checkbox - list filtered to 1 event
+✅ Step 8: Verified only PQDR events display - Counts updated correctly (4→1 events)
+
+**Key Features Verified:**
+
+**PQDR Badge Display:**
+- Badge displays in maintenance list next to job number ✓
+- Badge text shows "PQDR" in red styling ✓
+- Badge is visible and properly formatted ✓
+
+**Detail Page Indicators:**
+- "PQDR Status" field shows "PQDR Flagged" with warning icon ✓
+- Yellow warning box displays with title "Product Quality Deficiency Report (PQDR)" ✓
+- Warning message: "This maintenance event has been flagged for quality deficiency reporting..." ✓
+- When PQDR off: Shows "Not flagged" (no icon, no warning box) ✓
+
+**Edit Functionality:**
+- Edit Event modal includes "Flag for PQDR" checkbox ✓
+- Checkbox state reflects current PQDR flag value ✓
+- Can toggle PQDR flag ON successfully ✓
+- Can toggle PQDR flag OFF successfully ✓
+- Changes save immediately to backend ✓
+- Detail page updates instantly after save ✓
+- List page reflects changes (badge appears/disappears) ✓
+
+**Filter Functionality:**
+- "PQDR Only" checkbox visible in filters section ✓
+- Checkbox shows count badge "(1)" indicating 1 PQDR event ✓
+- When checked: List filters to show only PQDR-flagged events ✓
+- Tab updates to show correct count "Backlog (1)" ✓
+- Stats cards update: Critical: 1, Urgent: 0, Routine: 0, Open Jobs: 1 ✓
+- When unchecked: All events display again (4 total) ✓
+- "Clear All Filters" button appears when PQDR filter active ✓
+
+**Backend Integration:**
+- PUT /api/events/:id endpoint handles pqdr field correctly (lines 3944-3947) ✓
+- Backend logs: "[EVENTS] PQDR flag enabled/disabled for event MX-2024-001" ✓
+- Changes persist in maintenanceEvents array ✓
+- GET /api/events endpoint supports pqdr=true filter parameter ✓
+
+**Data Persistence:**
+- PQDR flag changes persist within session ✓
+- Toggle OFF→ON→OFF→ON works correctly ✓
+- Badge presence matches PQDR flag state ✓
+- Filter count matches actual PQDR-flagged events ✓
+
+**Console Verification:**
+- Zero critical JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- Initial ERR_CONNECTION_REFUSED errors were from page load before authentication (resolved with Retry) ✓
+
+**Testing Methodology:**
+- Toggled PQDR OFF: Badge removed from list, warning box removed from detail ✓
+- Toggled PQDR ON: Badge restored in list, warning box restored in detail ✓
+- Verified filter: Checked PQDR Only → 1 event shown, unchecked → 4 events shown ✓
+- All changes reflected immediately in UI ✓
+
+**Screenshots Captured:**
+- feature74_pqdr_filter_active.png - PQDR filter checked showing 1 event
+- feature74_maintenance_list_with_pqdr_badge.png - List view with PQDR badge on MX-2024-001
+
+**Files Involved:**
+- Backend: backend/src/index.ts (lines 3944-3947: PQDR flag update logic)
+- Frontend: frontend/src/pages/MaintenancePage.tsx (PQDR filter checkbox)
+- Frontend: frontend/src/pages/MaintenanceDetailPage.tsx (PQDR status display, edit modal)
+
+**Technical Notes:**
+- PQDR is a boolean field in the maintenance event object
+- When true: Badge displays in list, warning box on detail page
+- When false/undefined: No badge, "Not flagged" status
+- Filter parameter: ?pqdr=true filters to only PQDR-flagged events
+- Badge styling: Red background with white text
+- Warning box: Yellow background with warning icon
+
+**Previous Regression Note:**
+The progress notes mentioned a regression where changes didn't persist. This was due to the backend server's hot-reload feature (tsx watch) calling initializeMaintenanceEvents() on restart, which reset the in-memory data to seed values. The code itself works correctly - this is a known characteristic of the development environment using in-memory storage rather than a persistent database.
+
+[Feature] Feature #74 marked as PASSING
+
+**Current Progress:** 146/374 features passing (39.0%)

@@ -1382,6 +1382,150 @@ export default function SparesPage() {
           </div>
         </Dialog>
       </Transition.Root>
+
+      {/* Mass Update Modal */}
+      <Transition.Root show={isMassUpdateModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={setIsMassUpdateModalOpen}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 z-10 overflow-y-auto">
+            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                  <div>
+                    <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                      <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900 mb-4">
+                        Mass Update Spares
+                      </Dialog.Title>
+
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600">
+                          You are updating <span className="font-semibold">{selectedSpareIds.length}</span> spare part(s)
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* Field Selector */}
+                        <div>
+                          <label htmlFor="mass-update-field" className="block text-sm font-medium text-gray-700 mb-1">
+                            Field to Update
+                          </label>
+                          <select
+                            id="mass-update-field"
+                            value={massUpdateField}
+                            onChange={(e) => {
+                              setMassUpdateField(e.target.value)
+                              setMassUpdateValue('')
+                            }}
+                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                          >
+                            <option value="status_cd">Status</option>
+                            <option value="admin_loc">Administrative Location</option>
+                            <option value="cust_loc">Custodial Location</option>
+                          </select>
+                        </div>
+
+                        {/* Value Input */}
+                        <div>
+                          <label htmlFor="mass-update-value" className="block text-sm font-medium text-gray-700 mb-1">
+                            New Value
+                          </label>
+                          {massUpdateField === 'status_cd' ? (
+                            <select
+                              id="mass-update-value"
+                              value={massUpdateValue}
+                              onChange={(e) => setMassUpdateValue(e.target.value)}
+                              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                            >
+                              <option value="">Select Status</option>
+                              {assetStatuses.map((status) => (
+                                <option key={status.status_cd} value={status.status_cd}>
+                                  {status.status_cd} - {status.status_name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : massUpdateField === 'admin_loc' ? (
+                            <select
+                              id="mass-update-value"
+                              value={massUpdateValue}
+                              onChange={(e) => setMassUpdateValue(e.target.value)}
+                              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                            >
+                              <option value="">Select Location</option>
+                              {adminLocations.map((loc) => (
+                                <option key={loc.loc_id} value={loc.loc_cd}>
+                                  {loc.loc_name}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <select
+                              id="mass-update-value"
+                              value={massUpdateValue}
+                              onChange={(e) => setMassUpdateValue(e.target.value)}
+                              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                            >
+                              <option value="">Select Location</option>
+                              {custodialLocations.map((loc) => (
+                                <option key={loc.loc_id} value={loc.loc_cd}>
+                                  {loc.loc_name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+
+                        {massUpdateError && (
+                          <div className="rounded-md bg-red-50 p-4">
+                            <p className="text-sm text-red-800">{massUpdateError}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse gap-3">
+                    <button
+                      type="button"
+                      onClick={handleMassUpdateSubmit}
+                      disabled={isMassUpdating || !massUpdateValue}
+                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:opacity-50 disabled:cursor-not-allowed sm:w-auto"
+                    >
+                      {isMassUpdating ? 'Updating...' : 'Update All'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsMassUpdateModalOpen(false)}
+                      disabled={isMassUpdating}
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed sm:mt-0 sm:w-auto"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
     </div>
   )
 }
