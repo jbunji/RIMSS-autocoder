@@ -8081,7 +8081,8 @@ app.get('/api/assets/:id', (req, res) => {
   // Get the asset from detailedAssets
   const asset = detailedAssets.find(a => a.asset_id === assetId);
 
-  if (!asset) {
+  // Return 404 if asset doesn't exist or is deleted (soft delete)
+  if (!asset || !asset.active) {
     return res.status(404).json({ error: 'Asset not found' });
   }
 
