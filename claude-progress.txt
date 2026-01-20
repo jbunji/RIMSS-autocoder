@@ -9084,3 +9084,67 @@ Frontend (PMIDetailPage.tsx):
 [Testing] Session complete - verified feature #4 (no regression found)
 
 **Current Progress:** 114/374 features passing (30.5%)
+
+
+---
+
+## Session: 2026-01-20 (Feature #116)
+
+[Feature] Feature #116 "PMI search and filtering" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Users can search and filter PMI records
+
+**Implementation:**
+
+Backend changes (backend/src/index.ts):
+- Added `search` query parameter to /api/pmi/due-soon endpoint
+  - Searches asset serial number, asset name, and PMI type (case-insensitive)
+- Added `overdue_only` query parameter to filter only overdue PMIs (days_until_due < 0)
+- Same changes applied to /api/pmi endpoint for consistency
+
+Frontend changes (frontend/src/pages/MaintenancePage.tsx):
+- Added pmiSearchQuery state for search input
+- Added debouncedPmiSearch with 300ms debounce to prevent excessive API calls
+- Added pmiOverdueOnly state for overdue toggle
+- Added search input with placeholder "Search by asset S/N, name, or PMI type..."
+- Added clear (X) button in search field when text is entered
+- Added "Overdue Only" toggle button with:
+  - Active state styling (red background when active)
+  - Count badge showing number of overdue items
+- Added "Clear All" button that appears when any filter is active
+- Updated filter status message at bottom showing active filters
+- Updated "No results" message with clear filters button when filters return no matches
+- Updated fetchPMI to include search and overdue_only parameters
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin (John Admin)
+2. ✅ Navigate to PMI page - Navigated to Maintenance > PMI Schedule tab
+3. ✅ Search by asset serial number - Entered "CRIIS-001" in search
+4. ✅ Verify matching PMIs display - Only Sensor Unit A (CRIIS-001) shown
+   - Tab count changed from 7 to 1
+   - Status message: "1 PMI schedule entries (filtered by "CRIIS-001")"
+5. ✅ Filter by overdue only - Clicked "Overdue Only" button
+   - Only 1 overdue PMI displayed (Sensor Unit A)
+   - Button shows count badge "1"
+   - Status message: "(filtered to overdue only)"
+6. ✅ Verify only overdue PMIs show - Only PMI with days_until_due < 0 shown
+7. ✅ Clear filters - Clicked "Clear All" button
+   - All 7 PMI records restored
+   - Tab count back to 7
+
+**Screenshots:**
+- feature116_pmi_tab_with_search_filter.png - PMI tab with new search/filter UI
+- feature116_search_by_serial_number.png - Search results for CRIIS-001
+- feature116_overdue_only_filter.png - Overdue only filter active
+- feature116_filters_cleared.png - All filters cleared
+
+**Files Modified:**
+- frontend/src/pages/MaintenancePage.tsx (added search input, filter toggle, state management)
+- backend/src/index.ts (added search and overdue_only query parameter support)
+
+**Console errors:** None detected
+
+[Feature] Feature #116 marked as PASSING
+
+**Current Progress:** 114/374 features passing (30.5%)
+
