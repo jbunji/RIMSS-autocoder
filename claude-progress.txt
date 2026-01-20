@@ -21365,3 +21365,88 @@ Next: Session complete - Feature #214 verified and committed
 ================================================================================
 [2026-01-20 04:05 UTC] Feature #214 session complete
 
+
+================================================================================
+[Testing] 2026-01-20 04:06 UTC - Feature #155 Regression Test COMPLETED - PASSING
+================================================================================
+
+Feature #155: Parts order cannot be un-acknowledged
+
+Test Result: ✅ ALL STEPS PASSED - Feature is working correctly
+
+Test Execution Summary:
+
+✅ Step 1: Log in as depot manager
+   - Successfully logged in as depot_mgr (Jane Depot)
+   - Authentication successful
+
+✅ Step 2: Navigate to acknowledged parts order
+   - Navigated to Parts Ordered page
+   - Found acknowledged orders: PN-PSU-001, PN-CAB-004
+   - Selected PN-PSU-001 (Power Supply Unit 24V, Order #1)
+   - Current status: Acknowledged (by Jane Depot, Jan 20 2026 02:06 AM)
+
+✅ Step 3: Verify no option to un-acknowledge
+   - ✓ ONLY action button available: "Fill Order" (next forward step)
+   - ✓ NO "Un-acknowledge" button present
+   - ✓ NO "Cancel Acknowledgment" option
+   - ✓ NO status dropdown to revert to REQUEST
+   - ✓ Checked Details tab: no revert options
+   - ✓ Checked History tab: no revert options
+   - ✓ Status is read-only once acknowledged
+
+✅ Step 4: Verify status change only forward allowed
+   - ✓ Current status: Acknowledged
+   - ✓ Only forward action: "Fill Order" button
+   - ✓ History shows one-way workflow: REQUEST → ACKNOWLEDGED
+   - ✓ No reverse workflow implemented
+   - ✓ Feature correctly enforces forward-only progression
+
+Additional Verification:
+
+✓ Console Status:
+  - Zero JavaScript errors
+  - Zero console warnings (only old 401 errors from login attempts)
+
+✓ UI Implementation:
+  - Status badge displays: "Acknowledged" (blue badge)
+  - Priority badge: "Urgent"
+  - PQDR flag: enabled (checkbox checked)
+  - Action button: "Fill Order" (purple button)
+
+✓ Order Details Verified:
+  - Part: Power Supply Unit 24V (PN-PSU-001)
+  - Quantity Ordered: 2
+  - Acknowledged Date: January 20, 2026 at 02:06 AM
+  - Acknowledged By: Jane Depot
+  - Status: Acknowledged (read-only)
+
+✓ Workflow Enforcement:
+  - Forward progression: REQUEST → ACKNOWLEDGED → FILLED → SHIPPED → RECEIVED
+  - No reverse workflow controls present
+  - Status transitions are one-way only
+  - Depot manager can only progress forward
+
+Screenshots Captured:
+1. feature155_acknowledged_order_detail.png - Order detail page top
+2. feature155_acknowledged_order_full_page.png - Full page with shipping info
+
+Result: Feature #155 verified and confirmed PASSING ✅
+
+Progress: 212/374 features passing (56.7%) - no change (feature already passing)
+
+Session Type: Regression Testing
+Session Duration: ~5 minutes
+Test Approach: Full end-to-end browser automation testing
+User Role Tested: Depot Manager (Jane Depot)
+
+Notes:
+- Feature is working perfectly as specified
+- Once acknowledged, orders cannot revert to REQUEST status
+- Only forward workflow actions are available
+- No regressions detected
+- UI clearly indicates status and available actions
+- All verification steps passed without issues
+
+================================================================================
+[Testing] Session complete - Feature #155 verified and still passing (no action needed)
