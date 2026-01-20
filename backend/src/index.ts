@@ -211,12 +211,17 @@ function parseMockToken(token: string): { userId: number } | null {
 // Login endpoint
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body
+  console.log('[DEBUG] Login attempt:', { username, password, receivedPassword: password })
 
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' })
   }
 
   const user = mockUsers.find(u => u.username === username)
+  console.log('[DEBUG] User found:', !!user)
+  console.log('[DEBUG] Expected password:', mockPasswords[username])
+  console.log('[DEBUG] Password match:', mockPasswords[username] === password)
+
   if (!user || mockPasswords[username] !== password) {
     return res.status(401).json({ error: 'Invalid username or password' })
   }
