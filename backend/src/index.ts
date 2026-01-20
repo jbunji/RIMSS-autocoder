@@ -177,6 +177,9 @@ const mockPasswords: Record<string, string> = {
   acts_user: 'acts123',
 }
 
+// Token blacklist - stores invalidated tokens
+const tokenBlacklist = new Set<string>()
+
 // Mock JWT token generator (simple base64 encoding for testing)
 function generateMockToken(userId: number): string {
   const payload = { userId, iat: Date.now(), exp: Date.now() + 30 * 60 * 1000 }
@@ -186,6 +189,11 @@ function generateMockToken(userId: number): string {
 // Parse mock token
 function parseMockToken(token: string): { userId: number } | null {
   try {
+    // Check if token is blacklisted
+    if (tokenBlacklist.has(token)) {
+      return null // Token has been invalidated
+    }
+
     const payload = JSON.parse(Buffer.from(token, 'base64').toString())
     if (payload.exp < Date.now()) return null // Token expired
     return payload
@@ -259,7 +267,14 @@ app.post('/api/auth/refresh', (req, res) => {
 })
 
 // Logout endpoint
-app.post('/api/auth/logout', (_req, res) => {
+app.post('/api/auth/logout', (req, res) => {
+  const authHeader = req.headers.authorization
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7)
+    // Add token to blacklist to invalidate it
+    tokenBlacklist.add(token)
+    console.log(`[AUTH] Token blacklisted on logout (total blacklisted: ${tokenBlacklist.size})`)
+  }
   res.json({ message: 'Logged out successfully' })
 })
 

@@ -54,7 +54,24 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     return () => clearInterval(interval)
   }, [token])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      // Call backend logout endpoint to invalidate token
+      if (token) {
+        await fetch('http://localhost:3001/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error)
+      // Continue with local logout even if API call fails
+    }
+
+    // Clear local auth state
     logout()
     navigate('/login')
   }
