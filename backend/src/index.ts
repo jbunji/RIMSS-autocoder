@@ -4468,6 +4468,15 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
 
   repairs.push(newRepair);
 
+  // Update asset's ETI hours if eti_in is provided
+  if (newRepair.eti_in !== null) {
+    const assetIndex = detailedAssets.findIndex(a => a.asset_id === newRepair.asset_id);
+    if (assetIndex !== -1) {
+      detailedAssets[assetIndex].eti_hours = newRepair.eti_in;
+      console.log(`[REPAIRS] Asset ${newRepair.asset_id} ETI updated to ${newRepair.eti_in} hours (from repair start)`);
+    }
+  }
+
   console.log(`[REPAIRS] Created repair ${newRepair.repair_id} for event ${event.job_no} by ${user.username}`);
 
   res.status(201).json({

@@ -4,8 +4,10 @@
 
 /* Base styles */
 @layer base {
-  html {
+  html, body, #root {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden !important;
+    max-width: 100vw;
   }
 
   /* Monospace for codes, serial numbers, part numbers */

@@ -1,0 +1,190 @@
+### Page state
+- Page URL: http://localhost:5173/configurations/1
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e28]:
+  - generic [ref=e29]: CUI - Controlled Unclassified Information
+  - navigation [ref=e31]:
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - button "Toggle sidebar" [ref=e35] [cursor=pointer]:
+          - img [ref=e36]
+        - generic [ref=e38]:
+          - generic [ref=e39]: RIMSS
+          - generic [ref=e40]: Remote Independent Maintenance Status System
+      - generic [ref=e41]:
+        - link "View notifications" [ref=e42] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e43]
+          - generic [ref=e45]: "3"
+        - 'button "Program: CRIIS" [ref=e47] [cursor=pointer]':
+          - generic [ref=e48]: "Program:"
+          - generic [ref=e49]: CRIIS
+          - img [ref=e50]
+        - button "Jane Depot" [ref=e53] [cursor=pointer]:
+          - img [ref=e54]
+          - generic [ref=e56]: Jane Depot
+          - img [ref=e57]
+  - generic [ref=e61]:
+    - navigation [ref=e62]:
+      - generic [ref=e63]:
+        - link "Dashboard" [ref=e64] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e65]
+          - text: Dashboard
+        - link "Assets" [ref=e67] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e68]
+          - text: Assets
+        - link "Configurations" [ref=e70] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e71]
+          - text: Configurations
+        - link "Maintenance" [ref=e74] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e75]
+          - text: Maintenance
+        - link "Sorties" [ref=e77] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e78]
+          - text: Sorties
+        - link "Spares" [ref=e80] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e81]
+          - text: Spares
+        - link "Parts Ordered" [ref=e83] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e84]
+          - text: Parts Ordered
+        - link "Software" [ref=e86] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e87]
+          - text: Software
+        - link "Notifications" [ref=e89] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e90]
+          - text: Notifications
+        - link "Reports" [ref=e92] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e93]
+          - text: Reports
+    - paragraph [ref=e96]: RIMSS v0.1.0
+  - main [ref=e98]:
+    - generic [ref=e662]:
+      - button "Back to Configurations" [ref=e664] [cursor=pointer]:
+        - img [ref=e665]
+        - text: Back to Configurations
+      - generic [ref=e667]:
+        - generic [ref=e668]:
+          - generic [ref=e669]:
+            - img [ref=e672]
+            - generic [ref=e674]:
+              - generic [ref=e675]:
+                - heading "Camera System X Configuration" [level=1] [ref=e676]
+                - generic [ref=e902]:
+                  - img [ref=e903]
+                  - text: ASSEMBLY
+                - generic [ref=e680]:
+                  - img [ref=e681]
+                  - text: Active
+              - paragraph [ref=e683]: CRIIS - Common Remotely Operated Integrated Reconnaissance System
+              - paragraph [ref=e684]: Standard camera system configuration including sensor units and mounting hardware
+          - generic [ref=e685]:
+            - paragraph [ref=e686]: "Part Number: PN-CAMERA-X"
+            - paragraph [ref=e687]: Camera System X
+        - generic [ref=e688]:
+          - generic [ref=e689]:
+            - generic [ref=e690]:
+              - img [ref=e691]
+              - generic [ref=e693]: BOM Items
+            - paragraph [ref=e694]: "3"
+          - generic [ref=e695]:
+            - generic [ref=e696]:
+              - img [ref=e697]
+              - generic [ref=e699]: Linked Assets
+            - paragraph [ref=e700]: "2"
+          - generic [ref=e701]:
+            - generic [ref=e702]:
+              - img [ref=e703]
+              - generic [ref=e705]: Created
+            - paragraph [ref=e706]: Jan 20, 2025
+            - paragraph [ref=e707]: by admin
+          - generic [ref=e708]:
+            - generic [ref=e709]:
+              - img [ref=e710]
+              - generic [ref=e712]: Last Modified
+            - paragraph [ref=e713]: Dec 21, 2025
+            - paragraph [ref=e714]: by depot_mgr
+      - generic [ref=e715]:
+        - tablist [ref=e716]:
+          - tab "Overview" [ref=e717] [cursor=pointer]:
+            - generic [ref=e718]:
+              - img [ref=e719]
+              - text: Overview
+          - tab "BOM (3)" [ref=e721] [cursor=pointer]:
+            - generic [ref=e722]:
+              - img [ref=e723]
+              - text: BOM (3)
+          - tab "Software (1)" [ref=e725] [cursor=pointer]:
+            - generic [ref=e726]:
+              - img [ref=e727]
+              - text: Software (1)
+          - tab "Meters (2)" [selected] [ref=e857] [cursor=pointer]:
+            - generic [ref=e730]:
+              - img [ref=e731]
+              - text: Meters (2)
+          - tab "Hierarchy" [ref=e733] [cursor=pointer]:
+            - generic [ref=e734]:
+              - img [ref=e735]
+              - text: Hierarchy
+        - tabpanel "Meters (2)" [ref=e858]:
+          - generic [ref=e781]:
+            - generic [ref=e782]:
+              - generic [ref=e783]:
+                - heading "Meter Tracking Requirements" [level=3] [ref=e784]
+                - paragraph [ref=e785]: Meters and tracking intervals required for this configuration
+              - button "Add Meter Requirement" [active] [ref=e786] [cursor=pointer]:
+                - img [ref=e787]
+                - text: Add Meter Requirement
+            - table [ref=e859]:
+              - rowgroup [ref=e860]:
+                - row "Meter Type Tracking Interval Description Added By Actions" [ref=e861]:
+                  - columnheader "Meter Type" [ref=e862]
+                  - columnheader "Tracking Interval" [ref=e863]
+                  - columnheader "Description" [ref=e864]
+                  - columnheader "Added By" [ref=e865]
+                  - columnheader "Actions" [ref=e866]:
+                    - generic [ref=e867]: Actions
+              - rowgroup [ref=e868]:
+                - row "eti 500hours Track operating hours for camera system - check every 500 hours admin Mar 26, 2025 Delete meter requirement eti" [ref=e869]:
+                  - cell "eti" [ref=e870]:
+                    - generic [ref=e871]: eti
+                  - cell "500hours" [ref=e872]
+                  - cell "Track operating hours for camera system - check every 500 hours" [ref=e873]
+                  - cell "admin Mar 26, 2025" [ref=e874]:
+                    - generic [ref=e875]:
+                      - paragraph [ref=e876]: admin
+                      - paragraph [ref=e877]: Mar 26, 2025
+                  - cell "Delete meter requirement eti" [ref=e878]:
+                    - button "Delete meter requirement eti" [ref=e879] [cursor=pointer]:
+                      - img [ref=e880]
+                      - generic [ref=e882]: Delete meter requirement eti
+                - row "flight_hours 1,000hours Monitor flight hours for camera system - check every 1000 hours for testing depot_mgr Jan 20, 2026 Delete meter requirement flight_hours" [ref=e883]:
+                  - cell "flight_hours" [ref=e884]:
+                    - generic [ref=e885]: flight_hours
+                  - cell "1,000hours" [ref=e886]
+                  - cell "Monitor flight hours for camera system - check every 1000 hours for testing" [ref=e887]
+                  - cell "depot_mgr Jan 20, 2026" [ref=e888]:
+                    - generic [ref=e889]:
+                      - paragraph [ref=e890]: depot_mgr
+                      - paragraph [ref=e891]: Jan 20, 2026
+                  - cell "Delete meter requirement flight_hours" [ref=e892]:
+                    - button "Delete meter requirement flight_hours" [ref=e893] [cursor=pointer]:
+                      - img [ref=e894]
+                      - generic [ref=e896]: Delete meter requirement flight_hours
+            - generic [ref=e815]:
+              - generic [ref=e816]: "Total meter requirements:"
+              - generic [ref=e817]: "2"
+  - contentinfo [ref=e489]: CUI - Controlled Unclassified Information
+```
