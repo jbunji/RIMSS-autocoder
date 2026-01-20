@@ -32079,3 +32079,341 @@ This session is ready to terminate cleanly.
 END OF SESSION - Feature #261 Complete ✅
 ================================================================================
 [Testing] Session complete - verified feature #80 still passing
+
+================================================================================
+[2026-01-20] Feature #137 REGRESSION TEST - PASSING ✅
+================================================================================
+
+Feature #137: Sortie import duplicate handling
+Description: Import handles duplicate entries appropriately
+
+TEST SESSION: Regression testing via browser automation
+Testing Agent Session Duration: ~25 minutes
+
+ALL 6 VERIFICATION STEPS PASSED:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as depot_mgr (Jane Depot)
+   - Role: DEPOT_MANAGER
+   - Program: CRIIS
+   - Successfully authenticated and accessed sorties page
+
+✅ Step 2: Import sortie with mission ID 'M001'
+   - Uploaded test_duplicate_sortie.xlsx
+   - File contained: CRIIS-001 asset, Mission ID: M001, Date: 2026-01-20
+   - Import successful
+   - Sortie table updated from 4 to 5 sorties
+   - M001 now appears in the table
+
+✅ Step 3: Attempt to import same mission ID again
+   - Re-opened import dialog
+   - Uploaded same test_duplicate_sortie.xlsx file again
+   - Clicked "Import Sorties" button
+
+✅ Step 4: Verify duplicate warning
+   - Backend returned 409 Conflict (expected behavior)
+   - Frontend displayed clear duplicate warning:
+     * "Duplicate Mission IDs Found (1)"
+     * Detailed comparison showing Existing Record vs Import Data
+     * Side-by-side display of all fields (Serial, Date, Effect, Range)
+   - Three action options presented:
+     1. Skip Duplicates (ignore duplicate rows)
+     2. Update Existing (update with new data)
+     3. Create Anyway (force create - not recommended)
+
+✅ Step 5: Choose skip or update option
+   - Selected "Skip Duplicates" radio button
+   - Button changed to "Import with Selected Action" and became enabled
+   - Clear visual feedback with orange border highlighting selection
+
+✅ Step 6: Verify appropriate action taken
+   - Clicked "Import with Selected Action"
+   - Import completed successfully
+   - Modal closed automatically
+   - Sortie table still shows 5 sorties (NOT 6)
+   - Only ONE M001 sortie exists (the original)
+   - Duplicate was correctly skipped as requested
+   - No additional record created
+
+IMPLEMENTATION VERIFICATION:
+
+Frontend (SortiesPage.tsx):
+- Lines 117-118: State management for duplicates and duplicate action
+- Lines 598-603: 409 response handler sets importDuplicates state
+- Lines 1713-1811: Duplicate warning UI with action selector
+- Line 591: duplicateAction sent to backend API
+- Three action types supported: 'skip', 'update', 'create'
+
+Backend (index.ts):
+- Lines 13207-13235: Duplicate detection logic (case-insensitive)
+- Lines 13238-13246: Action handling based on duplicateAction parameter
+- 409 status returned when duplicates found without action
+- Proper program-level isolation in duplicate checks
+
+QUALITY VERIFICATION:
+
+✅ Zero unexpected console errors
+✅ Expected 409 Conflict response for duplicate detection
+✅ Clear, user-friendly duplicate warning message
+✅ Visual comparison of existing vs new data
+✅ Three distinct action options with descriptions
+✅ Proper UI feedback (button states, visual selection)
+✅ Correct business logic execution (skip worked as expected)
+✅ No database corruption (count remained at 5, not 6)
+
+SCREENSHOTS CAPTURED:
+
+1. feature_137_import_dialog.png
+   - Initial import dialog showing instructions and upload area
+
+2. feature_137_step2_first_import_preview.png
+   - Preview of first import with M001 mission ID
+   - Shows file uploaded and ready to import
+
+3. feature_137_step4_duplicate_warning.png
+   - Duplicate warning dialog with comparison details
+   - Shows existing record vs import data side-by-side
+
+4. feature_137_step5_skip_selected.png
+   - "Skip Duplicates" option selected with orange border
+   - Button ready to execute action
+
+5. feature_137_step6_skip_action_completed.png
+   - Final state showing 5 sorties (duplicate skipped)
+   - Confirms no duplicate was created
+
+TESTING METHOD:
+- Browser automation using Playwright MCP tools
+- Actual UI interaction (not mocked)
+- Real file upload with test data
+- Full end-to-end flow verification
+- Visual confirmation via screenshots
+
+REGRESSION STATUS: NO REGRESSION FOUND ✅
+
+Feature #137 is working correctly:
+- Duplicate detection works (case-insensitive mission_id check)
+- Clear warning displayed to user
+- User can choose how to handle duplicates
+- Skip action works correctly
+- Update and Create actions available (not tested but implemented)
+- Proper error handling and user feedback
+- Production-ready quality
+
+Result: Feature #137 VERIFIED AS PASSING ✅
+
+Progress: 260/374 features passing (69.5%)
+
+Session Type: Regression Testing (1 feature)
+Code Changes: None required (feature already working)
+Tests Executed: All 6 verification steps via browser automation
+Quality: Production-ready duplicate handling ✅
+
+================================================================================
+[2026-01-20] Feature #137 regression testing session complete
+================================================================================
+[Testing] Session complete - verified feature #137 still passing
+
+================================================================================
+[2026-01-20 05:45 UTC] Feature #263 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #263: Bookmark a page, return later - works - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #263
+Session Type: Single-feature verification mode
+
+FEATURE DESCRIPTION:
+Bookmarked pages load correctly. Users can bookmark any page in the application,
+log out, log back in, and have the bookmarked URL work correctly with proper
+authentication flow and data loading.
+
+TEST EXECUTION - All 8 Steps PASSED:
+
+✅ Step 1: Log in as any user
+   - Logged in as admin (John Admin)
+   - Successfully authenticated
+
+✅ Step 2: Navigate to specific asset detail
+   - Navigated to Assets page
+   - Clicked "View" button for CRIIS-001 Sensor Unit A
+   - URL: http://localhost:5173/assets/1
+
+✅ Step 3: Bookmark the page
+   - Captured URL: http://localhost:5173/assets/1
+   - Verified URL is clean and bookmarkable
+
+✅ Step 4: Log out
+   - Successfully logged out and redirected to login page
+
+✅ Step 5: Log in again
+   - Logged in as admin again successfully
+
+✅ Step 6: Access bookmark
+   - TEST 1: System auto-redirected to bookmarked URL after login ✅
+   - TEST 2: Direct URL access while logged out properly redirected ✅
+   - After login, auto-redirected to bookmarked URL ✅
+
+✅ Step 7: Verify correct page loads
+   - Asset detail page loaded correctly
+   - URL matches bookmark: http://localhost:5173/assets/1 ✅
+   - Breadcrumb shows: Home > Assets > Sensor Unit A ✅
+
+✅ Step 8: Verify correct data displays
+   - All asset data verified and displaying correctly ✅
+
+Result: Feature #263 marked as PASSING ✅
+Progress: 261/374 features passing (69.8%)
+Session Duration: ~25 minutes
+Git Commit: e8420f0
+
+================================================================================
+[2026-01-20 05:45 UTC] Feature #263 session complete - PARALLEL SESSION
+================================================================================
+
+================================================================================
+[2026-01-20 11:45 UTC] Feature #262 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #262: Browser back after form submit - no duplicate - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #262
+Session Type: Single-feature verification mode
+
+FEATURE DESCRIPTION:
+Back button doesn't resubmit forms. When users submit a form successfully and
+then click the browser back button, the form is not resubmitted and no duplicate
+records are created.
+
+TEST EXECUTION - All 6 Verification Steps PASSED:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as Jane Depot (depot_mgr)
+   - Role: DEPOT_MANAGER
+   - Program: CRIIS
+
+✅ Step 2: Create new record via form
+   - Navigated to Assets page
+   - Clicked "Add Asset" button to open modal
+   - Filled form with test data:
+     * Part Number: PN-TEST-262
+     * Serial Number: TEST-262-BACK
+     * Asset Name: Test Asset for Feature 262
+     * Status: FMC - Full Mission Capable
+     * Administrative Location: Depot Alpha
+     * Custodial Location: Maintenance Bay 1
+   - Clicked "Create Asset" button
+
+✅ Step 3: Verify success
+   - Success message displayed: "Asset 'TEST-262-BACK' created successfully!"
+   - Asset count increased from 12 to 13 total assets
+   - Modal closed automatically
+   - Asset list shows "Showing 1 to 10 of 13 results"
+
+✅ Step 4: Click browser back button
+   - Used browser.goBack() to simulate browser back button
+   - Navigated to Dashboard (previous page in history)
+   - No form resubmission occurred
+   - No error messages or console errors
+
+✅ Step 5: Verify no duplicate record created
+   - Navigated back to Assets page
+   - Asset count still shows "13 total assets" (not 14)
+   - Searched for "TEST-262-BACK"
+   - Search result shows "1 total asset" (exactly one match)
+   - Confirmed: NO DUPLICATE was created
+
+✅ Step 6: Verify appropriate behavior (form or list)
+   - Browser back went to Dashboard (correct previous page)
+   - Assets page displays the list view (not a form submission page)
+   - Single asset TEST-262-BACK is present in the table
+   - Behavior is clean and user-friendly
+
+IMPLEMENTATION ANALYSIS:
+
+The application correctly implements the SPA (Single Page Application) pattern
+to prevent duplicate form submissions:
+
+1. Form Submission (frontend/src/pages/AssetsPage.tsx:267-297):
+   - Uses AJAX via fetch API (not traditional HTML form POST)
+   - No page navigation or reload occurs
+   - Modal closes and form resets on success
+   - Asset list refreshes via API call
+
+2. Browser History:
+   - No POST request is added to browser history
+   - Browser back navigates through page history (Dashboard → Assets)
+   - Not through form submission history
+   - This naturally prevents duplicate submissions
+
+3. State Management:
+   - Form state is reset after successful submission
+   - Modal closed (isModalOpen = false)
+   - Success message displayed temporarily
+   - Asset list refreshed with new data
+
+Why This Works:
+- Traditional form POST adds a resubmittable entry to browser history
+- AJAX submission does not add POST to history
+- Browser back navigates pages, not API calls
+- User cannot accidentally resubmit the form
+
+QUALITY VERIFICATION:
+
+✅ No Console Errors:
+   - Zero JavaScript errors related to asset creation
+   - Zero errors related to browser navigation
+   - Only warnings: React Router future flags (not errors)
+   - Initial 401 errors from wrong password attempts (unrelated)
+
+✅ User Experience:
+   - Clean, predictable behavior
+   - No confusing duplicate records
+   - No unexpected form resubmission
+   - Success feedback clearly shown
+
+✅ Data Integrity:
+   - Exactly one asset created (verified via search)
+   - Database consistency maintained
+   - No orphaned or duplicate records
+
+SCREENSHOTS CAPTURED:
+
+1. feature_262_step3_success.png
+   - Success message visible
+   - Asset count shows "13 total assets"
+   - Assets table displayed with data
+
+2. feature_262_step5_no_duplicate.png
+   - Search for "TEST-262-BACK" showing "1 total asset"
+   - Single row in table with correct data
+   - Proves no duplicate was created
+
+TESTING METHODOLOGY:
+- Browser automation (Playwright MCP)
+- Actual UI interaction (form filling, button clicks)
+- Browser back button simulation
+- Database verification via search
+- Console error monitoring
+
+Result: Feature #262 marked as PASSING ✅
+
+Progress: 261/374 features passing (69.8%)
+
+Session Type: PARALLEL SESSION - Single Feature Mode
+Session Duration: ~25 minutes
+Code Changes: None required (already correctly implemented)
+Tests Executed: All 6 verification steps
+Regressions Found: None
+Quality: Production-ready ✅
+
+Git Commit: 5c67c90
+
+Feature Status: PASSING ✅
+Implementation: Correct SPA pattern ✅
+User Experience: Clean and predictable ✅
+Data Integrity: Maintained ✅
+
+================================================================================
+[2026-01-20 11:45 UTC] Feature #262 session complete - PARALLEL SESSION
+================================================================================
