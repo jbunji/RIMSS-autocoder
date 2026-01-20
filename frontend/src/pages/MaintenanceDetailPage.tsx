@@ -331,13 +331,16 @@ export default function MaintenanceDetailPage() {
   // Check if form has unsaved changes
   const isFormDirty = JSON.stringify(editForm) !== JSON.stringify(originalEditForm)
 
-  // Unsaved changes warning hook
+  // Unsaved changes warning hook for navigation
   const {
     showDialog: showUnsavedDialog,
     confirmNavigation,
     cancelNavigation,
     message: unsavedMessage,
   } = useUnsavedChangesWarning(isFormDirty && isEditModalOpen)
+
+  // State for modal close confirmation
+  const [showCloseConfirmDialog, setShowCloseConfirmDialog] = useState(false)
 
   // Sorties state for the edit modal
   const [sorties, setSorties] = useState<Sortie[]>([])
@@ -2512,9 +2515,28 @@ export default function MaintenanceDetailPage() {
 
   // Close edit modal
   const closeEditModal = () => {
+    // Check if there are unsaved changes
+    if (isFormDirty) {
+      setShowCloseConfirmDialog(true)
+      return
+    }
+    // No unsaved changes, close immediately
     setIsEditModalOpen(false)
     setEditError(null)
     setEditSuccess(null)
+  }
+
+  // Confirm closing modal with unsaved changes
+  const confirmCloseModal = () => {
+    setShowCloseConfirmDialog(false)
+    setIsEditModalOpen(false)
+    setEditError(null)
+    setEditSuccess(null)
+  }
+
+  // Cancel closing modal
+  const cancelCloseModal = () => {
+    setShowCloseConfirmDialog(false)
   }
 
   // Handle form field changes
@@ -6680,6 +6702,22 @@ export default function MaintenanceDetailPage() {
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* Unsaved Changes Dialog for Modal Close */}
+      <UnsavedChangesDialog
+        isOpen={showCloseConfirmDialog}
+        message="You have unsaved changes to this maintenance event. Are you sure you want to close without saving?"
+        onConfirm={confirmCloseModal}
+        onCancel={cancelCloseModal}
+      />
+
+      {/* Unsaved Changes Dialog for Navigation */}
+      <UnsavedChangesDialog
+        isOpen={showUnsavedDialog}
+        message={unsavedMessage}
+        onConfirm={confirmNavigation}
+        onCancel={cancelNavigation}
+      />
     </div>
   )
 }
