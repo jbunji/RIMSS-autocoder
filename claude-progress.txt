@@ -33036,3 +33036,13 @@ User Experience: Excellent ✅
 ================================================================================
 [2026-01-20 11:47 UTC] Feature #266 session complete - PARALLEL SESSION
 ================================================================================
+[Testing] 2026-01-20 - Feature #41 regression test: Asset detail view displays all fields - PASSING
+[Testing] All 13 verification steps passed successfully. No regression detected.
+[Testing] Verified: Serial number, Part number, Status with color coding, Admin location, Custodial location, ETI hours, UII, Manufacturing date, Acceptance date, Remarks
+
+========================================
+Testing Session Complete - Feature #41
+Status: PASSING - No regression found
+Screenshots: 3 captured in .playwright-mcp/
+Session ended: Tue Jan 20 05:51:49 EST 2026
+========================================
