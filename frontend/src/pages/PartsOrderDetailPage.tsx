@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { CheckCircleIcon } from '@heroicons/react/24/outline'
 
 interface PartsOrder {
   order_id: number
@@ -24,6 +25,9 @@ interface PartsOrder {
   notes: string
   shipping_tracking: string | null
   estimated_delivery: string | null
+  acknowledged_date: string | null
+  acknowledged_by: number | null
+  acknowledged_by_name: string | null
 }
 
 // Status badge styling
@@ -61,10 +65,12 @@ function getPriorityBadge(priority: PartsOrder['priority']): { bg: string; text:
 export default function PartsOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { token } = useAuthStore()
+  const { token, user } = useAuthStore()
   const [order, setOrder] = useState<PartsOrder | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAcknowledgeDialog, setShowAcknowledgeDialog] = useState(false)
+  const [acknowledging, setAcknowledging] = useState(false)
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -101,6 +107,38 @@ export default function PartsOrderDetailPage() {
 
     fetchOrder()
   }, [token, id])
+
+  const handleAcknowledge = async () => {
+    if (!token || !id) return
+
+    setAcknowledging(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/acknowledge`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to acknowledge order')
+      }
+
+      const data = await response.json()
+      setOrder(data.order)
+      setShowAcknowledgeDialog(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setAcknowledging(false)
+    }
+  }
+
+  const canAcknowledge = user && (user.role === 'depot_manager' || user.role === 'admin') && order?.status === 'pending'
 
   if (loading) {
     return (
@@ -160,7 +198,16 @@ export default function PartsOrderDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900">Parts Order #{order.order_id}</h1>
             <p className="text-gray-600 mt-1">{order.part_name}</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            {canAcknowledge && (
+              <button
+                onClick={() => setShowAcknowledgeDialog(true)}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <CheckCircleIcon className="h-5 w-5 mr-2" />
+                Acknowledge
+              </button>
+            )}
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${priorityBadge.bg} ${priorityBadge.text}`}>
               {priorityBadge.label}
             </span>
@@ -274,6 +321,28 @@ export default function PartsOrderDetailPage() {
                 </span>
               </dd>
             </div>
+            {order.acknowledged_date && (
+              <>
+                <div className="flex justify-between">
+                  <dt className="text-sm text-gray-500">Acknowledged Date</dt>
+                  <dd className="text-sm font-medium text-gray-900">
+                    {new Date(order.acknowledged_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </dd>
+                </div>
+                {order.acknowledged_by_name && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-gray-500">Acknowledged By</dt>
+                    <dd className="text-sm font-medium text-gray-900">{order.acknowledged_by_name}</dd>
+                  </div>
+                )}
+              </>
+            )}
             {order.shipping_tracking ? (
               <div className="flex justify-between">
                 <dt className="text-sm text-gray-500">Tracking Number</dt>
@@ -311,6 +380,39 @@ export default function PartsOrderDetailPage() {
           <p className="text-gray-700">{order.notes || 'No notes available.'}</p>
         </div>
       </div>
+
+      {/* Acknowledge Confirmation Dialog */}
+      {showAcknowledgeDialog && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <CheckCircleIcon className="h-6 w-6 text-blue-600 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-900">Acknowledge Parts Order</h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to acknowledge this parts order? This will change the status to "Acknowledged" and indicates that you have received the request and will begin processing it.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowAcknowledgeDialog(false)}
+                  disabled={acknowledging}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAcknowledge}
+                  disabled={acknowledging}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {acknowledging ? 'Acknowledging...' : 'Confirm Acknowledgment'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

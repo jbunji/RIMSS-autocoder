@@ -6567,7 +6567,8 @@ interface PartsOrder {
   qty_received: number;
   unit_price: number;
   order_date: string;
-  status: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled';
+  request_date: string; // Date/time when request was created
+  status: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled';
   requestor_id: number;
   requestor_name: string;
   asset_sn: string | null;
@@ -6578,10 +6579,17 @@ interface PartsOrder {
   notes: string;
   shipping_tracking: string | null;
   estimated_delivery: string | null;
+  acknowledged_date: string | null; // Date/time when depot acknowledged the request
+  acknowledged_by: number | null; // User ID of depot manager who acknowledged
+  acknowledged_by_name: string | null; // Name of depot manager who acknowledged
 }
 
-// Generate mock parts order data
-function generateMockPartsOrders(): PartsOrder[] {
+// Persistent parts orders array
+let partsOrders: PartsOrder[] = [];
+let nextPartsOrderId = 10; // Start after initial mock data
+
+// Initialize mock parts order data
+function initializePartsOrders(): PartsOrder[] {
   const today = new Date();
   const addDays = (days: number): string => {
     const date = new Date(today);
@@ -6600,7 +6608,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 1250.00,
       order_date: addDays(-3),
-      status: 'pending',
+      request_date: addDays(-3),
+      status: 'REQUEST',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: 'CRIIS-006',
@@ -6611,6 +6620,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Required for NMCS asset - radar power supply failure',
       shipping_tracking: null,
       estimated_delivery: null,
+      acknowledged_date: null,
+      acknowledged_by: null,
+      acknowledged_by_name: null,
     },
     {
       order_id: 2,
@@ -6621,7 +6633,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 89.50,
       order_date: addDays(-1),
-      status: 'pending',
+      request_date: addDays(-1),
+      status: 'REQUEST',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6632,6 +6645,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Stock replenishment',
       shipping_tracking: null,
       estimated_delivery: null,
+      acknowledged_date: null,
+      acknowledged_by: null,
+      acknowledged_by_name: null,
     },
     // Acknowledged orders (being processed) - CRIIS
     {
@@ -6643,7 +6659,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 4500.00,
       order_date: addDays(-7),
-      status: 'acknowledged',
+      request_date: addDays(-7),
+      status: 'ACKNOWLEDGE',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: 'ACTS-005',
@@ -6654,6 +6671,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Critical NMCS item - laser diode replacement for targeting system',
       shipping_tracking: null,
       estimated_delivery: addDays(5),
+      acknowledged_date: addDays(-6),
+      acknowledged_by: 2,
+      acknowledged_by_name: 'Jane Depot',
     },
     {
       order_id: 4,
@@ -6664,7 +6684,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 45.00,
       order_date: addDays(-5),
-      status: 'acknowledged',
+      request_date: addDays(-5),
+      status: 'ACKNOWLEDGE',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6675,6 +6696,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Stock replenishment for field operations',
       shipping_tracking: null,
       estimated_delivery: addDays(10),
+    acknowledged_date: null,
+    acknowledged_by: null,
+    acknowledged_by_name: null,
     },
     // Shipped orders - CRIIS
     {
@@ -6686,7 +6710,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 2800.00,
       order_date: addDays(-10),
-      status: 'shipped',
+      request_date: addDays(-10),
+      status: 'FILL',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: 'ARDS-004',
@@ -6697,6 +6722,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Replacement optics for camera recalibration',
       shipping_tracking: 'FDX-2024-123456789',
       estimated_delivery: addDays(2),
+    acknowledged_date: null,
+    acknowledged_by: null,
+    acknowledged_by_name: null,
     },
     // More pending orders - ACTS
     {
@@ -6708,7 +6736,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 3200.00,
       order_date: addDays(-2),
-      status: 'pending',
+      request_date: addDays(-2),
+      status: 'REQUEST',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: 'ACTS-003',
@@ -6719,6 +6748,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Required for optical alignment issue fix',
       shipping_tracking: null,
       estimated_delivery: null,
+    acknowledged_date: null,
+    acknowledged_by: null,
+    acknowledged_by_name: null,
     },
     // Acknowledged - Program 236
     {
@@ -6730,7 +6762,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 15000.00,
       order_date: addDays(-8),
-      status: 'acknowledged',
+      request_date: addDays(-8),
+      status: 'ACKNOWLEDGE',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: '236-002',
@@ -6741,6 +6774,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Classified component - special handling required',
       shipping_tracking: null,
       estimated_delivery: addDays(14),
+    acknowledged_date: null,
+    acknowledged_by: null,
+    acknowledged_by_name: null,
     },
     // Received orders (for history)
     {
@@ -6752,7 +6788,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 20,
       unit_price: 12.50,
       order_date: addDays(-15),
-      status: 'received',
+      request_date: addDays(-15),
+      status: 'DELIVER',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6763,6 +6800,9 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Stock replenishment - received complete',
       shipping_tracking: 'UPS-2024-987654321',
       estimated_delivery: addDays(-5),
+    acknowledged_date: null,
+    acknowledged_by: null,
+    acknowledged_by_name: null,
     },
     // More pending items for CRIIS
     {
@@ -6774,7 +6814,8 @@ function generateMockPartsOrders(): PartsOrder[] {
       qty_received: 0,
       unit_price: 650.00,
       order_date: addDays(-1),
-      status: 'pending',
+      request_date: addDays(-1),
+      status: 'REQUEST',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: 'CRIIS-005',
@@ -6785,9 +6826,15 @@ function generateMockPartsOrders(): PartsOrder[] {
       notes: 'Battery replacement for intermittent power issue',
       shipping_tracking: null,
       estimated_delivery: null,
+    acknowledged_date: null,
+    acknowledged_by: null,
+    acknowledged_by_name: null,
     },
   ];
 }
+
+// Initialize parts orders on server start
+partsOrders = initializePartsOrders();
 
 // Dashboard: Get parts awaiting action (requires authentication)
 app.get('/api/dashboard/parts-awaiting-action', (req, res) => {
@@ -6805,8 +6852,8 @@ app.get('/api/dashboard/parts-awaiting-action', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
-  // Generate parts orders
-  const allOrders = generateMockPartsOrders();
+  // Get all orders (use persistent array)
+  const allOrders = partsOrders;
 
   // Filter by user's accessible programs and only show pending/acknowledged items
   let filteredOrders = allOrders.filter(
@@ -8749,8 +8796,8 @@ app.get('/api/parts-orders', (req, res) => {
   // Get user's program IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
-  // Get all orders
-  const allOrders = generateMockPartsOrders();
+  // Get all orders (use persistent array)
+  const allOrders = partsOrders;
 
   // Filter by user's accessible programs
   let filteredOrders = allOrders.filter(order => userProgramIds.includes(order.pgm_id));
@@ -8820,8 +8867,7 @@ app.get('/api/parts-orders/:id', (req, res) => {
   }
 
   const orderId = parseInt(req.params.id, 10);
-  const allOrders = generateMockPartsOrders();
-  const order = allOrders.find(o => o.order_id === orderId);
+  const order = partsOrders.find(o => o.order_id === orderId);
 
   if (!order) {
     return res.status(404).json({ error: 'Parts order not found' });
@@ -8842,6 +8888,141 @@ app.get('/api/parts-orders/:id', (req, res) => {
       program_cd: program?.pgm_cd || 'UNKNOWN',
       program_name: program?.pgm_name || 'Unknown Program',
     }
+  });
+});
+
+// Acknowledge parts order (depot manager only)
+app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only depot_manager and admin can acknowledge
+  if (user.role !== 'depot_manager' && user.role !== 'admin') {
+    return res.status(403).json({ error: 'Only depot managers can acknowledge parts orders' });
+  }
+
+  const orderId = parseInt(req.params.id, 10);
+  const order = partsOrders.find(o => o.order_id === orderId);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Parts order not found' });
+  }
+
+  // Check if user has access to this order's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(order.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this parts order' });
+  }
+
+  // Check if order is in pending status
+  if (order.status !== 'pending') {
+    return res.status(400).json({ error: `Cannot acknowledge order with status: ${order.status}` });
+  }
+
+  // Update order status to acknowledged
+  order.status = 'acknowledged';
+  order.acknowledged_date = new Date().toISOString();
+  order.acknowledged_by = user.user_id;
+  order.acknowledged_by_name = user.full_name;
+
+  console.log(`[PARTS] Order #${orderId} acknowledged by ${user.full_name} (${user.role})`);
+
+  // Return updated order with program info
+  const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
+
+  res.json({
+    success: true,
+    order: {
+      ...order,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    }
+  });
+});
+
+// Create new parts order (request replacement)
+app.post('/api/parts-orders', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Validate request body
+  const {
+    part_no,
+    part_name,
+    nsn,
+    qty_ordered,
+    asset_sn,
+    asset_name,
+    job_no,
+    priority,
+    pgm_id,
+    notes,
+  } = req.body;
+
+  // Validate required fields
+  if (!part_no && !part_name) {
+    return res.status(400).json({ error: 'Either part_no or part_name is required' });
+  }
+
+  if (!qty_ordered || qty_ordered < 1) {
+    return res.status(400).json({ error: 'qty_ordered must be at least 1' });
+  }
+
+  if (!priority || !['routine', 'urgent', 'critical'].includes(priority)) {
+    return res.status(400).json({ error: 'Valid priority is required (routine, urgent, critical)' });
+  }
+
+  if (!pgm_id) {
+    return res.status(400).json({ error: 'pgm_id is required' });
+  }
+
+  // Check if user has access to this program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Create new parts order
+  const newOrder: PartsOrder = {
+    order_id: nextPartsOrderId++,
+    part_no: part_no || '',
+    part_name: part_name || '',
+    nsn: nsn || '',
+    qty_ordered: parseInt(qty_ordered, 10),
+    qty_received: 0,
+    unit_price: 0, // Will be set by depot when acknowledging
+    order_date: new Date().toISOString().split('T')[0],
+    status: 'pending',
+    requestor_id: user.user_id,
+    requestor_name: user.username,
+    asset_sn: asset_sn || null,
+    asset_name: asset_name || null,
+    job_no: job_no || null,
+    priority: priority,
+    pgm_id: pgm_id,
+    notes: notes || '',
+    shipping_tracking: null,
+    estimated_delivery: null,
+  };
+
+  // Add to parts orders array
+  partsOrders.push(newOrder);
+
+  console.log(`[PARTS ORDERS] New order created by ${user.username} - Order #${newOrder.order_id} - Part: ${newOrder.part_name || newOrder.part_no}`);
+
+  res.status(201).json({
+    message: 'Parts order created successfully',
+    order: newOrder,
   });
 });
 

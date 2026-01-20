@@ -23,6 +23,7 @@ import {
   InformationCircleIcon,
   ArrowPathIcon,
   ClipboardDocumentCheckIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -526,6 +527,21 @@ export default function MaintenanceDetailPage() {
 
   // Delete Removed Part state
   const [deletingRemovedPartId, setDeletingRemovedPartId] = useState<number | null>(null)
+
+  // Request Parts modal state
+  const [isRequestPartsModalOpen, setIsRequestPartsModalOpen] = useState(false)
+  const [requestPartsRemovedPart, setRequestPartsRemovedPart] = useState<RemovedPart | null>(null)
+  const [requestPartsForm, setRequestPartsForm] = useState({
+    part_no: '',
+    part_name: '',
+    nsn: '',
+    qty_ordered: '1',
+    priority: 'routine' as 'routine' | 'urgent' | 'critical',
+    notes: '',
+  })
+  const [requestPartsLoading, setRequestPartsLoading] = useState(false)
+  const [requestPartsError, setRequestPartsError] = useState<string | null>(null)
+  const [requestPartsSuccess, setRequestPartsSuccess] = useState<string | null>(null)
 
   // Labor Records state
   const [laborMap, setLaborMap] = useState<Map<number, Labor[]>>(new Map())
@@ -1161,6 +1177,87 @@ export default function MaintenanceDetailPage() {
       alert(err instanceof Error ? err.message : 'Failed to delete removed part record')
     } finally {
       setDeletingRemovedPartId(null)
+    }
+  }
+
+  // Open Request Parts modal
+  const openRequestPartsModal = (removedPart: RemovedPart) => {
+    setRequestPartsRemovedPart(removedPart)
+    setRequestPartsForm({
+      part_no: removedPart.asset_pn || '',
+      part_name: removedPart.asset_name || '',
+      nsn: '',
+      qty_ordered: '1',
+      priority: 'routine',
+      notes: `Replacement for removed part from ${event?.job_no || 'maintenance event'}`,
+    })
+    setRequestPartsError(null)
+    setRequestPartsSuccess(null)
+    setIsRequestPartsModalOpen(true)
+  }
+
+  // Close Request Parts modal
+  const closeRequestPartsModal = () => {
+    setIsRequestPartsModalOpen(false)
+    setRequestPartsRemovedPart(null)
+  }
+
+  // Handle submitting parts request
+  const handleRequestParts = async () => {
+    if (!token || !requestPartsRemovedPart || !event) return
+
+    // Validation
+    if (!requestPartsForm.part_no.trim() && !requestPartsForm.part_name.trim()) {
+      setRequestPartsError('Either Part Number or Part Name is required')
+      return
+    }
+
+    const qtyOrdered = parseInt(requestPartsForm.qty_ordered, 10)
+    if (isNaN(qtyOrdered) || qtyOrdered < 1) {
+      setRequestPartsError('Quantity must be at least 1')
+      return
+    }
+
+    setRequestPartsLoading(true)
+    setRequestPartsError(null)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/parts-orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          part_no: requestPartsForm.part_no.trim() || null,
+          part_name: requestPartsForm.part_name.trim() || null,
+          nsn: requestPartsForm.nsn.trim() || null,
+          qty_ordered: qtyOrdered,
+          asset_sn: event.asset_sn,
+          asset_name: event.asset_name,
+          job_no: event.job_no,
+          priority: requestPartsForm.priority,
+          pgm_id: event.pgm_id,
+          notes: requestPartsForm.notes.trim(),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create parts request')
+      }
+
+      const data = await response.json()
+      setRequestPartsSuccess(`Parts request #${data.order.order_id} created successfully!`)
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        closeRequestPartsModal()
+      }, 1500)
+    } catch (err) {
+      setRequestPartsError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setRequestPartsLoading(false)
     }
   }
 
@@ -3106,20 +3203,31 @@ export default function MaintenanceDetailPage() {
                                       </p>
                                     )}
                                   </div>
-                                  {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
-                                    <button
-                                      onClick={() => handleDeleteRemovedPart(removedPart)}
-                                      disabled={deletingRemovedPartId === removedPart.removed_part_id}
-                                      className="ml-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded disabled:opacity-50"
-                                      title="Delete removed part record"
-                                    >
-                                      {deletingRemovedPartId === removedPart.removed_part_id ? (
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                                      ) : (
-                                        <TrashIcon className="h-4 w-4" />
-                                      )}
-                                    </button>
-                                  )}
+                                  <div className="flex items-center gap-1">
+                                    {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                                      <button
+                                        onClick={() => openRequestPartsModal(removedPart)}
+                                        className="px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded border border-blue-300"
+                                        title="Request replacement part"
+                                      >
+                                        Request Replacement
+                                      </button>
+                                    )}
+                                    {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                                      <button
+                                        onClick={() => handleDeleteRemovedPart(removedPart)}
+                                        disabled={deletingRemovedPartId === removedPart.removed_part_id}
+                                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded disabled:opacity-50"
+                                        title="Delete removed part record"
+                                      >
+                                        {deletingRemovedPartId === removedPart.removed_part_id ? (
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                                        ) : (
+                                          <TrashIcon className="h-4 w-4" />
+                                        )}
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -5867,6 +5975,161 @@ export default function MaintenanceDetailPage() {
                     <WrenchScrewdriverIcon className="h-4 w-4 mr-2" />
                     Add Labor
                   </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Request Parts Modal */}
+      <Dialog open={isRequestPartsModalOpen} onClose={closeRequestPartsModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <ShoppingCartIcon className="h-5 w-5 mr-2 text-blue-500" />
+                Request Replacement Part
+                {requestPartsRemovedPart && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    ({requestPartsRemovedPart.asset_sn})
+                  </span>
+                )}
+              </Dialog.Title>
+              <button
+                onClick={closeRequestPartsModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {requestPartsSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center text-green-700 text-sm">
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {requestPartsSuccess}
+                </div>
+              )}
+
+              {requestPartsError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center text-red-700 text-sm">
+                  <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                  {requestPartsError}
+                </div>
+              )}
+
+              {/* Part Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Part Number
+                </label>
+                <input
+                  type="text"
+                  value={requestPartsForm.part_no}
+                  onChange={(e) => setRequestPartsForm(prev => ({ ...prev, part_no: e.target.value }))}
+                  placeholder="e.g., PN-SENSOR-A"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Part Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Part Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={requestPartsForm.part_name}
+                  onChange={(e) => setRequestPartsForm(prev => ({ ...prev, part_name: e.target.value }))}
+                  placeholder="e.g., Sensor Unit Alpha"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Either Part Number or Part Name is required
+                </p>
+              </div>
+
+              {/* NSN */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  NSN (National Stock Number)
+                </label>
+                <input
+                  type="text"
+                  value={requestPartsForm.nsn}
+                  onChange={(e) => setRequestPartsForm(prev => ({ ...prev, nsn: e.target.value }))}
+                  placeholder="e.g., 5999-01-234-5678"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={requestPartsForm.qty_ordered}
+                  onChange={(e) => setRequestPartsForm(prev => ({ ...prev, qty_ordered: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Priority <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={requestPartsForm.priority}
+                  onChange={(e) => setRequestPartsForm(prev => ({ ...prev, priority: e.target.value as 'routine' | 'urgent' | 'critical' }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="routine">Routine</option>
+                  <option value="urgent">Urgent</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes
+                </label>
+                <textarea
+                  value={requestPartsForm.notes}
+                  onChange={(e) => setRequestPartsForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Additional information about this request..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 sticky bottom-0">
+              <button
+                onClick={closeRequestPartsModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={requestPartsLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRequestParts}
+                disabled={requestPartsLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
+              >
+                {requestPartsLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Request'
                 )}
               </button>
             </div>

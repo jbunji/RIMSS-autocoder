@@ -21,7 +21,8 @@ interface PartsOrder {
   qty_received: number
   unit_price: number
   order_date: string
-  status: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled'
+  request_date: string
+  status: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled'
   requestor_id: number
   requestor_name: string
   asset_sn: string | null
@@ -45,10 +46,10 @@ interface Pagination {
 
 // Status badge colors
 const statusColors: Record<string, { bg: string; text: string }> = {
-  pending: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
-  acknowledged: { bg: 'bg-blue-100', text: 'text-blue-800' },
-  shipped: { bg: 'bg-purple-100', text: 'text-purple-800' },
-  received: { bg: 'bg-green-100', text: 'text-green-800' },
+  REQUEST: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+  ACKNOWLEDGE: { bg: 'bg-blue-100', text: 'text-blue-800' },
+  FILL: { bg: 'bg-purple-100', text: 'text-purple-800' },
+  DELIVER: { bg: 'bg-green-100', text: 'text-green-800' },
   cancelled: { bg: 'bg-red-100', text: 'text-red-800' },
 }
 
@@ -293,10 +294,10 @@ export default function PartsOrderedPage() {
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
               >
                 <option value="">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="acknowledged">Acknowledged</option>
-                <option value="shipped">Shipped</option>
-                <option value="received">Received</option>
+                <option value="REQUEST">Request</option>
+                <option value="ACKNOWLEDGE">Acknowledge</option>
+                <option value="FILL">Fill</option>
+                <option value="DELIVER">Deliver</option>
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
