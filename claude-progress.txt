@@ -1,5 +1,63 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #102)
+
+### Completed This Session:
+- Feature #102: BIT log capture in labor - VERIFIED AND PASSING
+
+**Description:** Built-In Test logs can be captured in labor records
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Navigate to maintenance event - Navigated to MX-2024-001
+3. ✅ Navigate to BIT Log section - Found BIT Log section in labor forms
+4. ✅ Enter BIT test results - Created new labor with BIT test results:
+   - "BIT TEST RESULTS F102:
+   - Power subsystem: PASS
+   - Signal processing: PASS
+   - Sensor calibration: PASS
+   - Communication link: PASS
+   - All 4 tests passed. No faults detected."
+5. ✅ Save changes - Labor created successfully with BIT log
+6. ✅ Verify BIT log captured - BIT log displayed in labor row with blue styling
+7. ✅ View BIT log details - Full BIT log visible in the labor record display
+
+**Implementation Details:**
+1. Added bit_log field to addLaborForm and editLaborForm state
+2. Added BIT Log section to Add Labor modal with:
+   - Blue-styled container with border
+   - Shield icon for visual identification
+   - Textarea for entering BIT results
+   - Help text: "Record Built-In Test diagnostics, error codes, or test pass/fail results"
+3. Added BIT Log section to Edit Labor modal (same styling)
+4. Added BIT log display in labor record rows:
+   - Blue background box with shield icon
+   - "BIT Log:" label with BIT log content
+5. Both create and update API calls now send bit_log field
+6. Backend already had bit_log field in Labor interface
+
+**Additional Verifications:**
+- ✅ Existing labor record (Labor #1) already shows "BIT passed all tests"
+- ✅ New labor record (Labor #2) shows full BIT test results
+- ✅ Data persists after page refresh
+- ✅ Edit Labor modal populates bit_log field from existing record
+- ✅ No console errors
+
+**Screenshots:**
+- feature102_existing_bit_log_displayed.png - Existing BIT log on Labor #1
+- feature102_bit_log_display.png - Both labor records with BIT logs visible
+- feature102_add_labor_modal_bit_log.png - Add Labor modal with BIT Log section
+- feature102_add_labor_form_filled.png - Form filled with BIT results
+- feature102_labor_created_with_bit_log.png - New labor with BIT log created
+- feature102_edit_labor_modal_bit_log.png - Edit Labor modal with BIT log
+- feature102_final_verification.png - Final verification after refresh
+
+**Console errors:** None detected
+
+**Progress:** 101/374 features passing (27.0%)
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #99)
 
 ### Completed This Session:
@@ -7833,4 +7891,143 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 **Console errors:** None detected
 
 [Feature] Feature #101 marked as PASSING - labor sequence tracking working correctly
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #46 'In-transit tracking with carrier info' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Assets in transit show shipping information
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_mgr)
+2. ✅ Navigate to Assets page - Successfully navigated to /assets
+3. ✅ Verify in-transit indicator displays - CRIIS-009 shows 'Transit' badge in assets table
+4. ✅ Verify carrier info accessible - Asset details show:
+   - In Transit Status: 'In Transit' with icon
+   - Carrier: FedEx
+   - Tracking Number: 789456123012
+   - Ship Date: January 16, 2026
+   - Shipment Information summary box
+5. ✅ Edit form shows in-transit fields:
+   - 'Asset is in transit' checkbox (enables/disables carrier fields)
+   - Carrier dropdown (FedEx, UPS, USPS, DHL, Military Transport, Contractor, Other)
+   - Tracking Number text field
+   - Ship Date date picker
+6. ✅ Status Legend shows 'Transit = In Transit' explanation
+
+**Screenshots:**
+- feature46_in_transit_display.png - Asset details header
+- feature46_in_transit_shipping_section.png - Shipping info section with all fields
+- feature46_edit_in_transit_fields.png - Edit form in-transit fields
+- feature46_transit_badge_and_legend.png - Transit badge and status legend
+
+**Console errors:** None related to in-transit functionality
+
+[Testing] Session complete - verified feature #46 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-19 19:12 (Regression Testing)
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Verification Steps Completed:**
+1. ✅ Clear all session data - localStorage and sessionStorage cleared
+2. ✅ Navigate to homepage URL - http://localhost:5173/
+3. ✅ Verify redirect to login page - URL changed to /login automatically
+4. ✅ Verify login form is displayed - Sign In form with all elements present
+
+**Additional Validations:**
+- ✅ Direct navigation to /dashboard also redirects to /login
+- ✅ Login form contains: Username, Password, Sign In button, Forgot password link
+- ✅ CUI banners displayed at top and bottom
+- ✅ 'Authorized users only' notice displayed
+- ✅ No console errors detected
+
+**Screenshot:** .playwright-mcp/feature3_login_redirect_test.png
+
+[Testing] Session complete - verified feature #3 (no regression found)
+
+---
+
+## Testing Session: 2026-01-20 (Regression Testing)
+
+[Testing] Feature #20 'Dashboard loads for authenticated user' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Dashboard page loads with widgets for logged in users
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as admin/admin123 (John Admin)
+2. ✅ Verify redirect to dashboard - Successfully redirected to /dashboard after login
+3. ✅ Verify dashboard title displays - 'Dashboard' heading visible with 'Last updated: Just now'
+4. ✅ Verify page loads without errors - No console errors detected
+5. ✅ Verify loading states complete - All widgets fully loaded with data
+
+**Dashboard Widgets Verified:**
+- ✅ Welcome banner with user name (Welcome, John Admin) and role (ADMIN)
+- ✅ Current Program displayed (Common Remotely Operated Integrated Reconnaissance System)
+- ✅ Quick navigation buttons (Assets, Maintenance, Configurations, Sorties, Spares, Parts Ordered)
+- ✅ Asset Status Summary widget (10 assets, 70% Mission Capability Rate, FMC/PMC/NMCM/NMCS/CNDM breakdown)
+- ✅ PMI Due Soon widget (7 PMI items with due dates and status)
+- ✅ Open Maintenance Jobs widget (4 jobs: 1 Critical, 2 Urgent, 1 Routine)
+- ✅ Parts Awaiting Action widget (3 pending, 1 acknowledged)
+- ✅ Recent Activity widget (10 recent activities with timestamps and users)
+
+**Additional Verifications:**
+- ✅ Navigation sidebar fully rendered with all links
+- ✅ Program selector visible (CRIIS)
+- ✅ User menu visible (John Admin)
+- ✅ CUI banners at top and bottom
+- ✅ RIMSS version displayed (v0.1.0)
+- ✅ Refresh button functional
+
+**Screenshots:**
+- .playwright-mcp/feature20_dashboard_loaded.png - Dashboard viewport after login
+- .playwright-mcp/feature20_dashboard_full.png - Full dashboard page with all widgets
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #20 (no regression found)
+
+
+---
+
+## Testing Session: 2026-01-20 (Regression Testing)
+
+[Testing] Feature #34 'Delete asset with confirmation' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can delete assets with confirmation dialog
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin - Logged in as John Admin (admin role)
+2. ✅ Navigate to Assets page - Successfully navigated to /assets (10 total assets)
+3. ✅ Click delete on existing asset - Clicked Delete button on CRIIS-010 (Navigation Unit)
+4. ✅ Verify confirmation dialog appears - Dialog displayed with:
+   - Warning icon and 'Delete Asset' title
+   - Message: 'Are you sure you want to delete this asset? This action cannot be undone.'
+   - Asset details: Serial Number (CRIIS-010), Part Number (PN-NAV-UNIT), Name (Navigation Unit), Status (FMC)
+   - Cancel and Delete Asset buttons
+5. ✅ Confirm deletion - Clicked 'Delete Asset' button
+6. ✅ Verify asset removed from list - Asset count changed from 10 to 9, CRIIS-010 no longer in table
+7. ✅ Verify success message - Displayed: 'Asset "CRIIS-010" deleted successfully'
+
+**Screenshots:**
+- .playwright-mcp/feature34_delete_confirmation_dialog.png - Confirmation dialog with warning and asset details
+- .playwright-mcp/feature34_delete_success.png - After deletion showing 9 assets remaining
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #34 (no regression found)
 
