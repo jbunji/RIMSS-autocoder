@@ -1190,11 +1190,12 @@ function generateMockPMIData(): PMIRecord[] {
 
   const pmiRecords: PMIRecord[] = [
     // Red items - due within 7 days (including overdue)
+    // Using real asset IDs from mockAssets
     {
       pmi_id: 1,
-      asset_id: 101,
-      asset_sn: 'SN-2024-001',
-      asset_name: 'ECU Assembly A',
+      asset_id: 1, // CRIIS-001 Sensor Unit A
+      asset_sn: 'CRIIS-001',
+      asset_name: 'Sensor Unit A',
       pmi_type: '30-Day Inspection',
       wuc_cd: '14AAA',
       next_due_date: addDays(-2), // Overdue by 2 days
@@ -1206,8 +1207,8 @@ function generateMockPMIData(): PMIRecord[] {
     },
     {
       pmi_id: 2,
-      asset_id: 102,
-      asset_sn: 'SN-2024-002',
+      asset_id: 3, // CRIIS-003 Sensor Unit B
+      asset_sn: 'CRIIS-003',
       asset_name: 'Sensor Unit B',
       pmi_type: '90-Day Calibration',
       wuc_cd: '23BBB',
@@ -1220,9 +1221,9 @@ function generateMockPMIData(): PMIRecord[] {
     },
     {
       pmi_id: 3,
-      asset_id: 103,
-      asset_sn: 'SN-2024-003',
-      asset_name: 'Power Supply C',
+      asset_id: 4, // CRIIS-004 Camera System X
+      asset_sn: 'CRIIS-004',
+      asset_name: 'Camera System X',
       pmi_type: '60-Day Check',
       wuc_cd: '41CCC',
       next_due_date: addDays(7), // Due in 7 days (last red day)
@@ -1235,9 +1236,9 @@ function generateMockPMIData(): PMIRecord[] {
     // Yellow items - due in 8-30 days
     {
       pmi_id: 4,
-      asset_id: 104,
-      asset_sn: 'SN-2024-004',
-      asset_name: 'Display Module D',
+      asset_id: 6, // CRIIS-006 Radar Unit 01
+      asset_sn: 'CRIIS-006',
+      asset_name: 'Radar Unit 01',
       pmi_type: '180-Day Service',
       wuc_cd: '74DDD',
       next_due_date: addDays(12), // Due in 12 days
@@ -1249,9 +1250,9 @@ function generateMockPMIData(): PMIRecord[] {
     },
     {
       pmi_id: 5,
-      asset_id: 105,
-      asset_sn: 'SN-2024-005',
-      asset_name: 'Communication Radio E',
+      asset_id: 8, // CRIIS-008 Communication System
+      asset_sn: 'CRIIS-008',
+      asset_name: 'Communication System',
       pmi_type: '365-Day Overhaul',
       wuc_cd: '62EEE',
       next_due_date: addDays(21), // Due in 21 days
@@ -1263,9 +1264,9 @@ function generateMockPMIData(): PMIRecord[] {
     },
     {
       pmi_id: 6,
-      asset_id: 106,
-      asset_sn: 'SN-2024-006',
-      asset_name: 'Navigation System F',
+      asset_id: 11, // ACTS-001 Targeting System A
+      asset_sn: 'ACTS-001',
+      asset_name: 'Targeting System A',
       pmi_type: '30-Day Inspection',
       wuc_cd: '71FFF',
       next_due_date: addDays(28), // Due in 28 days
@@ -1278,9 +1279,9 @@ function generateMockPMIData(): PMIRecord[] {
     // Green items - due after 30 days
     {
       pmi_id: 7,
-      asset_id: 107,
-      asset_sn: 'SN-2024-007',
-      asset_name: 'Camera Assembly G',
+      asset_id: 4, // CRIIS-004 Camera System X - second PMI for same asset
+      asset_sn: 'CRIIS-004',
+      asset_name: 'Camera System X',
       pmi_type: '90-Day Calibration',
       wuc_cd: '13GGG',
       next_due_date: addDays(45), // Due in 45 days
@@ -1292,9 +1293,9 @@ function generateMockPMIData(): PMIRecord[] {
     },
     {
       pmi_id: 8,
-      asset_id: 108,
-      asset_sn: 'SN-2024-008',
-      asset_name: 'Antenna Array H',
+      asset_id: 17, // ARDS-001 Data Processing System
+      asset_sn: 'ARDS-001',
+      asset_name: 'Data Processing System',
       pmi_type: '180-Day Service',
       wuc_cd: '25HHH',
       next_due_date: addDays(90), // Due in 90 days
@@ -1306,9 +1307,9 @@ function generateMockPMIData(): PMIRecord[] {
     },
     {
       pmi_id: 9,
-      asset_id: 109,
-      asset_sn: 'SN-2024-009',
-      asset_name: 'Processing Unit I',
+      asset_id: 10, // CRIIS-010 Navigation Unit
+      asset_sn: 'CRIIS-010',
+      asset_name: 'Navigation Unit',
       pmi_type: '365-Day Overhaul',
       wuc_cd: '52III',
       next_due_date: addDays(120), // Due in 120 days
@@ -1321,9 +1322,9 @@ function generateMockPMIData(): PMIRecord[] {
     // Additional items for different programs
     {
       pmi_id: 10,
-      asset_id: 110,
-      asset_sn: 'SN-2024-010',
-      asset_name: 'Targeting Computer J',
+      asset_id: 14, // ACTS-004 Laser System
+      asset_sn: 'ACTS-004',
+      asset_name: 'Laser System',
       pmi_type: '60-Day Check',
       wuc_cd: '33JJJ',
       next_due_date: addDays(5), // Red - ACTS
@@ -4717,9 +4718,50 @@ app.post('/api/labor/:laborId/parts', (req, res) => {
 
   console.log(`[LABOR_PARTS] Added ${part_action} part "${partno || part_name}" to labor ${laborId} by ${user.username}`);
 
+  // Auto-PMI creation for ECU part actions
+  let autoPMICreated: PMIRecord | null = null;
+  const partNameLower = (part_name || '').toLowerCase();
+  const partnoLower = (partno || '').toLowerCase();
+  const isECUPart = partNameLower.includes('ecu') || partnoLower.includes('ecu');
+
+  if (isECUPart) {
+    // Get the asset from the maintenance event to create the PMI for
+    const eventAsset = detailedAssets.find(a => a.asset_id === event.asset_id);
+
+    if (eventAsset) {
+      // Calculate due date (30 days from today for ECU inspection)
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+      const dueDateStr = dueDate.toISOString().split('T')[0];
+      const daysUntilDue = 30;
+
+      // Create auto-PMI for ECU part action
+      const autoPMI: PMIRecord = {
+        pmi_id: nextCustomPMIId++,
+        asset_id: eventAsset.asset_id,
+        asset_sn: eventAsset.serno,
+        asset_name: eventAsset.part_name || eventAsset.partno || 'Unknown',
+        pmi_type: `ECU Post-Action Inspection (${part_action})`,
+        wuc_cd: eventAsset.partno?.substring(0, 5) || '',
+        next_due_date: dueDateStr,
+        days_until_due: daysUntilDue,
+        completed_date: null,
+        pgm_id: eventAsset.pgm_id,
+        status: 'upcoming',
+        interval_days: 30,
+      };
+
+      customPMIRecords.push(autoPMI);
+      autoPMICreated = autoPMI;
+
+      console.log(`[PMI] Auto-created PMI #${autoPMI.pmi_id} for ECU part action - Asset: ${eventAsset.serno}, Due: ${dueDateStr}`);
+    }
+  }
+
   res.status(201).json({
-    message: `Part ${part_action.toLowerCase()} added successfully`,
+    message: `Part ${part_action.toLowerCase()} added successfully${autoPMICreated ? '. Auto-PMI created for ECU part action.' : ''}`,
     part: newLaborPart,
+    auto_pmi: autoPMICreated,
   });
 });
 
@@ -5419,7 +5461,7 @@ app.post('/api/pmi/:id/complete', (req, res) => {
 
   // Validate linked_event_id if provided
   if (linked_event_id !== undefined && linked_event_id !== null) {
-    const eventExists = mockMaintenanceEvents.find(e => e.event_id === linked_event_id);
+    const eventExists = maintenanceEvents.find(e => e.event_id === linked_event_id);
     if (!eventExists) {
       return res.status(400).json({ error: 'Invalid maintenance event ID' });
     }
@@ -5463,6 +5505,78 @@ app.post('/api/pmi/:id/complete', (req, res) => {
     message: 'PMI completed successfully',
     pmi: completedPMI,
     next_due_date: nextDueDate,
+  });
+});
+
+// Get PMI history for a specific asset
+app.get('/api/assets/:id/pmi-history', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  if (isNaN(assetId)) {
+    return res.status(400).json({ error: 'Invalid asset ID' });
+  }
+
+  // Find the asset
+  const asset = mockAssets.find(a => a.asset_id === assetId);
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get all PMI records (generated + custom) for this asset
+  const generatedPMI = generateMockPMIData();
+  const customPMIIds = new Set(customPMIRecords.map(p => p.pmi_id));
+  const filteredGeneratedPMI = generatedPMI.filter(p => !customPMIIds.has(p.pmi_id));
+  const allPMI = [...filteredGeneratedPMI, ...customPMIRecords];
+
+  // Filter to only this asset's PMI records
+  let assetPMI = allPMI.filter(pmi => pmi.asset_id === assetId);
+
+  // Update days_until_due and status dynamically
+  assetPMI = assetPMI.map(pmi => {
+    const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
+    return {
+      ...pmi,
+      days_until_due: daysUntilDue,
+      status: pmi.completed_date ? 'completed' as const : getPMIStatus(daysUntilDue),
+    };
+  });
+
+  // Sort by next_due_date (most recent first for history view)
+  assetPMI.sort((a, b) => new Date(a.next_due_date).getTime() - new Date(b.next_due_date).getTime());
+
+  // Calculate summary for this asset
+  const summary = {
+    total: assetPMI.length,
+    completed: assetPMI.filter(p => p.completed_date).length,
+    pending: assetPMI.filter(p => !p.completed_date).length,
+    overdue: assetPMI.filter(p => !p.completed_date && p.days_until_due < 0).length,
+    due_soon: assetPMI.filter(p => !p.completed_date && p.days_until_due >= 0 && p.days_until_due <= 7).length,
+    upcoming: assetPMI.filter(p => !p.completed_date && p.days_until_due > 7 && p.days_until_due <= 30).length,
+  };
+
+  console.log(`[PMI History] Retrieved ${assetPMI.length} PMI records for asset ${asset.serno} by ${user.username}`);
+
+  res.json({
+    pmi_history: assetPMI,
+    summary,
+    asset: {
+      asset_id: asset.asset_id,
+      serno: asset.serno,
+      name: asset.name || asset.part_name,
+    },
   });
 });
 
