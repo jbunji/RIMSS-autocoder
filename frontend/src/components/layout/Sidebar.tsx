@@ -14,6 +14,7 @@ import {
   DocumentChartBarIcon,
   UsersIcon,
   CodeBracketIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -33,6 +34,7 @@ const navigation = [
 
 // Admin-only navigation items
 const adminNavigation = [
+  { name: 'Admin', href: '/admin', icon: ShieldCheckIcon },
   { name: 'Users', href: '/admin/users', icon: UsersIcon },
 ]
 
