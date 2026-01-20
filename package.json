@@ -1,7 +1,7 @@
 {
   "name": "rimss",
   "version": "0.1.0",
-  "description": "Remote Independent Maintenance Status System - Military Aviation Maintenance Tracking",
+  "description": "RAMPOD Inventory & Maintenance System Software - Military Aviation Maintenance Tracking",
   "private": true,
   "workspaces": [
     "frontend",

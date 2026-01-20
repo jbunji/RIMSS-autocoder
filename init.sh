@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# RIMSS - Remote Independent Maintenance Status System
+# RIMSS - RAMPOD Inventory & Maintenance System Software
 # Environment Setup and Development Server Script
 # Technology Stack: React 18+, Node.js 20+, PostgreSQL 15+, TypeScript, Prisma, tRPC
 

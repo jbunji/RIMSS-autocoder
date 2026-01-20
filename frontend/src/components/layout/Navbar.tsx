@@ -108,7 +108,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             <div className="ml-4 flex items-center">
               <span className="text-white font-bold text-xl tracking-tight">RIMSS</span>
               <span className="ml-2 text-gray-300 text-sm hidden sm:block">
-                Remote Independent Maintenance Status System
+                RAMPOD Inventory & Maintenance System Software
               </span>
             </div>
           </div>

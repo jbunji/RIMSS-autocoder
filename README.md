@@ -1,4 +1,4 @@
-# RIMSS - Remote Independent Maintenance Status System
+# RIMSS - RAMPOD Inventory & Maintenance System Software
 
 A modern military aviation maintenance tracking and inventory management system built with React, Node.js, PostgreSQL, and TypeScript.
 

@@ -1,16 +1,13 @@
-import sqlite3
-conn = sqlite3.connect('assistant.db')
-cursor = conn.cursor()
-cursor.execute('SELECT id, category, name, description, steps, passes, in_progress FROM features WHERE id = 321')
-row = cursor.fetchone()
-if row:
-    print(f'ID: {row[0]}')
-    print(f'Category: {row[1]}')
-    print(f'Name: {row[2]}')
-    print(f'Description: {row[3]}')
-    print(f'Steps: {row[4]}')
-    print(f'Passes: {row[5]}')
-    print(f'In Progress: {row[6]}')
-else:
-    print('Feature 321 not found')
-conn.close()
+import requests
+import json
+
+# The feature is accessed via MCP server
+# Let me try to read from the MCP resources
+
+# First, let's check if there's a features.db file
+import os
+for root, dirs, files in os.walk('.', topdown=True):
+    dirs[:] = [d for d in dirs if d not in ['node_modules', '.git', '.playwright-mcp']]
+    for file in files:
+        if 'feature' in file.lower() and ('.db' in file or '.sqlite' in file or '.json' in file):
+            print(f"Found: {os.path.join(root, file)}")

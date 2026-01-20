@@ -171,7 +171,9 @@ export default function SoftwarePage() {
 
   // Format date
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
+    // Parse date as local date (not UTC) to avoid timezone shift
+    const [year, month, day] = dateStr.split('T')[0].split('-')
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
   }
 

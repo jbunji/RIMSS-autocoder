@@ -1,5 +1,5 @@
 // RIMSS Database Schema
-// Remote Independent Maintenance Status System
+// RAMPOD Inventory & Maintenance System Software
 
 generator client {
   provider = "prisma-client-js"
