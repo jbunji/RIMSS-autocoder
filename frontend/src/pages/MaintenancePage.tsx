@@ -170,7 +170,35 @@ export default function MaintenancePage() {
   const [pqdrFilter, setPqdrFilter] = useState(false) // false = show all, true = only PQDR flagged
   const [dateFromFilter, setDateFromFilter] = useState<string>('') // Date range start (YYYY-MM-DD)
   const [dateToFilter, setDateToFilter] = useState<string>('') // Date range end (YYYY-MM-DD)
-  const [activeTab, setActiveTab] = useState(0) // 0 = Backlog (open), 1 = History (closed)
+  const [activeTab, setActiveTab] = useState(0) // 0 = Backlog (open), 1 = History (closed), 2 = PMI
+
+  // PMI Tab State
+  interface PMIRecord {
+    pmi_id: number
+    asset_id: number
+    asset_sn: string
+    asset_name: string
+    pmi_type: string
+    wuc_cd: string
+    next_due_date: string
+    days_until_due: number
+    completed_date: string | null
+    pgm_id: number
+    status: 'overdue' | 'due_soon' | 'upcoming' | 'completed'
+  }
+
+  interface PMISummary {
+    overdue: number
+    red: number
+    yellow: number
+    green: number
+    total: number
+  }
+
+  const [pmiRecords, setPmiRecords] = useState<PMIRecord[]>([])
+  const [pmiSummary, setPmiSummary] = useState<PMISummary>({ overdue: 0, red: 0, yellow: 0, green: 0, total: 0 })
+  const [pmiLoading, setPmiLoading] = useState(false)
+  const [pmiError, setPmiError] = useState<string | null>(null)
 
   // View mode for Backlog tab: 'list' or 'grouped'
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
@@ -366,6 +394,47 @@ export default function MaintenancePage() {
       setSortiesLoading(false)
     }
   }, [token, currentProgramId])
+
+  // Fetch PMI records
+  const fetchPMI = useCallback(async () => {
+    if (!token) return
+
+    setPmiLoading(true)
+    setPmiError(null)
+    try {
+      const params = new URLSearchParams()
+
+      if (currentProgramId) {
+        params.append('program_id', currentProgramId.toString())
+      }
+
+      const response = await fetch(`http://localhost:3001/api/pmi/due-soon?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch PMI records')
+      }
+
+      const data = await response.json()
+      setPmiRecords(data.pmi)
+      setPmiSummary(data.summary)
+    } catch (err) {
+      setPmiError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Error fetching PMI:', err)
+    } finally {
+      setPmiLoading(false)
+    }
+  }, [token, currentProgramId])
+
+  // Fetch PMI when tab changes to PMI or when program changes
+  useEffect(() => {
+    if (activeTab === 2) {
+      fetchPMI()
+    }
+  }, [activeTab, fetchPMI, currentProgramId])
 
   // Open new event modal
   const openNewEventModal = () => {
@@ -1124,6 +1193,19 @@ export default function MaintenancePage() {
           >
             History ({summary.closed})
           </Tab>
+          <Tab
+            className={({ selected }) =>
+              classNames(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                'focus:outline-none focus:ring-2 ring-offset-2 ring-offset-primary-400 ring-white ring-opacity-60',
+                selected
+                  ? 'bg-white shadow text-primary-700'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-700'
+              )
+            }
+          >
+            PMI Schedule ({pmiSummary.total})
+          </Tab>
         </Tab.List>
 
         <Tab.Panels>
@@ -1189,6 +1271,11 @@ export default function MaintenancePage() {
           {/* History Tab */}
           <Tab.Panel>
             {renderEventsTable()}
+          </Tab.Panel>
+
+          {/* PMI Schedule Tab */}
+          <Tab.Panel>
+            {renderPMITable()}
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>

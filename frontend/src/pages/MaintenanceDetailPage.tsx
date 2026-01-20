@@ -534,6 +534,8 @@ export default function MaintenanceDetailPage() {
     stop_date: '',
     corrective: '',
     bit_log: '',
+    inspected_by: '',
+    corrected_by: '',
   })
   const [addLaborLoading, setAddLaborLoading] = useState(false)
   const [addLaborError, setAddLaborError] = useState<string | null>(null)
@@ -561,6 +563,8 @@ export default function MaintenanceDetailPage() {
     stop_date: '',
     corrective: '',
     bit_log: '',
+    inspected_by: '',
+    corrected_by: '',
   })
   const [editLaborLoading, setEditLaborLoading] = useState(false)
   const [editLaborError, setEditLaborError] = useState<string | null>(null)
@@ -1163,6 +1167,8 @@ export default function MaintenanceDetailPage() {
       stop_date: '',
       corrective: '',
       bit_log: '',
+      inspected_by: '',
+      corrected_by: '',
     })
     setAddLaborError(null)
     setAddLaborSuccess(null)
@@ -1211,6 +1217,8 @@ export default function MaintenanceDetailPage() {
             stop_date: addLaborForm.stop_date || null,
             corrective: addLaborForm.corrective || null,
             bit_log: addLaborForm.bit_log || null,
+            inspected_by: addLaborForm.inspected_by || null,
+            corrected_by: addLaborForm.corrected_by || null,
           }),
         }
       )
@@ -1309,6 +1317,8 @@ export default function MaintenanceDetailPage() {
       stop_date: labor.stop_date || '',
       corrective: labor.corrective || '',
       bit_log: labor.bit_log || '',
+      inspected_by: labor.inspected_by || '',
+      corrected_by: labor.corrected_by || '',
     })
     setEditLaborError(null)
     setEditLaborSuccess(null)
@@ -1330,6 +1340,8 @@ export default function MaintenanceDetailPage() {
       stop_date: '',
       corrective: '',
       bit_log: '',
+      inspected_by: '',
+      corrected_by: '',
     })
     setEditLaborError(null)
     setEditLaborSuccess(null)
@@ -1366,6 +1378,8 @@ export default function MaintenanceDetailPage() {
             stop_date: editLaborForm.stop_date || null,
             corrective: editLaborForm.corrective || null,
             bit_log: editLaborForm.bit_log || null,
+            inspected_by: editLaborForm.inspected_by || null,
+            corrected_by: editLaborForm.corrected_by || null,
           }),
         }
       )
@@ -5733,6 +5747,34 @@ export default function MaintenanceDetailPage() {
                   Record Built-In Test diagnostics, error codes, or test pass/fail results
                 </p>
               </div>
+
+              {/* Inspected By / Corrected By Section */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Inspected By
+                  </label>
+                  <input
+                    type="text"
+                    value={addLaborForm.inspected_by}
+                    onChange={(e) => setAddLaborForm(prev => ({ ...prev, inspected_by: e.target.value }))}
+                    placeholder="Inspector name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Corrected By
+                  </label>
+                  <input
+                    type="text"
+                    value={addLaborForm.corrected_by}
+                    onChange={(e) => setAddLaborForm(prev => ({ ...prev, corrected_by: e.target.value }))}
+                    placeholder="Technician name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 sticky bottom-0">
@@ -6091,6 +6133,34 @@ export default function MaintenanceDetailPage() {
                 <p className="mt-1 text-xs text-blue-600">
                   Record Built-In Test diagnostics, error codes, or test pass/fail results
                 </p>
+              </div>
+
+              {/* Inspected By / Corrected By Section */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Inspected By
+                  </label>
+                  <input
+                    type="text"
+                    value={editLaborForm.inspected_by}
+                    onChange={(e) => setEditLaborForm(prev => ({ ...prev, inspected_by: e.target.value }))}
+                    placeholder="Inspector name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Corrected By
+                  </label>
+                  <input
+                    type="text"
+                    value={editLaborForm.corrected_by}
+                    onChange={(e) => setEditLaborForm(prev => ({ ...prev, corrected_by: e.target.value }))}
+                    placeholder="Technician name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
               </div>
             </div>
 
