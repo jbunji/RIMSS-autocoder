@@ -46452,3 +46452,31 @@ VERIFICATION COMPLETED:
 Result: Feature #265 re-verified - PASSING
 Progress: 331/374 features passing (88.5%)
 
+================================================================================
+[2026-01-20 10:22] Session Complete - Feature #265 Verified
+================================================================================
+
+
+================================================================================
+[2026-01-20] REGRESSION TEST - Feature #27
+================================================================================
+FEATURE: Dashboard filters by selected program
+CATEGORY: Functional
+STATUS: PASSING (Regression test completed)
+
+VERIFICATION STEPS COMPLETED:
+1. Logged in as admin user (John Admin) with multiple programs
+2. CRIIS program selected by default
+3. Verified dashboard shows CRIIS data only (9 assets, CRIIS-xxx IDs)
+4. Switched to ACTS program
+5. Verified dashboard updates to ACTS data (6 assets, ACTS-xxx IDs)
+6. Switched back to CRIIS - data correctly reverted
+
+CONSOLE VERIFICATION: Zero JavaScript errors
+QUALITY METRICS: Program filtering working correctly, data isolation maintained
+SCREENSHOTS: feature_27_step3_criis_dashboard.png, feature_27_step5_acts_dashboard.png
+
+Result: Feature #27 verified - PASSING (No regression detected)
+Progress: 332/374 features passing (88.8%)
+
+[Testing] Feature #27 verified - still passing
