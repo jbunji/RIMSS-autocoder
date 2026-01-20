@@ -473,22 +473,22 @@ function isValidStatusTransition(fromStatus: string, toStatus: string): { valid:
 
 // Location options
 const adminLocations = [
-  { loc_id: 1, loc_cd: 'DEPOT-A', loc_name: 'Depot Alpha' },
-  { loc_id: 2, loc_cd: 'DEPOT-B', loc_name: 'Depot Beta' },
-  { loc_id: 3, loc_cd: 'DEPOT-C', loc_name: 'Depot Charlie' },
-  { loc_id: 4, loc_cd: 'FIELD-1', loc_name: 'Field Site 1' },
-  { loc_id: 5, loc_cd: 'FIELD-2', loc_name: 'Field Site 2' },
-  { loc_id: 6, loc_cd: 'HQ', loc_name: 'Headquarters' },
+  { loc_id: 1, loc_cd: 'DEPOT-A', loc_name: 'Depot Alpha', active: true },
+  { loc_id: 2, loc_cd: 'DEPOT-B', loc_name: 'Depot Beta', active: true },
+  { loc_id: 3, loc_cd: 'DEPOT-C', loc_name: 'Depot Charlie', active: true },
+  { loc_id: 4, loc_cd: 'FIELD-1', loc_name: 'Field Site 1', active: true },
+  { loc_id: 5, loc_cd: 'FIELD-2', loc_name: 'Field Site 2', active: true },
+  { loc_id: 6, loc_cd: 'HQ', loc_name: 'Headquarters', active: true },
 ]
 
 const custodialLocations = [
-  { loc_id: 1, loc_cd: 'MAINT-BAY-1', loc_name: 'Maintenance Bay 1' },
-  { loc_id: 2, loc_cd: 'MAINT-BAY-2', loc_name: 'Maintenance Bay 2' },
-  { loc_id: 3, loc_cd: 'STORAGE-A', loc_name: 'Storage Area A' },
-  { loc_id: 4, loc_cd: 'STORAGE-B', loc_name: 'Storage Area B' },
-  { loc_id: 5, loc_cd: 'FIELD-OPS', loc_name: 'Field Operations' },
-  { loc_id: 6, loc_cd: 'AIRCRAFT-1', loc_name: 'Aircraft 1' },
-  { loc_id: 7, loc_cd: 'AIRCRAFT-2', loc_name: 'Aircraft 2' },
+  { loc_id: 1, loc_cd: 'MAINT-BAY-1', loc_name: 'Maintenance Bay 1', active: true },
+  { loc_id: 2, loc_cd: 'MAINT-BAY-2', loc_name: 'Maintenance Bay 2', active: true },
+  { loc_id: 3, loc_cd: 'STORAGE-A', loc_name: 'Storage Area A', active: true },
+  { loc_id: 4, loc_cd: 'STORAGE-B', loc_name: 'Storage Area B', active: true },
+  { loc_id: 5, loc_cd: 'FIELD-OPS', loc_name: 'Field Operations', active: true },
+  { loc_id: 6, loc_cd: 'AIRCRAFT-1', loc_name: 'Aircraft 1', active: true },
+  { loc_id: 7, loc_cd: 'AIRCRAFT-2', loc_name: 'Aircraft 2', active: true },
 ]
 
 // Asset interface for typed data
@@ -1375,8 +1375,8 @@ app.get('/api/dashboard/asset-status', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this program' })
   }
 
-  // Get assets for the selected program
-  const programAssets = mockAssets.filter(a => a.pgm_id === programId && a.active)
+  // Get assets for the selected program (using detailedAssets to get current state including deletions)
+  const programAssets = detailedAssets.filter(a => a.pgm_id === programId && a.active !== false)
 
   // Count assets by status
   const statusCounts: Record<string, number> = {
@@ -9769,10 +9769,94 @@ app.get('/api/reference/locations', (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
+  // Filter out inactive (deleted) locations
+  const activeAdminLocations = adminLocations.filter(loc => loc.active !== false);
+  const activeCustodialLocations = custodialLocations.filter(loc => loc.active !== false);
+
   res.json({
-    admin_locations: adminLocations,
-    custodial_locations: custodialLocations,
+    admin_locations: activeAdminLocations,
+    custodial_locations: activeCustodialLocations,
   });
+});
+
+// POST /api/reference/locations - Create a new location
+app.post('/api/reference/locations', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Only admins can create locations
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only administrators can create locations' });
+  }
+
+  const { type, loc_cd, loc_name } = req.body;
+
+  if (!type || !loc_cd || !loc_name) {
+    return res.status(400).json({ error: 'Missing required fields: type, loc_cd, loc_name' });
+  }
+
+  if (type !== 'admin' && type !== 'custodial') {
+    return res.status(400).json({ error: 'Type must be "admin" or "custodial"' });
+  }
+
+  const targetArray = type === 'admin' ? adminLocations : custodialLocations;
+
+  // Check if location code already exists
+  if (targetArray.find(l => l.loc_cd === loc_cd)) {
+    return res.status(400).json({ error: 'Location code already exists' });
+  }
+
+  const newLocation = {
+    loc_id: Math.max(...targetArray.map(l => l.loc_id), 0) + 1,
+    loc_cd,
+    loc_name,
+    active: true,
+  };
+
+  targetArray.push(newLocation);
+
+  res.status(201).json(newLocation);
+});
+
+// DELETE /api/reference/locations/:type/:loc_cd - Delete (mark inactive) a location
+app.delete('/api/reference/locations/:type/:loc_cd', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Only admins can delete locations
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only administrators can delete locations' });
+  }
+
+  const { type, loc_cd } = req.params;
+
+  if (type !== 'admin' && type !== 'custodial') {
+    return res.status(400).json({ error: 'Type must be "admin" or "custodial"' });
+  }
+
+  const targetArray = type === 'admin' ? adminLocations : custodialLocations;
+  const location = targetArray.find(l => l.loc_cd === loc_cd);
+
+  if (!location) {
+    return res.status(404).json({ error: 'Location not found' });
+  }
+
+  // Mark as inactive instead of actually deleting
+  location.active = false;
+
+  console.log(`[LOCATION] Deleted ${type} location ${loc_cd} (${location.loc_name}) by ${user.username}`);
+
+  res.json({ message: 'Location deleted successfully', location });
 });
 
 // GET /api/reference/asset-statuses - Get available asset status codes
