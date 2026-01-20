@@ -201,6 +201,9 @@ export default function MaintenancePage() {
   const [pmiLoading, setPmiLoading] = useState(false)
   const [pmiError, setPmiError] = useState<string | null>(null)
   const [pmiIntervalFilter, setPmiIntervalFilter] = useState<string>('') // Interval filter: '', '30', '60', '90', '180', '365'
+  const [pmiSearchQuery, setPmiSearchQuery] = useState<string>('') // Search by asset serial number
+  const [debouncedPmiSearch, setDebouncedPmiSearch] = useState<string>('') // Debounced search value
+  const [pmiOverdueOnly, setPmiOverdueOnly] = useState<boolean>(false) // Filter to show only overdue PMIs
 
   // View mode for Backlog tab: 'list' or 'grouped'
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
@@ -268,6 +271,14 @@ export default function MaintenancePage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
+
+  // Debounce PMI search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedPmiSearch(pmiSearchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [pmiSearchQuery])
 
   // Fetch events
   const fetchEvents = useCallback(async (page: number = 1, status?: 'open' | 'closed') => {
@@ -437,6 +448,16 @@ export default function MaintenancePage() {
         params.append('interval_days', pmiIntervalFilter)
       }
 
+      // Add search filter if specified
+      if (debouncedPmiSearch) {
+        params.append('search', debouncedPmiSearch)
+      }
+
+      // Add overdue only filter if enabled
+      if (pmiOverdueOnly) {
+        params.append('overdue_only', 'true')
+      }
+
       const response = await fetch(`http://localhost:3001/api/pmi/due-soon?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -456,14 +477,14 @@ export default function MaintenancePage() {
     } finally {
       setPmiLoading(false)
     }
-  }, [token, currentProgramId, pmiIntervalFilter])
+  }, [token, currentProgramId, pmiIntervalFilter, debouncedPmiSearch, pmiOverdueOnly])
 
-  // Fetch PMI when tab changes to PMI or when program/interval filter changes
+  // Fetch PMI when tab changes to PMI or when program/interval/search/overdue filter changes
   useEffect(() => {
     if (activeTab === 2) {
       fetchPMI()
     }
-  }, [activeTab, fetchPMI, currentProgramId, pmiIntervalFilter])
+  }, [activeTab, fetchPMI, currentProgramId, pmiIntervalFilter, debouncedPmiSearch, pmiOverdueOnly])
 
   // Open new event modal
   const openNewEventModal = () => {
@@ -1073,6 +1094,364 @@ export default function MaintenancePage() {
 
     // Generate filename with CUI prefix and ZULU date
     const filename = `CUI_Maintenance_${statusSuffix}_${getZuluDateForFilename()}.xlsx`
+
+    // Write the file and trigger download
+    XLSX.writeFile(wb, filename)
+  }
+
+  // Export PMI records to PDF with CUI markings and color coding
+  const exportPMIToPdf = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      // Yellow background for CUI banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      // Yellow background for CUI footer banner
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+
+      // CUI text
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+
+      // Page number on footer
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+
+      // Timestamp on footer
+      doc.text(`Generated: ${zuluTimestamp}`, 15, pageHeight - 5, { align: 'left' })
+    }
+
+    // Helper to get status info with color
+    const getPMIStatusInfo = (daysUntilDue: number): { label: string; color: [number, number, number]; bgColor: [number, number, number] } => {
+      if (daysUntilDue < 0) {
+        return { label: 'OVERDUE', color: [153, 27, 27], bgColor: [254, 226, 226] } // red-800, red-100
+      }
+      if (daysUntilDue <= 7) {
+        return { label: 'DUE SOON', color: [153, 27, 27], bgColor: [254, 226, 226] } // red-800, red-100
+      }
+      if (daysUntilDue <= 30) {
+        return { label: 'UPCOMING', color: [133, 77, 14], bgColor: [254, 249, 195] } // yellow-800, yellow-100
+      }
+      return { label: 'SCHEDULED', color: [22, 101, 52], bgColor: [220, 252, 231] } // green-800, green-100
+    }
+
+    // Add title section after header
+    const addTitle = () => {
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(30, 64, 175) // Primary blue
+      doc.text('RIMSS PMI Schedule Report', pageWidth / 2, 20, { align: 'center' })
+
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(55, 65, 81) // Gray
+      const programText = program ? `Program: ${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'
+      doc.text(programText, pageWidth / 2, 27, { align: 'center' })
+
+      doc.setFontSize(9)
+      doc.text(`Report generated: ${zuluTimestamp}`, pageWidth / 2, 33, { align: 'center' })
+
+      // Summary stats
+      doc.text(`Total PMI Records: ${pmiRecords.length}`, pageWidth / 2, 38, { align: 'center' })
+
+      // Add filter info if applied
+      const filters: string[] = []
+      if (pmiIntervalFilter) filters.push(`Interval: ${pmiIntervalFilter}-Day`)
+      if (debouncedPmiSearch) filters.push(`Search: "${debouncedPmiSearch}"`)
+      if (pmiOverdueOnly) filters.push('Overdue Only')
+
+      if (filters.length > 0) {
+        doc.setFontSize(8)
+        doc.setTextColor(107, 114, 128)
+        doc.text(`Filters: ${filters.join(', ')}`, pageWidth / 2, 43, { align: 'center' })
+      }
+
+      // Add color legend
+      const legendY = filters.length > 0 ? 48 : 43
+      doc.setFontSize(7)
+      doc.setTextColor(107, 114, 128)
+      doc.text('Status Legend:', 15, legendY)
+
+      // Overdue (red)
+      doc.setFillColor(254, 226, 226)
+      doc.roundedRect(40, legendY - 3, 20, 5, 1, 1, 'F')
+      doc.setTextColor(153, 27, 27)
+      doc.text('OVERDUE', 42, legendY)
+
+      // Due Soon (red)
+      doc.setFillColor(254, 226, 226)
+      doc.roundedRect(65, legendY - 3, 20, 5, 1, 1, 'F')
+      doc.setTextColor(153, 27, 27)
+      doc.text('DUE SOON', 66, legendY)
+
+      // Upcoming (yellow)
+      doc.setFillColor(254, 249, 195)
+      doc.roundedRect(90, legendY - 3, 22, 5, 1, 1, 'F')
+      doc.setTextColor(133, 77, 14)
+      doc.text('UPCOMING', 92, legendY)
+
+      // Scheduled (green)
+      doc.setFillColor(220, 252, 231)
+      doc.roundedRect(117, legendY - 3, 23, 5, 1, 1, 'F')
+      doc.setTextColor(22, 101, 52)
+      doc.text('SCHEDULED', 119, legendY)
+    }
+
+    // Prepare table data with status color info
+    const tableData = pmiRecords.map(pmi => {
+      const statusInfo = getPMIStatusInfo(pmi.days_until_due)
+      return {
+        data: [
+          statusInfo.label,
+          pmi.asset_sn,
+          pmi.asset_name,
+          pmi.pmi_type,
+          `${pmi.interval_days}-Day`,
+          pmi.wuc_cd,
+          formatDateForExport(pmi.next_due_date),
+          pmi.days_until_due < 0
+            ? `${Math.abs(pmi.days_until_due)} days overdue`
+            : `${pmi.days_until_due} days`,
+          pmi.completed_date ? formatDateForExport(pmi.completed_date) : '-'
+        ],
+        statusInfo
+      }
+    })
+
+    // Add header to first page
+    addCuiHeader()
+    addTitle()
+
+    // Calculate start Y position based on filters
+    const filters: string[] = []
+    if (pmiIntervalFilter) filters.push(`Interval: ${pmiIntervalFilter}-Day`)
+    if (debouncedPmiSearch) filters.push(`Search: "${debouncedPmiSearch}"`)
+    if (pmiOverdueOnly) filters.push('Overdue Only')
+    const startY = filters.length > 0 ? 53 : 48
+
+    // Generate table with autoTable - with color coding preserved
+    autoTable(doc, {
+      startY: startY,
+      head: [['Status', 'Serial #', 'Asset Name', 'PMI Type', 'Interval', 'WUC', 'Next Due Date', 'Days Until Due', 'Last Completed']],
+      body: tableData.map(row => row.data),
+      theme: 'striped',
+      headStyles: {
+        fillColor: [30, 64, 175], // Primary blue
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 8
+      },
+      bodyStyles: {
+        fontSize: 7,
+        textColor: [55, 65, 81]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251] // Light gray
+      },
+      margin: { top: 15, bottom: 15, left: 5, right: 5 },
+      didDrawPage: () => {
+        // Add CUI header on each page
+        addCuiHeader()
+      },
+      // Style specific columns
+      columnStyles: {
+        0: { cellWidth: 22 },  // Status
+        1: { cellWidth: 25 },  // Serial #
+        2: { cellWidth: 40 },  // Asset Name
+        3: { cellWidth: 45 },  // PMI Type
+        4: { cellWidth: 20 },  // Interval
+        5: { cellWidth: 20 },  // WUC
+        6: { cellWidth: 30 },  // Next Due Date
+        7: { cellWidth: 30 },  // Days Until Due
+        8: { cellWidth: 30 },  // Last Completed
+      },
+      // Apply color coding to status column and days column
+      didParseCell: (data) => {
+        if (data.section === 'body') {
+          const rowIndex = data.row.index
+          const colIndex = data.column.index
+          const rowData = tableData[rowIndex]
+
+          // Status column (0) - apply color coding
+          if (colIndex === 0 && rowData) {
+            data.cell.styles.fillColor = rowData.statusInfo.bgColor
+            data.cell.styles.textColor = rowData.statusInfo.color
+            data.cell.styles.fontStyle = 'bold'
+          }
+
+          // Days Until Due column (7) - apply color coding
+          if (colIndex === 7 && rowData) {
+            data.cell.styles.textColor = rowData.statusInfo.color
+            data.cell.styles.fontStyle = 'bold'
+          }
+        }
+      }
+    })
+
+    // Get total pages and add footers
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      addCuiFooter(i, totalPages)
+    }
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_PMI_Schedule_${getZuluDateForFilename()}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  // Export PMI records to Excel with CUI markings
+  const exportPMIToExcel = () => {
+    const zuluTimestamp = getZuluTimestamp()
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new()
+
+    // Helper to get status label
+    const getPMIStatusLabel = (daysUntilDue: number): string => {
+      if (daysUntilDue < 0) return 'OVERDUE'
+      if (daysUntilDue <= 7) return 'DUE SOON'
+      if (daysUntilDue <= 30) return 'UPCOMING'
+      return 'SCHEDULED'
+    }
+
+    // Prepare data rows with CUI header
+    const cuiHeaderRow = ['CONTROLLED UNCLASSIFIED INFORMATION (CUI)']
+    const blankRow: string[] = []
+    const reportInfoRow1 = [`RIMSS PMI Schedule Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
+    const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
+    const reportInfoRow3 = [`Total PMI Records: ${pmiRecords.length}`]
+
+    // Summary row
+    const summaryRow = [`Summary: ${pmiSummary.overdue} Overdue | ${pmiSummary.red} Due Soon (7 days) | ${pmiSummary.yellow} Upcoming (30 days) | ${pmiSummary.green} Scheduled`]
+
+    // Filter info
+    const filters: string[] = []
+    if (pmiIntervalFilter) filters.push(`Interval: ${pmiIntervalFilter}-Day`)
+    if (debouncedPmiSearch) filters.push(`Search: "${debouncedPmiSearch}"`)
+    if (pmiOverdueOnly) filters.push('Overdue Only')
+    const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
+
+    // Table header row
+    const headerRow = ['Status', 'Serial Number', 'Asset Name', 'PMI Type', 'Interval (Days)', 'WUC Code', 'Next Due Date (ZULU)', 'Days Until Due', 'Last Completed (ZULU)', 'Status Color']
+
+    // Data rows
+    const dataRows = pmiRecords.map(pmi => {
+      const statusLabel = getPMIStatusLabel(pmi.days_until_due)
+      // Format dates in ZULU
+      const nextDueDateZulu = pmi.next_due_date ? new Date(pmi.next_due_date).toISOString().split('T')[0] + 'Z' : ''
+      const completedDateZulu = pmi.completed_date ? new Date(pmi.completed_date).toISOString().split('T')[0] + 'Z' : ''
+
+      // Color indicator for accessibility
+      let colorIndicator = ''
+      if (pmi.days_until_due < 0) colorIndicator = 'RED - Overdue'
+      else if (pmi.days_until_due <= 7) colorIndicator = 'RED - Due within 7 days'
+      else if (pmi.days_until_due <= 30) colorIndicator = 'YELLOW - Due within 30 days'
+      else colorIndicator = 'GREEN - More than 30 days'
+
+      return [
+        statusLabel,
+        pmi.asset_sn,
+        pmi.asset_name,
+        pmi.pmi_type,
+        `${pmi.interval_days}`,
+        pmi.wuc_cd,
+        nextDueDateZulu,
+        pmi.days_until_due < 0 ? `${Math.abs(pmi.days_until_due)} overdue` : `${pmi.days_until_due}`,
+        completedDateZulu || '-',
+        colorIndicator
+      ]
+    })
+
+    // CUI footer row
+    const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
+
+    // Combine all rows
+    const allRows = [
+      cuiHeaderRow,
+      blankRow,
+      reportInfoRow1,
+      reportInfoRow2,
+      reportInfoRow3,
+      summaryRow,
+      ...(filterRow.length ? [filterRow] : []),
+      blankRow,
+      headerRow,
+      ...dataRows,
+      blankRow,
+      cuiFooterRow
+    ]
+
+    // Create worksheet from array of arrays
+    const ws = XLSX.utils.aoa_to_sheet(allRows)
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 12 },  // Status
+      { wch: 15 },  // Serial Number
+      { wch: 25 },  // Asset Name
+      { wch: 35 },  // PMI Type
+      { wch: 15 },  // Interval (Days)
+      { wch: 12 },  // WUC Code
+      { wch: 20 },  // Next Due Date (ZULU)
+      { wch: 15 },  // Days Until Due
+      { wch: 20 },  // Last Completed (ZULU)
+      { wch: 25 },  // Status Color
+    ]
+
+    // Merge CUI header cells across all columns
+    const numCols = headerRow.length
+    const headerRowIndex = filterRow.length ? 8 : 7
+
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // CUI header
+      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Report title
+      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }, // Generated timestamp
+      { s: { r: 4, c: 0 }, e: { r: 4, c: numCols - 1 } }, // Total records
+      { s: { r: 5, c: 0 }, e: { r: 5, c: numCols - 1 } }, // Summary
+      { s: { r: allRows.length - 1, c: 0 }, e: { r: allRows.length - 1, c: numCols - 1 } }, // CUI footer
+    ]
+
+    // Add filter merge if applicable
+    if (filterRow.length) {
+      ws['!merges']!.push({ s: { r: 6, c: 0 }, e: { r: 6, c: numCols - 1 } })
+    }
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'PMI_Schedule')
+
+    // Generate filename with CUI prefix and ZULU date
+    const filename = `CUI_PMI_Schedule_${getZuluDateForFilename()}.xlsx`
 
     // Write the file and trigger download
     XLSX.writeFile(wb, filename)
@@ -2408,8 +2787,25 @@ export default function MaintenancePage() {
           )}
           <div className="bg-white shadow rounded-lg p-8 text-center">
             <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No PMI schedule entries found for the current program.</p>
-            {canCreatePMI && (
+            <p className="text-gray-500">
+              {(debouncedPmiSearch || pmiIntervalFilter || pmiOverdueOnly)
+                ? 'No PMI schedule entries match your filters.'
+                : 'No PMI schedule entries found for the current program.'}
+            </p>
+            {(debouncedPmiSearch || pmiIntervalFilter || pmiOverdueOnly) && (
+              <button
+                onClick={() => {
+                  setPmiSearchQuery('')
+                  setPmiIntervalFilter('')
+                  setPmiOverdueOnly(false)
+                }}
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <XMarkIcon className="h-5 w-5" />
+                Clear Filters
+              </button>
+            )}
+            {canCreatePMI && !(debouncedPmiSearch || pmiIntervalFilter || pmiOverdueOnly) && (
               <button
                 onClick={openNewPMIModal}
                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -2439,47 +2835,120 @@ export default function MaintenancePage() {
 
     return (
       <div className="space-y-6">
-        {/* Add PMI Button */}
-        {/* Filter and Actions Row */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          {/* PMI Interval Filter */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="pmi_interval_filter" className="text-sm font-medium text-gray-700">
-              Filter by Interval:
-            </label>
-            <select
-              id="pmi_interval_filter"
-              value={pmiIntervalFilter}
-              onChange={(e) => setPmiIntervalFilter(e.target.value)}
-              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-            >
-              <option value="">All Intervals</option>
-              <option value="30">30-Day</option>
-              <option value="60">60-Day</option>
-              <option value="90">90-Day</option>
-              <option value="180">180-Day</option>
-              <option value="365">365-Day (Annual)</option>
-            </select>
-            {pmiIntervalFilter && (
+        {/* Search and Filter Row */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search by asset S/N, name, or PMI type..."
+              value={pmiSearchQuery}
+              onChange={(e) => setPmiSearchQuery(e.target.value)}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            />
+            {pmiSearchQuery && (
               <button
-                onClick={() => setPmiIntervalFilter('')}
-                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                onClick={() => setPmiSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                Clear
+                <XMarkIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </button>
             )}
           </div>
 
-          {/* Add PMI Button */}
-          {canCreatePMI && (
+          {/* Filters and Actions */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Overdue Only Toggle */}
             <button
-              onClick={openNewPMIModal}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              onClick={() => setPmiOverdueOnly(!pmiOverdueOnly)}
+              className={classNames(
+                'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                pmiOverdueOnly
+                  ? 'bg-red-100 text-red-800 border border-red-300'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              )}
             >
-              <PlusIcon className="h-5 w-5" />
-              Add PMI
+              <ExclamationCircleIcon className="h-5 w-5" />
+              Overdue Only
+              {pmiOverdueOnly && pmiSummary.overdue > 0 && (
+                <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {pmiSummary.overdue}
+                </span>
+              )}
             </button>
-          )}
+
+            {/* PMI Interval Filter */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="pmi_interval_filter" className="text-sm font-medium text-gray-700">
+                Interval:
+              </label>
+              <select
+                id="pmi_interval_filter"
+                value={pmiIntervalFilter}
+                onChange={(e) => setPmiIntervalFilter(e.target.value)}
+                className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              >
+                <option value="">All</option>
+                <option value="30">30-Day</option>
+                <option value="60">60-Day</option>
+                <option value="90">90-Day</option>
+                <option value="180">180-Day</option>
+                <option value="365">365-Day</option>
+              </select>
+            </div>
+
+            {/* Clear All Filters */}
+            {(pmiSearchQuery || pmiIntervalFilter || pmiOverdueOnly) && (
+              <button
+                onClick={() => {
+                  setPmiSearchQuery('')
+                  setPmiIntervalFilter('')
+                  setPmiOverdueOnly(false)
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700 underline"
+              >
+                Clear All
+              </button>
+            )}
+
+            {/* Add PMI Button */}
+            {canCreatePMI && (
+              <button
+                onClick={openNewPMIModal}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
+              >
+                <PlusIcon className="h-5 w-5" />
+                Add PMI
+              </button>
+            )}
+
+            {/* Export PDF Button */}
+            <button
+              type="button"
+              onClick={exportPMIToPdf}
+              disabled={pmiRecords.length === 0}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Export PMI to PDF with CUI markings"
+            >
+              <DocumentArrowDownIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              Export PDF
+            </button>
+
+            {/* Export Excel Button */}
+            <button
+              type="button"
+              onClick={exportPMIToExcel}
+              disabled={pmiRecords.length === 0}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Export PMI to Excel with CUI markings"
+            >
+              <DocumentArrowDownIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              Export Excel
+            </button>
+          </div>
         </div>
 
         {/* PMI Summary Cards */}
@@ -2627,7 +3096,15 @@ export default function MaintenancePage() {
           <div className="bg-white px-4 py-3 border-t border-gray-200">
             <p className="text-sm text-gray-500">
               {pmiRecords.length} PMI schedule entries
-              {pmiIntervalFilter && ` (filtered by ${pmiIntervalFilter}-Day interval)`}
+              {(debouncedPmiSearch || pmiIntervalFilter || pmiOverdueOnly) && (
+                <span className="text-gray-400">
+                  {' '}(filtered
+                  {debouncedPmiSearch && ` by "${debouncedPmiSearch}"`}
+                  {pmiIntervalFilter && ` by ${pmiIntervalFilter}-Day interval`}
+                  {pmiOverdueOnly && ' to overdue only'}
+                  )
+                </span>
+              )}
             </p>
           </div>
         </div>
