@@ -1,3 +1,0 @@
-This is not an Excel file.
-It's just plain text pretending to be Excel.
-This should trigger a parsing error.

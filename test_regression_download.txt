@@ -1,1 +1,0 @@
-Test file for regression testing Feature #76 - Attachment download functionality
