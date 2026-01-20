@@ -15736,3 +15736,86 @@ Feature #80 remains PASSING - All search and filtering functionality working as 
 Current Progress: 171/374 features passing (45.7%)
 
 [Testing] Session complete - verified feature #80 (no regression)
+
+================================================================================
+Session: 2026-01-20 00:52 UTC - Feature #172 COMPLETED
+================================================================================
+
+Feature #172: Multiple software per asset - IMPLEMENTED AND VERIFIED
+
+Implementation Summary:
+Added full support for multiple software associations per asset, including
+the ability to add multiple software versions and remove individual associations
+through the UI.
+
+Backend Implementation:
+- Added DELETE /api/assets/:id/software/:assocId endpoint
+  * Requires ADMIN or DEPOT_MANAGER role
+  * Validates asset ownership and program access
+  * Removes association from assetSoftware array
+  * Returns success message with removed association ID
+- Located at line 8710 in backend/src/index.ts
+- Follows same authorization pattern as POST endpoint
+
+Frontend Implementation:
+- Added "Actions" column to software associations table (AssetDetailPage.tsx)
+  * Only visible when user has edit permissions (canEdit)
+  * Contains "Remove" button for each association
+- Added handleRemoveSoftware function:
+  * Shows confirmation dialog before deletion
+  * Calls DELETE endpoint with association ID
+  * Refreshes software list after successful deletion
+  * Displays error alert if deletion fails
+- Located at line 948 in frontend/src/pages/AssetDetailPage.tsx
+
+Verification Steps Completed (All 7):
+✅ Step 1: Logged in as depot manager (depot_mgr/depot123)
+✅ Step 2: Navigated to asset detail (CRIIS-001, asset_id=1)
+✅ Step 3: Added first software association (GPS Navigation Software v1.8.3)
+✅ Step 4: Added second software association (Camera Control Software v2.1.5 already existed)
+✅ Step 5: Verified both display in table with all columns
+✅ Step 6: Removed GPS Navigation Software (confirmed deletion with dialog)
+✅ Step 7: Verified only Camera Control Software remains
+
+Testing Results:
+- Initial state: 1 software association (Camera Control Software)
+- After adding: 2 software associations displayed correctly
+- After removing: 1 software association remains
+- Zero console errors throughout testing
+- All API calls successful (GET 200, POST 201, DELETE 200)
+- Confirmation dialog works properly
+- Table updates automatically after operations
+- Remove button only visible to users with edit permissions
+
+Screenshots Captured:
+- feature172_two_software_associations.png - Both associations displaying
+- feature172_after_remove.png - One association after removal
+
+Technical Notes:
+- DELETE endpoint follows RESTful pattern: /api/assets/:id/software/:assocId
+- Uses same authentication and authorization as other asset endpoints
+- Frontend uses native confirm() for deletion confirmation
+- Association list auto-refreshes after add/remove operations
+- Backend logs all software association operations for audit trail
+
+Feature #172 marked as PASSING
+
+Current Progress: 173/374 features passing (46.3%)
+[Testing] Feature #96 regression test - PASSED
+
+Feature: ETI in/out tracking on repairs
+
+Test Results:
+✅ Step 1: Logged in as field technician (Bob Field / field_tech)
+✅ Step 2: Found repair on asset CRIIS-005 (Camera System X) with ETI tracking
+✅ Step 3: ETI In value recorded: 782 hrs
+✅ Step 4: Completed repair (Repair #2 on maintenance event MX-2024-001)
+✅ Step 5: Entered ETI Out value: 785 hrs
+✅ Step 6: ETI Delta calculated correctly: 3 hrs (785 - 782)
+✅ Step 7: Asset ETI updated to 785 hrs
+
+All verification steps passed. Feature #96 is still working correctly.
+No regression detected.
+
+Tested: Tue Jan 20 00:58:09 EST 2026
+

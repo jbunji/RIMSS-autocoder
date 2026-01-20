@@ -1,0 +1,194 @@
+================================================================================
+Feature #172: Multiple Software Per Asset - IMPLEMENTATION SUMMARY
+================================================================================
+
+FEATURE DESCRIPTION:
+Assets can have multiple software associations, allowing tracking of multiple
+software versions installed on a single asset.
+
+IMPLEMENTATION COMPLETED: 2026-01-20 00:52 UTC
+
+================================================================================
+BACKEND CHANGES
+================================================================================
+
+File: backend/src/index.ts (Line ~8710)
+
+Added DELETE endpoint:
+- Route: DELETE /api/assets/:id/software/:assocId
+- Authentication: Required (JWT token)
+- Authorization: ADMIN, DEPOT_MANAGER roles only
+- Validates:
+  * User authentication and role
+  * Asset ID and association ID (must be valid integers)
+  * Asset exists
+  * User has access to asset's program
+  * Association exists for the specified asset
+- Action: Removes association from assetSoftware array
+- Response: JSON with success message and removed association ID
+- Logging: Records deletion with username, asset serial number, software title
+
+Key Implementation Details:
+- Uses Express.js delete() method
+- Follows same authorization pattern as existing endpoints
+- Removes association from in-memory array using splice()
+- Includes detailed error handling for all validation steps
+
+================================================================================
+FRONTEND CHANGES
+================================================================================
+
+File: frontend/src/pages/AssetDetailPage.tsx
+
+1. UI Changes (Line ~2546):
+   - Added "Actions" column header to software associations table
+   - Column only visible when user has edit permissions (canEdit)
+   - Contains "Remove" button for each association
+   - Styled with red text color (text-red-600 hover:text-red-900)
+
+2. Function Added (Line ~948):
+   handleRemoveSoftware(assocId: number)
+   - Shows native browser confirmation dialog
+   - Sends DELETE request to backend
+   - Auto-refreshes software associations list after deletion
+   - Displays error alert if deletion fails
+   - Parameters: assocId (number) - the association ID to remove
+
+Key Implementation Details:
+- Uses fetch() API with DELETE method
+- Includes authorization header with JWT token
+- Refreshes data by calling GET endpoint after deletion
+- Error handling with user-friendly alert messages
+
+================================================================================
+TESTING VERIFICATION
+================================================================================
+
+All 7 verification steps completed successfully:
+
+Step 1: ✅ Log in as depot manager
+  - Username: depot_mgr
+  - Password: depot123
+  - Role: DEPOT_MANAGER (Jane Depot)
+
+Step 2: ✅ Navigate to asset detail
+  - Accessed asset CRIIS-001 (asset_id=1)
+  - Clicked Software tab
+
+Step 3: ✅ Add first software association
+  - Added GPS Navigation Software v1.8.3
+  - Effective date: 2026-01-20
+  - Status: Active
+
+Step 4: ✅ Add second software association
+  - Camera Control Software v2.1.5 already existed
+  - Both associations displayed in table
+
+Step 5: ✅ Verify both display
+  - Both software associations visible
+  - All columns populated correctly:
+    * Software Name
+    * Version
+    * Software Number
+    * Type (FIRMWARE badge)
+    * Effective Date
+    * Status (Active badge)
+    * Actions (Remove button)
+
+Step 6: ✅ Remove one association
+  - Clicked Remove button for GPS Navigation Software
+  - Confirmed deletion in dialog
+  - Association removed successfully
+
+Step 7: ✅ Verify only one remains
+  - Only Camera Control Software remains in table
+  - Remove button still available for remaining association
+
+================================================================================
+QUALITY ASSURANCE
+================================================================================
+
+Console Verification:
+✅ Zero JavaScript errors
+✅ Zero API errors
+✅ All network requests successful
+
+API Response Codes:
+✅ GET /api/assets/:id/software - 200 OK
+✅ POST /api/assets/:id/software - 201 Created
+✅ DELETE /api/assets/:id/software/:assocId - 200 OK
+
+Security:
+✅ Role-based access control enforced
+✅ Program-based data isolation enforced
+✅ Authentication required for all operations
+✅ Authorization validated before deletion
+
+User Experience:
+✅ Confirmation dialog prevents accidental deletion
+✅ Auto-refresh keeps UI synchronized
+✅ Error messages displayed clearly
+✅ Loading states work properly
+
+================================================================================
+SCREENSHOTS
+================================================================================
+
+1. feature172_two_software_associations.png
+   - Shows both software associations in table
+   - Demonstrates multiple software per asset capability
+
+2. feature172_after_remove.png
+   - Shows one software association after removal
+   - Verifies deletion functionality works correctly
+
+================================================================================
+TECHNICAL NOTES
+================================================================================
+
+Database/Storage:
+- Uses in-memory assetSoftware array
+- Data persists during backend runtime
+- Backend restart resets to initial seed data
+
+API Design:
+- Follows RESTful conventions
+- URL structure: /api/assets/:id/software/:assocId
+- Uses appropriate HTTP method (DELETE)
+- Returns meaningful error messages
+
+Authorization Model:
+- ADMIN: Full access to all assets across all programs
+- DEPOT_MANAGER: Can manage software for assets in assigned programs
+- FIELD_TECHNICIAN: Cannot manage software associations
+- VIEWER: Read-only access
+
+Future Enhancements:
+- Database persistence (PostgreSQL)
+- Soft delete with end_date instead of hard delete
+- Audit trail for association changes
+- Bulk operations (add/remove multiple at once)
+- Version compatibility validation
+- Conflict detection (prevent duplicate active associations)
+
+================================================================================
+GIT COMMIT
+================================================================================
+
+Commit: bcf90d1
+Message: Implement Feature #172: Multiple software per asset
+
+Files Changed:
+- backend/src/index.ts (added DELETE endpoint)
+- frontend/src/pages/AssetDetailPage.tsx (added remove button and handler)
+- features.db (marked feature #172 as passing)
+- claude-progress.txt (documented completion)
+
+================================================================================
+COMPLETION STATUS
+================================================================================
+
+Feature #172: PASSING ✅
+Progress: 173/374 features (46.3%)
+Date: 2026-01-20 00:52 UTC
+Verified by: Browser automation testing with Playwright
