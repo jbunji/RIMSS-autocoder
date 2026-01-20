@@ -12083,7 +12083,7 @@ app.get('/api/configurations', (req, res) => {
   }
 
   // Apply search filter
-  const searchQuery = (req.query.search as string)?.toLowerCase();
+  const searchQuery = (req.query.search as string)?.toLowerCase().trim() || null;
   if (searchQuery) {
     filteredConfigs = filteredConfigs.filter(c =>
       c.cfg_name.toLowerCase().includes(searchQuery) ||
@@ -13047,7 +13047,7 @@ app.get('/api/sorties', (req, res) => {
 
   // Get query parameters
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
-  const searchQuery = req.query.search ? String(req.query.search).toLowerCase() : null;
+  const searchQuery = req.query.search ? String(req.query.search).toLowerCase().trim() || null : null;
   const startDate = req.query.start_date ? String(req.query.start_date) : null;
   const endDate = req.query.end_date ? String(req.query.end_date) : null;
   const tailNumber = req.query.tail_number ? String(req.query.tail_number).toLowerCase() : null;
