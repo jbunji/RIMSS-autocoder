@@ -36204,3 +36204,138 @@ Progress: 283/374 features passing (75.7%)
 [2026-01-20 11:31 UTC] Feature #229 regression test complete - PASSING
 ================================================================================
 
+
+================================================================================
+[2026-01-20 11:45 UTC] Feature #284 COMPLETED - PARALLEL SESSION
+================================================================================
+
+Feature #284: Soft delete hides item but allows recovery - VERIFIED AND PASSING ✅
+
+Assignment: PARALLEL SESSION - Pre-assigned feature #284
+Session Type: Single-feature verification mode
+
+FEATURE DESCRIPTION:
+Soft deleted items can be reactivated. When users soft delete an item, it 
+should be hidden from the active list but recoverable. Admins can view deleted
+items and reactivate them, restoring full functionality.
+
+TEST EXECUTION - All 7 Steps PASSED:
+
+✅ Step 1: Log in as admin
+   - Logged in as admin user (username: admin, password: admin123)
+   - Authentication successful
+   - Redirected to dashboard
+
+✅ Step 2: Soft delete a spare part
+   - Created unique test spare: F284-REACTIVATE-TEST
+   - Part Number: PN-F284-TEST
+   - Status: AVAILABLE
+   - Location: No Location
+   - Clicked Delete button, confirmed deletion
+   - Success message: "Spare deleted successfully!"
+   - API: DELETE /api/spares/{id} => 200 OK
+
+✅ Step 3: Verify spare not in active list
+   - Count changed: "Showing 6 of 6" → "Showing 5 of 5"
+   - F284-REACTIVATE-TEST removed from active spares list
+   - Only active spares visible in table
+
+✅ Step 4: Show inactive/deleted items
+   - Checked "Show deleted/inactive spares" checkbox (admin-only)
+   - View switched to show deleted items only
+   - Count: "Showing 1 of 1 spare parts"
+
+✅ Step 5: Verify spare visible with deleted status
+   - F284-REACTIVATE-TEST visible in deleted items view
+   - All original data preserved (serial, part number, name, status, location)
+   - Actions column shows "Reactivate" button (no Edit/Delete)
+
+✅ Step 6: Reactivate spare
+   - Clicked "Reactivate" button
+   - Success: "Spare 'F284-REACTIVATE-TEST' reactivated successfully!"
+   - API: POST /api/assets/{id}/reactivate => 200 OK
+   - Deleted view now shows "0 of 0" (no deleted items)
+
+✅ Step 7: Verify spare returns to active list
+   - Unchecked "Show deleted/inactive spares" checkbox
+   - Returned to active spares view
+   - Count: "Showing 6 of 6 spare parts"
+   - F284-REACTIVATE-TEST back in active list with Edit/Delete buttons
+   - All data fully preserved through delete/reactivate cycle
+
+IMPLEMENTATION ANALYSIS:
+
+Backend (already implemented):
+✅ Soft delete sets active=false in database
+✅ GET /api/spares supports show_deleted=true query parameter
+✅ DELETE /api/spares/:id does soft delete (sets active=false)
+✅ POST /api/assets/:id/reactivate restores items (sets active=true)
+✅ Admin-only access to reactivation endpoint
+✅ Activity logging for audit trail
+
+Frontend (already implemented):
+✅ showDeleted state controls view mode (SparesPage.tsx)
+✅ Admin-only checkbox to toggle deleted items view
+✅ Conditional rendering of Reactivate vs Edit/Delete buttons
+✅ handleReactivateClick calls reactivate API
+✅ Automatic list refresh after operations
+✅ Success/error feedback messages
+
+Data Integrity:
+✅ Soft delete preserves all data fields
+✅ Reactivation restores exact previous state
+✅ No data loss through delete/reactivate cycle
+✅ Database constraints maintained
+✅ No orphaned references
+
+User Experience:
+✅ Clear visual separation of active/deleted views
+✅ Admin-only access to deleted items and reactivation
+✅ Success feedback on all operations
+✅ Immediate UI updates
+✅ Intuitive toggle between views
+✅ Confirmation dialog before deletion
+
+Security:
+✅ Only ADMIN users see deleted items checkbox
+✅ Only ADMIN users can reactivate items
+✅ Role-based access control enforced
+✅ Authentication required for all operations
+
+Console Verification:
+✅ Only expected warnings (React Router future flags)
+✅ Zero JavaScript errors
+✅ All API calls successful (200 OK)
+
+SCREENSHOTS CAPTURED:
+1. feature_284_step1_test_spare_created.png
+2. feature_284_step2_test_spare_visible.png
+3. feature_284_step3_spare_deleted_not_in_list.png
+4. feature_284_step5_deleted_spare_visible.png
+5. feature_284_step7_spare_reactivated_in_active_list.png
+
+Result: Feature #284 marked as PASSING ✅
+Progress: 284/374 features passing (75.9%)
+
+Session Type: PARALLEL SESSION - Single Feature Mode
+Session Duration: ~20 minutes
+Test Entity: Spare part (F284-REACTIVATE-TEST / PN-F284-TEST)
+Testing Method: Full end-to-end browser automation
+Quality: Production-ready soft delete with recovery functionality ✅
+
+Git Commit: 63c068d
+
+Feature Status: PASSING ✅
+Soft Delete: Working correctly ✅
+Data Preservation: Verified ✅
+Reactivation: Working correctly ✅
+Recovery Flow: Complete and functional ✅
+
+NO ISSUES FOUND - Soft delete functionality works exactly as designed.
+Items can be soft deleted (hidden from active view), viewed in deleted state,
+and successfully reactivated with all data preserved.
+
+================================================================================
+[2026-01-20 11:45 UTC] Feature #284 session complete - PARALLEL SESSION
+================================================================================
+
