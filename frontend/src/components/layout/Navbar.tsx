@@ -98,7 +98,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           <div className="flex items-center">
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md p-2 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white min-h-[44px] min-w-[44px]"
               onClick={onMenuClick}
               aria-label="Toggle sidebar"
             >
@@ -118,7 +118,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             {/* Notification Bell */}
             <Link
               to="/notifications"
-              className="relative inline-flex items-center rounded-md p-2 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="relative inline-flex items-center rounded-md p-2.5 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white min-h-[44px] min-w-[44px]"
               aria-label="View notifications"
             >
               <BellIcon className="h-6 w-6" aria-hidden="true" />
@@ -132,7 +132,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             {/* Program Selector */}
             {availablePrograms.length > 0 && (
               <Menu as="div" className="relative">
-                <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800">
+                <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
                   <span className="hidden sm:inline">Program:</span>
                   <span className="ml-1 font-semibold">{currentProgram?.pgm_cd || 'Select'}</span>
                   <ChevronDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
@@ -172,7 +172,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
             {/* User Menu */}
             <Menu as="div" className="relative">
-              <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800">
+              <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
                 <UserCircleIcon className="h-6 w-6 mr-2" aria-hidden="true" />
                 <span className="hidden md:inline">{user?.first_name} {user?.last_name}</span>
                 <ChevronDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
