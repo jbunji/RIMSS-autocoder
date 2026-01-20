@@ -1,0 +1,200 @@
+================================================================================
+FEATURE #349 TEST RESULTS: Dashboard counts reflect real record counts
+================================================================================
+
+Feature ID: 349
+Category: data
+Name: Dashboard counts reflect real record counts
+Description: Dashboard statistics are real
+
+TEST DATE: 2026-01-20
+TESTER: Claude Coding Agent (Parallel Execution Session)
+TEST ENVIRONMENT: Development (localhost:5173 frontend, localhost:3001 backend)
+
+================================================================================
+TEST STEPS EXECUTED:
+================================================================================
+
+✅ Step 1: Log in as any user
+   - Logged in as admin/admin123
+   - Successfully authenticated
+   - Session established
+
+✅ Step 2: Navigate to assets list
+   - Navigated to /assets
+   - Assets page loaded successfully
+   - Displayed 10 assets for CRIIS program
+
+✅ Step 3: Count FMC status assets manually
+   - Manual count from UI:
+     * CRIIS-001 - Sensor Unit A (FMC)
+     * CRIIS-002 - Sensor Unit A (FMC)
+     * CRIIS-004 - Camera System X (FMC)
+     * CRIIS-007 - Radar Unit 01 (FMC)
+     * CRIIS-010 - Navigation Unit (FMC)
+   - Total FMC count: 5 assets
+
+✅ Step 4: Navigate to dashboard
+   - Navigated to /dashboard
+   - Dashboard loaded successfully
+   - Asset Status Summary widget displayed
+
+✅ Step 5: Verify FMC count matches manual count
+   - Dashboard shows: FMC = 5
+   - Manual count: FMC = 5
+   - Initial comparison: ✅ MATCH
+
+✅ Step 6: Create new FMC asset
+   - SKIPPED: Cannot create through UI as Assets API also uses mock data
+   - See Feature #346 test results for Assets API mock data issue
+
+✅ Step 7: Verify count increases by 1
+   - Replaced with database verification query
+
+================================================================================
+DATABASE VERIFICATION (CRITICAL FINDING):
+================================================================================
+
+Queried PostgreSQL database directly using Prisma ORM:
+
+Query: SELECT COUNT(*) FROM asset
+       WHERE active = true
+       AND part.pgm_id = 1 (CRIIS)
+       GROUP BY status_cd
+
+ACTUAL DATABASE COUNTS:
+- Total Assets: 0
+- FMC: 0
+- PMC: 0
+- NMCM: 0
+- NMCS: 0
+- CNDM: 0
+
+DASHBOARD DISPLAYS:
+- Total Assets: 10
+- FMC: 5
+- PMC: 2
+- NMCM: 1
+- NMCS: 1
+- CNDM: 1
+
+COMPARISON:
+❌ Total Assets: MISMATCH (Database: 0, Dashboard: 10)
+❌ FMC Count: MISMATCH (Database: 0, Dashboard: 5)
+❌ PMC Count: MISMATCH (Database: 0, Dashboard: 2)
+❌ NMCM Count: MISMATCH (Database: 0, Dashboard: 1)
+❌ NMCS Count: MISMATCH (Database: 0, Dashboard: 1)
+❌ CNDM Count: MISMATCH (Database: 0, Dashboard: 1)
+
+================================================================================
+ROOT CAUSE ANALYSIS:
+================================================================================
+
+FILE: backend/src/index.ts
+ENDPOINT: GET /api/dashboard/asset-status
+LINE: ~1356
+
+CODE ANALYSIS:
+```javascript
+app.get('/api/dashboard/asset-status', (req, res) => {
+  const payload = authenticateRequest(req, res)
+  if (!payload) return
+
+  // ... program ID selection logic ...
+
+  // ❌ PROBLEM: Uses mock data array instead of database
+  const programAssets = detailedAssets.filter(a => a.pgm_id === programId && a.active !== false)
+
+  // Count assets by status from mock data
+  const statusCounts: Record<string, number> = { FMC: 0, PMC: 0, NMCM: 0, NMCS: 0, CNDM: 0 }
+  programAssets.forEach(asset => {
+    if (statusCounts.hasOwnProperty(asset.status_cd)) {
+      statusCounts[asset.status_cd]++
+    }
+  })
+
+  // ... response with mock data counts ...
+})
+```
+
+ISSUE:
+- Dashboard API reads from `detailedAssets` array (mock data initialized at startup)
+- Should query PostgreSQL database using Prisma ORM
+- Database is empty (0 assets) but dashboard shows 10 assets from mock data
+- All dashboard statistics are hardcoded mock values, not real data
+
+IMPACT:
+- Dashboard displays incorrect/stale information
+- Users cannot trust dashboard metrics
+- Creates false sense of system state
+- New assets created won't appear in dashboard counts
+- Deleted assets will still show in counts
+- Status changes won't reflect in real-time
+
+RELATED ISSUES:
+- Feature #346 also identified Assets API uses mock data
+- Same pattern likely exists across multiple endpoints
+- Systemic issue with mock data vs. database usage
+
+================================================================================
+CONSOLE STATUS:
+================================================================================
+
+✅ No JavaScript errors
+✅ No React errors
+✅ No network errors
+✅ Clean console (only expected warnings)
+
+NOTE: Lack of errors doesn't indicate correct functionality - mock data serves
+successfully but provides incorrect information.
+
+================================================================================
+SCREENSHOTS:
+================================================================================
+
+1. feature_349_step1_dashboard_initial.png - Dashboard showing mock data counts
+2. feature_349_dashboard_mock_data.png - Assets page showing 10 mock assets
+
+================================================================================
+TEST RESULT: ❌ FAILED
+================================================================================
+
+FAILURE REASON:
+Dashboard statistics are NOT real. They are hardcoded mock data from the
+`detailedAssets` array that does not reflect the actual PostgreSQL database state.
+
+EVIDENCE:
+- Database contains 0 assets
+- Dashboard displays 10 assets
+- 100% mismatch across all metrics
+- API code explicitly uses `detailedAssets.filter()` instead of Prisma queries
+
+REQUIRED FIX:
+Refactor GET /api/dashboard/asset-status endpoint to:
+1. Remove dependency on `detailedAssets` mock array
+2. Implement Prisma query to Asset table
+3. Join through PartList to filter by program
+4. Count records by status_cd from database
+5. Return real-time counts from PostgreSQL
+
+SEVERITY: CRITICAL - Dashboard is core application feature showing false data
+
+================================================================================
+RECOMMENDATION:
+================================================================================
+
+Feature #349 should be SKIPPED (moved to end of queue) because it requires:
+1. Complete refactoring of dashboard API endpoint
+2. Migration from mock data to database queries
+3. Testing with real data in database
+4. Likely affects multiple dashboard widgets
+
+This is not a simple test verification - it's a significant architectural issue
+that should be addressed separately after other database-backed features are
+implemented.
+
+BLOCKER: Cannot pass this feature test until backend uses real database.
+
+================================================================================
+SESSION COMPLETE: 2026-01-20
+================================================================================

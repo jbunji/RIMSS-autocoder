@@ -49659,3 +49659,264 @@ No regressions detected. Feature verified as passing.
 [2026-01-20 10:52] Feature #222 regression test complete - STILL PASSING ✅
 ================================================================================
 
+[Testing] Session complete - Feature #125 verified and still passing. Summary: feature_125_regression_test_summary.md
+[Testing] Session complete - verified feature #222
+[Testing] Feature #200 - Sensitive operations require confirmation - VERIFICATION COMPLETE ✅
+
+================================================================================
+[Testing] Feature #200 - Sensitive operations require confirmation
+================================================================================
+[2026-01-20] VERIFICATION COMPLETE - FEATURE PASSING ✅
+
+Test Execution Summary:
+-----------------------
+
+✅ Step 1: Log in as admin
+   - Successfully logged in as admin/admin123
+   - Accessed admin user management page
+
+✅ Step 2: Attempt to delete user
+   - Navigated to /admin/users page
+   - Selected "Sam Viewer" user for deletion test
+
+✅ Step 3: Verify confirmation dialog required
+   - Clicked delete button for Sam Viewer
+   - Confirmation dialog appeared immediately
+   - Dialog titled "Delete User" with warning icon
+
+✅ Step 4: Cancel deletion
+   - Clicked "Cancel" button on confirmation dialog
+   - Dialog closed successfully
+
+✅ Step 5: Verify no action taken
+   - Sam Viewer remained in user list after cancel
+   - No changes were made to the database
+   - User count remained at 5 users
+
+✅ Step 6: Confirm deletion
+   - Clicked delete button again for Sam Viewer
+   - Confirmation dialog showed correct user details:
+     * Username: viewer
+     * Full name: Sam Viewer
+     * Email: viewer@example.mil
+     * Role: Viewer
+   - Warning message: "This action cannot be undone"
+   - Clicked "Delete User" button
+
+✅ Step 7: Verify action executed
+   - Success message displayed: "User 'viewer' deleted successfully!"
+   - Sam Viewer removed from user list
+   - User count reduced to 4 users
+   - Database updated correctly
+
+Console Status:
+---------------
+✅ Zero JavaScript errors
+✅ Zero React errors  
+✅ Zero network errors
+✅ Clean console throughout all tests
+
+Quality Assessment:
+-------------------
+✅ Confirmation dialog is clear and informative
+✅ User details are accurately displayed in confirmation
+✅ Warning about irreversible action is prominent
+✅ Cancel button works correctly (no action taken)
+✅ Delete button works correctly (action executed)
+✅ Success feedback provided after deletion
+✅ UI updates immediately to reflect changes
+✅ Professional and secure user experience
+
+Screenshots Captured:
+---------------------
+1. feature_200_delete_confirmation_dialog.png - Confirmation dialog with user details
+2. feature_200_user_deleted_successfully.png - User list after successful deletion
+
+Test Cleanup:
+-------------
+✅ Recreated Sam Viewer user to restore original state
+✅ Database returned to pre-test condition
+✅ All 5 users present in system
+
+CONCLUSION: Feature #200 is FULLY FUNCTIONAL and PASSING ✅
+
+The security feature works exactly as designed:
+- Destructive operations require explicit user confirmation
+- Confirmation dialogs show clear details about what will be deleted
+- Users can cancel without consequences
+- Confirmed actions execute successfully
+- Proper feedback is provided throughout the process
+- Zero console errors throughout testing
+
+This demonstrates:
+- Proper security controls for sensitive operations
+- Clear user communication and warning messages
+- Reliable confirmation workflow
+- Professional UX for destructive actions
+
+No regressions detected. Feature verified as passing.
+
+[2026-01-20] Feature #200 regression test complete - STILL PASSING ✅
+================================================================================
+[Testing] Session complete - Feature #200 verified and still passing. Summary: feature_200_regression_test_summary.md
+================================================================================
+[2026-01-20 10:51] Feature #349 TEST FAILED - Dashboard uses mock data
+================================================================================
+
+Session Type: SINGLE FEATURE MODE (Parallel Execution)
+Feature: #349 - Dashboard counts reflect real record counts
+Category: data
+Status: SKIPPED (moved to end of queue) ❌
+
+FEATURE REQUIREMENTS:
+===============================================================================
+Verify that dashboard statistics are real and reflect actual database counts.
+Steps:
+1. Log in as any user
+2. Navigate to assets list
+3. Count FMC status assets manually
+4. Navigate to dashboard
+5. Verify FMC count matches manual count
+6. Create new FMC asset
+7. Verify count increases by 1
+
+TEST EXECUTION:
+===============================================================================
+
+✅ Steps 1-5 Completed Successfully:
+   - Logged in as admin/admin123
+   - Navigated to assets list
+   - Manually counted FMC assets: 5
+   - Dashboard showed FMC count: 5
+   - Initial visual match appeared correct
+
+❌ CRITICAL DISCOVERY:
+   - Ran database verification query using Prisma
+   - Database contains: 0 assets
+   - Dashboard displays: 10 assets (FMC: 5, PMC: 2, NMCM: 1, NMCS: 1, CNDM: 1)
+   - 100% MISMATCH - Dashboard shows entirely mock data
+
+ROOT CAUSE ANALYSIS:
+===============================================================================
+
+FILE: backend/src/index.ts
+ENDPOINT: GET /api/dashboard/asset-status (line ~1356)
+
+ISSUE:
+The dashboard endpoint reads from the detailedAssets array which is:
+- Initialized at server startup with hardcoded mock data
+- Never synchronized with the actual PostgreSQL database
+- Returns stale/fake counts that don't reflect reality
+
+DATABASE VERIFICATION RESULTS:
+===============================================================================
+
+Actual Database State (Prisma query):
+- Total Assets: 0
+- FMC: 0
+- PMC: 0
+- NMCM: 0
+- NMCS: 0
+- CNDM: 0
+
+Dashboard Display (Mock Data):
+- Total Assets: 10
+- FMC: 5
+- PMC: 2
+- NMCM: 1
+- NMCS: 1
+- CNDM: 1
+
+MISMATCH: 100% of all counts are wrong
+
+IMPACT:
+===============================================================================
+
+CRITICAL - Dashboard is a core application feature that displays false data:
+
+1. Data Integrity: Users see phantom assets that don't exist
+2. Operational Risk: Decisions based on false metrics
+3. Trust Issues: System appears unreliable
+4. Real-time Updates: Creating/deleting assets won't update dashboard
+5. Status Changes: Asset status changes won't reflect in counts
+
+RELATED ISSUES:
+===============================================================================
+
+This is part of a systemic problem:
+- Feature #346: Assets API also uses mock data (confirmed in last session)
+- Same pattern likely exists across multiple endpoints
+- Mock data architecture needs complete overhaul
+
+REQUIRED FIX:
+===============================================================================
+
+To pass this feature, the dashboard API must be refactored to use Prisma
+to query the actual PostgreSQL database instead of the mock detailedAssets array.
+
+CANNOT FIX IN THIS SESSION:
+===============================================================================
+
+This is not a simple test case - it's a major architectural refactor:
+- Requires backend endpoint rewrite
+- Needs migration strategy from mock data
+- Must populate database with real data first
+- Affects multiple dashboard widgets
+- Should be done systematically across all endpoints
+
+DECISION:
+===============================================================================
+
+✅ Feature #349 SKIPPED (moved to priority 377, end of queue)
+
+REASON: External architectural blocker
+- Backend must be refactored to use database
+- Cannot be fixed by creating test data (DB is empty)
+- Requires significant backend development work
+- Should be addressed after database-backed endpoints are implemented
+
+DOCUMENTATION:
+===============================================================================
+
+Created comprehensive test report: feature_349_test_results.txt
+Created database comparison script: compare_dashboard_vs_db.js
+- Detailed test execution steps
+- Database verification queries
+- Root cause analysis
+- Impact assessment
+- Fix requirements
+
+SCREENSHOTS:
+===============================================================================
+
+1. feature_349_step1_dashboard_initial.png - Dashboard showing mock counts
+2. feature_349_dashboard_mock_data.png - Assets page with mock data
+
+CONSOLE STATUS:
+===============================================================================
+
+✅ No JavaScript errors
+✅ No React errors
+✅ No network errors
+✅ Clean console
+
+NOTE: Clean console doesn't indicate correct functionality - mock data
+serves without errors but provides wrong information.
+
+RECOMMENDATION:
+===============================================================================
+
+This feature should be unblocked by:
+1. Implementing database-backed dashboard API (separate feature/task)
+2. Seeding database with real asset data
+3. Migrating all endpoints from mock data to Prisma queries
+4. Then re-test Feature #349 to verify real counts
+
+PROGRESS: 346/374 features passing (92.5%)
+
+Result: Feature #349 skipped due to architectural blocker ⏭️
+Session: Complete - findings documented and committed
+
+================================================================================
+[2026-01-20 10:51] Feature #349 parallel session complete - SKIPPED (BLOCKER) ⏭️
+================================================================================

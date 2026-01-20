@@ -821,7 +821,7 @@ export default function SparesPage() {
     setIsDeleting(true)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${selectedSpare.asset_id}`, {
+      const response = await fetch(`http://localhost:3001/api/spares/${selectedSpare.spare_id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1814,8 +1814,8 @@ export default function SparesPage() {
                         <p className="text-sm text-gray-500">
                           Are you sure you want to delete <span className="font-semibold">{selectedSpare?.serno}</span> ({selectedSpare?.part_name})?
                         </p>
-                        <p className="text-sm text-gray-500 mt-2">
-                          This is a soft delete - the spare can be recovered if needed.
+                        <p className="text-sm text-red-600 font-medium mt-2">
+                          ⚠️ This will PERMANENTLY delete the spare from the database. This action cannot be undone.
                         </p>
                       </div>
 
