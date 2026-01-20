@@ -707,7 +707,7 @@ export default function AssetsPage() {
       <button
         type="button"
         onClick={() => handleSort(column)}
-        className="group inline-flex items-center gap-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700"
+        className="group inline-flex items-center gap-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700 min-h-[44px] py-2"
       >
         {label}
         <span className="flex-none">
@@ -737,7 +737,7 @@ export default function AssetsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Page Header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
@@ -835,7 +835,7 @@ export default function AssetsPage() {
             <button
               type="button"
               onClick={() => fetchAssets(pagination.page)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="inline-flex items-center px-4 py-3 min-h-[44px] border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -971,14 +971,14 @@ export default function AssetsPage() {
                               }
                               navigate(`/assets/${asset.asset_id}`)
                             }}
-                            className="text-primary-600 hover:text-primary-900"
+                            className="text-primary-600 hover:text-primary-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
                           >
                             View
                           </button>
                           {canDeleteAsset && (
                             <button
                               onClick={() => openDeleteModal(asset)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
                               title="Delete asset"
                             >
                               <TrashIcon className="h-5 w-5" aria-hidden="true" />
@@ -1130,24 +1130,29 @@ export default function AssetsPage() {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 flex items-center"
-                  >
-                    <CubeIcon className="h-6 w-6 mr-2 text-primary-600" />
-                    Add New Asset
-                  </Dialog.Title>
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all flex flex-col max-h-[90vh]">
+                  {/* Fixed Header */}
+                  <div className="px-6 pt-6 pb-4 border-b border-gray-200">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900 flex items-center"
+                    >
+                      <CubeIcon className="h-6 w-6 mr-2 text-primary-600" />
+                      Add New Asset
+                    </Dialog.Title>
 
-                  <button
-                    type="button"
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
-                    onClick={closeModal}
-                  >
-                    <XMarkIcon className="h-6 w-6" />
-                  </button>
+                    <button
+                      type="button"
+                      className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+                      onClick={closeModal}
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
 
-                  <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+                  {/* Scrollable Content */}
+                  <div className="px-6 py-4 overflow-y-auto flex-1">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" id="add-asset-form">
                     {/* Error display inside modal */}
                     {modalError && (
                       <div className="rounded-md bg-red-50 p-3">
@@ -1320,38 +1325,41 @@ export default function AssetsPage() {
                       )}
                     </div>
 
-                    {/* Form Actions */}
-                    <div className="mt-6 flex justify-end space-x-3">
-                      <button
-                        type="button"
-                        onClick={closeModal}
-                        className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => reset()}
-                        className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                      >
-                        Reset
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <LoadingSpinner size="sm" className="mr-2 text-white" />
-                            Creating...
-                          </>
-                        ) : (
-                          'Create Asset'
-                        )}
-                      </button>
-                    </div>
-                  </form>
+                    </form>
+                  </div>
+
+                  {/* Fixed Footer */}
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => reset()}
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="submit"
+                      form="add-asset-form"
+                      disabled={isSubmitting}
+                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <LoadingSpinner size="sm" className="mr-2 text-white" />
+                          Creating...
+                        </>
+                      ) : (
+                        'Create Asset'
+                      )}
+                    </button>
+                  </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>

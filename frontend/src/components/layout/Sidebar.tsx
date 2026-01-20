@@ -47,7 +47,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ADMIN'
   const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
-    `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+    `group flex items-center px-3 py-3 min-h-[44px] text-sm font-medium rounded-md transition-colors ${
       isActive
         ? 'bg-primary-100 text-primary-800'
         : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
