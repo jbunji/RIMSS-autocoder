@@ -35,6 +35,9 @@ interface PartsOrder {
   replacement_serno: string | null
   shipper: string | null
   ship_date: string | null
+  received_date: string | null
+  received_by: number | null
+  received_by_name: string | null
 }
 
 interface Spare {
@@ -145,6 +148,8 @@ export default function PartsOrderDetailPage() {
   const [shipper, setShipper] = useState('')
   const [trackingNumber, setTrackingNumber] = useState('')
   const [shipDate, setShipDate] = useState('')
+  const [showReceiveDialog, setShowReceiveDialog] = useState(false)
+  const [receiving, setReceiving] = useState(false)
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -286,8 +291,39 @@ export default function PartsOrderDetailPage() {
     }
   }
 
+  const handleReceive = async () => {
+    if (!token || !id) return
+
+    setReceiving(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/deliver`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to receive order')
+      }
+
+      const data = await response.json()
+      setOrder(data.order)
+      setShowReceiveDialog(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setReceiving(false)
+    }
+  }
+
   const canAcknowledge = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'pending'
   const canFill = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'acknowledged'
+  const canReceive = user && (user.role === 'FIELD_TECHNICIAN' || user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'shipped'
 
   if (loading) {
     return (
@@ -364,6 +400,15 @@ export default function PartsOrderDetailPage() {
               >
                 <TruckIcon className="h-5 w-5 mr-2" />
                 Fill Order
+              </button>
+            )}
+            {canReceive && (
+              <button
+                onClick={() => setShowReceiveDialog(true)}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                <CheckCircleIcon className="h-5 w-5 mr-2" />
+                Receive
               </button>
             )}
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${priorityBadge.bg} ${priorityBadge.text}`}>
@@ -501,6 +546,52 @@ export default function PartsOrderDetailPage() {
                 )}
               </>
             )}
+            {order.filled_date && (
+              <>
+                <div className="flex justify-between">
+                  <dt className="text-sm text-gray-500">Filled Date</dt>
+                  <dd className="text-sm font-medium text-gray-900">
+                    {new Date(order.filled_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </dd>
+                </div>
+                {order.filled_by_name && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-gray-500">Filled By</dt>
+                    <dd className="text-sm font-medium text-gray-900">{order.filled_by_name}</dd>
+                  </div>
+                )}
+                {order.replacement_serno && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-gray-500">Replacement S/N</dt>
+                    <dd className="text-sm font-medium text-gray-900">{order.replacement_serno}</dd>
+                  </div>
+                )}
+                {order.shipper && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-gray-500">Shipper</dt>
+                    <dd className="text-sm font-medium text-gray-900">{order.shipper}</dd>
+                  </div>
+                )}
+                {order.ship_date && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-gray-500">Ship Date</dt>
+                    <dd className="text-sm font-medium text-gray-900">
+                      {new Date(order.ship_date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </dd>
+                  </div>
+                )}
+              </>
+            )}
             {order.shipping_tracking ? (
               <div className="flex justify-between items-center">
                 <dt className="text-sm text-gray-500">Tracking Number</dt>
@@ -532,6 +623,28 @@ export default function PartsOrderDetailPage() {
                 <dt className="text-sm text-gray-500">Tracking Number</dt>
                 <dd className="text-sm text-gray-400 italic">Not yet shipped</dd>
               </div>
+            )}
+            {order.received_date && (
+              <>
+                <div className="flex justify-between">
+                  <dt className="text-sm text-gray-500">Received Date</dt>
+                  <dd className="text-sm font-medium text-gray-900">
+                    {new Date(order.received_date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </dd>
+                </div>
+                {order.received_by_name && (
+                  <div className="flex justify-between">
+                    <dt className="text-sm text-gray-500">Received By</dt>
+                    <dd className="text-sm font-medium text-gray-900">{order.received_by_name}</dd>
+                  </div>
+                )}
+              </>
             )}
             {order.estimated_delivery ? (
               <div className="flex justify-between">
@@ -586,6 +699,197 @@ export default function PartsOrderDetailPage() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
                   {acknowledging ? 'Acknowledging...' : 'Confirm Acknowledgment'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fill Order Dialog */}
+      {showFillDialog && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <TruckIcon className="h-6 w-6 text-purple-600 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-900">Fill Parts Order</h3>
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {/* Spare Parts Search */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Replacement Spare <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={spareSearchQuery}
+                      onChange={(e) => setSpareSearchQuery(e.target.value)}
+                      placeholder="Search by serial number or part number..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      onClick={() => searchSpares(spareSearchQuery)}
+                      disabled={searchingSpares || !spareSearchQuery}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    >
+                      <MagnifyingGlassIcon className="h-5 w-5 mr-1" />
+                      {searchingSpares ? 'Searching...' : 'Search'}
+                    </button>
+                  </div>
+
+                  {/* Selected Spare */}
+                  {selectedSpare && (
+                    <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-md">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-gray-900">{selectedSpare.part_name}</p>
+                          <p className="text-sm text-gray-600">S/N: {selectedSpare.serno} | P/N: {selectedSpare.partno}</p>
+                          <p className="text-sm text-gray-600">Location: {selectedSpare.location} ({selectedSpare.loc_type})</p>
+                          <p className="text-sm text-gray-600">Status: {selectedSpare.status_cd}</p>
+                        </div>
+                        <button
+                          onClick={() => setSelectedSpare(null)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Spare Search Results */}
+                  {spares.length > 0 && !selectedSpare && (
+                    <div className="mt-2 border border-gray-300 rounded-md max-h-60 overflow-y-auto">
+                      {spares.map((spare) => (
+                        <button
+                          key={spare.asset_id}
+                          onClick={() => {
+                            setSelectedSpare(spare)
+                            setSpares([])
+                            setSpareSearchQuery('')
+                          }}
+                          className="w-full text-left p-3 hover:bg-gray-50 border-b border-gray-200 last:border-b-0 transition-colors"
+                        >
+                          <p className="font-medium text-gray-900">{spare.part_name}</p>
+                          <p className="text-sm text-gray-600">S/N: {spare.serno} | P/N: {spare.partno}</p>
+                          <p className="text-sm text-gray-600">Location: {spare.location} | Status: {spare.status_cd}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Shipper Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Shipper <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={shipper}
+                    onChange={(e) => setShipper(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">Select shipper...</option>
+                    <option value="FedEx">FedEx</option>
+                    <option value="UPS">UPS</option>
+                    <option value="DHL">DHL</option>
+                    <option value="GOV">Government (GOV)</option>
+                  </select>
+                </div>
+
+                {/* Tracking Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tracking Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    placeholder="Enter tracking number..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Ship Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ship Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={shipDate}
+                    onChange={(e) => setShipDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowFillDialog(false)
+                    setSelectedSpare(null)
+                    setShipper('')
+                    setTrackingNumber('')
+                    setShipDate('')
+                    setSpareSearchQuery('')
+                    setSpares([])
+                    setError(null)
+                  }}
+                  disabled={filling}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleFill}
+                  disabled={filling || !selectedSpare || !shipper || !trackingNumber || !shipDate}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {filling ? 'Processing...' : 'Confirm Fill Order'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receive Confirmation Dialog */}
+      {showReceiveDialog && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <CheckCircleIcon className="h-6 w-6 text-green-600 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-900">Receive Parts Order</h3>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to mark this order as received? This confirms that you have physically received the parts and the order is complete.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowReceiveDialog(false)}
+                  disabled={receiving}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReceive}
+                  disabled={receiving}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                >
+                  {receiving ? 'Processing...' : 'Confirm Receipt'}
                 </button>
               </div>
             </div>

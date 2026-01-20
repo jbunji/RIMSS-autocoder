@@ -6592,6 +6592,7 @@ interface PartsOrder {
   received_date: string | null; // Date/time when field tech received the part
   received_by: number | null; // User ID of field tech who received
   received_by_name: string | null; // Name of field tech who received
+  pqdr: boolean; // Product Quality Deficiency Report flag
 }
 
 // Persistent parts orders array
@@ -6643,6 +6644,7 @@ function initializePartsOrders(): PartsOrder[] {
       received_date: null,
       received_by: null,
       received_by_name: null,
+      pqdr: true, // Flagged for PQDR - suspected manufacturing defect in power supply
     },
     {
       order_id: 2,
@@ -6654,7 +6656,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 89.50,
       order_date: addDays(-1),
       request_date: addDays(-1),
-      status: 'pending',
+      status: 'shipped',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6662,22 +6664,23 @@ function initializePartsOrders(): PartsOrder[] {
       job_no: null,
       priority: 'routine',
       pgm_id: 1,
-      notes: 'Stock replenishment',
-      shipping_tracking: null,
-      estimated_delivery: null,
-      acknowledged_date: null,
-      acknowledged_by: null,
-      acknowledged_by_name: null,
-      filled_date: null,
-      filled_by: null,
-      filled_by_name: null,
-      replacement_asset_id: null,
-      replacement_serno: null,
-      shipper: null,
-      ship_date: null,
+      notes: 'Stock replenishment - shipped for testing',
+      shipping_tracking: 'UPS-2024-TEST-123',
+      estimated_delivery: addDays(1),
+      acknowledged_date: addDays(-1),
+      acknowledged_by: 2,
+      acknowledged_by_name: 'Jane Depot',
+      filled_date: addDays(-1),
+      filled_by: 2,
+      filled_by_name: 'Jane Depot',
+      replacement_asset_id: 1,
+      replacement_serno: 'SPARE-FLT-001',
+      shipper: 'UPS',
+      ship_date: addDays(-1),
       received_date: null,
       received_by: null,
       received_by_name: null,
+      pqdr: false,
     },
     // Acknowledged orders (being processed) - CRIIS
     {
@@ -6818,6 +6821,9 @@ function initializePartsOrders(): PartsOrder[] {
       replacement_serno: null,
       shipper: null,
       ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     // Acknowledged - Program 236
     {
@@ -6851,6 +6857,9 @@ function initializePartsOrders(): PartsOrder[] {
       replacement_serno: null,
       shipper: null,
       ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     // Received orders (for history)
     {
@@ -6884,6 +6893,9 @@ function initializePartsOrders(): PartsOrder[] {
       replacement_serno: null,
       shipper: null,
       ship_date: null,
+      received_date: null,
+      received_by: null,
+      received_by_name: null,
     },
     // More pending items for CRIIS
     {
@@ -9098,6 +9110,61 @@ app.patch('/api/parts-orders/:id/fill', (req, res) => {
   order.ship_date = ship_date;
 
   console.log(`[PARTS] Order #${orderId} filled by ${user.first_name} ${user.last_name} (${user.role}) - Replacement: ${replacement_serno}`);
+
+  // Return updated order with program info
+  const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
+
+  res.json({
+    success: true,
+    order: {
+      ...order,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    }
+  });
+});
+
+// Deliver/Receive parts order (field technician acknowledges receipt)
+app.patch('/api/parts-orders/:id/deliver', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - field technicians, depot managers, and admins can receive parts
+  if (user.role !== 'FIELD_TECHNICIAN' && user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only field technicians can receive parts orders' });
+  }
+
+  const orderId = parseInt(req.params.id, 10);
+  const order = partsOrders.find(o => o.order_id === orderId);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Parts order not found' });
+  }
+
+  // Check if user has access to this order's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(order.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this parts order' });
+  }
+
+  // Check if order is in shipped status
+  if (order.status !== 'shipped') {
+    return res.status(400).json({ error: `Cannot receive order with status: ${order.status}. Order must be shipped first.` });
+  }
+
+  // Update order status to received (delivered)
+  order.status = 'received';
+  order.received_date = new Date().toISOString();
+  order.received_by = user.user_id;
+  order.received_by_name = `${user.first_name} ${user.last_name}`;
+  order.qty_received = order.qty_ordered; // Mark full quantity as received
+
+  console.log(`[PARTS] Order #${orderId} received by ${user.first_name} ${user.last_name} (${user.role})`);
 
   // Return updated order with program info
   const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
