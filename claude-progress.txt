@@ -1,5 +1,51 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (Agent working on Feature #104)
+
+### Completed This Session:
+- Feature #104: Corrective action narrative required - VERIFIED AND PASSING
+
+**Description:** Labor records require corrective action description
+
+**Verification Steps Completed:**
+1. ✅ Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. ✅ Create labor record - Opened Add Labor modal for Repair #2 in MX-2024-001
+3. ✅ Leave corrective action blank - Button was disabled when corrective action was empty
+4. ✅ Attempt to save - Button remained disabled (couldn't be clicked)
+5. ✅ Verify error message - "Required - please describe the corrective action taken" displayed below the field
+6. ✅ Enter corrective action - Filled in "TEST: Feature 104 - Replaced main circuit board capacitor. Verified power supply stability."
+7. ✅ Save successfully - Labor #2 was created successfully with the corrective action narrative
+
+**Implementation Details:**
+1. Frontend - Add Labor handler: Added validation requiring corrective action before save
+2. Frontend - Edit Labor handler: Added validation requiring corrective action before save
+3. Frontend - Add Labor form UI:
+   - Added red asterisk (*) to "Corrective Action Narrative" label
+   - Added "Required - please describe the corrective action taken" help text
+   - Added `required` attribute to textarea
+   - Disabled save button when corrective action is empty
+4. Frontend - Edit Labor form UI: Same changes as Add Labor form
+5. Backend - POST /api/repairs/:repairId/labor: Added validation to return 400 error if corrective action is missing
+6. Backend - PUT /api/labor/:id: Added validation to return 400 error if corrective action is set to empty
+
+**Key Validations:**
+- ✅ Save button disabled when Corrective Action Narrative is empty
+- ✅ Save button enabled when Corrective Action Narrative is filled
+- ✅ Labor record created successfully with corrective action
+- ✅ Corrective action displayed in labor record row
+- ✅ No console errors
+
+**Screenshots:**
+- feature104_maintenance_event_initial.png - Initial maintenance event page
+- feature104_add_labor_modal_required_field.png - Add Labor modal showing required field
+- feature104_add_labor_button_disabled_no_corrective.png - Button disabled without corrective action
+- feature104_corrective_field_visible.png - Full modal showing Corrective Action Narrative field with * indicator
+- feature104_add_labor_button_enabled.png - Button enabled after filling corrective action
+- feature104_labor_created_successfully.png - Success after creating labor
+- feature104_labor2_with_corrective_action.png - Labor #2 displayed with corrective action narrative
+
+---
+
 ## Session: 2026-01-20 (Agent working on Feature #102)
 
 ### Completed This Session:
@@ -8031,3 +8077,38 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 
 [Testing] Session complete - verified feature #34 (no regression found)
 
+
+---
+
+## Testing Session: 2026-01-19 19:18 (Regression Testing)
+
+[Testing] Feature #60 'Configuration search by name' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can search configurations by name
+
+**Verification Steps Completed:**
+1. ✅ Log in as any user - Logged in as John Admin (admin role)
+2. ✅ Navigate to Configurations page - Successfully navigated to /configurations (4 configurations total)
+3. ✅ Enter configuration name in search - Tested with 'Camera' and 'Radar' search terms
+4. ✅ Verify matching configurations display:
+   - 'Camera' search: 1 configuration (Camera System X Configuration)
+   - 'Radar' search: 1 configuration (Radar Unit Configuration)
+5. ✅ Clear search - Search box cleared successfully
+6. ✅ Verify all configurations display - All 4 configurations displayed after clearing search
+
+**Key Validations:**
+- Search filters configurations in real-time as user types
+- Configuration count updates dynamically (e.g., '4 configurations' → '1 configuration')
+- Search matches configuration names correctly
+- Clearing search restores full configuration list
+- No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature60_config_search_radar.png - Search with 'Radar' showing 1 result
+- .playwright-mcp/feature60_config_search_cleared.png - All 4 configurations after clearing search
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #60 (no regression found)
