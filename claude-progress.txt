@@ -45496,3 +45496,35 @@ Screenshots captured:
 Testing session: Tue Jan 20 10:05:05 EST 2026
 Status: Feature still passing - no regression detected
 
+
+================================================================================
+[2026-01-20] Feature #328 COMPLETED - Date picker allows only valid ranges ✅
+================================================================================
+
+Session Type: SINGLE FEATURE MODE (Parallel Execution)
+Feature: #328 - Date picker allows only valid ranges
+Category: temporal
+Status: VERIFIED PASSING ✅
+
+IMPLEMENTATION:
+- Added HTML5 min/max attributes to date inputs
+- Start Date: max={endDate} prevents selecting date after end
+- End Date: min={startDate} prevents selecting date before start
+- JavaScript validation before fetch: rejects if end < start
+- Error message: 'End date cannot be before start date'
+
+PAGES UPDATED:
+1. Sortie Activity Report (/reports/sorties)
+2. Parts Ordered Report (/reports/parts-ordered)
+
+TESTING VERIFIED:
+✅ Invalid range (end before start) blocked by HTML5 validation
+✅ Invalid range shows error if forced via JavaScript
+✅ Valid ranges accepted and work correctly
+✅ Browser date picker disables invalid dates
+✅ Keyboard navigation works correctly
+✅ Zero console errors
+
+Result: Feature #328 - PASSING ✅
+Progress: 326/374 features passing (87.2%)
+
