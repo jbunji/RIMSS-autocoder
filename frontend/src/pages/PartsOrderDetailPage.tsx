@@ -448,9 +448,33 @@ export default function PartsOrderDetailPage() {
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusBadge.bg} ${statusBadge.text}`}>
               {statusBadge.label}
             </span>
+            {order.pqdr && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-500 text-white">
+                <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+                PQDR
+              </span>
+            )}
           </div>
         </div>
       </div>
+
+      {/* PQDR Toggle */}
+      {canTogglePqdr && (
+        <div className="mb-6">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={order.pqdr}
+              onChange={handleTogglePqdr}
+              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+            />
+            <ExclamationTriangleIcon className="h-5 w-5 ml-2 mr-1 text-red-500" />
+            <span className="text-sm font-medium text-gray-700">
+              Flag for PQDR (Product Quality Deficiency Report)
+            </span>
+          </label>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Part Information */}

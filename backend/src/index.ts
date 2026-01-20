@@ -9186,6 +9186,53 @@ app.patch('/api/parts-orders/:id/deliver', (req, res) => {
   });
 });
 
+// Toggle PQDR flag on parts order
+app.patch('/api/parts-orders/:id/pqdr', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - field technicians, depot managers, and admins can toggle PQDR
+  if (user.role !== 'FIELD_TECHNICIAN' && user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  const orderId = parseInt(req.params.id, 10);
+  const order = partsOrders.find(o => o.order_id === orderId);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Parts order not found' });
+  }
+
+  // Check if user has access to this order's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(order.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this parts order' });
+  }
+
+  // Toggle PQDR flag
+  const { pqdr } = req.body;
+  order.pqdr = pqdr !== undefined ? pqdr : !order.pqdr;
+
+  console.log(`[PARTS] Order #${orderId} PQDR flag ${order.pqdr ? 'set' : 'cleared'} by ${user.first_name} ${user.last_name} (${user.role})`);
+
+  // Return updated order with program info
+  const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
+
+  res.json({
+    success: true,
+    order: {
+      ...order,
+      program_cd: program?.pgm_cd || 'UNKNOWN',
+      program_name: program?.pgm_name || 'Unknown Program',
+    }
+  });
+});
+
 // Create new parts order (request replacement)
 app.post('/api/parts-orders', (req, res) => {
   const payload = authenticateRequest(req, res);
