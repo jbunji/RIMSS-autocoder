@@ -4197,6 +4197,11 @@ app.post('/api/repairs/:repairId/labor', (req, res) => {
     return res.status(400).json({ error: 'Crew chief name is required' });
   }
 
+  // Corrective action narrative is required
+  if (!corrective || !corrective.trim()) {
+    return res.status(400).json({ error: 'Corrective action narrative is required' });
+  }
+
   // Calculate next labor sequence for this repair
   const repairLabor = laborRecords.filter(l => l.repair_id === repairId);
   const nextSeq = repairLabor.length > 0 ? Math.max(...repairLabor.map(l => l.labor_seq)) + 1 : 1;
@@ -4316,6 +4321,11 @@ app.put('/api/labor/:id', (req, res) => {
     bit_log,
   } = req.body;
 
+  // Validate corrective action is provided if it's being updated or if the record doesn't have one
+  if (corrective !== undefined && (!corrective || !corrective.trim())) {
+    return res.status(400).json({ error: 'Corrective action narrative is required' });
+  }
+
   // Update fields if provided
   if (action_taken !== undefined) laborRecords[laborIndex].action_taken = action_taken || null;
   if (how_mal !== undefined) laborRecords[laborIndex].how_mal = how_mal || null;
@@ -4410,6 +4420,360 @@ app.delete('/api/labor/:id', (req, res) => {
   res.json({
     message: 'Labor record deleted successfully',
     labor: deletedInfo,
+  });
+});
+
+// ============================================
+// LABOR PARTS ENDPOINTS
+// ============================================
+
+// LaborPart interface for tracking parts worked on, removed, installed within labor
+interface LaborPart {
+  labor_part_id: number;
+  labor_id: number;
+  asset_id: number | null;
+  partno_id: number | null;
+  partno: string | null;
+  part_name: string | null;
+  serial_number: string | null;
+  part_action: 'WORKED' | 'REMOVED' | 'INSTALLED';
+  qty: number;
+  created_by: number;
+  created_by_name: string;
+  created_at: string;
+}
+
+// Persistent storage for labor parts
+let laborParts: LaborPart[] = [];
+let laborPartNextId = 1;
+
+// Initialize labor parts with sample data
+function initializeLaborParts(): void {
+  laborParts = [
+    {
+      labor_part_id: 1,
+      labor_id: 1,
+      asset_id: null,
+      partno_id: 9,
+      partno: 'PN-POWER-MOD',
+      part_name: 'Power Module',
+      serial_number: null,
+      part_action: 'WORKED',
+      qty: 1,
+      created_by: 3,
+      created_by_name: 'Bob Field',
+      created_at: new Date().toISOString().split('T')[0],
+    },
+    {
+      labor_part_id: 2,
+      labor_id: 1,
+      asset_id: null,
+      partno_id: 8,
+      partno: 'PN-COMM-SYS',
+      part_name: 'Communication System',
+      serial_number: 'SN-CONN-001',
+      part_action: 'REMOVED',
+      qty: 1,
+      created_by: 3,
+      created_by_name: 'Bob Field',
+      created_at: new Date().toISOString().split('T')[0],
+    },
+    {
+      labor_part_id: 3,
+      labor_id: 1,
+      asset_id: null,
+      partno_id: 8,
+      partno: 'PN-COMM-SYS',
+      part_name: 'Communication System',
+      serial_number: 'SN-CONN-002',
+      part_action: 'INSTALLED',
+      qty: 1,
+      created_by: 3,
+      created_by_name: 'Bob Field',
+      created_at: new Date().toISOString().split('T')[0],
+    },
+  ];
+  laborPartNextId = 4;
+}
+
+// Initialize labor parts on server start
+initializeLaborParts();
+
+// Get labor parts for a specific labor record
+app.get('/api/labor/:laborId/parts', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const laborId = parseInt(req.params.laborId, 10);
+  const labor = laborRecords.find(l => l.labor_id === laborId);
+
+  if (!labor) {
+    return res.status(404).json({ error: 'Labor record not found' });
+  }
+
+  // Find the repair and event to check program access
+  const repair = repairs.find(r => r.repair_id === labor.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this labor record' });
+  }
+
+  // Get labor parts for this labor record
+  const parts = laborParts.filter(lp => lp.labor_id === laborId);
+
+  // Categorize by action
+  const worked = parts.filter(p => p.part_action === 'WORKED');
+  const removed = parts.filter(p => p.part_action === 'REMOVED');
+  const installed = parts.filter(p => p.part_action === 'INSTALLED');
+
+  console.log(`[LABOR_PARTS] Fetched ${parts.length} parts for labor ${laborId} by ${user.username}`);
+
+  res.json({
+    parts,
+    summary: {
+      worked: worked.length,
+      removed: removed.length,
+      installed: installed.length,
+      total: parts.length,
+    },
+  });
+});
+
+// Add a part to a labor record
+app.post('/api/labor/:laborId/parts', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to add parts to labor records.' });
+  }
+
+  const laborId = parseInt(req.params.laborId, 10);
+  const labor = laborRecords.find(l => l.labor_id === laborId);
+
+  if (!labor) {
+    return res.status(404).json({ error: 'Labor record not found' });
+  }
+
+  // Find the repair and event to check program access and status
+  const repair = repairs.find(r => r.repair_id === labor.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this labor record' });
+  }
+
+  // Cannot add parts to closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot add parts to a closed repair' });
+  }
+
+  const { part_action, partno, part_name, serial_number, qty, partno_id, asset_id } = req.body;
+
+  // Validate part_action
+  const validActions = ['WORKED', 'REMOVED', 'INSTALLED'];
+  if (!part_action || !validActions.includes(part_action)) {
+    return res.status(400).json({ error: 'Invalid part action. Must be WORKED, REMOVED, or INSTALLED.' });
+  }
+
+  // Validate required fields
+  if (!partno && !part_name) {
+    return res.status(400).json({ error: 'Part number or part name is required.' });
+  }
+
+  const newLaborPart: LaborPart = {
+    labor_part_id: laborPartNextId++,
+    labor_id: laborId,
+    asset_id: asset_id || null,
+    partno_id: partno_id || null,
+    partno: partno || null,
+    part_name: part_name || null,
+    serial_number: serial_number || null,
+    part_action,
+    qty: qty || 1,
+    created_by: user.user_id,
+    created_by_name: `${user.first_name} ${user.last_name}`,
+    created_at: new Date().toISOString().split('T')[0],
+  };
+
+  laborParts.push(newLaborPart);
+
+  console.log(`[LABOR_PARTS] Added ${part_action} part "${partno || part_name}" to labor ${laborId} by ${user.username}`);
+
+  res.status(201).json({
+    message: `Part ${part_action.toLowerCase()} added successfully`,
+    part: newLaborPart,
+  });
+});
+
+// Update a labor part
+app.put('/api/labor-parts/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. You do not have permission to update labor parts.' });
+  }
+
+  const partId = parseInt(req.params.id, 10);
+  const partIndex = laborParts.findIndex(lp => lp.labor_part_id === partId);
+
+  if (partIndex === -1) {
+    return res.status(404).json({ error: 'Labor part not found' });
+  }
+
+  const laborPart = laborParts[partIndex];
+  const labor = laborRecords.find(l => l.labor_id === laborPart.labor_id);
+
+  if (!labor) {
+    return res.status(404).json({ error: 'Labor record not found' });
+  }
+
+  // Find the repair and event to check program access and status
+  const repair = repairs.find(r => r.repair_id === labor.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this labor part' });
+  }
+
+  // Cannot update parts on closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot update parts on a closed repair' });
+  }
+
+  const { part_action, partno, part_name, serial_number, qty, partno_id, asset_id } = req.body;
+
+  // Update fields
+  if (part_action !== undefined) {
+    const validActions = ['WORKED', 'REMOVED', 'INSTALLED'];
+    if (!validActions.includes(part_action)) {
+      return res.status(400).json({ error: 'Invalid part action. Must be WORKED, REMOVED, or INSTALLED.' });
+    }
+    laborParts[partIndex].part_action = part_action;
+  }
+  if (partno !== undefined) laborParts[partIndex].partno = partno || null;
+  if (part_name !== undefined) laborParts[partIndex].part_name = part_name || null;
+  if (serial_number !== undefined) laborParts[partIndex].serial_number = serial_number || null;
+  if (qty !== undefined) laborParts[partIndex].qty = qty || 1;
+  if (partno_id !== undefined) laborParts[partIndex].partno_id = partno_id || null;
+  if (asset_id !== undefined) laborParts[partIndex].asset_id = asset_id || null;
+
+  console.log(`[LABOR_PARTS] Updated part ${partId} on labor ${laborPart.labor_id} by ${user.username}`);
+
+  res.json({
+    message: 'Labor part updated successfully',
+    part: laborParts[partIndex],
+  });
+});
+
+// Delete a labor part
+app.delete('/api/labor-parts/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN and DEPOT_MANAGER can delete
+  const allowedRoles = ['ADMIN', 'DEPOT_MANAGER'];
+  if (!allowedRoles.includes(user.role)) {
+    return res.status(403).json({ error: 'Access denied. Only administrators and depot managers can delete labor parts.' });
+  }
+
+  const partId = parseInt(req.params.id, 10);
+  const partIndex = laborParts.findIndex(lp => lp.labor_part_id === partId);
+
+  if (partIndex === -1) {
+    return res.status(404).json({ error: 'Labor part not found' });
+  }
+
+  const laborPart = laborParts[partIndex];
+  const labor = laborRecords.find(l => l.labor_id === laborPart.labor_id);
+
+  if (!labor) {
+    return res.status(404).json({ error: 'Labor record not found' });
+  }
+
+  // Find the repair and event to check program access and status
+  const repair = repairs.find(r => r.repair_id === labor.repair_id);
+  if (!repair) {
+    return res.status(404).json({ error: 'Repair not found' });
+  }
+
+  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
+  if (!event) {
+    return res.status(404).json({ error: 'Maintenance event not found' });
+  }
+
+  // Check program access
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(event.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this labor part' });
+  }
+
+  // Cannot delete parts from closed repairs
+  if (repair.shop_status === 'closed') {
+    return res.status(400).json({ error: 'Cannot delete parts from a closed repair' });
+  }
+
+  const deletedPart = laborParts[partIndex];
+  laborParts.splice(partIndex, 1);
+
+  console.log(`[LABOR_PARTS] Deleted ${deletedPart.part_action} part "${deletedPart.partno || deletedPart.part_name}" from labor ${laborPart.labor_id} by ${user.username}`);
+
+  res.json({
+    message: 'Labor part deleted successfully',
+    part: deletedPart,
   });
 });
 

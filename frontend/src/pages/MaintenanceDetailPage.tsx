@@ -167,6 +167,22 @@ interface Labor {
   created_at: string
 }
 
+// Labor part tracking interface
+interface LaborPart {
+  labor_part_id: number
+  labor_id: number
+  asset_id: number | null
+  partno_id: number | null
+  partno: string | null
+  part_name: string | null
+  serial_number: string | null
+  part_action: 'WORKED' | 'REMOVED' | 'INSTALLED'
+  qty: number
+  created_by: number
+  created_by_name: string
+  created_at: string
+}
+
 interface MaintenanceEvent {
   event_id: number
   asset_id: number
@@ -549,6 +565,29 @@ export default function MaintenanceDetailPage() {
   const [editLaborLoading, setEditLaborLoading] = useState(false)
   const [editLaborError, setEditLaborError] = useState<string | null>(null)
   const [editLaborSuccess, setEditLaborSuccess] = useState<string | null>(null)
+
+  // Labor Parts state
+  const [laborPartsMap, setLaborPartsMap] = useState<Map<number, LaborPart[]>>(new Map())
+  const [loadingLaborParts, setLoadingLaborParts] = useState<Set<number>>(new Set())
+  const [expandedLaborParts, setExpandedLaborParts] = useState<Set<number>>(new Set())
+
+  // Add Labor Part modal state
+  const [isAddLaborPartModalOpen, setIsAddLaborPartModalOpen] = useState(false)
+  const [addLaborPartLabor, setAddLaborPartLabor] = useState<Labor | null>(null)
+  const [addLaborPartForm, setAddLaborPartForm] = useState({
+    part_action: 'WORKED' as 'WORKED' | 'REMOVED' | 'INSTALLED',
+    partno: '',
+    part_name: '',
+    serial_number: '',
+    qty: '1',
+  })
+  const [addLaborPartLoading, setAddLaborPartLoading] = useState(false)
+  const [addLaborPartError, setAddLaborPartError] = useState<string | null>(null)
+  const [addLaborPartSuccess, setAddLaborPartSuccess] = useState<string | null>(null)
+
+  // Delete Labor Part state
+  const [deletingLaborPart, setDeletingLaborPart] = useState<LaborPart | null>(null)
+  const [deleteLaborPartLoading, setDeleteLaborPartLoading] = useState(false)
 
   // Removal reason options
   const removalReasonOptions = [
@@ -1351,6 +1390,186 @@ export default function MaintenanceDetailPage() {
       setEditLaborError(err instanceof Error ? err.message : 'Failed to update labor record')
     } finally {
       setEditLaborLoading(false)
+    }
+  }
+
+  // Fetch labor parts for a specific labor record
+  const fetchLaborParts = async (laborId: number) => {
+    if (!token) return
+
+    setLoadingLaborParts(prev => new Set(prev).add(laborId))
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/labor/${laborId}/parts`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch labor parts')
+      }
+
+      const data = await response.json()
+      setLaborPartsMap(prev => {
+        const newMap = new Map(prev)
+        newMap.set(laborId, data.parts)
+        return newMap
+      })
+    } catch (err) {
+      console.error('Error fetching labor parts:', err)
+    } finally {
+      setLoadingLaborParts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(laborId)
+        return newSet
+      })
+    }
+  }
+
+  // Toggle expanded state for labor parts and fetch if needed
+  const toggleLaborParts = async (laborId: number) => {
+    if (expandedLaborParts.has(laborId)) {
+      setExpandedLaborParts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(laborId)
+        return newSet
+      })
+    } else {
+      setExpandedLaborParts(prev => new Set(prev).add(laborId))
+      // Fetch parts if not already loaded
+      if (!laborPartsMap.has(laborId)) {
+        await fetchLaborParts(laborId)
+      }
+    }
+  }
+
+  // Open Add Labor Part modal
+  const openAddLaborPartModal = (labor: Labor) => {
+    setAddLaborPartLabor(labor)
+    setAddLaborPartForm({
+      part_action: 'WORKED',
+      partno: '',
+      part_name: '',
+      serial_number: '',
+      qty: '1',
+    })
+    setAddLaborPartError(null)
+    setAddLaborPartSuccess(null)
+    setIsAddLaborPartModalOpen(true)
+  }
+
+  // Close Add Labor Part modal
+  const closeAddLaborPartModal = () => {
+    setIsAddLaborPartModalOpen(false)
+    setAddLaborPartLabor(null)
+    setAddLaborPartError(null)
+    setAddLaborPartSuccess(null)
+  }
+
+  // Handle adding a labor part
+  const handleAddLaborPart = async () => {
+    if (!token || !addLaborPartLabor) return
+
+    // Validation
+    if (!addLaborPartForm.partno && !addLaborPartForm.part_name) {
+      setAddLaborPartError('Please enter either a part number or part name')
+      return
+    }
+
+    setAddLaborPartLoading(true)
+    setAddLaborPartError(null)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/labor/${addLaborPartLabor.labor_id}/parts`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            part_action: addLaborPartForm.part_action,
+            partno: addLaborPartForm.partno || null,
+            part_name: addLaborPartForm.part_name || null,
+            serial_number: addLaborPartForm.serial_number || null,
+            qty: addLaborPartForm.qty ? parseInt(addLaborPartForm.qty, 10) : 1,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add labor part')
+      }
+
+      const data = await response.json()
+      setAddLaborPartSuccess(`Part "${data.part.partno || data.part.part_name}" added successfully!`)
+
+      // Refresh labor parts
+      await fetchLaborParts(addLaborPartLabor.labor_id)
+
+      // Auto-close modal after success
+      setTimeout(() => {
+        closeAddLaborPartModal()
+      }, 1500)
+    } catch (err) {
+      console.error('Error adding labor part:', err)
+      setAddLaborPartError(err instanceof Error ? err.message : 'Failed to add labor part')
+    } finally {
+      setAddLaborPartLoading(false)
+    }
+  }
+
+  // Handle deleting a labor part
+  const handleDeleteLaborPart = async (part: LaborPart) => {
+    if (!token) return
+
+    setDeletingLaborPart(part)
+    setDeleteLaborPartLoading(true)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/labor-parts/${part.labor_part_id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete labor part')
+      }
+
+      // Refresh labor parts
+      await fetchLaborParts(part.labor_id)
+    } catch (err) {
+      console.error('Error deleting labor part:', err)
+      alert(err instanceof Error ? err.message : 'Failed to delete labor part')
+    } finally {
+      setDeleteLaborPartLoading(false)
+      setDeletingLaborPart(null)
+    }
+  }
+
+  // Get part action color and icon
+  const getPartActionStyle = (action: string) => {
+    switch (action) {
+      case 'WORKED':
+        return { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' }
+      case 'REMOVED':
+        return { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200' }
+      case 'INSTALLED':
+        return { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-200' }
+      default:
+        return { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' }
     }
   }
 
@@ -2914,6 +3133,101 @@ export default function MaintenanceDetailPage() {
                                         <span className="text-blue-600 ml-1">{labor.bit_log}</span>
                                       </div>
                                     )}
+
+                                    {/* Parts Tracking Section */}
+                                    <div className="ml-6 mt-2">
+                                      <button
+                                        onClick={() => toggleLaborParts(labor.labor_id)}
+                                        className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                                      >
+                                        <svg
+                                          className={`h-3 w-3 transform transition-transform ${expandedLaborParts.has(labor.labor_id) ? 'rotate-90' : ''}`}
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          strokeWidth="2"
+                                          stroke="currentColor"
+                                        >
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                        </svg>
+                                        <CubeIcon className="h-3 w-3" />
+                                        Parts Tracking
+                                        {laborPartsMap.has(labor.labor_id) && (
+                                          <span className="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                                            {laborPartsMap.get(labor.labor_id)?.length || 0}
+                                          </span>
+                                        )}
+                                      </button>
+
+                                      {expandedLaborParts.has(labor.labor_id) && (
+                                        <div className="mt-2 pl-4 border-l-2 border-indigo-200">
+                                          {loadingLaborParts.has(labor.labor_id) ? (
+                                            <div className="flex items-center justify-center py-2">
+                                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                                            </div>
+                                          ) : (laborPartsMap.get(labor.labor_id)?.length || 0) === 0 ? (
+                                            <div className="text-xs text-gray-500 italic py-1">
+                                              No parts tracked for this labor record
+                                            </div>
+                                          ) : (
+                                            <div className="space-y-1">
+                                              {laborPartsMap.get(labor.labor_id)?.map((part) => {
+                                                const style = getPartActionStyle(part.part_action)
+                                                return (
+                                                  <div
+                                                    key={part.labor_part_id}
+                                                    className={`flex items-center justify-between px-2 py-1 rounded text-xs ${style.bg} ${style.border} border`}
+                                                  >
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                      <span className={`px-1.5 py-0.5 rounded font-medium ${style.text} ${style.bg}`}>
+                                                        {part.part_action}
+                                                      </span>
+                                                      <span className="font-medium text-gray-900 truncate">
+                                                        {part.partno || part.part_name}
+                                                      </span>
+                                                      {part.serial_number && (
+                                                        <span className="text-gray-500">
+                                                          S/N: {part.serial_number}
+                                                        </span>
+                                                      )}
+                                                      {part.qty > 1 && (
+                                                        <span className="text-gray-600">
+                                                          x{part.qty}
+                                                        </span>
+                                                      )}
+                                                    </div>
+                                                    {canDeleteRepairs && repair.shop_status === 'open' && event.status === 'open' && (
+                                                      <button
+                                                        onClick={() => handleDeleteLaborPart(part)}
+                                                        disabled={deleteLaborPartLoading && deletingLaborPart?.labor_part_id === part.labor_part_id}
+                                                        className="p-0.5 text-red-500 hover:text-red-700 hover:bg-red-100 rounded disabled:opacity-50"
+                                                        title="Remove part"
+                                                      >
+                                                        {deleteLaborPartLoading && deletingLaborPart?.labor_part_id === part.labor_part_id ? (
+                                                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                                                        ) : (
+                                                          <XMarkIcon className="h-3 w-3" />
+                                                        )}
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                )
+                                              })}
+                                            </div>
+                                          )}
+
+                                          {/* Add Part Button */}
+                                          {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                                            <button
+                                              onClick={() => openAddLaborPartModal(labor)}
+                                              className="mt-2 flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 px-2 py-1 rounded"
+                                            >
+                                              <PlusIcon className="h-3 w-3" />
+                                              Add Part
+                                            </button>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                   <div className="flex items-center">
                                     {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
@@ -5383,15 +5697,21 @@ export default function MaintenanceDetailPage() {
               {/* Corrective Action Narrative */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Corrective Action Narrative
+                  Corrective Action Narrative <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={addLaborForm.corrective}
                   onChange={(e) => setAddLaborForm(prev => ({ ...prev, corrective: e.target.value }))}
                   placeholder="Describe the corrective action taken..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none ${
+                    !addLaborForm.corrective.trim() ? 'border-gray-300' : 'border-gray-300'
+                  }`}
+                  required
                 />
+                {!addLaborForm.corrective.trim() && (
+                  <p className="mt-1 text-xs text-gray-500">Required - please describe the corrective action taken</p>
+                )}
               </div>
 
               {/* BIT Log Section */}
@@ -5424,7 +5744,7 @@ export default function MaintenanceDetailPage() {
               </button>
               <button
                 onClick={handleAddLabor}
-                disabled={addLaborLoading || !addLaborForm.crew_chief.trim() || !!addLaborSuccess}
+                disabled={addLaborLoading || !addLaborForm.crew_chief.trim() || !addLaborForm.corrective.trim() || !!addLaborSuccess}
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 {addLaborLoading ? (
@@ -5436,6 +5756,154 @@ export default function MaintenanceDetailPage() {
                   <>
                     <WrenchScrewdriverIcon className="h-4 w-4 mr-2" />
                     Add Labor
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Add Labor Part Modal */}
+      <Dialog open={isAddLaborPartModalOpen} onClose={closeAddLaborPartModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <CubeIcon className="h-5 w-5 mr-2 text-indigo-500" />
+                Add Part to Labor
+                {addLaborPartLabor && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    (Labor #{addLaborPartLabor.labor_seq})
+                  </span>
+                )}
+              </Dialog.Title>
+              <button
+                onClick={closeAddLaborPartModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {addLaborPartSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center text-green-700 text-sm">
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {addLaborPartSuccess}
+                </div>
+              )}
+
+              {addLaborPartError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center text-red-700 text-sm">
+                  <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                  {addLaborPartError}
+                </div>
+              )}
+
+              {/* Part Action */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Part Action <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={addLaborPartForm.part_action}
+                  onChange={(e) => setAddLaborPartForm(prev => ({ ...prev, part_action: e.target.value as 'WORKED' | 'REMOVED' | 'INSTALLED' }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="WORKED">WORKED - Part was worked on</option>
+                  <option value="REMOVED">REMOVED - Part was removed</option>
+                  <option value="INSTALLED">INSTALLED - Part was installed</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  {addLaborPartForm.part_action === 'WORKED' && 'Maintenance performed on the part without removal/replacement'}
+                  {addLaborPartForm.part_action === 'REMOVED' && 'Part was removed from the asset (may need replacement)'}
+                  {addLaborPartForm.part_action === 'INSTALLED' && 'New or replacement part was installed'}
+                </p>
+              </div>
+
+              {/* Part Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Part Number
+                </label>
+                <input
+                  type="text"
+                  value={addLaborPartForm.partno}
+                  onChange={(e) => setAddLaborPartForm(prev => ({ ...prev, partno: e.target.value }))}
+                  placeholder="e.g., PN-SENSOR-A"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              {/* Part Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Part Name/Description
+                </label>
+                <input
+                  type="text"
+                  value={addLaborPartForm.part_name}
+                  onChange={(e) => setAddLaborPartForm(prev => ({ ...prev, part_name: e.target.value }))}
+                  placeholder="e.g., Sensor Unit Alpha"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter either Part Number or Part Name (or both)
+                </p>
+              </div>
+
+              {/* Serial Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Serial Number
+                </label>
+                <input
+                  type="text"
+                  value={addLaborPartForm.serial_number}
+                  onChange={(e) => setAddLaborPartForm(prev => ({ ...prev, serial_number: e.target.value }))}
+                  placeholder="e.g., SN-12345"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={addLaborPartForm.qty}
+                  onChange={(e) => setAddLaborPartForm(prev => ({ ...prev, qty: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 sticky bottom-0">
+              <button
+                onClick={closeAddLaborPartModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddLaborPart}
+                disabled={addLaborPartLoading || (!addLaborPartForm.partno.trim() && !addLaborPartForm.part_name.trim()) || !!addLaborPartSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {addLaborPartLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <CubeIcon className="h-4 w-4 mr-2" />
+                    Add Part
                   </>
                 )}
               </button>
@@ -5588,15 +6056,21 @@ export default function MaintenanceDetailPage() {
               {/* Corrective Action Narrative */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Corrective Action Narrative
+                  Corrective Action Narrative <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={editLaborForm.corrective}
                   onChange={(e) => setEditLaborForm(prev => ({ ...prev, corrective: e.target.value }))}
                   placeholder="Describe the corrective action taken..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none ${
+                    !editLaborForm.corrective.trim() ? 'border-gray-300' : 'border-gray-300'
+                  }`}
+                  required
                 />
+                {!editLaborForm.corrective.trim() && (
+                  <p className="mt-1 text-xs text-gray-500">Required - please describe the corrective action taken</p>
+                )}
               </div>
 
               {/* BIT Log Section */}
@@ -5629,7 +6103,7 @@ export default function MaintenanceDetailPage() {
               </button>
               <button
                 onClick={handleEditLabor}
-                disabled={editLaborLoading || !!editLaborSuccess}
+                disabled={editLaborLoading || !editLaborForm.corrective.trim() || !!editLaborSuccess}
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 {editLaborLoading ? (
