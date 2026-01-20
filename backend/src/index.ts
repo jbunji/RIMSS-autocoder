@@ -1218,8 +1218,11 @@ app.put('/api/users/:id', (req, res) => {
 })
 
 // Delete user by ID (admin only)
-app.delete('/api/users/:id', (req, res) => {
+app.delete('/api/users/:id', async (req, res) => {
   if (!requireAdmin(req, res)) return
+
+  const payload = authenticateRequest(req, res)
+  if (!payload) return
 
   const userId = parseInt(req.params.id, 10)
   const userIndex = mockUsers.findIndex(u => u.user_id === userId)
@@ -1230,11 +1233,33 @@ app.delete('/api/users/:id', (req, res) => {
 
   const user = mockUsers[userIndex]
 
+  // Store user data for audit log before deletion
+  const deletedUserData = {
+    user_id: user.user_id,
+    username: user.username,
+    email: user.email,
+    first_name: user.first_name,
+    last_name: user.last_name,
+    role: user.role,
+    programs: user.programs.map(p => p.pgm_id)
+  }
+
   // Remove user from mock data
   mockUsers.splice(userIndex, 1)
 
   // Remove password entry
   delete mockPasswords[user.username]
+
+  // Log the deletion to audit log
+  await logAuditAction(
+    payload.userId,
+    'DELETE',
+    'User',
+    userId,
+    deletedUserData, // old_values: the user data that was deleted
+    null, // new_values: null for delete operations
+    req
+  )
 
   console.log(`[USERS] User deleted: ${user.username} (ID: ${userId})`)
 
