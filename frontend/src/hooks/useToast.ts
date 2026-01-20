@@ -1,25 +1,20 @@
 import { useState, useCallback } from 'react'
 import { ToastType } from '../components/Toast'
 
-interface ToastState {
+export interface ToastItem {
+  id: string
   message: string
   type: ToastType
-  isOpen: boolean
 }
 
+let toastIdCounter = 0
+
 export function useToast() {
-  const [toast, setToast] = useState<ToastState>({
-    message: '',
-    type: 'success',
-    isOpen: false,
-  })
+  const [toasts, setToasts] = useState<ToastItem[]>([])
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => {
-    setToast({
-      message,
-      type,
-      isOpen: true,
-    })
+    const id = `toast-${Date.now()}-${toastIdCounter++}`
+    setToasts((prev) => [...prev, { id, message, type }])
   }, [])
 
   const showSuccess = useCallback((message: string) => {
@@ -38,17 +33,27 @@ export function useToast() {
     showToast(message, 'info')
   }, [showToast])
 
-  const hideToast = useCallback(() => {
-    setToast((prev) => ({ ...prev, isOpen: false }))
+  const hideToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
+  // Legacy compatibility - for backward compatibility with old code
+  // This allows old code that expects { toast, isOpen } to still work
+  const legacyToast = {
+    message: toasts[toasts.length - 1]?.message || '',
+    type: toasts[toasts.length - 1]?.type || 'success',
+    isOpen: toasts.length > 0,
+  }
+
   return {
-    toast,
+    toasts,
     showToast,
     showSuccess,
     showError,
     showWarning,
     showInfo,
     hideToast,
+    // Legacy support
+    toast: legacyToast,
   }
 }
