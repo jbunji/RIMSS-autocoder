@@ -7793,3 +7793,44 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 
 [Testing] Session complete - verified feature #76 (no regression found)
 
+
+---
+
+## Testing Session: 2026-01-20 (Feature #101)
+
+[Feature] Feature #101 'Labor sequence tracking' - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Labor records maintain sequence within repair
+
+**Verification Steps Completed:**
+1. Log in as field technician - Logged in as Bob Field (field_tech/field123)
+2. Navigate to maintenance event with repairs - MX-2024-001 with Repair #2 open
+3. Verify first labor record exists - Labor #1 visible with sequence = 1
+   - Action code: I (Inspected)
+   - Category: I (Inspection)
+   - Hours: 2 hrs
+   - Chief: Bob Field
+   - Narrative: Initial inspection complete. Pending additional diagnostics.
+4. Create second labor record - Clicked Add Labor button, filled form:
+   - Crew Chief: Bob Field
+   - Crew Size: 1
+   - Hours: 1.5
+   - Narrative: TEST: Second labor record for Feature #101 - verifying sequence tracking
+5. Verify second labor record shows sequence = 2 - Labor #2 appeared with correct sequence
+
+**Key Validations:**
+- Backend calculates next sequence correctly
+- First labor record displays as Labor #1 (sequence = 1)
+- Second labor record displays as Labor #2 (sequence = 2)
+- Labor count updated from (1) to (2) in UI
+- Each repair maintains its own independent sequence numbering
+- No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature101_repair2_labor1_exists.png - Initial state showing Labor #1
+- .playwright-mcp/feature101_labor_sequence_verified.png - After creating Labor #2, showing both
+
+**Console errors:** None detected
+
+[Feature] Feature #101 marked as PASSING - labor sequence tracking working correctly
+
