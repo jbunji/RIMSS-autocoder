@@ -19651,3 +19651,164 @@ Verification Results:
 - Program filter active (CRIIS) ✅
 
 Testing Step 5-8: Verifying counts and accuracy...
+
+Step 5: ✅ Report generated successfully
+Step 6: ✅ Report displays all system types
+Step 7: ✅ Verified grouped by system type correctly
+Step 8: ✅ Counts are accurate
+
+Detailed Count Verification:
+- Camera/Optical Systems: 2 assets (CRIIS-004, CRIIS-005) ✅
+- Communication Systems: 2 assets (CRIIS-008, CRIIS-009) ✅
+- Navigation Systems: 1 asset (CRIIS-010) ✅
+- Radar Systems: 2 assets (CRIIS-006, CRIIS-007) ✅
+- Sensor Systems: 3 assets (CRIIS-001, CRIIS-002, CRIIS-003) ✅
+TOTAL: 10 assets across 5 system types ✅
+
+Each system type section includes:
+- System type heading with icon
+- Asset count summary
+- Status breakdown (FMC, PMC, NMCM, NMCS, CNDM counts)
+- Detailed table with columns:
+  * Serial Number
+  * Part Number
+  * Part Name
+  * Status (with color coding)
+  * Location
+  * Location Type
+
+Technical Details:
+- URL: http://localhost:5173/reports/inventory
+- Page Title: 'Inventory Report by System Type'
+- Program Filter: CRIIS (Common Remotely Operated Integrated Reconnaissance System)
+- Export Options: Print, PDF, Excel (all visible)
+- Generated Timestamp: 1/20/2026, 1:49:20 AM
+
+Console Errors: ZERO ✅
+
+Result: Feature #181 continues to work correctly. NO REGRESSION FOUND.
+
+Screenshots captured:
+1. feature181_inventory_report_by_system_type.png - Top of report showing summary and first system types
+2. feature181_full_report_view.png - Bottom of report showing Radar and Sensor systems
+
+Feature #181 REGRESSION TEST: PASSED ✅
+
+
+================================================================================
+[Testing] 2026-01-20 01:46 UTC - Feature #44 REGRESSION TEST COMPLETE
+================================================================================
+
+Feature #44: Bad actor flagging works - VERIFIED AND PASSING ✅
+
+Summary:
+Successfully verified that the bad actor flagging feature works correctly. All
+functionality tested through browser automation with zero functional errors.
+
+Test Execution - All 7 Steps PASSED:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as depot_mgr (Jane Depot)
+   - Authentication successful
+
+✅ Step 2: Navigate to Assets page
+   - Successfully navigated to /assets
+   - Assets page loaded with 10 total assets for CRIIS program
+
+✅ Step 3: Verify bad actor indicator displays
+   - CRIIS-005 (Camera System X) displays "BA" badge in assets list
+   - Badge appears next to serial number in table
+   - Legend at bottom explains: "BA = Bad Actor (chronic failures)"
+
+✅ Step 4: Edit asset with bad actor flag
+   - Clicked "View" button for CRIIS-005
+   - Asset details page shows "⚠️ Bad Actor" in Bad Actor Flag section
+   - Clicked "Edit Asset" button
+   - Edit form loaded successfully
+
+✅ Step 5: Toggle bad actor flag off
+   - Unchecked "Flag as Bad Actor (chronic failures)" checkbox
+   - Helpful description text: "Bad actors are assets with repeated failures that require special attention."
+   - Clicked "Save Changes"
+   - Success message: "Asset updated successfully! Changes: Bad Actor: Yes → No"
+   - Bad Actor Flag section now shows "Not flagged"
+
+✅ Step 6: Verify badge removed from assets list
+   - Navigated back to Assets page
+   - CRIIS-005 row no longer shows "BA" badge
+   - Serial number column shows just "CRIIS-005" without badge
+
+✅ Step 7: Toggle bad actor flag back on
+   - Edited CRIIS-005 again
+   - Checked "Flag as Bad Actor (chronic failures)" checkbox
+   - Clicked "Save Changes"
+   - Success message: "Asset updated successfully! Changes: Bad Actor: No → Yes"
+   - Bad Actor Flag section now shows "⚠️ Bad Actor" again
+   - Verified "BA" badge reappeared in assets list
+
+Technical Verification:
+✓ Zero JavaScript console errors during feature testing
+✓ Backend API working correctly
+✓ UI updates immediately after save
+✓ Data persists correctly across page navigation
+✓ Success messages clearly indicate what changed
+✓ Form validation working properly
+✓ Checkbox state correctly reflects database value
+
+Implementation Details:
+- Bad Actor flag is a boolean field on assets
+- "BA" badge displays inline with serial number in assets table
+- Detail page shows ⚠️ emoji indicator when flagged
+- Edit form includes checkbox with helpful description
+- Save operation returns success message with change summary
+- Legend explains badge meaning for users
+
+Screenshots Captured:
+- feature44_assets_page_with_bad_actor.png - Initial view with BA badge
+- feature44_edit_asset_bad_actor_checked.png - Edit form with checkbox checked
+- feature44_bad_actor_removed.png - After removing flag
+- feature44_bad_actor_restored.png - After restoring flag
+- feature44_final_assets_list_with_ba.png - Final verification
+
+Result: Feature #44 remains PASSING - no regression found ✅
+
+The bad actor flagging feature works exactly as expected:
+- Assets can be flagged/unflagged via edit form
+- Bad actor indicator displays correctly in list view
+- Bad actor status shows on detail page
+- All changes persist correctly
+- UI provides clear visual feedback
+
+Current Progress: 197/374 features passing (52.7%)
+
+Session complete - Feature #44 verified successfully
+
+================================================================================
+[Testing] 2026-01-20 01:50 UTC - Feature #181 REGRESSION TEST COMPLETE
+================================================================================
+
+Feature: Inventory report by system type
+Status: ✅ PASSED - NO REGRESSION
+
+Summary:
+- All 8 verification steps passed
+- Report correctly groups assets by system type (5 types)
+- Asset counts accurate (10 total assets)
+- Status breakdowns correct for each system type
+- Export functionality present (Print, PDF, Excel)
+- Zero console errors
+- Zero API errors
+- Visual rendering perfect
+- Data integrity 100%
+
+The feature continues to work as designed. No code changes needed.
+
+Documentation: FEATURE_181_REGRESSION_TEST_REPORT.md
+Screenshots: 
+  - feature181_inventory_report_by_system_type.png
+  - feature181_full_report_view.png
+
+Session complete - Feature #181 verified successfully
+Current Progress: 199/374 features passing (53.2%)
+================================================================================
+
