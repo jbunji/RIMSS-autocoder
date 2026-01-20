@@ -1460,6 +1460,86 @@ app.get('/api/audit-logs', async (req, res) => {
   }
 })
 
+// System Settings: Get all settings (admin only)
+app.get('/api/settings', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const settings = await prisma.admVariable.findMany({
+      where: {
+        active: true,
+      },
+      orderBy: {
+        var_name: 'asc',
+      },
+    })
+
+    console.log(`[SETTINGS] Settings requested by admin - returned ${settings.length} settings`)
+    res.json({ settings })
+  } catch (error) {
+    console.error('[SETTINGS] Error fetching settings:', error)
+    res.status(500).json({ error: 'Failed to fetch settings' })
+  }
+})
+
+// System Settings: Update a setting (admin only)
+app.put('/api/settings/:varName', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  const { varName } = req.params
+  const { var_value } = req.body
+
+  if (var_value === undefined) {
+    return res.status(400).json({ error: 'var_value is required' })
+  }
+
+  try {
+    const payload = authenticateRequest(req, res)
+    if (!payload) return
+
+    // Check if setting exists
+    const existingSetting = await prisma.admVariable.findUnique({
+      where: { var_name: varName },
+    })
+
+    if (!existingSetting) {
+      return res.status(404).json({ error: 'Setting not found' })
+    }
+
+    // Store old value for audit log
+    const oldValue = existingSetting.var_value
+
+    // Update the setting
+    const updatedSetting = await prisma.admVariable.update({
+      where: { var_name: varName },
+      data: {
+        var_value: String(var_value),
+        chg_by: payload.username,
+        chg_date: new Date(),
+      },
+    })
+
+    // Log the change in audit log
+    await prisma.auditLog.create({
+      data: {
+        user_id: payload.userId,
+        action: 'UPDATE',
+        table_name: 'AdmVariable',
+        record_id: updatedSetting.var_id,
+        old_values: { var_value: oldValue },
+        new_values: { var_value: var_value },
+        ip_address: getClientIP(req),
+      },
+    })
+
+    console.log(`[SETTINGS] Setting '${varName}' updated by ${payload.username}: ${oldValue} -> ${var_value}`)
+    res.json({ setting: updatedSetting })
+  } catch (error) {
+    console.error('[SETTINGS] Error updating setting:', error)
+    res.status(500).json({ error: 'Failed to update setting' })
+  }
+})
+
 // Dashboard: Get asset status summary (requires authentication)
 app.get('/api/dashboard/asset-status', (req, res) => {
   const payload = authenticateRequest(req, res)

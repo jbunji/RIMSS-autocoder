@@ -32,6 +32,8 @@ export default function AuditLogsPage() {
   const [tableFilter, setTableFilter] = useState<string>('')
   const [userFilter, setUserFilter] = useState<string>('')
   const [actionFilter, setActionFilter] = useState<string>('')
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
 
   useEffect(() => {
     fetchUsers()
@@ -39,7 +41,7 @@ export default function AuditLogsPage() {
 
   useEffect(() => {
     fetchAuditLogs()
-  }, [tableFilter, userFilter, actionFilter])
+  }, [tableFilter, userFilter, actionFilter, startDate, endDate])
 
   const fetchAuditLogs = async () => {
     try {
@@ -53,6 +55,12 @@ export default function AuditLogsPage() {
       }
       if (actionFilter) {
         url.searchParams.append('action', actionFilter)
+      }
+      if (startDate) {
+        url.searchParams.append('start_date', startDate)
+      }
+      if (endDate) {
+        url.searchParams.append('end_date', endDate)
       }
       const response = await fetch(url.toString(), {
         headers: {
@@ -153,7 +161,7 @@ export default function AuditLogsPage() {
             A complete history of all create, update, and delete operations in the system.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-3">
+        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-3 flex-wrap">
           <div>
             <label htmlFor="action-filter" className="sr-only">
               Filter by action
@@ -221,6 +229,48 @@ export default function AuditLogsPage() {
             Refresh
           </button>
         </div>
+      </div>
+
+      {/* Date Range Filter Row */}
+      <div className="mt-4 flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <label htmlFor="start-date" className="text-sm font-medium text-gray-700">
+            From:
+          </label>
+          <input
+            type="date"
+            id="start-date"
+            name="start-date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="end-date" className="text-sm font-medium text-gray-700">
+            To:
+          </label>
+          <input
+            type="date"
+            id="end-date"
+            name="end-date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+          />
+        </div>
+        {(startDate || endDate) && (
+          <button
+            type="button"
+            onClick={() => {
+              setStartDate('')
+              setEndDate('')
+            }}
+            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+          >
+            Clear dates
+          </button>
+        )}
       </div>
 
       {logs.length === 0 ? (

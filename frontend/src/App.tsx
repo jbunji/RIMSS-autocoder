@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import UsersPage from './pages/admin/UsersPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
+import SettingsPage from './pages/admin/SettingsPage'
 import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
 import PMIPage from './pages/PMIPage'
@@ -139,7 +140,7 @@ function App() {
           } />
           <Route path="/admin/settings" element={
             <ProtectedRoute requiredRoles={['ADMIN']}>
-              <PlaceholderPage title="Admin Settings" />
+              <SettingsPage />
             </ProtectedRoute>
           } />
 
