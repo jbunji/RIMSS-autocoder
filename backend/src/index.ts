@@ -1351,8 +1351,18 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
-  // Generate fresh PMI data
-  const allPMI = generateMockPMIData();
+  // Generate fresh PMI data, including custom records and overrides
+  const generatedPMI = generateMockPMIData();
+  const customPMIIds = new Set(customPMIRecords.map(p => p.pmi_id));
+  const filteredGeneratedPMI = generatedPMI.filter(p => !customPMIIds.has(p.pmi_id));
+  const allPMI = [...filteredGeneratedPMI, ...customPMIRecords].map(pmi => {
+    const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
+    return {
+      ...pmi,
+      days_until_due: daysUntilDue,
+      status: pmi.completed_date ? 'completed' as const : getPMIStatus(daysUntilDue),
+    };
+  });
 
   // Filter PMI records by user's accessible programs
   let filteredPMI = allPMI.filter(pmi => userProgramIds.includes(pmi.pgm_id));
@@ -1403,8 +1413,12 @@ app.get('/api/pmi', (req, res) => {
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
   // Get both generated and custom PMI data
+  // Custom records may include overrides for generated PMIs, so we need to dedupe
   const generatedPMI = generateMockPMIData();
-  const allPMI = [...generatedPMI, ...customPMIRecords];
+  const customPMIIds = new Set(customPMIRecords.map(p => p.pmi_id));
+  // Filter out generated PMIs that have been overridden by custom records
+  const filteredGeneratedPMI = generatedPMI.filter(p => !customPMIIds.has(p.pmi_id));
+  const allPMI = [...filteredGeneratedPMI, ...customPMIRecords];
 
   // Filter PMI records by user's accessible programs
   let filteredPMI = allPMI.filter(pmi => userProgramIds.includes(pmi.pgm_id));
@@ -1432,75 +1446,6 @@ app.get('/api/pmi', (req, res) => {
   res.json({
     pmi: filteredPMI,
     total: filteredPMI.length,
-  });
-});
-
-// Create new PMI record
-app.post('/api/pmi', (req, res) => {
-  const payload = authenticateRequest(req, res);
-  if (!payload) return;
-
-  const user = mockUsers.find(u => u.user_id === payload.userId);
-  if (!user) {
-    return res.status(401).json({ error: 'User not found' });
-  }
-
-  // Check permissions - only depot_manager and admin can create PMI
-  if (!['DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
-    return res.status(403).json({ error: 'Only depot managers and admins can create PMI records' });
-  }
-
-  const { asset_id, pmi_type, next_due_date, wuc_cd, interval_days } = req.body;
-
-  // Validate required fields
-  if (!asset_id) {
-    return res.status(400).json({ error: 'Asset is required' });
-  }
-  if (!pmi_type || pmi_type.trim() === '') {
-    return res.status(400).json({ error: 'PMI type is required' });
-  }
-  if (!next_due_date) {
-    return res.status(400).json({ error: 'Due date is required' });
-  }
-
-  // Get asset details
-  const assets = generateAssetData();
-  const asset = assets.find(a => a.asset_id === parseInt(asset_id, 10));
-  if (!asset) {
-    return res.status(404).json({ error: 'Asset not found' });
-  }
-
-  // Check if user has access to this asset's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(asset.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this asset' });
-  }
-
-  // Calculate days until due
-  const daysUntilDue = calculateDaysUntilDue(next_due_date);
-
-  // Create new PMI record
-  const newPMI: PMIRecord = {
-    pmi_id: nextCustomPMIId++,
-    asset_id: asset.asset_id,
-    asset_sn: asset.serno,
-    asset_name: asset.part_name || asset.partno || 'Unknown',
-    pmi_type: pmi_type.trim(),
-    wuc_cd: wuc_cd?.trim() || '',
-    next_due_date: next_due_date,
-    days_until_due: daysUntilDue,
-    completed_date: null,
-    pgm_id: asset.pgm_id,
-    status: getPMIStatus(daysUntilDue),
-  };
-
-  customPMIRecords.push(newPMI);
-
-  console.log(`[PMI] Created PMI #${newPMI.pmi_id} by ${user.username} - Type: ${newPMI.pmi_type}, Asset: ${newPMI.asset_sn}`);
-
-  res.status(201).json({
-    message: 'PMI record created successfully',
-    pmi: newPMI,
   });
 });
 
@@ -5287,8 +5232,69 @@ app.get('/api/pmi/:id', (req, res) => {
   }
 
   const pmiId = parseInt(req.params.id, 10);
-  const allPMI = generateMockPMIData();
-  const pmi = allPMI.find(p => p.pmi_id === pmiId);
+
+  // Check both generated and custom PMI records
+  const generatedPMI = generateMockPMIData();
+  let pmi = generatedPMI.find(p => p.pmi_id === pmiId);
+
+  // If not in generated, check custom records
+  if (!pmi) {
+    pmi = customPMIRecords.find(p => p.pmi_id === pmiId);
+  }
+
+  if (!pmi) {
+    return res.status(404).json({ error: 'PMI record not found' });
+  }
+
+  // Update days_until_due dynamically
+  const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
+  const updatedPmi = {
+    ...pmi,
+    days_until_due: daysUntilDue,
+    status: pmi.completed_date ? 'completed' as const : getPMIStatus(daysUntilDue),
+  };
+
+  // Check if user has access to this PMI's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(updatedPmi.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this PMI record' });
+  }
+
+  res.json({ pmi: updatedPmi });
+});
+
+// Update PMI record
+app.put('/api/pmi/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check permissions - only depot_manager and admin can edit PMI
+  if (!['DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Only depot managers and admins can edit PMI records' });
+  }
+
+  const pmiId = parseInt(req.params.id, 10);
+  const { pmi_type, next_due_date, wuc_cd, completed_date } = req.body;
+
+  // Check both generated and custom PMI records
+  const generatedPMI = generateMockPMIData();
+  let pmi = generatedPMI.find(p => p.pmi_id === pmiId);
+  let isCustom = false;
+  let customIndex = -1;
+
+  // If not in generated, check custom records
+  if (!pmi) {
+    customIndex = customPMIRecords.findIndex(p => p.pmi_id === pmiId);
+    if (customIndex !== -1) {
+      pmi = customPMIRecords[customIndex];
+      isCustom = true;
+    }
+  }
 
   if (!pmi) {
     return res.status(404).json({ error: 'PMI record not found' });
@@ -5300,7 +5306,48 @@ app.get('/api/pmi/:id', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this PMI record' });
   }
 
-  res.json({ pmi });
+  // Validate fields if provided
+  if (pmi_type !== undefined && pmi_type.trim() === '') {
+    return res.status(400).json({ error: 'PMI type cannot be empty' });
+  }
+
+  // Calculate new days until due if date changed
+  const newDueDate = next_due_date || pmi.next_due_date;
+  const daysUntilDue = calculateDaysUntilDue(newDueDate);
+
+  // Create updated PMI record
+  const updatedPMI: PMIRecord = {
+    ...pmi,
+    pmi_type: pmi_type !== undefined ? pmi_type.trim() : pmi.pmi_type,
+    next_due_date: newDueDate,
+    wuc_cd: wuc_cd !== undefined ? (wuc_cd?.trim() || '') : pmi.wuc_cd,
+    completed_date: completed_date !== undefined ? completed_date : pmi.completed_date,
+    days_until_due: daysUntilDue,
+    status: (completed_date !== undefined ? completed_date : pmi.completed_date)
+      ? 'completed' as const
+      : getPMIStatus(daysUntilDue),
+  };
+
+  // For generated PMI records, we need to store the modifications
+  // We'll add/update in customPMIRecords as an override
+  if (isCustom) {
+    customPMIRecords[customIndex] = updatedPMI;
+  } else {
+    // For generated PMI, add to custom records as override (remove any existing override first)
+    const existingOverrideIndex = customPMIRecords.findIndex(p => p.pmi_id === pmiId);
+    if (existingOverrideIndex !== -1) {
+      customPMIRecords[existingOverrideIndex] = updatedPMI;
+    } else {
+      customPMIRecords.push(updatedPMI);
+    }
+  }
+
+  console.log(`[PMI] Updated PMI #${updatedPMI.pmi_id} by ${user.username} - Type: ${updatedPMI.pmi_type}, Due: ${updatedPMI.next_due_date}`);
+
+  res.json({
+    message: 'PMI record updated successfully',
+    pmi: updatedPMI,
+  });
 });
 
 // Mock Parts Order data for testing
@@ -5951,6 +5998,74 @@ function initializeDetailedAssets(): AssetDetails[] {
 
 // Mutable array of detailed assets - initialized once, persists modifications
 const detailedAssets: AssetDetails[] = initializeDetailedAssets();
+
+// Create new PMI record (moved here so detailedAssets is available)
+app.post('/api/pmi', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check permissions - only depot_manager and admin can create PMI
+  if (!['DEPOT_MANAGER', 'ADMIN'].includes(user.role)) {
+    return res.status(403).json({ error: 'Only depot managers and admins can create PMI records' });
+  }
+
+  const { asset_id, pmi_type, next_due_date, wuc_cd } = req.body;
+
+  // Validate required fields
+  if (!asset_id) {
+    return res.status(400).json({ error: 'Asset is required' });
+  }
+  if (!pmi_type || pmi_type.trim() === '') {
+    return res.status(400).json({ error: 'PMI type is required' });
+  }
+  if (!next_due_date) {
+    return res.status(400).json({ error: 'Due date is required' });
+  }
+
+  // Get asset details from detailed assets array
+  const asset = detailedAssets.find(a => a.asset_id === parseInt(asset_id, 10));
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Calculate days until due
+  const daysUntilDue = calculateDaysUntilDue(next_due_date);
+
+  // Create new PMI record
+  const newPMI: PMIRecord = {
+    pmi_id: nextCustomPMIId++,
+    asset_id: asset.asset_id,
+    asset_sn: asset.serno,
+    asset_name: asset.part_name || asset.partno || 'Unknown',
+    pmi_type: pmi_type.trim(),
+    wuc_cd: wuc_cd?.trim() || '',
+    next_due_date: next_due_date,
+    days_until_due: daysUntilDue,
+    completed_date: null,
+    pgm_id: asset.pgm_id,
+    status: getPMIStatus(daysUntilDue),
+  };
+
+  customPMIRecords.push(newPMI);
+
+  console.log(`[PMI] Created PMI #${newPMI.pmi_id} by ${user.username} - Type: ${newPMI.pmi_type}, Asset: ${newPMI.asset_sn}`);
+
+  res.status(201).json({
+    message: 'PMI record created successfully',
+    pmi: newPMI,
+  });
+});
 
 // GET /api/assets - List all assets for a program (requires authentication)
 app.get('/api/assets', (req, res) => {
