@@ -59,7 +59,6 @@ export default function SortiesPage() {
 
   // State
   const [sorties, setSorties] = useState<Sortie[]>([])
-  const [filteredSorties, setFilteredSorties] = useState<Sortie[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -69,7 +68,7 @@ export default function SortiesPage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [tailNumberFilter, setTailNumberFilter] = useState('')
-  const [effectivenessFilter, setEffectivenessFilter] = useState('')
+  const [filteredSorties, setFilteredSorties] = useState<Sortie[]>([])
 
   // Add Sortie Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -147,11 +146,6 @@ export default function SortiesPage() {
         url.searchParams.append('tail_number', tailNumberFilter.trim())
       }
 
-      // Apply effectiveness filter
-      if (effectivenessFilter) {
-        url.searchParams.append('sortie_effect', effectivenessFilter)
-      }
-
       const response = await fetch(url.toString(), {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -176,7 +170,7 @@ export default function SortiesPage() {
   // Fetch sorties on mount and when token/program/filters change
   useEffect(() => {
     fetchSorties()
-  }, [token, currentProgramId, searchQuery, startDate, endDate, tailNumberFilter, effectivenessFilter])
+  }, [token, currentProgramId, searchQuery, startDate, endDate, tailNumberFilter])
 
   // Update filtered sorties whenever sorties change
   useEffect(() => {
@@ -658,11 +652,10 @@ export default function SortiesPage() {
     setStartDate('')
     setEndDate('')
     setTailNumberFilter('')
-    setEffectivenessFilter('')
   }
 
   // Check if any filters are active
-  const hasActiveFilters = searchQuery || startDate || endDate || tailNumberFilter || effectivenessFilter
+  const hasActiveFilters = searchQuery || startDate || endDate || tailNumberFilter
 
   // Loading state
   if (loading) {
@@ -714,130 +707,19 @@ export default function SortiesPage() {
         </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search bar */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="space-y-4">
-          {/* Search bar */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search by mission ID, serial number, or tail number..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
           </div>
-
-          {/* Filter controls */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {/* Start Date */}
-            <div>
-              <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date
-              </label>
-              <input
-                type="date"
-                id="start_date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-
-            {/* End Date */}
-            <div>
-              <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">
-                End Date
-              </label>
-              <input
-                type="date"
-                id="end_date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-
-            {/* Tail Number Filter */}
-            <div>
-              <label htmlFor="tail_number" className="block text-sm font-medium text-gray-700 mb-1">
-                Tail Number
-              </label>
-              <input
-                type="text"
-                id="tail_number"
-                value={tailNumberFilter}
-                onChange={(e) => setTailNumberFilter(e.target.value)}
-                placeholder="Filter by tail number..."
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-
-            {/* Effectiveness Filter */}
-            <div>
-              <label htmlFor="effectiveness_filter" className="block text-sm font-medium text-gray-700 mb-1">
-                Effectiveness
-              </label>
-              <select
-                id="effectiveness_filter"
-                value={effectivenessFilter}
-                onChange={(e) => setEffectivenessFilter(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="">All</option>
-                <option value="Full Mission Capable">Full Mission Capable</option>
-                <option value="Partial Mission Capable">Partial Mission Capable</option>
-                <option value="Non-Mission Capable">Non-Mission Capable</option>
-              </select>
-            </div>
-
-            {/* Clear Filters Button */}
-            <div className="flex items-end">
-              <button
-                onClick={clearFilters}
-                disabled={!hasActiveFilters}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <XMarkIcon className="h-5 w-5 inline mr-1" />
-                Clear Filters
-              </button>
-            </div>
-          </div>
-
-          {/* Active filters indicator */}
-          {hasActiveFilters && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium">Active filters:</span>
-              {searchQuery && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary-100 text-primary-800">
-                  Search: "{searchQuery}"
-                </span>
-              )}
-              {startDate && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary-100 text-primary-800">
-                  From: {startDate}
-                </span>
-              )}
-              {endDate && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary-100 text-primary-800">
-                  To: {endDate}
-                </span>
-              )}
-              {tailNumberFilter && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary-100 text-primary-800">
-                  Tail: "{tailNumberFilter}"
-                </span>
-              )}
-              {effectivenessFilter && (
-                <span className="inline-flex items-center px-2 py-1 rounded-md bg-primary-100 text-primary-800">
-                  Effect: {effectivenessFilter}
-                </span>
-              )}
-            </div>
-          )}
+          <input
+            type="text"
+            placeholder="Search by mission ID, serial number, tail number, or effect..."
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
@@ -874,14 +756,14 @@ export default function SortiesPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {sorties.length === 0 ? (
+              {filteredSorties.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     {searchQuery ? 'No sorties match your search' : 'No sorties found'}
                   </td>
                 </tr>
               ) : (
-                sorties.map((sortie) => (
+                filteredSorties.map((sortie) => (
                   <tr
                     key={sortie.sortie_id}
                     className="hover:bg-gray-50 cursor-pointer"
@@ -953,7 +835,7 @@ export default function SortiesPage() {
         <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Showing <span className="font-medium">{sorties.length}</span> of{' '}
+              Showing <span className="font-medium">{filteredSorties.length}</span> of{' '}
               <span className="font-medium">{total}</span> sorties
               {searchQuery && (
                 <span className="text-gray-500"> (filtered by "{searchQuery}")</span>

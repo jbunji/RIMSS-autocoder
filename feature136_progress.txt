@@ -1,0 +1,59 @@
+
+---
+
+## Session: 2026-01-20 (Feature #136) - PARALLEL EXECUTION
+
+[Feature] Feature #136 "Sortie import validation" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Import validates data and reports errors with line numbers
+
+**Implementation:**
+
+The backend validation was already implemented in the bulk-import endpoint. The fix was needed in the frontend to properly display all validation errors from the backend.
+
+**Frontend Changes (frontend/src/pages/SortiesPage.tsx):**
+
+Fixed error handling in handleConfirmImport function (lines 574-583):
+- Previously: Only displayed single error message from errorData.error
+- Now: Checks if errorData.errors array exists and displays all validation errors
+- When backend returns validation errors array, it's set to importErrors state
+- Import button remains disabled when errors present
+- Modal stays open to allow user to fix errors and retry
+
+**Backend Validation (already implemented):**
+- POST /api/sorties/bulk-import endpoint validates:
+  - Required fields: serno, mission_id, sortie_date
+  - Date format: YYYY-MM-DD using regex
+  - Asset existence: Checks if asset with serial number exists
+  - Program access: Verifies user has access to asset's program
+- Returns 400 status with errors array containing row numbers
+- Each error message format: "Row X: [error description]"
+
+**Verification Steps Completed:**
+
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_manager)
+2. ✅ Prepare Excel with invalid data - Created test_sortie_import_invalid.xlsx with 5 types of errors
+3. ✅ Attempt import - Uploaded invalid file
+4. ✅ Verify validation errors displayed - Frontend showed 5 validation errors
+5. ✅ Verify line numbers with errors shown - All errors included "Row X:" prefix
+6. ✅ Fix errors and re-import - Created and uploaded valid file
+7. ✅ Verify success - Import succeeded, 2 sorties added to list (4→6 sorties)
+
+**Key Features Verified:**
+
+1. Frontend Validation: Validates required fields and date format with row numbers
+2. Backend Validation: Validates asset existence and program access with row numbers
+3. Error Display: Shows error count and all errors in red alert box
+4. Success Flow: Valid data imports successfully, modal closes, list refreshes
+
+**Files Modified:**
+- frontend/src/pages/SortiesPage.tsx (handleConfirmImport function)
+
+**Screenshots:**
+- feature136_frontend_validation_errors.png
+- feature136_backend_validation_errors.png
+- feature136_successful_import.png
+
+[Feature] Feature #136 marked as PASSING
+
+**Current Progress:** 135/374 features passing (36.1%)

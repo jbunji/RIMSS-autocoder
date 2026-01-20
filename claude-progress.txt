@@ -11230,3 +11230,143 @@ Screenshots:
 [Feature] Feature #135 marked as PASSING
 
 Current Progress: 133/374 features passing (35.6%)
+
+---
+
+## Testing Session: 2026-01-19 (Feature #8 Regression Test)
+
+[Testing] Feature #8 "User can log out" - VERIFIED AND PASSING
+
+Regression Test Results:
+✅ Step 1: Logged in as depot_mgr user (Jane Depot)
+✅ Step 2: Successfully authenticated and reached dashboard
+✅ Step 3: Clicked user menu button in header - menu opened
+✅ Step 4: Clicked "Sign out" menu item
+✅ Step 5: Verified redirect to login page - SUCCESSFUL
+✅ Step 6: Verified JWT token is cleared - token is null in rimss-auth-storage
+✅ Step 7: Verified session data is cleared - currentProgramId is null
+✅ Step 8: Verified cannot access protected routes - attempted /dashboard, redirected to /login
+✅ No console errors detected
+
+Test Details:
+- User: depot_mgr (Jane Depot, Depot Manager role)
+- Auth storage structure: Uses Zustand persist with key "rimss-auth-storage"
+- Token and currentProgramId both properly set to null after logout
+- Route protection working correctly - automatic redirect to login
+- Clean logout flow with no errors
+
+Feature Status: PASSING (no regression detected)
+
+Screenshots captured:
+- feature8_user_menu_opened.png - User menu with Sign out option visible
+- feature8_redirected_to_login.png - Successful redirect to login page
+- feature8_protected_route_blocked.png - Protected route access blocked
+
+Date: $(date)
+
+---
+
+## Session: 2026-01-20 (Feature #136) - PARALLEL EXECUTION
+
+[Feature] Feature #136 "Sortie import validation" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Import validates data and reports errors with line numbers
+
+**Implementation:**
+
+The backend validation was already implemented in the bulk-import endpoint. The fix was needed in the frontend to properly display all validation errors from the backend.
+
+**Frontend Changes (frontend/src/pages/SortiesPage.tsx):**
+
+Fixed error handling in handleConfirmImport function (lines 574-583):
+- Previously: Only displayed single error message from errorData.error
+- Now: Checks if errorData.errors array exists and displays all validation errors
+- When backend returns validation errors array, it's set to importErrors state
+- Import button remains disabled when errors present
+- Modal stays open to allow user to fix errors and retry
+
+**Backend Validation (already implemented):**
+- POST /api/sorties/bulk-import endpoint validates:
+  - Required fields: serno, mission_id, sortie_date
+  - Date format: YYYY-MM-DD using regex
+  - Asset existence: Checks if asset with serial number exists
+  - Program access: Verifies user has access to asset's program
+- Returns 400 status with errors array containing row numbers
+- Each error message format: "Row X: [error description]"
+
+**Verification Steps Completed:**
+
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_manager)
+2. ✅ Prepare Excel with invalid data - Created test_sortie_import_invalid.xlsx with 5 types of errors
+3. ✅ Attempt import - Uploaded invalid file
+4. ✅ Verify validation errors displayed - Frontend showed 5 validation errors
+5. ✅ Verify line numbers with errors shown - All errors included "Row X:" prefix
+6. ✅ Fix errors and re-import - Created and uploaded valid file
+7. ✅ Verify success - Import succeeded, 2 sorties added to list (4→6 sorties)
+
+**Key Features Verified:**
+
+1. Frontend Validation: Validates required fields and date format with row numbers
+2. Backend Validation: Validates asset existence and program access with row numbers
+3. Error Display: Shows error count and all errors in red alert box
+4. Success Flow: Valid data imports successfully, modal closes, list refreshes
+
+**Files Modified:**
+- frontend/src/pages/SortiesPage.tsx (handleConfirmImport function)
+
+**Screenshots:**
+- feature136_frontend_validation_errors.png
+- feature136_backend_validation_errors.png
+- feature136_successful_import.png
+
+[Feature] Feature #136 marked as PASSING
+
+**Current Progress:** 135/374 features passing (36.1%)
+
+========================================
+REGRESSION TEST SUMMARY - Feature #87
+========================================
+
+Feature: MICAP flagging on repairs
+Status: ✅ PASSING (No regression found)
+Test Date: $(date)
+
+Test Results:
+-------------
+✓ All 7 verification steps passed
+✓ Login as field technician successful (field_tech/field123)
+✓ Navigated to maintenance event MX-2024-001, Repair #2
+✓ MICAP toggle switch works correctly
+✓ Changes saved successfully
+✓ MICAP badge displays prominently on repair (red badge with icon)
+✓ Asset status correctly shows NMCM (Not Mission Capable Maintenance)
+✓ Asset CRIIS-005 marked with BA (Bad Actor) badge
+✓ Zero console errors
+
+Screenshots Captured:
+---------------------
+- feature87_edit_repair_dialog_before_micap.png - Dialog before MICAP toggle
+- feature87_micap_toggled_on.png - MICAP toggle enabled in dialog
+- feature87_micap_indicator_displayed.png - MICAP badge visible on repair
+- feature87_asset_status_affected_by_micap.png - Asset list view
+- feature87_criis005_nmcm_status.png - Asset list scrolled to top
+- feature87_final_criis005_with_nmcm.png - CRIIS-005 showing NMCM status with BA badge
+
+Key Findings:
+-------------
+✓ MICAP flag is a simple toggle (no separate login field required)
+✓ MICAP badge displayed in red with warning icon
+✓ MICAP affects asset mission capability status (NMCM)
+✓ Feature works exactly as designed with no regressions
+
+Conclusion:
+-----------
+Feature #87 is working correctly with no regressions detected.
+The MICAP flagging system properly impacts asset mission status.
+
+Testing completed: $(date)
+========================================
+
+
+[Testing] Session complete - verified feature #87 (MICAP flagging on repairs)
+No regressions found. Feature continues to work correctly.
