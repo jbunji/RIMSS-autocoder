@@ -21,6 +21,7 @@ import {
   CalendarIcon,
   ArrowPathIcon,
   DocumentArrowDownIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 import jsPDF from 'jspdf'
@@ -266,6 +267,13 @@ export default function MaintenancePage() {
     status: 'open',
     description: '',
   })
+
+  // Delete TCTO Modal State
+  const [isDeleteTCTOModalOpen, setIsDeleteTCTOModalOpen] = useState(false)
+  const [tctoToDelete, setTctoToDelete] = useState<TCTORecord | null>(null)
+  const [deleteTCTOLoading, setDeleteTCTOLoading] = useState(false)
+  const [deleteTCTOError, setDeleteTCTOError] = useState<string | null>(null)
+  const [deleteTCTOSuccess, setDeleteTCTOSuccess] = useState<string | null>(null)
 
   // View mode for Backlog tab: 'list' or 'grouped'
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
@@ -695,6 +703,63 @@ export default function MaintenancePage() {
 
   // Check if user can edit TCTO (depot_manager or admin)
   const canEditTCTO = user?.role === 'DEPOT_MANAGER' || user?.role === 'ADMIN'
+
+  // Check if user can delete TCTO (admin only)
+  const canDeleteTCTO = user?.role === 'ADMIN'
+
+  // Open delete TCTO confirmation modal
+  const openDeleteTCTOModal = (tcto: TCTORecord, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+    }
+    setTctoToDelete(tcto)
+    setDeleteTCTOError(null)
+    setDeleteTCTOSuccess(null)
+    setIsDeleteTCTOModalOpen(true)
+  }
+
+  // Close delete TCTO modal
+  const closeDeleteTCTOModal = () => {
+    setIsDeleteTCTOModalOpen(false)
+    setTctoToDelete(null)
+    setDeleteTCTOError(null)
+    setDeleteTCTOSuccess(null)
+  }
+
+  // Handle delete TCTO
+  const handleDeleteTCTO = async () => {
+    if (!token || !tctoToDelete) return
+
+    setDeleteTCTOLoading(true)
+    setDeleteTCTOError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/tcto/${tctoToDelete.tcto_id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete TCTO')
+      }
+
+      const data = await response.json()
+      setDeleteTCTOSuccess(`TCTO "${data.tcto.tcto_no}" deleted successfully!`)
+
+      // Refresh the TCTO list after a short delay to show success message
+      setTimeout(() => {
+        closeDeleteTCTOModal()
+        fetchTCTO()
+      }, 1500)
+    } catch (err) {
+      setDeleteTCTOError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setDeleteTCTOLoading(false)
+    }
+  }
 
   // Format TCTO priority colors
   const getTCTOPriorityStyle = (priority: string) => {
@@ -2850,6 +2915,168 @@ export default function MaintenancePage() {
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* Edit TCTO Modal */}
+      <Dialog open={isEditTCTOModalOpen} onClose={closeEditTCTOModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900">
+                Edit TCTO {tctoToEdit?.tcto_no}
+              </Dialog.Title>
+              <button
+                onClick={closeEditTCTOModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form className="p-6 space-y-4 max-h-[60vh] overflow-y-auto" onSubmit={handleEditTCTOSubmit}>
+              {/* Error Message */}
+              {editTCTOError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {editTCTOError}
+                </div>
+              )}
+
+              {/* Success Message */}
+              {editTCTOSuccess && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm">
+                  {editTCTOSuccess}
+                </div>
+              )}
+
+              {/* TCTO Info Display */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">TCTO Information</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500">TCTO Number:</span>
+                    <span className="ml-2 font-medium">{tctoToEdit?.tcto_no}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Title:</span>
+                    <span className="ml-2 font-medium">{tctoToEdit?.title}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Effective Date */}
+              <div>
+                <label htmlFor="edit_effective_date" className="block text-sm font-medium text-gray-700 mb-1">
+                  Effective Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="edit_effective_date"
+                  type="date"
+                  value={editTCTOForm.effective_date}
+                  onChange={(e) => setEditTCTOForm({ ...editTCTOForm, effective_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={editTCTOLoading || !!editTCTOSuccess}
+                />
+              </div>
+
+              {/* Compliance Deadline */}
+              <div>
+                <label htmlFor="edit_compliance_deadline" className="block text-sm font-medium text-gray-700 mb-1">
+                  Compliance Deadline <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="edit_compliance_deadline"
+                  type="date"
+                  value={editTCTOForm.compliance_deadline}
+                  onChange={(e) => setEditTCTOForm({ ...editTCTOForm, compliance_deadline: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={editTCTOLoading || !!editTCTOSuccess}
+                />
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label htmlFor="edit_tcto_priority" className="block text-sm font-medium text-gray-700 mb-1">
+                  Priority <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="edit_tcto_priority"
+                  value={editTCTOForm.priority}
+                  onChange={(e) => setEditTCTOForm({ ...editTCTOForm, priority: e.target.value as 'Routine' | 'Urgent' | 'Critical' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={editTCTOLoading || !!editTCTOSuccess}
+                >
+                  <option value="Routine">Routine</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label htmlFor="edit_tcto_status" className="block text-sm font-medium text-gray-700 mb-1">
+                  Status <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="edit_tcto_status"
+                  value={editTCTOForm.status}
+                  onChange={(e) => setEditTCTOForm({ ...editTCTOForm, status: e.target.value as 'open' | 'closed' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={editTCTOLoading || !!editTCTOSuccess}
+                >
+                  <option value="open">Open</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+
+              {/* Description / Remarks */}
+              <div>
+                <label htmlFor="edit_tcto_description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Remarks
+                </label>
+                <textarea
+                  id="edit_tcto_description"
+                  rows={3}
+                  value={editTCTOForm.description}
+                  onChange={(e) => setEditTCTOForm({ ...editTCTOForm, description: e.target.value })}
+                  placeholder="Additional remarks or notes..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled={editTCTOLoading || !!editTCTOSuccess}
+                />
+              </div>
+            </form>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeEditTCTOModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={editTCTOLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditTCTOSubmit}
+                disabled={editTCTOLoading || !!editTCTOSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {editTCTOLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleIcon className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   )
 
@@ -3893,6 +4120,11 @@ export default function MaintenancePage() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
+                  {canEditTCTO && (
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -3979,6 +4211,32 @@ export default function MaintenancePage() {
                           {deadlineStyle.label}
                         </span>
                       </td>
+                      {(canEditTCTO || canDeleteTCTO) && (
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {canEditTCTO && (
+                              <button
+                                onClick={(e) => openEditTCTOModal(tcto, e)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-800 hover:bg-primary-50 rounded-md transition-colors"
+                                title={`Edit ${tcto.tcto_no}`}
+                              >
+                                <PencilIcon className="h-4 w-4" />
+                                Edit
+                              </button>
+                            )}
+                            {canDeleteTCTO && (
+                              <button
+                                onClick={(e) => openDeleteTCTOModal(tcto, e)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
+                                title={`Delete ${tcto.tcto_no}`}
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 })}

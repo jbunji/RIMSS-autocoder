@@ -1637,7 +1637,7 @@ app.post('/api/tcto', (req, res) => {
   }
 
   // Only admin and depot_manager can create TCTOs
-  if (!['admin', 'depot_manager'].includes(user.role)) {
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
     return res.status(403).json({ error: 'Only Admin and Depot Manager can create TCTO records' });
   }
 
@@ -1731,6 +1731,151 @@ app.post('/api/tcto', (req, res) => {
   console.log(`[TCTO] Created TCTO ${newTCTO.tcto_no} (ID: ${newTCTO.tcto_id}) by ${user.username}`);
 
   res.status(201).json(responseData);
+});
+
+// PUT /api/tcto/:id - Update TCTO record
+app.put('/api/tcto/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Only ADMIN and DEPOT_MANAGER can edit TCTOs
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'Only Admin and Depot Manager can edit TCTO records' });
+  }
+
+  const tctoId = parseInt(req.params.id, 10);
+  if (isNaN(tctoId)) {
+    return res.status(400).json({ error: 'Invalid TCTO ID' });
+  }
+
+  // Find the TCTO record
+  const tctoIndex = tctoRecords.findIndex(t => t.tcto_id === tctoId);
+  if (tctoIndex === -1) {
+    return res.status(404).json({ error: 'TCTO not found' });
+  }
+
+  const tcto = tctoRecords[tctoIndex];
+
+  // Verify user has access to the TCTO's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(tcto.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this TCTO' });
+  }
+
+  const {
+    effective_date,
+    compliance_deadline,
+    priority,
+    status,
+    description,
+  } = req.body;
+
+  // Validation
+  if (effective_date !== undefined && !effective_date) {
+    return res.status(400).json({ error: 'Effective date cannot be empty' });
+  }
+  if (compliance_deadline !== undefined && !compliance_deadline) {
+    return res.status(400).json({ error: 'Compliance deadline cannot be empty' });
+  }
+  if (priority !== undefined && !['Routine', 'Urgent', 'Critical'].includes(priority)) {
+    return res.status(400).json({ error: 'Valid priority is required (Routine, Urgent, Critical)' });
+  }
+  if (status !== undefined && !['open', 'closed'].includes(status)) {
+    return res.status(400).json({ error: 'Valid status is required (open, closed)' });
+  }
+
+  // Update only provided fields
+  if (effective_date !== undefined) {
+    tcto.effective_date = effective_date;
+  }
+  if (compliance_deadline !== undefined) {
+    tcto.compliance_deadline = compliance_deadline;
+  }
+  if (priority !== undefined) {
+    tcto.priority = priority;
+  }
+  if (status !== undefined) {
+    tcto.status = status;
+  }
+  if (description !== undefined) {
+    tcto.description = description;
+  }
+
+  // Calculate compliance info for response
+  const daysUntilDeadline = calculateDaysUntilDeadline(tcto.compliance_deadline);
+  const compliancePercentage = tcto.affected_assets.length > 0
+    ? Math.round((tcto.compliant_assets.length / tcto.affected_assets.length) * 100)
+    : 100;
+  const program = allPrograms.find(p => p.pgm_id === tcto.pgm_id);
+
+  const responseData = {
+    ...tcto,
+    days_until_deadline: daysUntilDeadline,
+    compliance_percentage: compliancePercentage,
+    assets_remaining: tcto.affected_assets.length - tcto.compliant_assets.length,
+    is_overdue: daysUntilDeadline < 0 && tcto.status === 'open',
+    program_code: program?.pgm_cd || '',
+    program_name: program?.pgm_name || '',
+  };
+
+  console.log(`[TCTO] Updated TCTO ${tcto.tcto_no} (ID: ${tcto.tcto_id}) by ${user.username}`);
+
+  res.json({ message: 'TCTO updated successfully', tcto: responseData });
+});
+
+// DELETE /api/tcto/:id - Delete a TCTO record (ADMIN only)
+app.delete('/api/tcto/:id', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions - only ADMIN can delete TCTO records
+  if (user.role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied. Only administrators can delete TCTO records.' });
+  }
+
+  const tctoId = parseInt(req.params.id, 10);
+  if (isNaN(tctoId)) {
+    return res.status(400).json({ error: 'Invalid TCTO ID' });
+  }
+
+  // Find the TCTO record
+  const tctoIndex = tctoRecords.findIndex(t => t.tcto_id === tctoId);
+  if (tctoIndex === -1) {
+    return res.status(404).json({ error: 'TCTO not found' });
+  }
+
+  const tcto = tctoRecords[tctoIndex];
+
+  // Verify user has access to the TCTO's program (admin has access to all, but double-check)
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(tcto.pgm_id)) {
+    return res.status(403).json({ error: 'Access denied to this TCTO' });
+  }
+
+  // Remove the TCTO record
+  const deletedTCTO = tctoRecords.splice(tctoIndex, 1)[0];
+
+  console.log(`[TCTO] Deleted TCTO ${deletedTCTO.tcto_no} (ID: ${deletedTCTO.tcto_id}) by ${user.username}`);
+
+  res.json({
+    message: 'TCTO deleted successfully',
+    tcto: {
+      tcto_id: deletedTCTO.tcto_id,
+      tcto_no: deletedTCTO.tcto_no,
+      title: deletedTCTO.title,
+      status: deletedTCTO.status,
+    },
+  });
 });
 
 // Mock Sortie data
