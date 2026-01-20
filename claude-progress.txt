@@ -1,5 +1,57 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-20 (SINGLE FEATURE MODE - Feature #348)
+
+### Completed This Session:
+- Feature #348: Delete record - verify gone from database - VERIFIED AND PASSING ✅
+
+**Feature Description:** Deletion actually removes data
+
+**Verification Results:**
+All 7 steps PASSED ✅
+
+1. ✅ Logged in as admin
+2. ✅ Created unique test record (SN-COMPLETE-TEST-348)
+3. ✅ Deleted the record via UI
+4. ✅ Verified UI count decreased from 6 to 5 spare parts
+5. ✅ Searched for record - not found in UI
+6. ✅ Checked via database query - 0 records found
+7. ✅ Confirmed record actually deleted from database (hard delete)
+
+**Implementation Changes:**
+
+Frontend (frontend/src/pages/SparesPage.tsx):
+- Line 824: Changed DELETE endpoint from `/api/assets/:id` to `/api/assets/:id/permanent`
+- Line 1818: Updated delete dialog message to warn about permanent deletion:
+  "⚠️ This will PERMANENTLY delete the spare from the database. This action cannot be undone."
+
+Backend (backend/src/index.ts):
+- Line 9815-9874: Permanent delete endpoint `/api/assets/:id/permanent` performs hard delete
+- Uses `detailedAssets.splice(assetIndex, 1)` to completely remove from array
+- Admin-only operation (role check enforced)
+- Logs permanent deletion to activity log
+
+**Key Discovery:**
+- System was using soft delete (setting active=false) instead of hard delete
+- Spares are stored in the assets table with asset_id (not separate spares table)
+- Permanent delete endpoint was already implemented but not being called by UI
+- Solution: Updated frontend to use permanent delete endpoint
+
+**Testing:**
+- Created test records: SN-DELETE-TEST-348-20260120, SN-FINAL-TEST-348-V2, SN-COMPLETE-TEST-348
+- Verified via browser: count decreased, record disappeared from list
+- Verified via database queries: records not found after deletion
+- Zero console errors ✅
+
+**Database Verification Scripts:**
+- backend/check_final_test_v2.mjs: Query by serial number and part number
+- backend/verify_delete_348.mjs: Verify test record deleted and check counts
+
+**Progress:** 345→346/374 features passing (92.5%)
+**Session:** SINGLE FEATURE MODE - Parallel execution
+
+---
+
 ## Session: 2026-01-20 (SINGLE FEATURE MODE - Feature #257)
 
 ### Completed This Session:
@@ -50089,3 +50141,118 @@ Session complete ✅
 
 Next: This parallel session is complete. Feature #350 marked as passing.
 
+[Testing] 2026-01-20 10:58 - Feature #168 verified - still passing ✅
+
+================================================================================
+[2026-01-20 11:04] Feature #168 REGRESSION TEST - VERIFIED PASSING ✅
+================================================================================
+
+Session Type: REGRESSION TESTING
+Feature: #168 - Software catalog list page
+Category: functional
+Status: VERIFIED PASSING ✅
+
+FEATURE REQUIREMENTS:
+===============================================================================
+Software catalog displays all software versions. Users should be able to:
+1. Log in as any user
+2. Navigate to Admin > Software (or Configurations > Software)
+3. Verify software table displays
+4. Verify data loads
+
+VERIFICATION STEPS COMPLETED:
+===============================================================================
+
+✅ Step 1: Log in as any user
+   - Logged in as admin/admin123
+   - Authentication successful
+
+✅ Step 2: Navigate to Software page
+   - Clicked "Software" in sidebar navigation
+   - Successfully navigated to /software
+
+✅ Step 3: Verify software table displays
+   - Table rendered with proper structure
+   - All required columns present:
+     * Software Number
+     * Title
+     * Type
+     * Version
+     * Revision Date
+     * Effective Date
+     * CPIN
+     * Program
+     * Actions
+
+✅ Step 4: Verify data loads
+   - 10 software versions displayed
+   - Data includes:
+     * SW-CAM-CTRL-001 (Camera Control Software) - FIRMWARE 2.1.5 - CRIIS
+     * SW-CAM-CTRL-002 (Camera Control Legacy) - FIRMWARE 2.0.8 - CRIIS
+     * SW-COMM-ENC-001 (Communication Encryption) - APPLICATION 4.0.1 - CRIIS
+     * SW-LASER-CAL-001 (Laser Calibration) - FIRMWARE 1.3.7 - ACTS
+     * SW-NAV-GPS-001 (GPS Navigation) - FIRMWARE 1.8.3 - CRIIS
+     * SW-NAV-INS-001 (Inertial Navigation) - FIRMWARE 2.2.1 - CRIIS
+     * SW-RADAR-DSP-001 (Radar Signal Processing) - DSP 3.4.2 - CRIIS
+     * SW-RECON-DATA-001 (Reconnaissance Data) - APPLICATION 3.0.2 - ARDS
+     * SW-TGT-CTRL-001 (Targeting Control) - APPLICATION 5.1.0 - ACTS
+     * SW-THERM-IMG-001 (Thermal Imaging) - DSP 2.5.4 - ACTS
+
+QUALITY VERIFICATION:
+===============================================================================
+
+✅ User Interface:
+   - Clean, professional table layout
+   - Proper column headers with sort indicators
+   - Search and filter controls present
+   - "Add Software" button in header
+   - Edit buttons on each row
+   - Pagination info: "Showing 10 of 10 software versions"
+
+✅ Data Integrity:
+   - All software types represented (FIRMWARE, APPLICATION, DSP)
+   - Multiple programs shown (CRIIS, ACTS, ARDS)
+   - Dates formatted correctly
+   - CPIN values display (Yes/—)
+   - Software numbers follow naming conventions
+
+✅ Functionality:
+   - Search textbox available
+   - Type filter dropdown present (All Types, APPLICATION, DSP, FIRMWARE)
+   - Column sorting indicators visible
+   - Action buttons functional
+
+✅ Console Status:
+   - Zero JavaScript errors ✅
+   - Zero React errors ✅
+   - Zero network errors ✅
+   - Only normal React Router warnings (expected)
+   - Token refresh manager working correctly
+
+SCREENSHOT CAPTURED:
+===============================================================================
+feature_168_software_catalog_verification.png - Full software catalog page
+
+REGRESSION TEST RESULT:
+===============================================================================
+Feature #168 is STILL PASSING - NO REGRESSION DETECTED ✅
+
+The software catalog page:
+1. Displays correctly with all required elements
+2. Loads real data from the backend
+3. Shows proper table structure and formatting
+4. Provides search and filter functionality
+5. Has no console errors or warnings (besides expected React Router flags)
+
+The feature continues to work as specified. No code changes are needed.
+
+Result: Feature #168 regression test PASSED ✅
+Progress: 347/374 features passing (92.8%)
+
+Session Type: REGRESSION TESTING - Single feature verification
+Testing Method: Full end-to-end verification with browser automation
+Quality: Production-ready ✅
+
+================================================================================
+[2026-01-20 11:04] Feature #168 regression test complete - STILL PASSING ✅
+================================================================================
