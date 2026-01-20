@@ -8389,3 +8389,64 @@ Feature verified working and marked as passing.
 
 [Testing] Session complete - verified feature #62 (no regression found)
 
+
+---
+
+## Session: 2026-01-20 (Feature #107)
+
+[Feature] Feature #107 'Create PMI record' - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Users can create new PMI schedule entries
+
+**Implementation:**
+- Added "Add PMI" button to PMI Schedule tab (visible for depot managers and admins)
+- Created modal form for creating new PMI schedule entries with fields:
+  - Asset (dropdown, required)
+  - PMI Type (text, required)  
+  - Due Date (date picker, required, defaults to 30 days from now)
+  - WUC (Work Unit Code, optional)
+  - Interval (Days, optional, defaults to 30)
+- Integrated with backend POST /api/pmi endpoint
+- Form validation for required fields
+- Success/error messaging in modal
+- Auto-refresh of PMI list after successful creation
+- Role-based visibility (only ADMIN and DEPOT_MANAGER can create PMI)
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_mgr/depot123)
+2. ✅ Navigate to PMI page - Clicked PMI Schedule tab on Maintenance page
+3. ✅ Click Add PMI button - "Add PMI" button visible and clicked
+4. ✅ Select asset - Selected CRIIS-001 (Sensor Unit A)
+5. ✅ Select PMI type - Entered "TEST-Feature107 Weekly Inspection"
+6. ✅ Set due date - Default set to Feb 18, 2026 (30 days from now)
+7. ✅ Set interval - Changed to 7 days
+8. ✅ Click save - Clicked "Create PMI" button
+9. ✅ Verify PMI appears in list - New PMI visible with:
+   - Status: UPCOMING
+   - Asset: Sensor Unit A (CRIIS-001)
+   - PMI Type: TEST-Feature107 Weekly Inspection
+   - WUC: 99ZZZ
+   - Due Date: Feb 18, 2026
+   - Days Until Due: 30 days
+
+**Additional Verifications:**
+- ✅ Total PMI count increased from 7 to 8
+- ✅ Upcoming (30 days) count increased from 2 to 3
+- ✅ Data persists after page refresh
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature107_pmi_tab_with_add_button.png - PMI tab with Add PMI button
+- .playwright-mcp/feature107_add_pmi_modal.png - Add PMI modal form
+- .playwright-mcp/feature107_pmi_form_filled.png - Form filled with test data
+- .playwright-mcp/feature107_pmi_created_success.png - After successful creation
+- .playwright-mcp/feature107_new_pmi_in_table.png - New PMI visible in table
+
+**Files Modified:**
+- frontend/src/pages/MaintenancePage.tsx (added PMI modal state, functions, and UI)
+
+**Console errors:** None detected
+
+[Feature] Feature #107 marked as PASSING
+
+**Current Progress:** 107/374 features passing (28.6%)
