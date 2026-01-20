@@ -49327,3 +49327,31 @@ Screenshot saved: feature_181_inventory_report_by_system_type.png
 ================================================================================
 [Testing] Session complete - verified feature #181
 [Testing] Feature #125 - TCTO link to repair records - Investigation started
+
+================================================================================
+[2026-01-20 10:47] Feature #346 TEST FAILED - Mock Data Detected
+================================================================================
+
+CRITICAL FINDING: Assets API uses in-memory mock data instead of database
+
+Test Steps Completed:
+✅ Logged in as admin
+✅ Created asset REAL_DATA_TEST_12345 via UI
+✅ Asset appears in search results
+❌ Database verification FAILED - asset not in PostgreSQL
+
+Root Cause:
+- GET /api/assets reads from detailedAssets array (line 7958)
+- POST /api/assets writes to mockAssets array (line 9588)
+- NO database operations - data lost on server restart
+
+Impact: CRITICAL PRODUCTION BLOCKER
+Action: Feature #346 skipped (moved to end of queue)
+Required: Refactor Assets API to use Prisma ORM + PostgreSQL
+
+Documentation: feature_346_test_results.txt
+Verification scripts: check_test_asset.js, check_all_assets.js
+
+Progress: 343/374 features passing (91.7%)
+Session: Complete - critical issue documented and committed
+================================================================================
