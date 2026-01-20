@@ -3920,14 +3920,16 @@ app.get('/api/events', (req, res) => {
 
   // Apply search filter if specified
   if (searchQuery) {
-    const query = searchQuery.toLowerCase();
-    filteredEvents = filteredEvents.filter(event =>
-      event.job_no.toLowerCase().includes(query) ||
-      event.asset_sn.toLowerCase().includes(query) ||
-      event.asset_name.toLowerCase().includes(query) ||
-      event.discrepancy.toLowerCase().includes(query) ||
-      event.location.toLowerCase().includes(query)
-    );
+    const query = searchQuery.toLowerCase().trim();
+    if (query) {
+      filteredEvents = filteredEvents.filter(event =>
+        event.job_no.toLowerCase().includes(query) ||
+        event.asset_sn.toLowerCase().includes(query) ||
+        event.asset_name.toLowerCase().includes(query) ||
+        event.discrepancy.toLowerCase().includes(query) ||
+        event.location.toLowerCase().includes(query)
+      );
+    }
   }
 
   // Apply date range filter if specified (based on start_job date)
@@ -10040,15 +10042,17 @@ app.get('/api/parts-orders', (req, res) => {
   }
 
   if (searchQuery) {
-    const query = searchQuery.toLowerCase();
-    filteredOrders = filteredOrders.filter(order =>
-      order.order_id.toString().includes(query) ||
-      order.part_no.toLowerCase().includes(query) ||
-      order.part_name.toLowerCase().includes(query) ||
-      order.nsn.toLowerCase().includes(query) ||
-      (order.asset_sn && order.asset_sn.toLowerCase().includes(query)) ||
-      (order.job_no && order.job_no.toLowerCase().includes(query))
-    );
+    const query = searchQuery.toLowerCase().trim();
+    if (query) {
+      filteredOrders = filteredOrders.filter(order =>
+        order.order_id.toString().includes(query) ||
+        order.part_no.toLowerCase().includes(query) ||
+        order.part_name.toLowerCase().includes(query) ||
+        order.nsn.toLowerCase().includes(query) ||
+        (order.asset_sn && order.asset_sn.toLowerCase().includes(query)) ||
+        (order.job_no && order.job_no.toLowerCase().includes(query))
+      );
+    }
   }
 
   // Apply date range filter
@@ -11544,7 +11548,7 @@ app.get('/api/software', (req, res) => {
 
   // Get optional query parameters
   const programId = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
-  const search = req.query.search as string || '';
+  const search = (req.query.search as string || '').trim();
   const swType = req.query.type as string || '';
 
   // Filter software by user's programs and optional filters
