@@ -11627,3 +11627,98 @@ No regressions found. Feature continues to work correctly.
 
 **Current Progress:** 137/374 features passing (36.6%)
 
+
+---
+
+## Session: 2026-01-20 (Feature #138) - PARALLEL EXECUTION
+
+[Feature] Feature #138 "Sortie search and filtering" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Users can search and filter sortie records
+
+**Implementation:**
+
+**Backend Changes (backend/src/index.ts):**
+- Added query parameters: search, start_date, end_date, tail_number
+- Search filter: matches mission_id, serno, or ac_tailno (case-insensitive)
+- Date range filter: start_date (>=), end_date (< next day for inclusive)
+- Tail number filter: matches ac_tailno (case-insensitive, partial match)
+- All filters can be combined and work independently
+- Fixed end date filtering to include entire day (not just midnight)
+
+**Frontend Changes (frontend/src/pages/SortiesPage.tsx):**
+- Added filter state: searchQuery, startDate, endDate, tailNumberFilter
+- Removed client-side filteredSorties (moved to server-side)
+- Enhanced UI with comprehensive filter panel:
+  - Search textbox (mission ID, serial number, tail number)
+  - Start Date date picker
+  - End Date date picker
+  - Tail Number text filter
+  - Effectiveness dropdown (added by Feature #139 parallel session)
+  - Clear Filters button (disabled when no filters active)
+- Added "Active filters" indicator with badges for each active filter
+- Updated fetchSorties to pass filters as URL params
+- Updated useEffect to re-fetch on filter changes
+- Added clearFilters() function
+- Added hasActiveFilters computed value
+
+**Verification Steps Completed (All 8):**
+1. ✅ Logged in as field technician (field_tech / field123)
+2. ✅ Navigated to Sorties page
+3. ✅ Searched by mission ID "CRIIS-SORTIE-001"
+4. ✅ Verified matching sorties display - 1 of 5 sorties shown
+5. ✅ Filtered by date range (2026-01-14 to 2026-01-16)
+6. ✅ Verified filtered results - date filtering working
+7. ✅ Filtered by tail number "AC-001"
+8. ✅ Clear all filters button - resets all filters correctly
+
+**Key Features Verified:**
+
+**Backend API:**
+- GET /api/sorties accepts search, start_date, end_date, tail_number params
+- Search filter matches across mission_id, serno, ac_tailno
+- Date range properly inclusive (end date includes entire day)
+- Tail number filter with partial matching
+- Filters combine with AND logic
+- Program-based access control maintained
+- Results sorted by date descending
+
+**Frontend UI:**
+- Filter panel displays all filter controls clearly
+- Date inputs use native date pickers
+- Clear Filters button enabled/disabled based on active filters
+- Active filters displayed as badges below controls
+- Server-side filtering (no client-side array filtering)
+- Automatic refresh when filters change
+- Loading states during fetch
+- Result count shows filtered results
+- No filteredSorties state (uses sorties directly from API)
+
+**Console Errors:**
+- Zero errors ✓
+- Only expected React Router future flag warnings
+
+**Screenshots:**
+- feature138_sorties_page_with_filters.png - Initial state with all filter controls
+- feature138_search_by_mission_id.png - Search filter showing 1 result
+- feature138_date_range_filter.png - Date range filter applied
+- feature138_filter_by_tail_number.png - Tail number filter showing 1 result
+- feature138_all_filters_cleared.png - After clearing all filters
+
+**Files Modified:**
+- backend/src/index.ts (added search and filter params to GET /api/sorties)
+- frontend/src/pages/SortiesPage.tsx (replaced simple search with comprehensive filters)
+
+**Technical Highlights:**
+- Server-side filtering for performance and scalability
+- Clean separation of concerns (backend filtering logic)
+- Proper date handling (inclusive end dates)
+- Responsive UI with Tailwind CSS
+- TypeScript type safety throughout
+- Filter state synchronized with URL params via useEffect
+- Active filter indicators for better UX
+
+[Feature] Feature #138 marked as PASSING
+
+**Current Progress:** 136/374 features passing (36.4%)
+
