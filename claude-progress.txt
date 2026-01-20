@@ -14937,3 +14937,129 @@ Screenshots captured:
 Current Progress: 163/374 features passing (43.6%)
 
 [Testing] Session complete - verified feature #156 (no regression)
+
+================================================================================
+Testing Session: 2026-01-20 00:42 UTC - Feature #36 VERIFIED
+================================================================================
+
+Feature #36: Asset status transitions validate correctly - REGRESSION TEST PASSED
+
+All 7 verification steps completed successfully:
+
+✅ Step 1: Logged in as depot manager (Jane Depot / depot_mgr)
+✅ Step 2: Used existing asset CRIIS-001 with FMC status
+✅ Step 3: Changed status from FMC to NMCM
+✅ Step 4: Verified transition allowed - SUCCESS
+   - Status change accepted by backend
+   - No validation errors
+✅ Step 5: Verified status updated correctly
+   - Asset details show NMCM status
+   - Success message: "Asset updated successfully! Changes: Status: Full Mission Capable → Not Mission Capable Maintenance"
+   - Change recorded in History tab with timestamp and user
+✅ Step 6: Attempted invalid transition (CNDM → FMC on CRIIS-009)
+   - Backend validation triggered as expected
+   - Returned HTTP 400 Bad Request (correct status code)
+✅ Step 7: Verified error message displayed
+   - Clear error message shown to user: "Invalid status transition: Cannot change directly from Cannot Determine Mission to Full Mission Capable. Assets with undetermined status must first be placed in maintenance (NMCM) or supply wait (NMCS) before becoming mission capable."
+   - Error message provides business rule guidance
+
+Business Rules Verified:
+- FMC can transition to: PMC, NMCM, NMCS, CNDM ✓
+- CNDM can only transition to: NMCM, NMCS ✓
+- CNDM cannot directly transition to FMC or PMC ✓
+- Invalid transitions are blocked with descriptive error messages ✓
+
+Technical Verification:
+- Backend validation: isValidStatusTransition() function working correctly
+- statusTransitionRules properly enforced
+- Change history tracking operational
+- Zero JavaScript errors (only expected 400 API response for validation)
+- Success/error messages displayed appropriately
+- UI properly handles both valid and invalid transitions
+
+Screenshots Captured:
+- feature36_edit_form_fmc_status.png - Edit form with FMC status
+- feature36_status_changed_to_nmcm.png - Status dropdown changed to NMCM
+- feature36_status_updated_successfully.png - Success message after valid transition
+- feature36_attempting_invalid_transition.png - Attempting CNDM → FMC
+- feature36_invalid_transition_error.png - Error message (bottom view)
+- feature36_error_message_visible.png - Error message banner (top view)
+
+Regression Result: ✅ NO REGRESSION DETECTED
+
+Feature #36 remains PASSING - Asset status transition validation works correctly.
+
+[Testing] Session complete - verified feature #36 (no regression)
+
+Current Progress: 164/374 features passing (43.9%)
+
+================================================================================
+Session: 2026-01-20 00:42 UTC - Feature #165 COMPLETED
+================================================================================
+
+Feature #165: ETM meter change/replacement - IMPLEMENTED AND VERIFIED
+
+Implementation Summary:
+Added comprehensive meter replacement functionality to track when meters
+are replaced on assets. Old meter history is preserved while new meter
+starts fresh tracking.
+
+Backend Implementation (backend/src/index.ts):
+
+1. Meter Replacement Interface:
+   - Added MeterReplacementEntry interface with fields:
+     * replacement_id, asset_id, timestamp
+     * user_id, username, user_full_name
+     * meter_type: 'hours' | 'cycles' | 'eti'
+     * old_meter_value, new_meter_start_value
+     * replacement_reason, notes
+
+2. Storage:
+   - Created meterReplacements array
+   - Added addMeterReplacement() helper function
+
+3. POST /api/assets/:id/replace-meter endpoint:
+   - Role-based access: DEPOT_MANAGER and ADMIN only
+   - Creates meter replacement entry
+   - Adds meter history entry with reference "METER-REPLACEMENT-{id}"
+   - Updates asset's eti_hours to new starting value
+   - Adds asset history entry for audit trail
+
+Frontend Implementation (frontend/src/pages/AssetDetailPage.tsx):
+
+1. State Management:
+   - Added canReplaceMeter permission check
+   - Added showMeterReplacementModal state
+   - Added meterReplacementForm state
+   - Added success/error message states
+
+2. Replace Meter Button:
+   - Orange button next to blue "Update ETI" button
+   - Only visible to depot_manager and admin
+   - Only visible when asset has a meter
+
+3. Meter Replacement Modal:
+   - Orange-themed to distinguish from ETI update
+   - Displays current meter reading
+   - Warning message about replacement
+   - Form fields: reason (required), new value (required), notes (optional)
+
+Testing Results - All 8 Verification Steps PASSED:
+
+✅ Step 1: Logged in as depot manager
+✅ Step 2: Navigated to asset with meter (CRIIS-001, 1,250 hrs)
+✅ Step 3: Clicked Replace Meter button
+✅ Step 4: Entered reason for replacement
+✅ Step 5: Entered new meter starting value: 0
+✅ Step 6: Saved changes - success message displayed
+✅ Step 7: Verified old meter history preserved
+✅ Step 8: Verified new meter starts fresh count (0 hrs)
+
+Key Verification:
+- Old meter history preserved: 1,100→1,200→1,250 hrs visible
+- New meter value: 0 hrs
+- Replacement tracked in history with full details
+
+Feature #165 marked as PASSING
+
+Current Progress: 163/374 features passing (43.6%)
