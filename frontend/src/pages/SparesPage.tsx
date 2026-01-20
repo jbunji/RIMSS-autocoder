@@ -821,7 +821,7 @@ export default function SparesPage() {
     setIsDeleting(true)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/spares/${selectedSpare.spare_id}`, {
+      const response = await fetch(`http://localhost:3001/api/assets/${selectedSpare.asset_id}/permanent`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
