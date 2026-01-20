@@ -1,0 +1,122 @@
+================================================================================
+[2026-01-20 11:10] Feature #354 COMPLETED - Audit log captures IP address ✅
+================================================================================
+
+Session Type: SINGLE FEATURE MODE (Parallel Execution)
+Feature: #354 - Audit log captures IP address
+Category: functional
+Status: VERIFIED PASSING ✅
+
+FEATURE REQUIREMENTS:
+===============================================================================
+Client IP logged with all actions
+
+Steps:
+1. Log in as admin
+2. Perform any action
+3. Navigate to audit logs
+4. Find the action
+5. Verify IP address captured
+6. Verify IP is client IP not server
+
+VERIFICATION COMPLETED:
+===============================================================================
+
+✅ Step 1: Logged in as admin
+   - Successfully authenticated as admin/admin123
+   - Redirected to dashboard
+
+✅ Step 2: Performed any action
+   - Navigated to Assets page
+   - Clicked "Add Asset" button
+   - Created new test asset:
+     * Part Number: PN-TEST-F354
+     * Serial Number: SN-TEST-F354
+     * Asset Name: Test Asset for Feature 354 IP Logging
+     * Status: FMC
+     * Admin Location: Depot Alpha
+     * Custodial Location: Maintenance Bay 1
+     * Notes: Created to test IP address capture in audit logs for Feature #354
+   - Success message: "Asset 'SN-TEST-F354' created successfully!"
+   - Total assets increased from 11 to 12
+
+✅ Step 3: Navigated to audit logs
+   - URL: http://localhost:5173/admin/audit-logs
+   - Page loaded successfully
+   - Description shown: "A complete history of all create, update, and delete operations"
+   - Audit log table displayed with entries
+
+✅ Step 4: Found the action
+   - Most recent entry visible at top of table
+   - Timestamp: Jan 20, 2026, 11:09:55 AM
+   - User: John Admin @admin
+   - Action: CREATE (green badge)
+   - Table: Asset
+   - Record ID: 27
+   - IP Address column visible with value
+
+✅ Step 5: Verified IP address captured
+   - IP Address displayed in table: ::1
+   - IP address is visible and properly formatted
+   - Clicked "View Details" button
+   - Details modal opened showing complete audit log entry
+   - IP Address field shows: ::1
+   - All audit log fields populated correctly
+
+✅ Step 6: Verified IP is client IP not server
+   - Reviewed backend implementation (backend/src/index.ts lines 971-988)
+   - getClientIP() function correctly extracts client IP from:
+     1. X-Forwarded-For header (proxy scenario) - first IP in chain
+     2. X-Real-IP header (alternative proxy header)
+     3. req.socket.remoteAddress (direct connection)
+   - Function never returns server IP
+   - Always returns the remote client's IP address
+   - Captured IP "::1" is IPv6 localhost (client address in local dev)
+   - CONFIRMED: Implementation captures CLIENT IP, not server IP ✅
+
+IMPLEMENTATION VERIFIED:
+===============================================================================
+
+Backend includes proper getClientIP() helper that:
+- Checks X-Forwarded-For header first (for proxy scenarios)
+- Checks X-Real-IP header (alternative proxy header)
+- Falls back to req.socket.remoteAddress (direct connection)
+- Always captures the REQUEST SOURCE (client), never server IP
+
+AUDIT LOG ENTRY DETAILS:
+===============================================================================
+
+Log ID: 5
+Timestamp: Jan 20, 2026, 11:09:55 AM
+User: John Admin (@admin)
+Action: CREATE
+Table: Asset
+Record ID: 27
+IP Address: ::1 (IPv6 localhost - client address)
+New Values: Complete asset data with test fields
+
+CONSOLE STATUS:
+===============================================================================
+✅ Zero JavaScript errors
+✅ Zero React errors
+✅ Zero network errors
+
+QUALITY VERIFICATION:
+===============================================================================
+✅ IP address captured from HTTP request
+✅ Proper client IP extraction (not server IP)
+✅ Proxy-aware implementation
+✅ Audit logs display IP address correctly
+✅ Details modal shows complete information
+✅ Production-ready implementation
+
+CONCLUSION:
+===============================================================================
+Feature #354 is FULLY FUNCTIONAL and PASSING ✅
+
+Result: Feature #354 verified and marked as passing
+Progress: 350 → 351 / 374 features (93.9%)
+
+Session Type: SINGLE FEATURE MODE - Parallel execution
+Testing Method: End-to-end verification with browser automation + code review
+Quality: Production-ready ✅
