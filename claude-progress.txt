@@ -14659,3 +14659,128 @@ Added comprehensive export functionality to the Parts Ordered page with full CUI
 **Current Progress:** 161/374 features passing (43.0%)
 
 [Session] Feature #162 complete - All verification steps passed successfully
+
+---
+
+## Testing Session: 2026-01-20 (Feature #46 Regression Test)
+
+[Testing] Feature #46 "In-transit tracking with carrier info" - VERIFIED AS PASSING
+
+**Feature Description:** Assets in transit show shipping information
+
+**Verification Summary:**
+All 9 verification steps completed successfully - NO REGRESSION DETECTED
+
+**Verification Steps Completed:**
+
+✅ Step 1: Logged in as depot manager (depot_mgr/depot123)
+✅ Step 2: Navigated to Assets page
+✅ Step 3: Viewed asset CRIIS-009 with existing in-transit status
+✅ Step 4: Verified in-transit indicator displays ("Transit" badge on list)
+✅ Step 5: Verified carrier info accessible (FedEx)
+✅ Step 6: Verified tracking number accessible (789456123012)
+✅ Step 7: Verified ship date accessible (January 16, 2026)
+✅ Step 8: Tested edit functionality (added in-transit info to CRIIS-001)
+✅ Step 9: Verified all fields work correctly (carrier dropdown, tracking input, date picker)
+
+**Key Features Verified:**
+
+**In-Transit Display (Asset Details Page):**
+- "In-Transit / Shipping Information" section displays prominently ✓
+- In Transit Status badge with icon ✓
+- Carrier field shows carrier name (FedEx) ✓
+- Tracking Number displayed (789456123012) ✓
+- Ship Date formatted correctly (January 16, 2026) ✓
+- Info callout with summary: "Shipped via FedEx on January 16, 2026. Tracking: 789456123012" ✓
+
+**In-Transit Indicator (Assets List):**
+- "Transit" badge appears next to serial number for in-transit assets ✓
+- Badge styled with appropriate color/icon ✓
+- Location shows "In Transit" ✓
+- Legend explains "Transit = In Transit" ✓
+
+**Edit Functionality:**
+- "Asset is in transit" checkbox enables/disables shipping fields ✓
+- Carrier dropdown with options: FedEx, UPS, USPS, DHL, Military Transport, Contractor, Other ✓
+- Tracking number text input field ✓
+- Ship date picker (HTML5 date input) ✓
+- Fields properly disabled when not in transit ✓
+- Save functionality works (tested with CRIIS-001) ✓
+- Change tracking logs all updates ✓
+
+**Backend Validation:**
+- Backend endpoint properly handles in_transit field (line 8408) ✓
+- Carrier, tracking_number, ship_date fields saved correctly (lines 8427-8443) ✓
+- Changes tracked in asset history ✓
+- Clears shipping info when in_transit set to false (lines 8414-8424) ✓
+- Updates both mockAssets and detailedAssets arrays ✓
+
+**Technical Implementation:**
+- Frontend: AssetDetailsPage.tsx displays in-transit section
+- Frontend: AssetEditForm.tsx provides edit interface
+- Frontend: AssetsPage.tsx shows Transit badge in list
+- Backend: PUT /api/assets/:id handles updates
+- Data stored in detailedAssets array with fields: in_transit, carrier, tracking_number, ship_date
+
+**Console Verification:**
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- No API errors ✓
+- All network requests successful ✓
+
+**Screenshots Captured:**
+- feature46_intransit_display.png - Asset list with Transit badge
+- feature46_intransit_info.png - Detail page showing shipping information
+- feature46_updated_asset.png - Edit form with in-transit fields
+- feature46_final_verification.png - Final verification of CRIIS-009
+
+**Notes:**
+- CRIIS-009 (Communication System) used as primary test asset
+- In-transit data persists correctly for seeded assets
+- Edit form properly enables/disables fields based on checkbox
+- All carrier options available in dropdown
+- Date picker uses HTML5 date input for consistent UX
+- Custodial location automatically shows "In Transit" for in-transit assets
+
+**Regression Result:** ✅ NO REGRESSION DETECTED
+
+Feature #46 remains PASSING - In-transit tracking with carrier information works correctly.
+
+[Testing] Session complete - verified feature #46 (no regression)
+
+**Current Progress:** 161/374 features passing (43.0%)
+
+[Testing] Feature #154 'Parts order ACKNOWLEDGE stage' - VERIFIED AS PASSING
+
+Verification Completed (All 9 Steps):
+✅ Step 1: Logged in as depot manager (Jane Depot / depot_mgr)
+✅ Step 2: Navigated to Parts Ordered page
+✅ Step 3: Found request in Pending status (Order #9 - Lithium Battery Pack)
+✅ Step 4: Clicked Acknowledge button
+✅ Step 5: Verified confirmation dialog with proper message
+✅ Step 6: Confirmed acknowledgment
+✅ Step 7: Verified status changed from 'Pending' to 'Acknowledged'
+✅ Step 8: Verified acknowledge timestamp captured: January 20, 2026 at 12:36 AM
+✅ Step 9: Verified acknowledged by user captured: Jane Depot
+
+Key Findings:
+- Acknowledgment workflow functions correctly
+- Status transition: Pending → Acknowledged ✓
+- Button transition: Acknowledge → Fill Order ✓
+- Timestamp and user tracking working properly ✓
+- Confirmation dialog prevents accidental acknowledgments ✓
+- Zero JavaScript errors related to functionality ✓
+- UI properly updates after acknowledgment ✓
+
+Regression Result: NO REGRESSION DETECTED
+Feature #154 remains PASSING - Parts order acknowledgment works correctly
+
+Screenshots captured:
+- feature154_login_page.png
+- feature154_dashboard_logged_in.png
+- feature154_parts_ordered_page.png
+- feature154_order_detail_with_acknowledge_button.png
+- feature154_confirmation_dialog.png
+- feature154_acknowledged_successfully.png
+
+[Testing] Session complete - verified feature #154 (no regression)

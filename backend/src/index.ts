@@ -532,27 +532,114 @@ interface AssetHistoryEntry {
 // Asset history storage - stores all history events for assets
 const assetHistory: AssetHistoryEntry[] = []
 
-// ETI (Elapsed Time Indicator) History interface and storage
-interface ETIHistoryEntry {
-  eti_history_id: number;
+// Meter History interface and storage (supports hours, cycles, and ETI tracking)
+interface MeterHistoryEntry {
+  meter_history_id: number;
   asset_id: number;
   timestamp: string;
   user_id: number;
   username: string;
   user_full_name: string;
-  old_eti_hours: number | null;
-  new_eti_hours: number;
-  hours_added: number;
-  source: 'maintenance' | 'manual' | 'sortie';  // How ETI was updated
+  meter_type: 'hours' | 'cycles' | 'eti';  // Type of meter reading
+  old_value: number | null;  // Previous meter value
+  new_value: number;  // New meter value
+  value_added: number;  // Change in value
+  source: 'maintenance' | 'manual' | 'sortie';  // How meter was updated
   source_id: number | null;  // ID of maintenance event, sortie, etc.
   source_ref: string | null;  // Reference like job number
   notes: string | null;
 }
 
-// ETI history storage
-const etiHistory: ETIHistoryEntry[] = []
+// Legacy type alias for backward compatibility
+interface ETIHistoryEntry extends MeterHistoryEntry {
+  old_eti_hours: number | null;  // Alias for old_value when meter_type is 'eti' or 'hours'
+  new_eti_hours: number;  // Alias for new_value when meter_type is 'eti' or 'hours'
+  hours_added: number;  // Alias for value_added when meter_type is 'eti' or 'hours'
+}
 
-// Helper function to add ETI history entry
+// Meter history storage (renamed from etiHistory for clarity, but keeping backward compatibility)
+const meterHistory: MeterHistoryEntry[] = []
+const etiHistory = meterHistory;  // Alias for backward compatibility
+
+// Meter Replacement interface and storage (tracks when meters are replaced)
+interface MeterReplacementEntry {
+  replacement_id: number;
+  asset_id: number;
+  timestamp: string;
+  user_id: number;
+  username: string;
+  user_full_name: string;
+  meter_type: 'hours' | 'cycles' | 'eti';  // Type of meter replaced
+  old_meter_value: number | null;  // Final reading from old meter
+  new_meter_start_value: number;  // Starting value for new meter
+  replacement_reason: string;  // Why meter was replaced
+  notes: string | null;
+}
+
+// Meter replacement storage
+const meterReplacements: MeterReplacementEntry[] = []
+
+// Helper function to add meter replacement entry
+function addMeterReplacement(
+  assetId: number,
+  user: { user_id: number; username: string; first_name: string; last_name: string },
+  meterType: 'hours' | 'cycles' | 'eti',
+  oldMeterValue: number | null,
+  newMeterStartValue: number,
+  replacementReason: string,
+  notes: string | null
+): MeterReplacementEntry {
+  const entry: MeterReplacementEntry = {
+    replacement_id: meterReplacements.length + 1,
+    asset_id: assetId,
+    timestamp: new Date().toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    meter_type: meterType,
+    old_meter_value: oldMeterValue,
+    new_meter_start_value: newMeterStartValue,
+    replacement_reason: replacementReason,
+    notes,
+  };
+  meterReplacements.push(entry);
+  return entry;
+}
+
+// Helper function to add meter history entry
+function addMeterHistory(
+  assetId: number,
+  user: { user_id: number; username: string; first_name: string; last_name: string },
+  meterType: 'hours' | 'cycles' | 'eti',
+  oldValue: number | null,
+  newValue: number,
+  valueAdded: number,
+  source: 'maintenance' | 'manual' | 'sortie',
+  sourceId: number | null,
+  sourceRef: string | null,
+  notes: string | null
+): MeterHistoryEntry {
+  const entry: MeterHistoryEntry = {
+    meter_history_id: meterHistory.length + 1,
+    asset_id: assetId,
+    timestamp: new Date().toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    meter_type: meterType,
+    old_value: oldValue,
+    new_value: newValue,
+    value_added: valueAdded,
+    source,
+    source_id: sourceId,
+    source_ref: sourceRef,
+    notes,
+  };
+  meterHistory.push(entry);
+  return entry;
+}
+
+// Legacy wrapper for backward compatibility with ETI-specific calls
 function addETIHistory(
   assetId: number,
   user: { user_id: number; username: string; first_name: string; last_name: string },
@@ -563,24 +650,8 @@ function addETIHistory(
   sourceId: number | null,
   sourceRef: string | null,
   notes: string | null
-): ETIHistoryEntry {
-  const entry: ETIHistoryEntry = {
-    eti_history_id: etiHistory.length + 1,
-    asset_id: assetId,
-    timestamp: new Date().toISOString(),
-    user_id: user.user_id,
-    username: user.username,
-    user_full_name: `${user.first_name} ${user.last_name}`,
-    old_eti_hours: oldETI,
-    new_eti_hours: newETI,
-    hours_added: hoursAdded,
-    source,
-    source_id: sourceId,
-    source_ref: sourceRef,
-    notes,
-  };
-  etiHistory.push(entry);
-  return entry;
+): MeterHistoryEntry {
+  return addMeterHistory(assetId, user, 'eti', oldETI, newETI, hoursAdded, source, sourceId, sourceRef, notes);
 }
 
 // Initialize some ETI history for existing assets (simulate past updates)
@@ -592,83 +663,122 @@ function initializeETIHistory(): void {
     return date.toISOString();
   };
 
-  // Sample ETI history entries for asset CRIIS-001 (asset_id: 1)
-  etiHistory.push({
-    eti_history_id: 1,
+  // Sample meter history entries for asset CRIIS-001 (asset_id: 1) - ETI tracking
+  meterHistory.push({
+    meter_history_id: 1,
     asset_id: 1,
     timestamp: subtractDays(90),
     user_id: 2,
     username: 'depot_mgr',
     user_full_name: 'Jane Depot',
-    old_eti_hours: 1100,
-    new_eti_hours: 1200,
-    hours_added: 100,
+    meter_type: 'eti',
+    old_value: 1100,
+    new_value: 1200,
+    value_added: 100,
     source: 'sortie',
     source_id: null,
     source_ref: 'SORTIE-2024-045',
     notes: 'Post-mission ETI update'
   });
-  etiHistory.push({
-    eti_history_id: 2,
+  meterHistory.push({
+    meter_history_id: 2,
     asset_id: 1,
     timestamp: subtractDays(45),
     user_id: 2,
     username: 'depot_mgr',
     user_full_name: 'Jane Depot',
-    old_eti_hours: 1200,
-    new_eti_hours: 1250,
-    hours_added: 50,
+    meter_type: 'eti',
+    old_value: 1200,
+    new_value: 1250,
+    value_added: 50,
     source: 'maintenance',
     source_id: 8,
     source_ref: 'MX-2024-008',
     notes: 'ETI recorded during 30-day PMI'
   });
 
-  // Sample ETI history for CRIIS-005 (asset_id: 5) - high ETI unit
-  etiHistory.push({
-    eti_history_id: 3,
+  // Sample meter history for CRIIS-005 (asset_id: 5) - hours tracking
+  meterHistory.push({
+    meter_history_id: 3,
     asset_id: 5,
     timestamp: subtractDays(120),
     user_id: 3,
     username: 'field_tech',
     user_full_name: 'Bob Technician',
-    old_eti_hours: 2800,
-    new_eti_hours: 3000,
-    hours_added: 200,
+    meter_type: 'hours',
+    old_value: 2800,
+    new_value: 3000,
+    value_added: 200,
     source: 'sortie',
     source_id: null,
     source_ref: 'SORTIE-2024-032',
     notes: 'Extended deployment mission'
   });
-  etiHistory.push({
-    eti_history_id: 4,
+  meterHistory.push({
+    meter_history_id: 4,
     asset_id: 5,
     timestamp: subtractDays(60),
     user_id: 2,
     username: 'depot_mgr',
     user_full_name: 'Jane Depot',
-    old_eti_hours: 3000,
-    new_eti_hours: 3150,
-    hours_added: 150,
+    meter_type: 'hours',
+    old_value: 3000,
+    new_value: 3150,
+    value_added: 150,
     source: 'manual',
     source_id: null,
     source_ref: null,
-    notes: 'Corrected ETI after audit'
+    notes: 'Corrected hours after audit'
   });
-  etiHistory.push({
-    eti_history_id: 5,
+  meterHistory.push({
+    meter_history_id: 5,
     asset_id: 5,
     timestamp: subtractDays(10),
     user_id: 2,
     username: 'depot_mgr',
     user_full_name: 'Jane Depot',
-    old_eti_hours: 3150,
-    new_eti_hours: 3200,
-    hours_added: 50,
+    meter_type: 'hours',
+    old_value: 3150,
+    new_value: 3200,
+    value_added: 50,
     source: 'maintenance',
     source_id: 1,
     source_ref: 'MX-2024-001',
-    notes: 'ETI recorded at start of maintenance'
+    notes: 'Hours recorded at start of maintenance'
+  });
+
+  // Sample cycles meter history for asset ACTS-003 (asset_id: 13) - cycles tracking
+  meterHistory.push({
+    meter_history_id: 6,
+    asset_id: 13,
+    timestamp: subtractDays(75),
+    user_id: 2,
+    username: 'depot_mgr',
+    user_full_name: 'Jane Depot',
+    meter_type: 'cycles',
+    old_value: 1200,
+    new_value: 1350,
+    value_added: 150,
+    source: 'sortie',
+    source_id: null,
+    source_ref: 'SORTIE-2024-089',
+    notes: 'Post-mission cycles update'
+  });
+  meterHistory.push({
+    meter_history_id: 7,
+    asset_id: 13,
+    timestamp: subtractDays(15),
+    user_id: 2,
+    username: 'depot_mgr',
+    user_full_name: 'Jane Depot',
+    meter_type: 'cycles',
+    old_value: 1350,
+    new_value: 1480,
+    value_added: 130,
+    source: 'manual',
+    source_id: null,
+    source_ref: null,
+    notes: 'Cycles adjustment after maintenance'
   });
 }
 
@@ -7432,6 +7542,9 @@ interface AssetDetails {
   carrier: string | null;  // Shipping carrier (e.g., FedEx, UPS, USPS)
   tracking_number: string | null;  // Carrier tracking number
   ship_date: string | null;  // Date asset was shipped (ISO format)
+  // Meter tracking fields
+  meter_type: 'hours' | 'cycles' | 'eti' | null;  // Type of meter for this asset
+  cycles_count: number | null;  // Cycles count (for assets that track cycles instead of/in addition to hours)
 }
 
 // Generate detailed asset data - initialize once and make mutable
@@ -7455,46 +7568,46 @@ function initializeDetailedAssets(): AssetDetails[] {
 
   return [
     // CRIIS program assets (pgm_id: 1)
-    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null, uii: generateUII(1, 'PN-SENSOR-A'), mfg_date: '2020-03-15', acceptance_date: '2020-06-01', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null, uii: generateUII(2, 'PN-SENSOR-A'), mfg_date: '2020-05-22', acceptance_date: '2020-08-10', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update', uii: generateUII(3, 'PN-SENSOR-B'), mfg_date: '2019-11-08', acceptance_date: '2020-01-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: 7, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null, uii: generateUII(4, 'PN-CAMERA-X'), mfg_date: '2021-07-12', acceptance_date: '2021-10-01', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'FLIGHT-LINE', cust_loc_name: 'Flight Line', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001', uii: generateUII(5, 'PN-CAMERA-X'), mfg_date: '2019-02-28', acceptance_date: '2019-05-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002', uii: generateUII(6, 'PN-RADAR-01'), mfg_date: '2020-09-05', acceptance_date: '2020-12-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'STORAGE-A', cust_loc_name: 'Storage Area A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null, uii: generateUII(7, 'PN-RADAR-01'), mfg_date: '2019-06-20', acceptance_date: '2019-09-10', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending', uii: generateUII(8, 'PN-COMM-SYS'), mfg_date: '2021-01-18', acceptance_date: '2021-04-05', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'COMM-CENTER', cust_loc_name: 'Communications Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null, uii: generateUII(1, 'PN-SENSOR-A'), mfg_date: '2020-03-15', acceptance_date: '2020-06-01', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, meter_type: 'eti', cycles_count: null },
+    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null, uii: generateUII(2, 'PN-SENSOR-A'), mfg_date: '2020-05-22', acceptance_date: '2020-08-10', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update', uii: generateUII(3, 'PN-SENSOR-B'), mfg_date: '2019-11-08', acceptance_date: '2020-01-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: 7, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null, uii: generateUII(4, 'PN-CAMERA-X'), mfg_date: '2021-07-12', acceptance_date: '2021-10-01', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'FLIGHT-LINE', cust_loc_name: 'Flight Line', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001', uii: generateUII(5, 'PN-CAMERA-X'), mfg_date: '2019-02-28', acceptance_date: '2019-05-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: 'hours', cycles_count: null },
+    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002', uii: generateUII(6, 'PN-RADAR-01'), mfg_date: '2020-09-05', acceptance_date: '2020-12-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'STORAGE-A', cust_loc_name: 'Storage Area A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null, uii: generateUII(7, 'PN-RADAR-01'), mfg_date: '2019-06-20', acceptance_date: '2019-09-10', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending', uii: generateUII(8, 'PN-COMM-SYS'), mfg_date: '2021-01-18', acceptance_date: '2021-04-05', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'COMM-CENTER', cust_loc_name: 'Communications Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
     { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(90), next_pmi_date: null, eti_hours: null, remarks: 'En route from vendor repair', uii: generateUII(9, 'PN-COMM-SYS'), mfg_date: '2018-11-30', acceptance_date: '2019-02-20', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'IN-TRANSIT', cust_loc_name: 'In Transit', nha_asset_id: null, carrier: 'FedEx', tracking_number: '789456123012', ship_date: subtractDays(3) },
-    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null, uii: generateUII(10, 'PN-NAV-UNIT'), mfg_date: '2020-08-14', acceptance_date: '2020-11-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null, uii: generateUII(10, 'PN-NAV-UNIT'), mfg_date: '2020-08-14', acceptance_date: '2020-11-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
 
     // ACTS program assets (pgm_id: 2)
     // Targeting System A (ACTS-001) is a parent assembly (NHA) with child SRAs (Laser Designator and Optical Sight Unit)
-    { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(18), next_pmi_date: addDays(90), eti_hours: 750, remarks: null, uii: generateUII(11, 'PN-TARGET-A'), mfg_date: '2021-02-10', acceptance_date: '2021-05-20', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(25), next_pmi_date: addDays(65), eti_hours: 920, remarks: null, uii: generateUII(12, 'PN-TARGET-A'), mfg_date: '2021-04-05', acceptance_date: '2021-07-15', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'RANGE-A', cust_loc_name: 'Range Area A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', part_name: 'Targeting System B', pgm_id: 2, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(3), next_pmi_date: null, eti_hours: 2800, remarks: 'Optical alignment issue - MX-2024-005', uii: generateUII(13, 'PN-TARGET-B'), mfg_date: '2019-08-22', acceptance_date: '2019-11-10', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(18), next_pmi_date: addDays(90), eti_hours: 750, remarks: null, uii: generateUII(11, 'PN-TARGET-A'), mfg_date: '2021-02-10', acceptance_date: '2021-05-20', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(25), next_pmi_date: addDays(65), eti_hours: 920, remarks: null, uii: generateUII(12, 'PN-TARGET-A'), mfg_date: '2021-04-05', acceptance_date: '2021-07-15', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'RANGE-A', cust_loc_name: 'Range Area A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', part_name: 'Targeting System B', pgm_id: 2, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(3), next_pmi_date: null, eti_hours: null, remarks: 'Optical alignment issue - MX-2024-005', uii: generateUII(13, 'PN-TARGET-B'), mfg_date: '2019-08-22', acceptance_date: '2019-11-10', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: 'cycles', cycles_count: 1480 },
     // Laser Designator is a child SRA of Targeting System A (ACTS-001)
-    { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(12), next_pmi_date: addDays(28), eti_hours: 1500, remarks: 'Range limited to 5km', uii: generateUII(14, 'PN-LASER-SYS'), mfg_date: '2020-06-18', acceptance_date: '2020-09-25', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'RANGE-B', cust_loc_name: 'Range Area B', nha_asset_id: 11, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(7), next_pmi_date: null, eti_hours: 3100, remarks: 'Awaiting laser diode - MX-2024-006', uii: generateUII(15, 'PN-LASER-SYS'), mfg_date: '2019-03-12', acceptance_date: '2019-06-01', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'STORAGE-B', cust_loc_name: 'Storage Area B', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(12), next_pmi_date: addDays(28), eti_hours: 1500, remarks: 'Range limited to 5km', uii: generateUII(14, 'PN-LASER-SYS'), mfg_date: '2020-06-18', acceptance_date: '2020-09-25', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'RANGE-B', cust_loc_name: 'Range Area B', nha_asset_id: 11, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Delta', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(7), next_pmi_date: null, eti_hours: 3100, remarks: 'Awaiting laser diode - MX-2024-006', uii: generateUII(15, 'PN-LASER-SYS'), mfg_date: '2019-03-12', acceptance_date: '2019-06-01', admin_loc: 'FIELD-D', admin_loc_name: 'Field Site Delta', cust_loc: 'STORAGE-B', cust_loc_name: 'Storage Area B', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
     // Optical Sight Unit is a child SRA of Targeting System A (ACTS-001)
-    { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', part_name: 'Optical Sight Unit', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(40), next_pmi_date: addDays(50), eti_hours: 680, remarks: null, uii: generateUII(16, 'PN-OPTICS-01'), mfg_date: '2021-09-08', acceptance_date: '2021-12-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: 11, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', part_name: 'Optical Sight Unit', pgm_id: 2, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(40), next_pmi_date: addDays(50), eti_hours: 680, remarks: null, uii: generateUII(16, 'PN-OPTICS-01'), mfg_date: '2021-09-08', acceptance_date: '2021-12-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: 11, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
 
     // ARDS program assets (pgm_id: 3)
     // Data Processor (ARDS-001) is a parent assembly with Reconnaissance Camera and Data Link System as children
-    { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(22), next_pmi_date: addDays(68), eti_hours: 1400, remarks: null, uii: generateUII(17, 'PN-DATA-SYS'), mfg_date: '2020-04-25', acceptance_date: '2020-07-30', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'SERVER-ROOM', cust_loc_name: 'Server Room', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Echo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(35), next_pmi_date: addDays(55), eti_hours: 1650, remarks: null, uii: generateUII(18, 'PN-DATA-SYS'), mfg_date: '2020-06-10', acceptance_date: '2020-09-15', admin_loc: 'FIELD-E', admin_loc_name: 'Field Site Echo', cust_loc: 'DATA-CENTER', cust_loc_name: 'Data Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(22), next_pmi_date: addDays(68), eti_hours: 1400, remarks: null, uii: generateUII(17, 'PN-DATA-SYS'), mfg_date: '2020-04-25', acceptance_date: '2020-07-30', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'SERVER-ROOM', cust_loc_name: 'Server Room', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Echo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(35), next_pmi_date: addDays(55), eti_hours: 1650, remarks: null, uii: generateUII(18, 'PN-DATA-SYS'), mfg_date: '2020-06-10', acceptance_date: '2020-09-15', admin_loc: 'FIELD-E', admin_loc_name: 'Field Site Echo', cust_loc: 'DATA-CENTER', cust_loc_name: 'Data Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
     // Reconnaissance Camera is a child SRA of Data Processor (ARDS-001)
-    { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(8), next_pmi_date: addDays(22), eti_hours: 2200, remarks: 'IR channel degraded', uii: generateUII(19, 'PN-RECON-CAM'), mfg_date: '2019-10-14', acceptance_date: '2020-01-20', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 17, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: null, eti_hours: 2900, remarks: 'Lens recalibration - MX-2024-007', uii: generateUII(20, 'PN-RECON-CAM'), mfg_date: '2019-05-08', acceptance_date: '2019-08-15', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(8), next_pmi_date: addDays(22), eti_hours: 2200, remarks: 'IR channel degraded', uii: generateUII(19, 'PN-RECON-CAM'), mfg_date: '2019-10-14', acceptance_date: '2020-01-20', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 17, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Beta', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: null, eti_hours: 2900, remarks: 'Lens recalibration - MX-2024-007', uii: generateUII(20, 'PN-RECON-CAM'), mfg_date: '2019-05-08', acceptance_date: '2019-08-15', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
     // Data Link System is a child SRA of Data Processor (ARDS-001)
     { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', part_name: 'Data Link System', pgm_id: 3, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(100), next_pmi_date: null, eti_hours: null, remarks: 'Returning from depot repair', uii: generateUII(21, 'PN-LINK-SYS'), mfg_date: '2018-08-20', acceptance_date: '2018-11-30', admin_loc: 'DEPOT-B', admin_loc_name: 'Depot Beta', cust_loc: 'IN-TRANSIT', cust_loc_name: 'In Transit', nha_asset_id: 17, carrier: 'UPS', tracking_number: '1Z999AA10123456784', ship_date: subtractDays(5) },
 
     // Program 236 assets (pgm_id: 4)
     // Special System Alpha (236-001) is a parent assembly with Special System Beta and Gamma as children
-    { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(14), next_pmi_date: addDays(76), eti_hours: 560, remarks: null, uii: generateUII(22, 'PN-SPEC-001'), mfg_date: '2022-01-12', acceptance_date: '2022-04-01', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-A', cust_loc_name: 'Vault A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
-    { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(4), next_pmi_date: null, eti_hours: 1200, remarks: 'Awaiting classified component - MX-2024-010', uii: generateUII(23, 'PN-SPEC-001'), mfg_date: '2021-11-05', acceptance_date: '2022-02-15', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-B', cust_loc_name: 'Vault B', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(14), next_pmi_date: addDays(76), eti_hours: 560, remarks: null, uii: generateUII(22, 'PN-SPEC-001'), mfg_date: '2022-01-12', acceptance_date: '2022-04-01', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-A', cust_loc_name: 'Vault A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(4), next_pmi_date: null, eti_hours: 1200, remarks: 'Awaiting classified component - MX-2024-010', uii: generateUII(23, 'PN-SPEC-001'), mfg_date: '2021-11-05', acceptance_date: '2022-02-15', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-B', cust_loc_name: 'Vault B', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
     // Special System Beta is a child SRA of Special System Alpha (236-001)
-    { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', part_name: 'Special System Beta', pgm_id: 4, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(28), next_pmi_date: addDays(32), eti_hours: 890, remarks: 'Mode 3 limited', uii: generateUII(24, 'PN-SPEC-002'), mfg_date: '2021-06-22', acceptance_date: '2021-09-30', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-A', cust_loc_name: 'Vault A', nha_asset_id: 22, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', part_name: 'Special System Beta', pgm_id: 4, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(28), next_pmi_date: addDays(32), eti_hours: 890, remarks: 'Mode 3 limited', uii: generateUII(24, 'PN-SPEC-002'), mfg_date: '2021-06-22', acceptance_date: '2021-09-30', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-A', cust_loc_name: 'Vault A', nha_asset_id: 22, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
     // Special System Gamma is a child SRA of Special System Alpha (236-001)
-    { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(50), next_pmi_date: addDays(40), eti_hours: 340, remarks: null, uii: generateUII(25, 'PN-SPEC-003'), mfg_date: '2022-03-18', acceptance_date: '2022-06-25', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-C', cust_loc_name: 'Vault C', nha_asset_id: 22, carrier: null, tracking_number: null, ship_date: null },
+    { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Secure Facility', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(50), next_pmi_date: addDays(40), eti_hours: 340, remarks: null, uii: generateUII(25, 'PN-SPEC-003'), mfg_date: '2022-03-18', acceptance_date: '2022-06-25', admin_loc: 'SECURE-FAC', admin_loc_name: 'Secure Facility', cust_loc: 'VAULT-C', cust_loc_name: 'Vault C', nha_asset_id: 22, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
   ];
 }
 
@@ -7920,17 +8033,27 @@ app.get('/api/assets/:id/eti-history', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this asset' });
   }
 
-  // Get ETI history entries for this asset, sorted by timestamp descending (most recent first)
-  const history = etiHistory
+  // Get query parameter for meter type filtering
+  const meterTypeFilter = req.query.meter_type as string | undefined;
+
+  // Get meter history entries for this asset, sorted by timestamp descending (most recent first)
+  let history = meterHistory
     .filter(h => h.asset_id === assetId)
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  console.log(`[ETI] History request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${history.length} entries`);
+  // Filter by meter type if specified
+  if (meterTypeFilter && ['hours', 'cycles', 'eti'].includes(meterTypeFilter)) {
+    history = history.filter(h => h.meter_type === meterTypeFilter);
+  }
+
+  console.log(`[METER] History request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${history.length} entries`);
 
   res.json({
     asset_id: assetId,
     serno: asset.serno,
     current_eti_hours: asset.eti_hours,
+    current_cycles_count: asset.cycles_count,
+    meter_type: asset.meter_type,
     history,
     total: history.length,
   });
@@ -8047,6 +8170,315 @@ app.post('/api/assets/:id/eti', (req, res) => {
     new_eti_hours: calculatedNewETI,
     hours_added: calculatedHoursAdded,
     history_entry: historyEntry,
+  });
+});
+
+// POST /api/assets/:id/meter - Add meter reading for an asset (supports hours, cycles, ETI)
+app.post('/api/assets/:id/meter', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - ADMIN, DEPOT_MANAGER, and FIELD_TECHNICIAN can add meter readings
+  if (!['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to add meter readings' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = detailedAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  const { meter_type, value_to_add, new_value, source, source_ref, notes } = req.body;
+
+  // Validate meter_type
+  const validMeterTypes: Array<'hours' | 'cycles' | 'eti'> = ['hours', 'cycles', 'eti'];
+  if (!meter_type || !validMeterTypes.includes(meter_type)) {
+    return res.status(400).json({ error: 'meter_type must be one of: hours, cycles, eti' });
+  }
+
+  // Validate input - either value_to_add or new_value must be provided
+  if (value_to_add === undefined && new_value === undefined) {
+    return res.status(400).json({ error: 'Either value_to_add or new_value must be provided' });
+  }
+
+  // Validate source
+  const validSources: Array<'maintenance' | 'manual' | 'sortie'> = ['maintenance', 'manual', 'sortie'];
+  const sourceType = source || 'manual';
+  if (!validSources.includes(sourceType)) {
+    return res.status(400).json({ error: 'Invalid source. Must be maintenance, manual, or sortie' });
+  }
+
+  // Get old value based on meter type
+  let oldValue: number | null;
+  if (meter_type === 'cycles') {
+    oldValue = asset.cycles_count;
+  } else {
+    // 'hours' or 'eti' both use eti_hours field
+    oldValue = asset.eti_hours;
+  }
+
+  let calculatedValueAdded: number;
+  let calculatedNewValue: number;
+
+  if (new_value !== undefined) {
+    // Direct value set
+    calculatedNewValue = parseFloat(new_value);
+    if (isNaN(calculatedNewValue) || calculatedNewValue < 0) {
+      return res.status(400).json({ error: 'new_value must be a non-negative number' });
+    }
+    calculatedValueAdded = calculatedNewValue - (oldValue || 0);
+  } else {
+    // Add value to existing
+    calculatedValueAdded = parseFloat(value_to_add);
+    if (isNaN(calculatedValueAdded)) {
+      return res.status(400).json({ error: 'value_to_add must be a valid number' });
+    }
+    calculatedNewValue = (oldValue || 0) + calculatedValueAdded;
+    if (calculatedNewValue < 0) {
+      return res.status(400).json({ error: 'Meter value cannot be negative' });
+    }
+  }
+
+  // Update the asset's meter value based on type
+  if (meter_type === 'cycles') {
+    asset.cycles_count = calculatedNewValue;
+  } else {
+    // 'hours' or 'eti' both use eti_hours field
+    asset.eti_hours = calculatedNewValue;
+  }
+
+  // Also set/update the meter_type if not already set
+  if (!asset.meter_type) {
+    asset.meter_type = meter_type;
+  }
+
+  // Add meter history entry
+  const historyEntry = addMeterHistory(
+    assetId,
+    user,
+    meter_type,
+    oldValue,
+    calculatedNewValue,
+    calculatedValueAdded,
+    sourceType,
+    null,  // source_id - could be linked to maintenance event
+    source_ref || null,
+    notes || null
+  );
+
+  // Add to asset history as well
+  const meterLabel = meter_type === 'cycles' ? 'Cycles' : meter_type === 'eti' ? 'ETI Hours' : 'Hours';
+  const historyChanges: AssetHistoryChange[] = [{
+    field: meter_type === 'cycles' ? 'cycles_count' : 'eti_hours',
+    field_label: meterLabel,
+    old_value: oldValue?.toString() || '0',
+    new_value: calculatedNewValue.toString()
+  }];
+
+  addAssetHistory(
+    assetId,
+    user,
+    'update',
+    historyChanges,
+    `Updated ${meterLabel}: ${oldValue || 0} → ${calculatedNewValue} (${calculatedValueAdded >= 0 ? '+' : ''}${calculatedValueAdded} via ${sourceType})`
+  );
+
+  console.log(`[METER] ${meter_type} updated by ${user.username} for asset ${asset.serno}: ${oldValue || 0} → ${calculatedNewValue} (${calculatedValueAdded >= 0 ? '+' : ''}${calculatedValueAdded})`);
+
+  res.json({
+    message: `${meterLabel} updated successfully`,
+    asset_id: assetId,
+    serno: asset.serno,
+    meter_type: meter_type,
+    old_value: oldValue,
+    new_value: calculatedNewValue,
+    value_added: calculatedValueAdded,
+    history_entry: historyEntry,
+  });
+});
+
+// POST /api/assets/:id/replace-meter - Replace a meter on an asset (requires depot_manager or admin)
+app.post('/api/assets/:id/replace-meter', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - Only DEPOT_MANAGER and ADMIN can replace meters
+  if (!['ADMIN', 'DEPOT_MANAGER'].includes(user.role)) {
+    return res.status(403).json({ error: 'You do not have permission to replace meters' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = detailedAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  const { replacement_reason, new_meter_start_value, notes } = req.body;
+
+  // Validate input
+  if (!replacement_reason || replacement_reason.trim() === '') {
+    return res.status(400).json({ error: 'Replacement reason is required' });
+  }
+
+  if (new_meter_start_value === undefined || new_meter_start_value === null) {
+    return res.status(400).json({ error: 'New meter starting value is required' });
+  }
+
+  const parsedStartValue = parseFloat(new_meter_start_value);
+  if (isNaN(parsedStartValue) || parsedStartValue < 0) {
+    return res.status(400).json({ error: 'New meter start value must be a non-negative number' });
+  }
+
+  // Get the meter type for this asset (default to 'eti' if not set)
+  const meterType = asset.meter_type || 'eti';
+
+  // Store old meter value
+  const oldMeterValue = asset.eti_hours;
+
+  // Create meter replacement entry
+  const replacementEntry = addMeterReplacement(
+    assetId,
+    user,
+    meterType,
+    oldMeterValue,
+    parsedStartValue,
+    replacement_reason.trim(),
+    notes || null
+  );
+
+  // Add a special meter history entry marking the replacement
+  addMeterHistory(
+    assetId,
+    user,
+    meterType,
+    oldMeterValue,
+    parsedStartValue,
+    parsedStartValue - (oldMeterValue || 0),
+    'manual',
+    replacementEntry.replacement_id,
+    `METER-REPLACEMENT-${replacementEntry.replacement_id}`,
+    `Meter replaced: ${replacement_reason}. Old meter: ${oldMeterValue || 0}, New meter start: ${parsedStartValue}`
+  );
+
+  // Update the asset's meter value to the new starting value
+  asset.eti_hours = parsedStartValue;
+
+  // Add to asset history
+  const historyChanges: AssetHistoryChange[] = [{
+    field: 'eti_hours',
+    field_label: 'Meter Reading',
+    old_value: oldMeterValue?.toString() || '0',
+    new_value: parsedStartValue.toString()
+  }];
+
+  addAssetHistory(
+    assetId,
+    user,
+    'update',
+    historyChanges,
+    `Meter replaced: ${replacement_reason}. Old meter final reading: ${oldMeterValue || 0}, New meter starting value: ${parsedStartValue}`
+  );
+
+  console.log(`[METER-REPLACEMENT] Asset ${asset.serno}: ${user.username} replaced ${meterType} meter - Old: ${oldMeterValue || 0}, New Start: ${parsedStartValue} - Reason: ${replacement_reason}`);
+
+  res.json({
+    message: 'Meter replaced successfully',
+    asset_id: assetId,
+    serno: asset.serno,
+    meter_type: meterType,
+    old_meter_value: oldMeterValue,
+    new_meter_start_value: parsedStartValue,
+    replacement_reason: replacement_reason.trim(),
+    replacement_entry: replacementEntry,
+  });
+});
+
+// GET /api/assets/:id/meter-history - Get ETM (Engineering Time Meters) history for an asset
+// Returns all meter in/out readings from maintenance repairs
+app.get('/api/assets/:id/meter-history', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const asset = detailedAssets.find(a => a.asset_id === assetId);
+
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Get all repairs for this asset that have meter readings
+  const assetRepairs = repairs
+    .filter(r => r.asset_id === assetId && (r.eti_in !== null || r.eti_out !== null))
+    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+
+  // Get maintenance events for additional context
+  const eventIds = assetRepairs.map(r => r.event_id);
+  const relatedEvents = maintenanceEvents.filter(e => eventIds.includes(e.event_id));
+
+  // Build meter history entries with event context
+  const meterHistory = assetRepairs.map(repair => {
+    const event = relatedEvents.find(e => e.event_id === repair.event_id);
+    return {
+      repair_id: repair.repair_id,
+      event_id: repair.event_id,
+      job_no: event?.job_no || null,
+      start_date: repair.start_date,
+      stop_date: repair.stop_date,
+      type_maint: repair.type_maint,
+      shop_status: repair.shop_status,
+      eti_in: repair.eti_in,
+      eti_out: repair.eti_out,
+      eti_delta: repair.eti_delta,
+      narrative: repair.narrative,
+      created_by: repair.created_by_name,
+      created_at: repair.created_at,
+    };
+  });
+
+  console.log(`[METER] History request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${meterHistory.length} entries`);
+
+  res.json({
+    asset_id: assetId,
+    serno: asset.serno,
+    current_eti_hours: asset.eti_hours,
+    meter_history: meterHistory,
+    total: meterHistory.length,
   });
 });
 

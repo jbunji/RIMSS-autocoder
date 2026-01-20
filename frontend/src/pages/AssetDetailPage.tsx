@@ -106,6 +106,23 @@ interface ETIHistoryEntry {
   notes: string | null
 }
 
+// Meter history entry interface (ETM - Engineering Time Meters)
+interface MeterHistoryEntry {
+  repair_id: number
+  event_id: number
+  job_no: string | null
+  start_date: string
+  stop_date: string | null
+  type_maint: string
+  shop_status: 'open' | 'closed'
+  eti_in: number | null
+  eti_out: number | null
+  eti_delta: number | null
+  narrative: string
+  created_by: string
+  created_at: string
+}
+
 // Maintenance event interface for asset events
 interface MaintenanceEvent {
   event_id: number
@@ -224,7 +241,7 @@ interface SoftwareVersion {
 }
 
 // Tab type
-type TabType = 'details' | 'history' | 'eti' | 'maintenance' | 'pmi' | 'software'
+type TabType = 'details' | 'history' | 'eti' | 'meters' | 'maintenance' | 'pmi' | 'software'
 
 export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -253,6 +270,11 @@ export default function AssetDetailPage() {
   const [etiHistoryLoading, setEtiHistoryLoading] = useState(false)
   const [etiHistoryError, setEtiHistoryError] = useState<string | null>(null)
 
+  // Meter History state (ETM - Engineering Time Meters)
+  const [meterHistory, setMeterHistory] = useState<MeterHistoryEntry[]>([])
+  const [meterHistoryLoading, setMeterHistoryLoading] = useState(false)
+  const [meterHistoryError, setMeterHistoryError] = useState<string | null>(null)
+
   // ETI Update form state
   const [showEtiUpdateModal, setShowEtiUpdateModal] = useState(false)
   const [etiUpdateForm, setEtiUpdateForm] = useState({
@@ -264,6 +286,17 @@ export default function AssetDetailPage() {
   const [etiUpdating, setEtiUpdating] = useState(false)
   const [etiUpdateError, setEtiUpdateError] = useState<string | null>(null)
   const [etiUpdateSuccess, setEtiUpdateSuccess] = useState<string | null>(null)
+
+  // Meter Replacement state
+  const [showMeterReplacementModal, setShowMeterReplacementModal] = useState(false)
+  const [meterReplacementForm, setMeterReplacementForm] = useState({
+    replacement_reason: '',
+    new_meter_start_value: '',
+    notes: '',
+  })
+  const [meterReplacing, setMeterReplacing] = useState(false)
+  const [meterReplacementError, setMeterReplacementError] = useState<string | null>(null)
+  const [meterReplacementSuccess, setMeterReplacementSuccess] = useState<string | null>(null)
 
   // Maintenance Events state
   const [maintenanceEvents, setMaintenanceEvents] = useState<MaintenanceEvent[]>([])
@@ -473,6 +506,37 @@ export default function AssetDetailPage() {
     }
 
     fetchETIHistory()
+  }, [token, id, activeTab])
+
+  // Fetch meter history when Meters tab is selected
+  useEffect(() => {
+    const fetchMeterHistory = async () => {
+      if (!token || !id || activeTab !== 'meters') return
+
+      setMeterHistoryLoading(true)
+      setMeterHistoryError(null)
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/assets/${id}/meter-history`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch meter history')
+        }
+
+        const data = await response.json()
+        setMeterHistory(data.meter_history)
+      } catch (err) {
+        setMeterHistoryError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setMeterHistoryLoading(false)
+      }
+    }
+
+    fetchMeterHistory()
   }, [token, id, activeTab])
 
   // Fetch maintenance events when Maintenance tab is selected
@@ -998,6 +1062,16 @@ export default function AssetDetailPage() {
             }`}
           >
             ETI Tracking
+          </button>
+          <button
+            onClick={() => setActiveTab('meters')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'meters'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Meter History
           </button>
           <button
             onClick={() => setActiveTab('maintenance')}
@@ -1836,6 +1910,139 @@ export default function AssetDetailPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      ) : activeTab === 'meters' ? (
+        /* Meter History Tab */
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Meter History</h2>
+              <p className="mt-1 text-sm text-gray-500">Engineering Time Meters (ETM) readings from maintenance events</p>
+            </div>
+          </div>
+
+          {/* Current ETM Display */}
+          <div className="px-6 py-4 bg-green-50 border-b border-green-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-700">Current Meter Reading</p>
+                <p className="text-3xl font-bold text-green-900">
+                  {asset?.eti_hours?.toLocaleString() || '0'} <span className="text-lg font-normal">hrs</span>
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-green-600">Asset: {asset?.serno}</p>
+                <p className="text-sm text-green-600">Part: {asset?.partno}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Meter History Table */}
+          {meterHistoryLoading ? (
+            <div className="px-6 py-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-sm text-gray-500">Loading meter history...</p>
+            </div>
+          ) : meterHistoryError ? (
+            <div className="px-6 py-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="mt-4 text-sm text-red-600">{meterHistoryError}</p>
+            </div>
+          ) : meterHistory.length === 0 ? (
+            <div className="px-6 py-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <p className="mt-4 text-sm text-gray-500">No meter readings found</p>
+              <p className="mt-2 text-xs text-gray-400">Meter readings are recorded during maintenance events</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Event / Job No
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Meter In
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Meter Out
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Hours Added
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created By
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {meterHistory.map((entry) => (
+                    <tr key={entry.repair_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(entry.start_date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="font-medium text-gray-900">{entry.job_no || 'N/A'}</div>
+                        <div className="text-xs text-gray-500 truncate max-w-xs">{entry.narrative}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        <span className="font-mono text-gray-900">
+                          {entry.eti_in !== null ? entry.eti_in.toLocaleString() : '-'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        <span className="font-mono text-gray-900">
+                          {entry.eti_out !== null ? entry.eti_out.toLocaleString() : '-'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        {entry.eti_delta !== null ? (
+                          <span className={`font-semibold ${entry.eti_delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {entry.eti_delta >= 0 ? '+' : ''}{entry.eti_delta.toLocaleString()}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {entry.type_maint}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          entry.shop_status === 'open'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {entry.shop_status === 'open' ? 'Open' : 'Closed'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {entry.created_by}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
