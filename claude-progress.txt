@@ -42005,3 +42005,6 @@ Quality: Production-ready and mobile-accessible ✅
 [2026-01-20] Feature #311 parallel session complete - VERIFIED PASSING ✅
 ================================================================================
 
+[Testing] Feature #45 regression found and FIXED - ETI tracking now updates correctly when repair created
+[Testing] Feature #96 ETI in/out tracking on repairs - VERIFIED PASSING ✅
+[Testing] All 7 verification steps passed: ETI In (1350 hrs) → ETI Out (1375 hrs) → ETI Delta (25 hrs) → Asset updated to 1,375 hrs
