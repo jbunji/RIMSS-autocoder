@@ -10,6 +10,8 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   PencilIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
 } from '@heroicons/react/24/outline'
 
 interface PMIRecord {
@@ -90,6 +92,10 @@ export default function PMIPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [showOverdueOnly, setShowOverdueOnly] = useState<boolean>(false)
+
   // Add PMI modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [addingPMI, setAddingPMI] = useState(false)
@@ -120,6 +126,30 @@ export default function PMIPage() {
 
   // Check if user can create PMI (depot manager or admin)
   const canCreatePMI = user?.role === 'DEPOT_MANAGER' || user?.role === 'ADMIN'
+
+  // Filter PMI records based on search and filters
+  const filteredPMIRecords = pmiRecords.filter((pmi) => {
+    // Search filter: check if asset serial number matches
+    if (searchQuery && !pmi.asset_sn.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false
+    }
+
+    // Overdue filter: show only overdue PMIs if enabled
+    if (showOverdueOnly && pmi.days_until_due >= 0) {
+      return false
+    }
+
+    return true
+  })
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery('')
+    setShowOverdueOnly(false)
+  }
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery !== '' || showOverdueOnly
 
   // Fetch PMI records
   const fetchPMI = async () => {
@@ -397,27 +427,111 @@ export default function PMIPage() {
         </div>
       </div>
 
+      {/* Search and Filter Controls */}
+      <div className="bg-white rounded-lg shadow mb-6 p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Search input */}
+          <div className="flex-1">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              Search by Asset Serial Number
+            </label>
+            <div className="relative">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                id="search"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="e.g., CRIIS-001, Sensor Unit A..."
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Filter controls */}
+          <div className="flex items-end gap-4">
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showOverdueOnly}
+                  onChange={(e) => setShowOverdueOnly(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  <FunnelIcon className="h-4 w-4 inline mr-1" />
+                  Overdue Only
+                </span>
+              </label>
+            </div>
+
+            {/* Clear filters button */}
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Active filters display */}
+        {hasActiveFilters && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+            <span>Active filters:</span>
+            {searchQuery && (
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                Search: "{searchQuery}"
+              </span>
+            )}
+            {showOverdueOnly && (
+              <span className="px-2 py-1 bg-red-100 text-red-800 rounded">
+                Overdue Only
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* PMI List */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-4 py-3 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">All PMI Records ({pmiRecords.length})</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            All PMI Records ({filteredPMIRecords.length}{hasActiveFilters && ` of ${pmiRecords.length}`})
+          </h2>
         </div>
-        {pmiRecords.length === 0 ? (
+        {filteredPMIRecords.length === 0 ? (
           <div className="p-8 text-center">
             <CalendarDaysIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No PMI records found</p>
-            {canCreatePMI && (
-              <button
-                onClick={openAddModal}
-                className="mt-4 text-blue-600 hover:underline"
-              >
-                Create your first PMI record
-              </button>
+            {pmiRecords.length === 0 ? (
+              <>
+                <p className="text-gray-500">No PMI records found</p>
+                {canCreatePMI && (
+                  <button
+                    onClick={openAddModal}
+                    className="mt-4 text-blue-600 hover:underline"
+                  >
+                    Create your first PMI record
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500">No PMI records match your filters</p>
+                <button
+                  onClick={clearFilters}
+                  className="mt-4 text-blue-600 hover:underline"
+                >
+                  Clear filters to see all records
+                </button>
+              </>
             )}
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {pmiRecords.map((pmi) => {
+            {filteredPMIRecords.map((pmi) => {
               const colors = getDueDateColorClass(pmi.days_until_due)
               const badge = getStatusBadge(pmi.days_until_due, !!pmi.completed_date)
               return (
