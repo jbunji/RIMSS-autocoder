@@ -522,8 +522,31 @@ export default function MaintenanceDetailPage() {
   const [addLaborError, setAddLaborError] = useState<string | null>(null)
   const [addLaborSuccess, setAddLaborSuccess] = useState<string | null>(null)
 
-  // Delete Labor state
-  const [deletingLaborId, setDeletingLaborId] = useState<number | null>(null)
+  // Delete Labor modal state
+  const [isDeleteLaborModalOpen, setIsDeleteLaborModalOpen] = useState(false)
+  const [deletingLabor, setDeletingLabor] = useState<Labor | null>(null)
+  const [deletingLaborRepair, setDeletingLaborRepair] = useState<Repair | null>(null)
+  const [deleteLaborLoading, setDeleteLaborLoading] = useState(false)
+  const [deleteLaborError, setDeleteLaborError] = useState<string | null>(null)
+  const [deleteLaborSuccess, setDeleteLaborSuccess] = useState<string | null>(null)
+
+  // Edit Labor modal state
+  const [isEditLaborModalOpen, setIsEditLaborModalOpen] = useState(false)
+  const [editLaborRecord, setEditLaborRecord] = useState<Labor | null>(null)
+  const [editLaborRepair, setEditLaborRepair] = useState<Repair | null>(null)
+  const [editLaborForm, setEditLaborForm] = useState({
+    action_taken: '',
+    cat_labor: '',
+    crew_chief: '',
+    crew_size: '',
+    hours: '',
+    start_date: '',
+    stop_date: '',
+    corrective: '',
+  })
+  const [editLaborLoading, setEditLaborLoading] = useState(false)
+  const [editLaborError, setEditLaborError] = useState<string | null>(null)
+  const [editLaborSuccess, setEditLaborSuccess] = useState<string | null>(null)
 
   // Removal reason options
   const removalReasonOptions = [
@@ -1166,15 +1189,34 @@ export default function MaintenanceDetailPage() {
     }
   }
 
-  // Handle deleting labor record
-  const handleDeleteLabor = async (labor: Labor) => {
-    if (!token) return
+  // Open delete labor modal
+  const openDeleteLaborModal = (labor: Labor, repair: Repair) => {
+    setDeletingLabor(labor)
+    setDeletingLaborRepair(repair)
+    setDeleteLaborError(null)
+    setDeleteLaborSuccess(null)
+    setIsDeleteLaborModalOpen(true)
+  }
 
-    setDeletingLaborId(labor.labor_id)
+  // Close delete labor modal
+  const closeDeleteLaborModal = () => {
+    setIsDeleteLaborModalOpen(false)
+    setDeletingLabor(null)
+    setDeletingLaborRepair(null)
+    setDeleteLaborError(null)
+    setDeleteLaborSuccess(null)
+  }
+
+  // Handle deleting labor record (called from modal confirmation)
+  const handleDeleteLabor = async () => {
+    if (!token || !deletingLabor) return
+
+    setDeleteLaborLoading(true)
+    setDeleteLaborError(null)
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/labor/${labor.labor_id}`,
+        `http://localhost:3001/api/labor/${deletingLabor.labor_id}`,
         {
           method: 'DELETE',
           headers: {
@@ -1188,13 +1230,110 @@ export default function MaintenanceDetailPage() {
         throw new Error(errorData.error || 'Failed to delete labor record')
       }
 
+      setDeleteLaborSuccess(`Labor #${deletingLabor.labor_seq} deleted successfully!`)
+
       // Refresh labor records for this repair
-      await fetchLabor(labor.repair_id)
+      await fetchLabor(deletingLabor.repair_id)
+
+      // Close modal after a short delay to show success message
+      setTimeout(() => {
+        closeDeleteLaborModal()
+      }, 1500)
     } catch (err) {
       console.error('Error deleting labor:', err)
-      alert(err instanceof Error ? err.message : 'Failed to delete labor record')
+      setDeleteLaborError(err instanceof Error ? err.message : 'Failed to delete labor record')
     } finally {
-      setDeletingLaborId(null)
+      setDeleteLaborLoading(false)
+    }
+  }
+
+  // Open Edit Labor modal
+  const openEditLaborModal = (labor: Labor, repair: Repair) => {
+    setEditLaborRecord(labor)
+    setEditLaborRepair(repair)
+    setEditLaborForm({
+      action_taken: labor.action_taken || '',
+      cat_labor: labor.cat_labor || '',
+      crew_chief: labor.crew_chief || '',
+      crew_size: labor.crew_size?.toString() || '',
+      hours: labor.hours?.toString() || '',
+      start_date: labor.start_date || '',
+      stop_date: labor.stop_date || '',
+      corrective: labor.corrective || '',
+    })
+    setEditLaborError(null)
+    setEditLaborSuccess(null)
+    setIsEditLaborModalOpen(true)
+  }
+
+  // Close Edit Labor modal
+  const closeEditLaborModal = () => {
+    setIsEditLaborModalOpen(false)
+    setEditLaborRecord(null)
+    setEditLaborRepair(null)
+    setEditLaborForm({
+      action_taken: '',
+      cat_labor: '',
+      crew_chief: '',
+      crew_size: '',
+      hours: '',
+      start_date: '',
+      stop_date: '',
+      corrective: '',
+    })
+    setEditLaborError(null)
+    setEditLaborSuccess(null)
+  }
+
+  // Handle editing labor record
+  const handleEditLabor = async () => {
+    if (!token || !editLaborRecord) return
+
+    setEditLaborLoading(true)
+    setEditLaborError(null)
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/labor/${editLaborRecord.labor_id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            action_taken: editLaborForm.action_taken || null,
+            cat_labor: editLaborForm.cat_labor || null,
+            crew_chief: editLaborForm.crew_chief || null,
+            crew_size: editLaborForm.crew_size ? parseInt(editLaborForm.crew_size, 10) : null,
+            hours: editLaborForm.hours ? parseFloat(editLaborForm.hours) : null,
+            start_date: editLaborForm.start_date || null,
+            stop_date: editLaborForm.stop_date || null,
+            corrective: editLaborForm.corrective || null,
+          }),
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update labor record')
+      }
+
+      const data = await response.json()
+      setEditLaborSuccess(`Labor #${data.labor.labor_seq} updated successfully!`)
+
+      // Refresh labor records for this repair
+      await fetchLabor(editLaborRecord.repair_id)
+
+      // Auto-close modal after success
+      setTimeout(() => {
+        closeEditLaborModal()
+      }, 1500)
+    } catch (err) {
+      console.error('Error updating labor:', err)
+      setEditLaborError(err instanceof Error ? err.message : 'Failed to update labor record')
+    } finally {
+      setEditLaborLoading(false)
     }
   }
 
@@ -2748,20 +2887,26 @@ export default function MaintenanceDetailPage() {
                                       </p>
                                     )}
                                   </div>
-                                  {canDeleteRepairs && repair.shop_status === 'open' && event.status === 'open' && (
-                                    <button
-                                      onClick={() => handleDeleteLabor(labor)}
-                                      disabled={deletingLaborId === labor.labor_id}
-                                      className="ml-2 p-1 text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded disabled:opacity-50"
-                                      title="Delete labor record"
-                                    >
-                                      {deletingLaborId === labor.labor_id ? (
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
-                                      ) : (
+                                  <div className="flex items-center">
+                                    {canEdit && repair.shop_status === 'open' && event.status === 'open' && (
+                                      <button
+                                        onClick={() => openEditLaborModal(labor, repair)}
+                                        className="p-1 text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded"
+                                        title="Edit labor record"
+                                      >
+                                        <PencilSquareIcon className="h-4 w-4" />
+                                      </button>
+                                    )}
+                                    {canDeleteRepairs && repair.shop_status === 'open' && event.status === 'open' && (
+                                      <button
+                                        onClick={() => openDeleteLaborModal(labor, repair)}
+                                        className="ml-1 p-1 text-purple-500 hover:text-purple-700 hover:bg-purple-100 rounded"
+                                        title="Delete labor record"
+                                      >
                                         <TrashIcon className="h-4 w-4" />
-                                      )}
-                                    </button>
-                                  )}
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -4553,6 +4698,149 @@ export default function MaintenanceDetailPage() {
         </div>
       </Dialog>
 
+      {/* Delete Labor Modal */}
+      <Dialog open={isDeleteLaborModalOpen} onClose={closeDeleteLaborModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-lg w-full bg-white rounded-xl shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <TrashIcon className="h-5 w-5 mr-2 text-red-500" />
+                Delete Labor #{deletingLabor?.labor_seq}
+              </Dialog.Title>
+              <button
+                onClick={closeDeleteLaborModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              {/* Success Message */}
+              {deleteLaborSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700">{deleteLaborSuccess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {deleteLaborError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <p className="text-red-700 text-sm">{deleteLaborError}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Warning message */}
+              {!deleteLaborSuccess && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-700 text-sm font-medium">
+                        Are you sure you want to delete this labor record?
+                      </p>
+                      <p className="text-red-600 text-sm mt-1">
+                        This action cannot be undone.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Labor Info (read-only) */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Labor Details</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500">Labor #:</span>{' '}
+                    <span className="text-gray-900 font-medium">{deletingLabor?.labor_seq}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Repair #:</span>{' '}
+                    <span className="text-gray-900">{deletingLaborRepair?.repair_seq}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Start Date:</span>{' '}
+                    <span className="text-gray-900">
+                      {deletingLabor?.start_date ? new Date(deletingLabor.start_date).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                  {deletingLabor?.stop_date && (
+                    <div>
+                      <span className="text-gray-500">Stop Date:</span>{' '}
+                      <span className="text-gray-900">
+                        {new Date(deletingLabor.stop_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                  {deletingLabor?.hours !== null && (
+                    <div>
+                      <span className="text-gray-500">Hours:</span>{' '}
+                      <span className="text-gray-900">{deletingLabor?.hours}</span>
+                    </div>
+                  )}
+                  {deletingLabor?.crew_chief && (
+                    <div>
+                      <span className="text-gray-500">Chief:</span>{' '}
+                      <span className="text-gray-900">{deletingLabor?.crew_chief}</span>
+                    </div>
+                  )}
+                </div>
+                {deletingLabor?.action_taken && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <span className="text-gray-500 text-sm">Action Taken:</span>
+                    <span className="text-gray-900 text-sm ml-1">{deletingLabor.action_taken}</span>
+                  </div>
+                )}
+                {deletingLabor?.corrective && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <span className="text-gray-500 text-sm">Corrective:</span>
+                    <p className="text-gray-900 text-sm mt-1">{deletingLabor.corrective}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button
+                onClick={closeDeleteLaborModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={deleteLaborLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteLabor}
+                disabled={deleteLaborLoading || !!deleteLaborSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {deleteLaborLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <TrashIcon className="h-4 w-4 mr-2" />
+                    Delete Labor
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
       {/* Add Installed Part Modal */}
       <Dialog
         open={isAddInstalledPartModalOpen}
@@ -5100,6 +5388,191 @@ export default function MaintenanceDetailPage() {
                   <>
                     <WrenchScrewdriverIcon className="h-4 w-4 mr-2" />
                     Add Labor
+                  </>
+                )}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Edit Labor Modal */}
+      <Dialog open={isEditLaborModalOpen} onClose={closeEditLaborModal} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md w-full bg-white rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white">
+              <Dialog.Title className="text-lg font-semibold text-gray-900 flex items-center">
+                <PencilSquareIcon className="h-5 w-5 mr-2 text-purple-500" />
+                Edit Labor
+                {editLaborRecord && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    (Labor #{editLaborRecord.labor_seq})
+                  </span>
+                )}
+              </Dialog.Title>
+              <button
+                onClick={closeEditLaborModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {editLaborSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center text-green-700 text-sm">
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {editLaborSuccess}
+                </div>
+              )}
+
+              {editLaborError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center text-red-700 text-sm">
+                  <ExclamationTriangleIcon className="h-5 w-5 mr-2" />
+                  {editLaborError}
+                </div>
+              )}
+
+              {/* Action Taken Code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Action Taken Code
+                </label>
+                <select
+                  value={editLaborForm.action_taken}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, action_taken: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                >
+                  {actionTakenOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category of Labor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category of Labor
+                </label>
+                <select
+                  value={editLaborForm.cat_labor}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, cat_labor: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                >
+                  {catLaborOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Crew Chief Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Crew Chief Name
+                </label>
+                <input
+                  type="text"
+                  value={editLaborForm.crew_chief}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, crew_chief: e.target.value }))}
+                  placeholder="Enter crew chief name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Crew Size */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Crew Size
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={editLaborForm.crew_size}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, crew_size: e.target.value }))}
+                  placeholder="Number of workers"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Hours Worked */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hours Worked
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={editLaborForm.hours}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, hours: e.target.value }))}
+                  placeholder="Enter hours worked"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Start Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  value={editLaborForm.start_date}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, start_date: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Stop Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stop Date
+                </label>
+                <input
+                  type="date"
+                  value={editLaborForm.stop_date}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, stop_date: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+              </div>
+
+              {/* Corrective Action Narrative */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Corrective Action Narrative
+                </label>
+                <textarea
+                  value={editLaborForm.corrective}
+                  onChange={(e) => setEditLaborForm(prev => ({ ...prev, corrective: e.target.value }))}
+                  placeholder="Describe the corrective action taken..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50 sticky bottom-0">
+              <button
+                onClick={closeEditLaborModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditLabor}
+                disabled={editLaborLoading || !!editLaborSuccess}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {editLaborLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleIcon className="h-4 w-4 mr-2" />
+                    Save Changes
                   </>
                 )}
               </button>
