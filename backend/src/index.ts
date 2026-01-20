@@ -9643,6 +9643,11 @@ app.delete('/api/assets/:id', (req, res) => {
 
   const asset = detailedAssets[assetIndex];
 
+  // Check if asset is already deleted (idempotency check)
+  if (asset.active === false) {
+    return res.status(404).json({ error: 'Asset not found or already deleted' });
+  }
+
   // Check if user has access to this asset's program
   const userProgramIds = user.programs.map(p => p.pgm_id);
   if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
@@ -12228,6 +12233,13 @@ app.delete('/api/configurations/:id/meters/:meterId', (req, res) => {
     return res.status(404).json({ error: 'Meter tracking requirement not found' });
   }
 
+  const meter = configurationMeters[meterIndex];
+
+  // Check if meter is already deleted (idempotency check)
+  if (meter.active === false) {
+    return res.status(404).json({ error: 'Meter tracking requirement not found or already deleted' });
+  }
+
   // Soft delete by setting active to false
   configurationMeters[meterIndex].active = false;
   configurationMeters[meterIndex].chg_by = user.username;
@@ -13664,6 +13676,11 @@ app.delete('/api/spares/:id', async (req, res) => {
 
     if (!spare) {
       return res.status(404).json({ error: 'Spare not found' });
+    }
+
+    // Check if spare is already deleted (idempotency check)
+    if (spare.active === false) {
+      return res.status(404).json({ error: 'Spare not found or already deleted' });
     }
 
     // Soft delete (set active = false)
