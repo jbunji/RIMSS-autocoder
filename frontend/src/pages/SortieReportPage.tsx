@@ -142,7 +142,125 @@ export default function SortieReportPage() {
     return `${year}${month}${day}`
   }
 
-  const handleExport = () => {
+  const exportToPDF = () => {
+    if (!summary || sorties.length === 0) return
+
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const zuluTimestamp = getZuluTimestamp()
+
+    // CUI Banner text
+    const cuiHeaderText = 'CONTROLLED UNCLASSIFIED INFORMATION (CUI)'
+    const cuiFooterText = 'CUI - CONTROLLED UNCLASSIFIED INFORMATION'
+
+    // Add CUI header function
+    const addCuiHeader = () => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, 0, pageWidth, 12, 'F')
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiHeaderText, pageWidth / 2, 7, { align: 'center' })
+    }
+
+    // Add CUI footer function
+    const addCuiFooter = (pageNum: number, totalPages: number) => {
+      doc.setFillColor(254, 243, 199) // #FEF3C7
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(cuiFooterText, pageWidth / 2, pageHeight - 5, { align: 'center' })
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - 15, pageHeight - 5, { align: 'right' })
+    }
+
+    // Add header
+    addCuiHeader()
+
+    // Title
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 0, 0)
+    doc.text('RIMSS Sortie Report', pageWidth / 2, 20, { align: 'center' })
+
+    // Metadata
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${zuluTimestamp}`, 14, 28)
+    if (user?.program_cd && user?.program_name) {
+      doc.text(`Program: ${user.program_cd} - ${user.program_name}`, 14, 33)
+    }
+    const dateRangeText = `Date Range: ${formatDate(summary.date_range.start)} to ${formatDate(summary.date_range.end)}`
+    doc.text(dateRangeText, 14, user?.program_cd ? 38 : 33)
+    const statsText = `Total: ${summary.total_sorties} | FMC: ${summary.fmc_count} | PMC: ${summary.pmc_count} | NMCM: ${summary.nmcm_count} | NMCS: ${summary.nmcs_count}`
+    doc.text(statsText, 14, user?.program_cd ? 43 : 38)
+
+    // Prepare table data
+    const tableHeaders = [
+      'Mission ID',
+      'Serial No',
+      'Tail No',
+      'Date',
+      'Effect',
+      'Unit',
+      'Range',
+      'Reason'
+    ]
+
+    const tableData = sorties.map(sortie => [
+      sortie.mission_id,
+      sortie.serno,
+      sortie.ac_tailno || '-',
+      formatDate(sortie.sortie_date),
+      sortie.sortie_effect || '-',
+      sortie.current_unit || '-',
+      sortie.range || '-',
+      sortie.reason ? sortie.reason.substring(0, 20) : '-'
+    ])
+
+    // Generate table
+    const startY = user?.program_cd ? 48 : 43
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+      startY: startY,
+      margin: { left: 14, right: 14, top: 15, bottom: 15 },
+      styles: {
+        fontSize: 7,
+        cellPadding: 1.5,
+      },
+      headStyles: {
+        fillColor: [59, 130, 246], // primary-600
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251], // gray-50
+      },
+      didDrawPage: (data: any) => {
+        const pageCount = (doc as any).internal.pages.length - 1
+        const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber
+        addCuiFooter(currentPage, pageCount)
+      },
+    })
+
+    // Get filename with ZULU date
+    const zuluDate = getZuluDateForFilename()
+    const filename = `CUI-Sortie-Report-${zuluDate}.pdf`
+
+    // Save the PDF
+    doc.save(filename)
+  }
+
+  const exportToExcel = () => {
     if (!summary || sorties.length === 0) return
 
     const zuluTimestamp = getZuluTimestamp()
@@ -398,13 +516,24 @@ export default function SortieReportPage() {
             <h2 className="text-lg font-semibold text-gray-900">
               Sortie Details ({sorties.length} sorties)
             </h2>
-            <button
-              onClick={handleExport}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-              Export Report
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={exportToPDF}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-sm"
+                title="Export to PDF"
+              >
+                <DocumentArrowDownIcon className="h-4 w-4" />
+                Export PDF
+              </button>
+              <button
+                onClick={exportToExcel}
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-sm"
+                title="Export to Excel"
+              >
+                <DocumentArrowDownIcon className="h-4 w-4" />
+                Export Excel
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
