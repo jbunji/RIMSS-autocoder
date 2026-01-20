@@ -41290,3 +41290,129 @@ Duration: ~45 minutes
 ================================================================================
 [2026-01-20] Feature #308 parallel session complete - VERIFIED PASSING ✅
 ================================================================================
+
+================================================================================
+[2026-01-20] REGRESSION TEST: Feature #49 - Assets filtered by user program
+================================================================================
+
+Session Type: REGRESSION TESTING
+Feature: #49 - Assets filtered by user program
+Initial Status: PASSING (from previous session)
+Final Status: PASSING ✅ (after fixing regression)
+Duration: ~60 minutes
+
+REGRESSION DISCOVERED AND FIXED:
+
+Initial Test:
+- Logged in as field_tech (CRIIS-only user) with password: field123
+- Navigated to Assets page - Page 1 loaded successfully
+- Showed 18 CRIIS assets correctly filtered
+
+REGRESSION FOUND:
+- When navigating to page 2, the application crashed with error:
+  "TypeError: Cannot read properties of undefined (reading 'toLocaleString')"
+- Error occurred at AssetsPage.tsx line 956 (and line 524 for PDF export)
+- Page displayed completely blank (white screen)
+
+ROOT CAUSE:
+The code was checking `asset.eti_hours !== null` which only catches null
+values, not undefined. Some assets on page 2 have eti_hours set to undefined,
+causing the crash when trying to call .toLocaleString() on undefined.
+
+FIX APPLIED:
+Changed from: `asset.eti_hours !== null`
+Changed to: `asset.eti_hours != null`
+
+Using `!= null` (loose equality) checks for both null AND undefined in
+JavaScript, preventing the TypeError.
+
+Fixed in two locations:
+1. Table rendering (line 956)
+2. PDF export (line 524)
+
+VERIFICATION AFTER FIX:
+
+✅ Step 1: Log in as user assigned to CRIIS only
+   - Logged in as field_tech
+   - Role: FIELD_TECHNICIAN
+   - Program: CRIIS (only program assigned)
+
+✅ Step 2: Navigate to Assets page
+   - Successfully navigated to /assets
+   - Page header: "Viewing assets for CRIIS - Common Remotely Operated 
+     Integrated Reconnaissance System"
+   - Total: 18 assets
+
+✅ Step 3: Verify only CRIIS assets display
+   - Page 1: 10 CRIIS assets (CRIIS-001 through CRIIS-F301-TEST)
+   - Page 2: 8 assets (CRIIS-F304-TEST, CRIIS-F306-MANUAL-DISMISS, etc.)
+   - All assets belong to CRIIS program
+   - NO crashes or errors
+
+✅ Step 4: Verify no ACTS assets visible
+   - Searched for "ACTS" in search box
+   - Result: "No assets found" (0 total assets)
+   - Screenshot: feature_49_search_acts_no_results.png
+
+✅ Step 5: Verify no ARDS assets visible
+   - Searched for "ARDS" in search box
+   - Result: "No assets found" (0 total assets)
+   - Screenshot: feature_49_search_ards_no_results.png
+
+✅ Step 6: Verify no 236 assets visible
+   - Searched for "236" in search box
+   - Result: "No assets found" (0 total assets)
+   - Screenshot: feature_49_search_236_no_results.png
+
+QUALITY METRICS:
+
+✅ Functionality:
+   - Program filtering working correctly (CRIIS-only user sees only CRIIS assets)
+   - Pagination working without errors
+   - Search filtering works correctly
+   - No cross-program data leakage
+
+✅ Bug Fix:
+   - Regression identified and fixed
+   - Page 2 now loads successfully
+   - All pages handle both null and undefined eti_hours values
+
+✅ Code Quality:
+   - Zero console errors after fix
+   - Proper null/undefined checking
+   - Fix applied to both rendering and export functionality
+
+CONSOLE VERIFICATION:
+✅ Zero JavaScript errors after fix
+✅ Only expected React Router future flag warnings
+✅ Token refresh scheduled correctly
+
+SCREENSHOTS CAPTURED:
+1. feature_49_step2_assets_page_criis_only.png - Page 1 with CRIIS assets
+2. feature_49_regression_page2_crash.png - Page 2 crash before fix (blank page)
+3. feature_49_page2_fixed.png - Page 2 working after fix
+4. feature_49_search_acts_no_results.png - No ACTS assets found
+5. feature_49_search_ards_no_results.png - No ARDS assets found
+6. feature_49_search_236_no_results.png - No 236 assets found
+
+GIT COMMIT:
+Commit: b41b2d6
+Message: "Fix regression in AssetsPage: Handle undefined eti_hours on pagination"
+
+CONCLUSION:
+Feature #49 regression was successfully identified and fixed. The program
+filtering functionality works correctly - CRIIS-only users see only CRIIS
+assets and cannot access assets from other programs (ACTS, ARDS, 236). The
+pagination bug was a separate issue unrelated to the core feature, caused by
+improper null/undefined handling.
+
+Result: Feature #49 marked as PASSING ✅ (after fix)
+Progress: 306/374 features passing (81.8%)
+
+Session Type: REGRESSION TESTING - Single feature
+Testing Method: Full end-to-end browser automation with bug fix
+Quality: Production-ready ✅
+
+================================================================================
+[2026-01-20] Feature #49 regression test complete - FIXED AND VERIFIED ✅
+================================================================================
