@@ -1,0 +1,162 @@
+### Page state
+- Page URL: http://localhost:5173/parts-orders/2
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e26]:
+  - generic [ref=e27]: CUI - Controlled Unclassified Information
+  - navigation [ref=e29]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - button "Toggle sidebar" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - generic [ref=e36]:
+          - generic [ref=e37]: RIMSS
+          - generic [ref=e38]: Remote Independent Maintenance Status System
+      - generic [ref=e39]:
+        - link "View notifications" [ref=e40] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e41]
+          - generic [ref=e43]: "3"
+        - 'button "Program: CRIIS" [ref=e45] [cursor=pointer]':
+          - generic [ref=e46]: "Program:"
+          - generic [ref=e47]: CRIIS
+          - img [ref=e48]
+        - button "Jane Depot" [ref=e51] [cursor=pointer]:
+          - img [ref=e52]
+          - generic [ref=e54]: Jane Depot
+          - img [ref=e55]
+  - generic [ref=e59]:
+    - navigation [ref=e60]:
+      - generic [ref=e61]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e63]
+          - text: Dashboard
+        - link "Assets" [ref=e65] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e66]
+          - text: Assets
+        - link "Configurations" [ref=e68] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e69]
+          - text: Configurations
+        - link "Maintenance" [ref=e72] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e73]
+          - text: Maintenance
+        - link "Sorties" [ref=e75] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e76]
+          - text: Sorties
+        - link "Spares" [ref=e78] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e79]
+          - text: Spares
+        - link "Parts Ordered" [ref=e81] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e82]
+          - text: Parts Ordered
+        - link "Software" [ref=e84] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e85]
+          - text: Software
+        - link "Notifications" [ref=e87] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e88]
+          - text: Notifications
+        - link "Reports" [ref=e90] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e91]
+          - text: Reports
+    - paragraph [ref=e94]: RIMSS v0.1.0
+  - main [ref=e96]:
+    - generic [ref=e613]:
+      - generic [ref=e614]:
+        - button "Back" [ref=e615] [cursor=pointer]:
+          - img [ref=e616]
+          - text: Back
+        - generic [ref=e618]:
+          - generic [ref=e619]:
+            - 'heading "Parts Order #2" [level=1] [ref=e620]'
+            - paragraph [ref=e621]: Air Filter Assembly
+          - generic [ref=e622]:
+            - button "Receive" [ref=e623] [cursor=pointer]:
+              - img [ref=e624]
+              - text: Receive
+            - generic [ref=e626]: Routine
+            - generic [ref=e627]: Shipped
+      - generic [ref=e629] [cursor=pointer]:
+        - checkbox "Flag for PQDR (Product Quality Deficiency Report)" [ref=e630]
+        - img [ref=e631]
+        - generic [ref=e633]: Flag for PQDR (Product Quality Deficiency Report)
+      - navigation [ref=e635]:
+        - button "Details" [ref=e636] [cursor=pointer]
+        - button "History" [active] [ref=e637] [cursor=pointer]
+      - generic [ref=e718]:
+        - heading "Order History" [level=2] [ref=e719]
+        - list [ref=e721]:
+          - listitem [ref=e722]:
+            - generic [ref=e725]:
+              - img [ref=e729]
+              - generic [ref=e731]:
+                - generic [ref=e732]:
+                  - generic [ref=e733]: Bob Field
+                  - paragraph [ref=e734]: January 20, 2026 at 01:59:17 AM
+                - generic [ref=e735]:
+                  - paragraph [ref=e736]: Parts request created for Air Filter Assembly
+                  - generic [ref=e737]:
+                    - generic [ref=e738]:
+                      - generic [ref=e739]: "part no:"
+                      - generic [ref=e740]: PN-FLT-002
+                    - generic [ref=e741]:
+                      - generic [ref=e742]: "qty ordered:"
+                      - generic [ref=e743]: "5"
+                    - generic [ref=e744]:
+                      - generic [ref=e745]: "priority:"
+                      - generic [ref=e746]: routine
+                    - generic [ref=e747]:
+                      - generic [ref=e748]: "asset sn:"
+                      - generic [ref=e749]: "null"
+                    - generic [ref=e750]:
+                      - generic [ref=e751]: "job no:"
+                      - generic [ref=e752]: "null"
+          - listitem [ref=e753]:
+            - generic [ref=e756]:
+              - img [ref=e760]
+              - generic [ref=e762]:
+                - generic [ref=e763]:
+                  - generic [ref=e764]: Jane Depot
+                  - paragraph [ref=e765]: January 20, 2026 at 01:59:17 AM
+                - generic [ref=e766]:
+                  - paragraph [ref=e767]: Order acknowledged by depot
+                  - generic [ref=e769]:
+                    - generic [ref=e770]: "acknowledged date:"
+                    - generic [ref=e771]: 2026-01-19
+          - listitem [ref=e772]:
+            - generic [ref=e774]:
+              - img [ref=e778]
+              - generic [ref=e780]:
+                - generic [ref=e781]:
+                  - generic [ref=e782]: Jane Depot
+                  - paragraph [ref=e783]: January 20, 2026 at 01:59:17 AM
+                - generic [ref=e784]:
+                  - paragraph [ref=e785]: Order filled with replacement part SPARE-FLT-001
+                  - generic [ref=e786]:
+                    - generic [ref=e787]:
+                      - generic [ref=e788]: "filled date:"
+                      - generic [ref=e789]: 2026-01-19
+                    - generic [ref=e790]:
+                      - generic [ref=e791]: "replacement serno:"
+                      - generic [ref=e792]: SPARE-FLT-001
+                    - generic [ref=e793]:
+                      - generic [ref=e794]: "shipper:"
+                      - generic [ref=e795]: UPS
+                    - generic [ref=e796]:
+                      - generic [ref=e797]: "tracking number:"
+                      - generic [ref=e798]: UPS-2024-TEST-123
+                    - generic [ref=e799]:
+                      - generic [ref=e800]: "ship date:"
+                      - generic [ref=e801]: 2026-01-19
+  - contentinfo [ref=e487]: CUI - Controlled Unclassified Information
+```

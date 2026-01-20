@@ -1,0 +1,122 @@
+### Page state
+- Page URL: http://localhost:5173/parts-orders/8
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e26]:
+  - generic [ref=e27]: CUI - Controlled Unclassified Information
+  - navigation [ref=e29]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - button "Toggle sidebar" [ref=e33] [cursor=pointer]:
+          - img [ref=e34]
+        - generic [ref=e36]:
+          - generic [ref=e37]: RIMSS
+          - generic [ref=e38]: Remote Independent Maintenance Status System
+      - generic [ref=e39]:
+        - link "View notifications" [ref=e40] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e41]
+          - generic [ref=e43]: "3"
+        - 'button "Program: CRIIS" [ref=e45] [cursor=pointer]':
+          - generic [ref=e46]: "Program:"
+          - generic [ref=e47]: CRIIS
+          - img [ref=e48]
+        - button "Jane Depot" [ref=e51] [cursor=pointer]:
+          - img [ref=e52]
+          - generic [ref=e54]: Jane Depot
+          - img [ref=e55]
+  - generic [ref=e59]:
+    - navigation [ref=e60]:
+      - generic [ref=e61]:
+        - link "Dashboard" [ref=e62] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e63]
+          - text: Dashboard
+        - link "Assets" [ref=e65] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e66]
+          - text: Assets
+        - link "Configurations" [ref=e68] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e69]
+          - text: Configurations
+        - link "Maintenance" [ref=e72] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e73]
+          - text: Maintenance
+        - link "Sorties" [ref=e75] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e76]
+          - text: Sorties
+        - link "Spares" [ref=e78] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e79]
+          - text: Spares
+        - link "Parts Ordered" [ref=e81] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e82]
+          - text: Parts Ordered
+        - link "Software" [ref=e84] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e85]
+          - text: Software
+        - link "Notifications" [ref=e87] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e88]
+          - text: Notifications
+        - link "Reports" [ref=e90] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e91]
+          - text: Reports
+    - paragraph [ref=e94]: RIMSS v0.1.0
+  - main [ref=e96]:
+    - generic [ref=e927]:
+      - generic [ref=e928]:
+        - button "Back" [ref=e929] [cursor=pointer]:
+          - img [ref=e930]
+          - text: Back
+        - generic [ref=e932]:
+          - generic [ref=e933]:
+            - 'heading "Parts Order #8" [level=1] [ref=e934]'
+            - paragraph [ref=e935]: O-Ring Seal Kit
+          - generic [ref=e936]:
+            - generic [ref=e937]: Routine
+            - generic [ref=e938]: Received
+      - generic [ref=e940] [cursor=pointer]:
+        - checkbox "Flag for PQDR (Product Quality Deficiency Report)" [ref=e941]
+        - img [ref=e942]
+        - generic [ref=e944]: Flag for PQDR (Product Quality Deficiency Report)
+      - navigation [ref=e946]:
+        - button "Details" [ref=e947] [cursor=pointer]
+        - button "History" [active] [ref=e948] [cursor=pointer]
+      - generic [ref=e1008]:
+        - heading "Order History" [level=2] [ref=e1009]
+        - list [ref=e1011]:
+          - listitem [ref=e1012]:
+            - generic [ref=e1014]:
+              - img [ref=e1018]
+              - generic [ref=e1020]:
+                - generic [ref=e1021]:
+                  - generic [ref=e1022]: Bob Field
+                  - paragraph [ref=e1023]: January 20, 2026 at 01:59:17 AM
+                - generic [ref=e1024]:
+                  - paragraph [ref=e1025]: Parts request created for O-Ring Seal Kit
+                  - generic [ref=e1026]:
+                    - generic [ref=e1027]:
+                      - generic [ref=e1028]: "part no:"
+                      - generic [ref=e1029]: PN-SEAL-008
+                    - generic [ref=e1030]:
+                      - generic [ref=e1031]: "qty ordered:"
+                      - generic [ref=e1032]: "20"
+                    - generic [ref=e1033]:
+                      - generic [ref=e1034]: "priority:"
+                      - generic [ref=e1035]: routine
+                    - generic [ref=e1036]:
+                      - generic [ref=e1037]: "asset sn:"
+                      - generic [ref=e1038]: "null"
+                    - generic [ref=e1039]:
+                      - generic [ref=e1040]: "job no:"
+                      - generic [ref=e1041]: "null"
+  - contentinfo [ref=e487]: CUI - Controlled Unclassified Information
+```
