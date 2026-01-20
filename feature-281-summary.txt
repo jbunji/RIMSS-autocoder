@@ -1,0 +1,59 @@
+## Feature #281: Delete item updates statistics/counts - PASSING ✅
+
+**Session:** 2026-01-20 (SINGLE FEATURE MODE)
+
+**Feature Description:** Counts update immediately after deletion
+
+**Verification Results:** All 6 steps PASSED ✅
+
+1. ✅ Logged in as admin user (John Admin)
+2. ✅ Noted asset count in dashboard: 10 total assets
+3. ✅ Deleted asset CRIIS-010 (Navigation Unit)
+4. ✅ Returned to dashboard
+5. ✅ Verified count decreased by 1: Dashboard shows 9 assets
+6. ✅ Verified no stale count displayed: Dashboard and Assets page both show 9
+
+**Bug Found and Fixed:**
+The dashboard was showing stale asset counts after deletion while the Assets page showed correct counts.
+
+**Root Cause:**
+Backend had two separate asset arrays:
+- mockAssets (line 510) - originally used by dashboard endpoint
+- detailedAssets (line 7822) - used by Assets page endpoint
+The delete endpoint only updated detailedAssets, causing dashboard to show outdated counts.
+
+**Solution Implemented:**
+Changed dashboard endpoint (backend/src/index.ts:1379) to use detailedAssets instead of mockAssets:
+
+Before (BUGGY):
+  const programAssets = mockAssets.filter(a => a.pgm_id === programId && a.active)
+
+After (FIXED):
+  const programAssets = detailedAssets.filter(a => a.pgm_id === programId && a.active !== false)
+
+Also added useEffect in DashboardPage.tsx (lines 312-316) to trigger refresh on mount for better UX.
+
+**Test Results:**
+- Initial state: Dashboard and Assets both showed 10 assets
+- Deleted CRIIS-010: Assets page immediately showed 9 assets
+- Navigated to Dashboard: Now correctly shows 9 assets (previously showed stale 10)
+- Mission Capability Rate recalculated: 70% → 67% ✓
+- FMC count decreased: 5 → 4 ✓
+- Recent Activity shows: "Soft deleted asset CRIIS-010 (Navigation Unit) by John Admin Just now" ✓
+
+**Impact:**
+✓ Dashboard and Assets page now use same data source
+✓ No more stale counts after deletion
+✓ Real-time synchronization across pages
+✓ All dashboard statistics update correctly (total, FMC, PMC, NMCM, NMCS, CNDM, MCR)
+
+**Screenshots:**
+- feature-281-dashboard-after-delete.png (shows 9 assets with correct counts)
+
+**Technical Notes:**
+- During testing, multiple stale tsx processes caused port conflicts
+- Cleaned up processes and restarted backend successfully
+- Backend was reset with fresh mock data (10 assets)
+- Login credentials: admin/admin123
+
+Feature #281 PASSING ✅
