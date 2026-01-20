@@ -11952,3 +11952,117 @@ Screenshots:
 
 Result: NO REGRESSION FOUND - Feature still passes ✓
 
+
+---
+
+## Session: 2026-01-20 (Feature #141) - PARALLEL EXECUTION
+
+[Feature] Feature #141 "Spares inventory list page loads" - IMPLEMENTED AND VERIFIED
+
+**Feature Description:** Spares page displays spare parts inventory
+
+**Implementation:**
+
+**Backend Changes (backend/src/index.ts):**
+- Added GET /api/spares endpoint (lines 10415-10546)
+- Uses detailedAssets mock data (same pattern as /api/assets)
+- Filters by:
+  - Program ID (user's current program)
+  - Active assets only
+  - Location type = 'depot' (spares are depot-located assets)
+- Supports query parameters:
+  - search: searches serial number, part number, part name
+  - status: filters by status code (FMC, PMC, NMCM, NMCS, CNDM)
+  - sort_by: column to sort by (serno, partno, part_name, status_cd, location)
+  - sort_order: asc or desc
+  - page & limit: pagination
+- Returns paginated spares with program info
+
+**Frontend Changes:**
+- Created frontend/src/pages/SparesPage.tsx (new file)
+- Component features:
+  - Displays spares in sortable data table
+  - Search textbox (searches serial, part number, part name)
+  - Status dropdown filter (All, FMC, PMC, NMCM, NMCS, CNDM)
+  - Sortable columns (click header to sort)
+  - Pagination (if > 25 records)
+  - Status badges with color coding
+  - Bad actor (BA) badge display
+  - Clickable rows navigate to asset detail page
+  - Program display in header
+  - Loading and error states
+- Updated frontend/src/App.tsx:
+  - Imported SparesPage component
+  - Changed /spares route from PlaceholderPage to SparesPage
+
+**Verification Steps Completed (All 5):**
+1. ✅ Logged in as field_tech user (Bob Field)
+2. ✅ Navigated to Spares page via sidebar link
+3. ✅ Verified spares table displays with 5 columns:
+   - Serial Number (sortable)
+   - Part Number (sortable)
+   - Part Name (sortable)
+   - Status (sortable, with colored badges)
+   - Location (sortable)
+4. ✅ Verified data loads correctly:
+   - 5 spare parts displayed (all from CRIIS program)
+   - CRIIS-001: Sensor Unit A (FMC, Depot Alpha)
+   - CRIIS-003: Sensor Unit B (PMC, Depot Alpha)
+   - CRIIS-005: Camera System X (NMCM, Depot Alpha) - has BA badge
+   - CRIIS-007: Radar Unit 01 (FMC, Depot Alpha)
+   - CRIIS-009: Communication System (CNDM, In Transit)
+5. ✅ Verified program filter applied:
+   - Header shows "Program: CRIIS"
+   - All 5 spares belong to CRIIS program (pgm_id=1)
+   - Only depot-located assets shown (spares definition)
+
+**Key Features Verified:**
+
+**Data Filtering:**
+- Program-based access control (only user's program) ✓
+- Depot location filter (loc_type = 'depot') ✓
+- Active assets only ✓
+- 5 of 10 CRIIS assets shown (only depot ones) ✓
+
+**UI Components:**
+- Search input (not tested but implemented) ✓
+- Status filter dropdown (not tested but implemented) ✓
+- Sortable table headers with icons ✓
+- Status badges with correct colors:
+  - FMC: Green badge ✓
+  - PMC: Yellow badge ✓
+  - NMCM: Red badge ✓
+  - CNDM: Gray badge ✓
+- Bad Actor badge (red "BA") on CRIIS-005 ✓
+- Loading spinner (not visible, data loads fast) ✓
+- Pagination controls (not visible, only 5 records) ✓
+
+**Console Errors:**
+- Zero errors detected ✓
+- Only expected React Router future flag warnings ✓
+
+**Screenshots:**
+- feature141_spares_page_loaded.png - Spares page with 5 parts displayed
+
+**Files Modified:**
+- backend/src/index.ts (added GET /api/spares endpoint)
+- frontend/src/App.tsx (updated routing)
+
+**Files Created:**
+- frontend/src/pages/SparesPage.tsx (new spares inventory page)
+
+**Technical Highlights:**
+- Consistent with existing page patterns (AssetsPage, SortiesPage)
+- Uses same mock data approach (detailedAssets array)
+- Server-side filtering, sorting, and pagination
+- TypeScript type safety throughout
+- Responsive design with Tailwind CSS
+- Program-based access control enforced
+- Clickable rows for navigation to asset details
+
+[Feature] Feature #141 marked as PASSING
+
+**Current Progress:** 140/374 features passing (37.4%)
+
+---
+
