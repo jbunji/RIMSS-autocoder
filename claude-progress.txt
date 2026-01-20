@@ -1,5 +1,51 @@
 # RIMSS Development Progress
 
+## Session: 2026-01-19 (Agent working on Feature #96)
+
+### Completed This Session:
+- Feature #96: ETI (Elapsed Time Indicator) in/out tracking on repairs - IMPLEMENTED AND PASSING
+
+**Description:** Repairs track ETI meter values at start and end
+
+**Implementation Details:**
+
+**Backend (backend/src/index.ts):**
+- Added eti_in, eti_out, eti_delta fields to Repair interface
+- Updated POST /api/repairs endpoint to accept eti_in value
+- Updated PUT /api/repairs/:id endpoint to handle eti_in and eti_out
+- Auto-calculates eti_delta when closing repairs (eti_out - eti_in)
+- Updates asset ETI hours when repair is closed with eti_out
+- All 12 mock repair records updated with appropriate ETI values
+
+**Frontend (frontend/src/pages/MaintenanceDetailPage.tsx):**
+- Added ETI In field in Add Repair modal with helper text
+- Added ETI Out field in Close Repair modal with:
+  - Display of recorded ETI In value
+  - Real-time ETI Delta preview calculation
+  - Validation for ETI Out >= ETI In
+- Display ETI values in repair detail cards:
+  - Blue-styled "ETI In: X hrs" badge
+  - Blue-styled "ETI Out: X hrs" badge (for closed repairs)
+  - Bold "ETI Delta: X hrs" badge (for closed repairs)
+
+**Verification Steps Completed:**
+1. ✅ Log in as admin - Logged in with admin/admin123
+2. ✅ Navigate to maintenance event #1 with repairs
+3. ✅ Verified ETI display on closed Repair #1: ETI In: 780.5 hrs, ETI Out: 782 hrs, ETI Delta: 1.5 hrs
+4. ✅ Verified ETI display on open Repair #2: ETI In: 782 hrs (no ETI Out since open)
+5. ✅ Clicked "Add Repair" button - verified ETI In field present with helper text
+6. ✅ Clicked "Close Repair" on Repair #2 - verified ETI Out field present
+7. ✅ Entered ETI Out value (785.5) - verified delta preview shows "ETI Delta: 3.50 hours"
+
+**Key Features:**
+- ETI In recorded when repair starts
+- ETI Out recorded when repair closes
+- ETI Delta automatically calculated (eti_out - eti_in)
+- Asset's ETI hours updated to eti_out value when repair closes
+- All values displayed in repair detail view
+
+---
+
 ## Session: 2026-01-19 (Agent working on Feature #94)
 
 ### Completed This Session:
@@ -7419,3 +7465,69 @@ The attachment infrastructure (backend endpoints and frontend UI) was already im
 **Console errors:** None detected (only React Router future flag warnings)
 
 [Testing] Session complete - verified feature #6 (no regression found)
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Unauthenticated users are redirected to login page
+
+**Verification Steps Completed:**
+1. ✅ Clear all session data and cookies - Used JavaScript to clear localStorage and sessionStorage
+2. ✅ Navigate to homepage URL - Navigated to http://localhost:5173
+3. ✅ Verify redirect to login page - URL changed to /login automatically
+4. ✅ Verify login form is displayed - Sign In form with Username, Password fields, and Sign In button present
+
+**Additional Verifications:**
+- ✅ Direct navigation to /dashboard also redirects to /login
+- ✅ Login form contains all expected elements (Username, Password, Sign In button, Forgot password link)
+- ✅ Page title displays correctly: 'RIMSS - Remote Independent Maintenance Status System'
+- ✅ CUI banner displayed at top and bottom
+- ✅ 'Authorized users only' notice displayed
+- ✅ No console errors detected
+
+**Screenshots:**
+- .playwright-mcp/feature3_login_redirect.png - Login page after redirect
+
+**Console errors:** None detected
+
+[Testing] Session complete - verified feature #3 (no regression found)
+
+
+
+---
+
+## Testing Session: 2026-01-19 (Regression Testing)
+
+[Testing] Feature #85 'Delete repair record' - VERIFIED STILL PASSING
+
+**Regression Test Result:** No regression found - feature still works correctly.
+
+**Feature Description:** Users can delete repairs with authorization
+
+**Verification Steps Completed:**
+1. ✅ Log in as depot manager - Logged in as Jane Depot (depot_mgr)
+2. ✅ Navigate to event with repairs - MX-2024-001 with 2 repairs
+3. ✅ Click delete on repair - Clicked Delete on Repair #2 (open repair)
+4. ✅ Verify confirmation dialog - Dialog showed:
+   - Warning: 'Are you sure you want to delete this repair?'
+   - Cascade warning: 'All associated labor records will also be removed'
+   - Repair details: #2, Corrective, Start Date 1/15/2026, Status OPEN
+   - Cancel and Delete Repair buttons
+5. ✅ Confirm deletion - Clicked 'Delete Repair' button
+6. ✅ Verify repair removed - Repairs section updated from (2 total, 1 open, 1 closed) to (1 total, 0 open, 1 closed)
+7. ✅ Verify labor records cascade handled - Mentioned in dialog, deletion completed without errors
+
+**Screenshots:**
+- .playwright-mcp/feature85_delete_confirmation_dialog.png - Confirmation dialog with warning and details
+- .playwright-mcp/feature85_repair_deleted.png - After deletion verification
+- .playwright-mcp/feature85_repair_section_after_delete.png - Full page showing only Repair #1 remains
+
+**Console errors:** None related to delete operation (only old 401 from initial login attempt)
+
+[Testing] Session complete - verified feature #85 (no regression found)
+
