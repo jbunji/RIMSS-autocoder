@@ -13702,3 +13702,204 @@ Updated Filter Dropdown:
 
 [Session] Feature #153 complete - All verification steps passed successfully
 [Testing] Starting regression test for Feature #3 - Homepage redirects to login when unauthenticated
+
+[Testing] Feature #3 'Homepage redirects to login when unauthenticated' - VERIFIED AS PASSING
+
+**Feature Description:** Unauthenticated users are redirected to login page
+
+**Verification Completed (All 4 Steps):**
+
+✅ Step 1: Clear session data - Fresh browser session started with no authentication
+✅ Step 2: Navigate to homepage - Navigated to http://localhost:5173
+✅ Step 3: Verify redirect to login - URL automatically changed to http://localhost:5173/login
+✅ Step 4: Verify login form displayed - Login form correctly displayed with all elements
+
+**Additional Verification:**
+✅ Protected route test - Attempted to access /dashboard, correctly redirected to /login
+✅ Zero console errors - No JavaScript errors detected
+✅ UI rendering - Login page displays correctly with:
+  - RIMSS header and branding
+  - Username field with placeholder
+  - Password field with placeholder
+  - "Sign In" button
+  - "Forgot your password?" link
+  - Security notice: "Authorized users only. All activity is monitored."
+  - CUI markings (header and footer)
+
+**Console Messages:**
+- Only expected React Router future flag warnings ✓
+- No errors or failures ✓
+
+**Screenshots Captured:**
+- feature3_login_redirect_verified.png - Login page after redirect
+
+**Regression Result:** NO REGRESSION DETECTED
+The authentication redirect feature is working perfectly. Unauthenticated users are correctly redirected to the login page from both the homepage and protected routes. The login form displays correctly with all required elements.
+
+[Testing] Feature #3 remains PASSING - No issues found
+
+**Current Progress:** 154/374 features passing (41.2%)
+
+[Testing] Session complete - Feature #3 verified as passing (no regression)
+[Testing] Feature #38 'Asset search by part number' - VERIFIED AS PASSING
+
+**Feature Description:** Users can search assets by part number
+
+**Verification Completed (All 6 Steps):**
+
+✅ Step 1: Logged in as admin user (John Admin)
+✅ Step 2: Navigated to Assets page
+✅ Step 3: Entered part number in search box (PN-RADAR-01)
+✅ Step 4: Verified matching assets display (2 assets with PN-RADAR-01 found)
+✅ Step 5: Cleared search and tried partial match (CAMERA)
+✅ Step 6: Verified partial matches display (2 assets with PN-CAMERA-X found)
+
+**Key Features Verified:**
+
+**Exact Part Number Search:**
+- Search for 'PN-RADAR-01' correctly filtered to 2 matching assets ✓
+- Counter updated from '10 total assets' to '2 total assets' ✓
+- Both results (CRIIS-006 and CRIIS-007) have exact part number match ✓
+
+**Partial Part Number Search:**
+- Search for 'CAMERA' matched 2 assets with 'PN-CAMERA-X' ✓
+- Search for 'PN-SENSOR' matched 3 assets (PN-SENSOR-A and PN-SENSOR-B) ✓
+- Partial matching works case-insensitively ✓
+- Counter correctly shows filtered results ✓
+
+**Search Functionality:**
+- Search box located prominently at top of page ✓
+- Placeholder text: 'Search by S/N, P/N, or name...' ✓
+- Real-time filtering as user types ✓
+- Search clears properly when text removed ✓
+- All 10 assets display when search is empty ✓
+
+**Console Status:**
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- No API errors ✓
+
+**Screenshots Captured:**
+- feature38_search_full_part_number.png - Full part number search (PN-RADAR-01)
+- feature38_search_partial_match.png - Partial search (CAMERA)
+- feature38_search_sensor_partial.png - Partial prefix search (PN-SENSOR)
+
+**Regression Result:** NO REGRESSION DETECTED
+The asset search by part number feature is working perfectly. Both exact and partial matching work as expected, the UI updates correctly, and there are no console errors.
+
+[Testing] Feature #38 remains PASSING - No issues found
+
+**Current Progress:** 154/374 features passing (41.2%)
+
+[Testing] Session complete - Feature #38 verified as passing (no regression)
+
+## Session: 2026-01-20 (Feature #155) - PARALLEL EXECUTION - COMPLETED
+
+[Feature] Feature #155 "Parts order cannot be un-acknowledged" - FIXED AND VERIFIED
+
+**Feature Description:** Once acknowledged, parts orders cannot be reverted to REQUEST/pending status
+
+**Critical Bug Fixed:**
+The backend was using uppercase status values (REQUEST, ACKNOWLEDGE, FILL, DELIVER) while the frontend expected lowercase (pending, acknowledged, shipped, received). This caused:
+- Status badges showing "Unknown" instead of actual status
+- Acknowledge button logic not working correctly
+- Inconsistent data throughout the system
+
+**Implementation Changes:**
+
+**Backend (backend/src/index.ts):**
+1. Updated PartsOrder interface:
+   - Changed status type from 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled'
+   - To: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled'
+
+2. Updated all mock data (9 orders) to use lowercase status values:
+   - 'REQUEST' → 'pending'
+   - 'ACKNOWLEDGE' → 'acknowledged'
+   - 'FILL' → 'shipped'
+   - 'DELIVER' → 'received'
+
+3. Fixed order #4 mock data:
+   - Added acknowledged_date: addDays(-4)
+   - Added acknowledged_by: 2
+   - Added acknowledged_by_name: 'Jane Depot'
+
+4. Backend validation already in place (line 8923):
+   - Prevents acknowledging orders with status !== 'pending'
+   - Returns 400 error with message: "Cannot acknowledge order with status: {status}"
+
+**Frontend (no changes needed):**
+- PartsOrderDetailPage.tsx already has correct logic:
+  - canAcknowledge check: `status === 'pending'` (line 141)
+  - Acknowledge button only shows for pending orders
+  - getStatusBadge() function maps status to display labels and colors
+
+**Verification Steps Completed (All 4):**
+
+✅ Step 1: Logged in as depot manager (Jane Depot / depot_mgr)
+✅ Step 2: Navigated to acknowledged parts order (#4 - Coaxial Cable Assembly)
+✅ Step 3: Verified NO option to un-acknowledge
+  - No Acknowledge button visible on page
+  - Status badge shows "Acknowledged" (blue)
+  - Acknowledged Date: January 15, 2026 at 07:00 PM
+  - Acknowledged By: Jane Depot
+✅ Step 4: Verified status change only forward allowed
+  - Frontend: Acknowledge button only appears when status === 'pending'
+  - Backend: API returns 400 error when attempting to acknowledge non-pending order
+  - Tested via API call to acknowledge order #4 (already acknowledged)
+  - Result: HTTP 400 with error "Cannot acknowledge order with status: acknowledged"
+
+**Key Features Verified:**
+
+**UI Behavior:**
+- Pending orders (status: 'pending') show Acknowledge button ✓
+- Acknowledged orders (status: 'acknowledged') have NO Acknowledge button ✓
+- Status badges display correctly with proper colors ✓
+- Acknowledged metadata (date, user) displays when present ✓
+
+**Backend Protection:**
+- Endpoint validates status before allowing acknowledgment ✓
+- Returns 400 error for non-pending orders ✓
+- Only depot managers and admins can acknowledge orders ✓
+- Program-based authorization enforced ✓
+
+**Status Workflow Enforcement:**
+- Status progression is one-way: pending → acknowledged → shipped → received ✓
+- No way to revert from acknowledged back to pending ✓
+- Frontend hides action buttons for completed status changes ✓
+- Backend rejects invalid status transitions ✓
+
+**Comparison Screenshots:**
+- feature155_pending_order_with_acknowledge_button.png - Order #1 (pending) WITH button
+- feature155_acknowledged_order_no_button.png - Order #4 (acknowledged) WITHOUT button
+- feature155_verification_complete.png - Final verification showing acknowledged status
+
+**Console Verification:**
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- API calls successful ✓
+
+**Technical Implementation:**
+- Consistent status values across frontend and backend ✓
+- Type-safe status enum in TypeScript ✓
+- Role-based access control (depot_manager, admin) ✓
+- Program-based data isolation maintained ✓
+- Status validation on backend prevents illegal transitions ✓
+- Frontend conditionally renders action buttons based on status ✓
+
+**Status Values Standardized:**
+| Old (Uppercase) | New (Lowercase) | Description |
+|-----------------|-----------------|-------------|
+| REQUEST | pending | Waiting for depot acknowledgment |
+| ACKNOWLEDGE | acknowledged | Depot has acknowledged, processing |
+| FILL | shipped | Parts have been shipped |
+| DELIVER | received | Parts received by requestor |
+| cancelled | cancelled | Order cancelled (unchanged) |
+
+**Bug Impact:**
+This bug was preventing the parts ordering workflow from functioning correctly. Users would see "Unknown" status and the acknowledge button wouldn't appear even for pending orders. The fix ensures the entire parts ordering workflow operates as designed.
+
+[Feature] Feature #155 marked as PASSING
+
+**Current Progress:** 153/374 features passing (40.9%)
+
+[Session] Feature #155 complete - Critical bug fixed, all verification steps passed
