@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
-import { ChevronDownIcon, ChevronUpIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronUpIcon, DocumentArrowDownIcon, PrinterIcon } from '@heroicons/react/24/outline'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -107,6 +107,10 @@ export default function InventoryReportPage() {
     const month = String(now.getUTCMonth() + 1).padStart(2, '0')
     const day = String(now.getUTCDate()).padStart(2, '0')
     return `${year}${month}${day}`
+  }
+
+  const handlePrint = () => {
+    window.print()
   }
 
   const exportToPDF = () => {
@@ -364,7 +368,15 @@ export default function InventoryReportPage() {
               Program: {reportData.program.pgm_name} ({reportData.program.pgm_cd})
             </p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 no-print">
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              title="Print Report"
+            >
+              <PrinterIcon className="h-5 w-5" />
+              Print
+            </button>
             <button
               onClick={exportToPDF}
               className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
