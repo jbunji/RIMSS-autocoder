@@ -15063,3 +15063,90 @@ Key Verification:
 Feature #165 marked as PASSING
 
 Current Progress: 163/374 features passing (43.6%)
+[Testing] Feature #7 'User cannot log in with invalid credentials' - VERIFIED AS PASSING
+
+Verification Completed (All 7 Steps):
+✅ Step 1: Navigate to login page - SUCCESS
+✅ Step 2: Enter invalid username (invaliduser123) - SUCCESS
+✅ Step 3: Enter any password - SUCCESS
+✅ Step 4: Click login button - SUCCESS
+✅ Step 5: Verify error message displays - SUCCESS (Invalid username or password)
+✅ Step 6: Verify user remains on login page - SUCCESS (URL: http://localhost:5173/login)
+✅ Step 7: Verify no session is created - SUCCESS (token: null, no cookies)
+
+Security Verification:
+- Backend returned HTTP 401 Unauthorized (correct)
+- No authentication token generated
+- Error message user-friendly without revealing specifics
+- localStorage: token is null, currentProgramId is null
+- sessionStorage: empty
+- No cookies set
+
+Regression Result: NO REGRESSION DETECTED
+Feature #7 remains PASSING
+
+Screenshots: feature7_login_page_initial.png, feature7_invalid_credentials_entered.png, feature7_error_message_displayed.png
+
+[Testing] Session complete - verified feature #7 (no regression)
+Current Progress: 166/374 features passing (44.4%)
+
+================================================================================
+Testing Session: 2026-01-20 00:46 UTC - Feature #75 REGRESSION TEST
+================================================================================
+
+Feature #75: Attachment upload to maintenance event - VERIFIED AS PASSING
+
+All 9 verification steps completed successfully:
+
+✅ Step 1: Logged in as field technician (Bob Field / field_tech / field123)
+✅ Step 2: Navigated to event detail (MX-2024-001 - Camera System X)
+✅ Step 3: Clicked Attachments tab - Section visible with "(0 files)"
+✅ Step 4: Clicked Upload button - Modal opened successfully
+✅ Step 5: Selected text file (test_attachment.txt, 243 Bytes)
+✅ Step 6: Verified upload progress - File selected, Upload button enabled
+✅ Step 7: Verified file appears in attachments list:
+   - Attachments heading changed from "(0 files)" to "(1 file)"
+   - File displayed with name, size, uploader, date
+   - Download and Delete buttons available
+✅ Step 8: Uploaded second file (maintenance_notes.txt, 181 Bytes)
+✅ Step 9: Verified multiple attachments display correctly:
+   - Attachments heading shows "(2 files)"
+   - Both files listed with metadata
+   - Each file has Download/Delete actions
+
+Key Findings:
+- File upload functionality works correctly end-to-end
+- Upload modal displays properly with clear instructions
+- Accepted file types shown: PDF, images, Word, Excel, text up to 10MB
+- Upload button properly disabled until file selected
+- File metadata captured correctly (name, size, uploader, date)
+- Multiple file uploads supported
+- Download and Delete actions available for each file
+- Zero JavaScript errors related to attachment functionality
+- Only console error is expected 401 from initial login attempt (unrelated)
+
+Technical Verification:
+- Upload modal UI working correctly
+- File selection via file input working
+- Backend API accepting file uploads
+- File storage working (files saved to uploads directory)
+- UI properly updates after upload
+- Attachment counter updates correctly
+- File list displays with proper formatting
+
+Screenshots captured:
+- feature75_step2_event_detail.png - Initial event detail page
+- feature75_step4_upload_modal.png - Upload modal opened
+- feature75_step5_file_selected.png - File selected in modal
+- feature75_step7_file_uploaded.png - First file uploaded successfully
+- feature75_step8_multiple_files.png - Two files uploaded
+
+Regression Result: ✅ NO REGRESSION DETECTED
+
+Feature #75 remains PASSING - Attachment upload to maintenance events works correctly.
+
+[Testing] Session complete - verified feature #75 (no regression)
+
+Current Progress: 166/374 features passing (44.4%)
+
+[Testing] Feature #75 verified - still passing

@@ -13,6 +13,7 @@ import {
   BellIcon,
   DocumentChartBarIcon,
   UsersIcon,
+  CodeBracketIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Sorties', href: '/sorties', icon: PaperAirplaneIcon },
   { name: 'Spares', href: '/spares', icon: ArchiveBoxIcon },
   { name: 'Parts Ordered', href: '/parts-ordered', icon: TruckIcon },
+  { name: 'Software', href: '/software', icon: CodeBracketIcon },
   { name: 'Notifications', href: '/notifications', icon: BellIcon },
   { name: 'Reports', href: '/reports', icon: DocumentChartBarIcon },
 ]

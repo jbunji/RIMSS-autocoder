@@ -95,6 +95,32 @@ interface BOMResponse {
   }
 }
 
+// Configuration Meter interface
+interface ConfigurationMeter {
+  cfg_meter_id: number
+  cfg_set_id: number
+  meter_type: string
+  tracking_interval: number | null
+  tracking_unit: string | null
+  description: string | null
+  active: boolean
+  ins_by: string
+  ins_date: string
+  chg_by: string | null
+  chg_date: string | null
+}
+
+// Meter Response interface
+interface MeterResponse {
+  meters: ConfigurationMeter[]
+  total: number
+  configuration: {
+    cfg_set_id: number
+    cfg_name: string
+    partno: string | null
+  }
+}
+
 // Software association interface
 interface ConfigurationSoftware {
   cfg_sw_id: number
@@ -206,6 +232,22 @@ export default function ConfigurationDetailPage() {
   const [isDeleteSoftwareModalOpen, setIsDeleteSoftwareModalOpen] = useState(false)
   const [softwareToDelete, setSoftwareToDelete] = useState<ConfigurationSoftware | null>(null)
   const [deleteSoftwareError, setDeleteSoftwareError] = useState<string | null>(null)
+
+  // Meter tracking state
+  const [meterData, setMeterData] = useState<MeterResponse | null>(null)
+  const [meterLoading, setMeterLoading] = useState(false)
+  const [meterError, setMeterError] = useState<string | null>(null)
+
+  // Add Meter modal state
+  const [isAddMeterModalOpen, setIsAddMeterModalOpen] = useState(false)
+  const [meterForm, setMeterForm] = useState({
+    meter_type: 'eti',
+    tracking_interval: '',
+    tracking_unit: 'hours',
+    description: '',
+  })
+  const [addMeterError, setAddMeterError] = useState<string | null>(null)
+  const [addingMeter, setAddingMeter] = useState(false)
   const [deletingSoftware, setDeletingSoftware] = useState(false)
 
   // Delete BOM item modal state
@@ -333,6 +375,36 @@ export default function ConfigurationDetailPage() {
     }
   }, [token, id])
 
+  // Fetch meters
+  const fetchMeters = useCallback(async () => {
+    if (!token || !id) return
+
+    setMeterLoading(true)
+    setMeterError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${id}/meters`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to fetch meters')
+      }
+
+      const data: MeterResponse = await response.json()
+      setMeterData(data)
+    } catch (err) {
+      setMeterError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Error fetching meters:', err)
+    } finally {
+      setMeterLoading(false)
+    }
+  }, [token, id])
+
   // Fetch available software for selection
   const fetchAvailableSoftware = useCallback(async () => {
     if (!token || !configuration) return
@@ -358,7 +430,8 @@ export default function ConfigurationDetailPage() {
     fetchConfiguration()
     fetchBOM()
     fetchSoftware()
-  }, [fetchConfiguration, fetchBOM, fetchSoftware])
+    fetchMeters()
+  }, [fetchConfiguration, fetchBOM, fetchSoftware, fetchMeters])
 
   // Open delete confirmation modal
   const openDeleteModal = (item: BOMItem) => {
@@ -647,6 +720,86 @@ export default function ConfigurationDetailPage() {
       setDeleteSoftwareError(err instanceof Error ? err.message : 'Failed to remove software')
     } finally {
       setDeletingSoftware(false)
+    }
+  }
+
+  // Handle adding meter tracking requirement
+  const handleAddMeter = async () => {
+    if (!token || !id || !meterForm.meter_type) return
+
+    setAddingMeter(true)
+    setAddMeterError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${id}/meters`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          meter_type: meterForm.meter_type,
+          tracking_interval: meterForm.tracking_interval ? parseFloat(meterForm.tracking_interval) : null,
+          tracking_unit: meterForm.tracking_unit || null,
+          description: meterForm.description || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add meter tracking')
+      }
+
+      // Refresh meter data
+      await fetchMeters()
+
+      // Reset form and close modal
+      setMeterForm({
+        meter_type: 'eti',
+        tracking_interval: '',
+        tracking_unit: 'hours',
+        description: '',
+      })
+      setIsAddMeterModalOpen(false)
+      setSuccessMessage('Meter tracking requirement added successfully')
+
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      setAddMeterError(err instanceof Error ? err.message : 'Failed to add meter tracking')
+    } finally {
+      setAddingMeter(false)
+    }
+  }
+
+  // Handle deleting meter tracking requirement
+  const handleDeleteMeter = async (meterId: number) => {
+    if (!token || !id) return
+
+    if (!confirm('Are you sure you want to remove this meter tracking requirement?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/configurations/${id}/meters/${meterId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to remove meter tracking')
+      }
+
+      // Refresh meter data
+      await fetchMeters()
+
+      setSuccessMessage('Meter tracking requirement removed successfully')
+      setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (err) {
+      setMeterError(err instanceof Error ? err.message : 'Failed to remove meter tracking')
     }
   }
 
@@ -1089,6 +1242,22 @@ export default function ConfigurationDetailPage() {
             }
           >
             <div className="flex items-center justify-center gap-2">
+              <ClockIcon className="h-5 w-5" />
+              Meters ({meterData?.total || 0})
+            </div>
+          </Tab>
+          <Tab
+            className={({ selected }) =>
+              classNames(
+                'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                'ring-white ring-opacity-60 ring-offset-2 ring-offset-primary-400 focus:outline-none focus:ring-2',
+                selected
+                  ? 'bg-white text-primary-700 shadow'
+                  : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-800'
+              )
+            }
+          >
+            <div className="flex items-center justify-center gap-2">
               <Squares2X2Icon className="h-5 w-5" />
               Hierarchy
             </div>
@@ -1467,6 +1636,131 @@ export default function ConfigurationDetailPage() {
                     <span className="font-medium text-gray-900">
                       {softwareData.software.filter(sw => sw.cpin_flag).length}
                     </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Tab.Panel>
+
+          {/* Meters Tab */}
+          <Tab.Panel className="rounded-xl bg-white p-6 shadow">
+            <div className="space-y-6">
+              {/* Meters Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Meter Tracking Requirements</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Meters and tracking intervals required for this configuration
+                  </p>
+                </div>
+                {canEditBom && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddMeterModalOpen(true)}
+                    className="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+                  >
+                    <PlusIcon className="mr-1.5 h-5 w-5" />
+                    Add Meter Requirement
+                  </button>
+                )}
+              </div>
+
+              {/* Meters List */}
+              {meterLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <svg className="animate-spin h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span className="ml-2 text-sm text-gray-500">Loading meter requirements...</span>
+                </div>
+              ) : meterError ? (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <p className="text-sm text-red-800">{meterError}</p>
+                </div>
+              ) : meterData && meterData.meters && meterData.meters.length > 0 ? (
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-300">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
+                          Meter Type
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Tracking Interval
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Description
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                          Added By
+                        </th>
+                        {canEditBom && (
+                          <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                            <span className="sr-only">Actions</span>
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {meterData.meters.map((meter) => (
+                        <tr key={meter.cfg_meter_id} className="hover:bg-gray-50">
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 uppercase">
+                              {meter.meter_type}
+                            </span>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                            {meter.tracking_interval ? (
+                              <>
+                                <span className="font-medium">{meter.tracking_interval.toLocaleString()}</span>
+                                {meter.tracking_unit && (
+                                  <span className="text-gray-500 ml-1">{meter.tracking_unit}</span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-4 text-sm text-gray-900 max-w-md">
+                            {meter.description || <span className="text-gray-400">No description</span>}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <div>
+                              <p className="font-medium text-gray-900">{meter.ins_by}</p>
+                              <p className="text-xs text-gray-500">{formatDate(meter.ins_date)}</p>
+                            </div>
+                          </td>
+                          {canEditBom && (
+                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                              <button
+                                onClick={() => handleDeleteMeter(meter.cfg_meter_id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                <TrashIcon className="h-5 w-5" />
+                                <span className="sr-only">Delete meter requirement {meter.meter_type}</span>
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">No meter tracking requirements defined</p>
+                  <p className="text-xs text-gray-400">Click "Add Meter Requirement" to define tracking requirements</p>
+                </div>
+              )}
+
+              {/* Meters Summary */}
+              {meterData && meterData.meters && meterData.meters.length > 0 && (
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Total meter requirements:</span>
+                    <span className="font-medium text-gray-900">{meterData.total}</span>
                   </div>
                 </div>
               )}
@@ -2249,6 +2543,164 @@ export default function ConfigurationDetailPage() {
                         <>
                           <TrashIcon className="h-4 w-4 mr-1" />
                           Remove Software
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Add Meter Modal */}
+      <Transition appear show={isAddMeterModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsAddMeterModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center justify-between">
+                    <span className="flex items-center">
+                      <ClockIcon className="h-5 w-5 mr-2 text-primary-600" />
+                      Add Meter Tracking Requirement
+                    </span>
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-gray-500"
+                      onClick={() => setIsAddMeterModalOpen(false)}
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </Dialog.Title>
+
+                  {/* Error message */}
+                  {addMeterError && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
+                      <p className="text-sm text-red-700">{addMeterError}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-4 space-y-4">
+                    {/* Meter Type */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Meter Type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={meterForm.meter_type}
+                        onChange={(e) => setMeterForm({ ...meterForm, meter_type: e.target.value })}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      >
+                        <option value="eti">ETI (Elapsed Time Indicator)</option>
+                        <option value="cycles">Cycles</option>
+                        <option value="landings">Landings</option>
+                        <option value="flight_hours">Flight Hours</option>
+                        <option value="engine_starts">Engine Starts</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    {/* Tracking Interval */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tracking Interval (Optional)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={meterForm.tracking_interval}
+                        onChange={(e) => setMeterForm({ ...meterForm, tracking_interval: e.target.value })}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        placeholder="e.g., 500"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Recommended check interval (e.g., check every 500 hours)
+                      </p>
+                    </div>
+
+                    {/* Tracking Unit */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tracking Unit (Optional)
+                      </label>
+                      <select
+                        value={meterForm.tracking_unit}
+                        onChange={(e) => setMeterForm({ ...meterForm, tracking_unit: e.target.value })}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                      >
+                        <option value="hours">Hours</option>
+                        <option value="cycles">Cycles</option>
+                        <option value="days">Days</option>
+                        <option value="months">Months</option>
+                        <option value="operations">Operations</option>
+                      </select>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description (Optional)
+                      </label>
+                      <textarea
+                        value={meterForm.description}
+                        onChange={(e) => setMeterForm({ ...meterForm, description: e.target.value })}
+                        rows={3}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        placeholder="e.g., Track operating hours for camera system - check every 500 hours"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      type="button"
+                      className="flex-1 inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm"
+                      onClick={() => setIsAddMeterModalOpen(false)}
+                      disabled={addingMeter}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="flex-1 inline-flex justify-center items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleAddMeter}
+                      disabled={addingMeter || !meterForm.meter_type}
+                    >
+                      {addingMeter ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Adding...
+                        </>
+                      ) : (
+                        <>
+                          <PlusIcon className="h-5 w-5 mr-1" />
+                          Add Meter
                         </>
                       )}
                     </button>

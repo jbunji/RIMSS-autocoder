@@ -1,0 +1,9 @@
+RIMSS Test Attachment
+=====================
+
+This is a test file for verifying the attachment upload functionality
+in the RIMSS maintenance system.
+
+Test Date: January 20, 2026
+Maintenance Event: MX-2024-001
+Asset: Camera System X (CRIIS-005)

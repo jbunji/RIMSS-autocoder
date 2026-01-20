@@ -10673,7 +10673,8 @@ function initializeConfigurationMeters(): ConfigurationMeter[] {
 }
 
 // Mutable arrays for software tracking
-const softwareCatalog: Software[] = initializeSoftware();
+let softwareCatalog: Software[] = initializeSoftware();
+let nextSwId = 11; // Next ID for new software (10 exist in initialization)
 let assetSoftware: AssetSoftware[] = initializeAssetSoftware();
 let nextAssetSwId = 5; // Next ID for new asset-software associations
 let configSoftware: ConfigurationSoftware[] = initializeConfigSoftware();
@@ -10733,19 +10734,140 @@ app.get('/api/software', (req, res) => {
     return true;
   });
 
-  // Add program info to each software
+  // Add program info and transform field names for frontend
   const softwareWithProgram = filteredSoftware.map(sw => {
     const program = allPrograms.find(p => p.pgm_id === sw.pgm_id);
     return {
-      ...sw,
-      program_cd: program?.pgm_cd || 'UNKNOWN',
-      program_name: program?.pgm_name || 'Unknown Program',
+      sw_id: sw.sw_id,
+      sw_number: sw.sw_number,
+      sw_title: sw.sw_title,
+      sw_type: sw.sw_type,
+      revision: sw.revision,
+      revision_date: sw.revision_date,
+      effective_date: sw.eff_date, // Transform: eff_date -> effective_date
+      cpin: sw.cpin_flag ? 'Yes' : null, // Transform: cpin_flag -> cpin
+      sw_desc: sw.sw_desc,
+      pgm_id: sw.pgm_id,
+      active: sw.active,
+      program: {
+        pgm_id: program?.pgm_id || sw.pgm_id,
+        pgm_cd: program?.pgm_cd || 'UNKNOWN',
+        pgm_name: program?.pgm_name || 'Unknown Program',
+      },
     };
   });
 
   res.json({
     software: softwareWithProgram,
     total: softwareWithProgram.length,
+  });
+});
+
+// POST /api/software - Create new software version (admin only)
+app.post('/api/software', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Only admins can create software
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only administrators can create software versions' });
+  }
+
+  // Extract and validate required fields
+  const {
+    sw_number,
+    sw_type,
+    revision,
+    sw_title,
+    sw_desc,
+    effective_date,
+    cpin,
+    pgm_id,
+  } = req.body;
+
+  // Validate required fields
+  if (!sw_number || typeof sw_number !== 'string' || sw_number.trim() === '') {
+    return res.status(400).json({ error: 'Software number is required' });
+  }
+
+  if (!sw_type || typeof sw_type !== 'string' || sw_type.trim() === '') {
+    return res.status(400).json({ error: 'Software type is required' });
+  }
+
+  if (!revision || typeof revision !== 'string' || revision.trim() === '') {
+    return res.status(400).json({ error: 'Revision is required' });
+  }
+
+  if (!sw_title || typeof sw_title !== 'string' || sw_title.trim() === '') {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  if (!effective_date || typeof effective_date !== 'string') {
+    return res.status(400).json({ error: 'Effective date is required' });
+  }
+
+  if (pgm_id === undefined || typeof pgm_id !== 'number') {
+    return res.status(400).json({ error: 'Program ID is required' });
+  }
+
+  // Validate program exists
+  const program = allPrograms.find(p => p.pgm_id === pgm_id);
+  if (!program) {
+    return res.status(400).json({ error: 'Invalid program ID' });
+  }
+
+  // Check for duplicate software number
+  const existingSoftware = softwareCatalog.find(
+    sw => sw.sw_number === sw_number.trim() && sw.active
+  );
+  if (existingSoftware) {
+    return res.status(400).json({ error: 'Software number already exists' });
+  }
+
+  // Create new software record
+  const newSoftware: Software = {
+    sw_id: nextSwId++,
+    sw_number: sw_number.trim(),
+    sw_type: sw_type.trim(),
+    sys_id: '', // System ID can be optional or derived
+    revision: revision.trim(),
+    revision_date: new Date().toISOString().split('T')[0], // Today's date as revision date
+    sw_title: sw_title.trim(),
+    sw_desc: sw_desc && typeof sw_desc === 'string' ? sw_desc.trim() : null,
+    eff_date: effective_date,
+    cpin_flag: cpin === true || cpin === 'true',
+    active: true,
+    pgm_id: pgm_id,
+  };
+
+  // Add to catalog
+  softwareCatalog.push(newSoftware);
+
+  console.log(`[SOFTWARE] Created new software version ${newSoftware.sw_number} (ID: ${newSoftware.sw_id}) by ${user.username}`);
+
+  // Return the created software with transformed field names for frontend
+  res.status(201).json({
+    sw_id: newSoftware.sw_id,
+    sw_number: newSoftware.sw_number,
+    sw_title: newSoftware.sw_title,
+    sw_type: newSoftware.sw_type,
+    revision: newSoftware.revision,
+    revision_date: newSoftware.revision_date,
+    effective_date: newSoftware.eff_date,
+    cpin: newSoftware.cpin_flag ? 'Yes' : null,
+    sw_desc: newSoftware.sw_desc,
+    pgm_id: newSoftware.pgm_id,
+    active: newSoftware.active,
+    program: {
+      pgm_id: program.pgm_id,
+      pgm_cd: program.pgm_cd,
+      pgm_name: program.pgm_name,
+    },
   });
 });
 
