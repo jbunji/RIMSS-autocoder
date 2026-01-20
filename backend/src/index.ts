@@ -6568,7 +6568,7 @@ interface PartsOrder {
   unit_price: number;
   order_date: string;
   request_date: string; // Date/time when request was created
-  status: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled';
+  status: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled';
   requestor_id: number;
   requestor_name: string;
   asset_sn: string | null;
@@ -6609,7 +6609,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 1250.00,
       order_date: addDays(-3),
       request_date: addDays(-3),
-      status: 'REQUEST',
+      status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: 'CRIIS-006',
@@ -6634,7 +6634,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 89.50,
       order_date: addDays(-1),
       request_date: addDays(-1),
-      status: 'REQUEST',
+      status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6660,7 +6660,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 4500.00,
       order_date: addDays(-7),
       request_date: addDays(-7),
-      status: 'ACKNOWLEDGE',
+      status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: 'ACTS-005',
@@ -6685,7 +6685,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 45.00,
       order_date: addDays(-5),
       request_date: addDays(-5),
-      status: 'ACKNOWLEDGE',
+      status: 'acknowledged',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6696,9 +6696,9 @@ function initializePartsOrders(): PartsOrder[] {
       notes: 'Stock replenishment for field operations',
       shipping_tracking: null,
       estimated_delivery: addDays(10),
-    acknowledged_date: null,
-    acknowledged_by: null,
-    acknowledged_by_name: null,
+      acknowledged_date: addDays(-4),
+      acknowledged_by: 2,
+      acknowledged_by_name: 'Jane Depot',
     },
     // Shipped orders - CRIIS
     {
@@ -6711,7 +6711,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 2800.00,
       order_date: addDays(-10),
       request_date: addDays(-10),
-      status: 'FILL',
+      status: 'shipped',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: 'ARDS-004',
@@ -6737,7 +6737,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 3200.00,
       order_date: addDays(-2),
       request_date: addDays(-2),
-      status: 'REQUEST',
+      status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: 'ACTS-003',
@@ -6763,7 +6763,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 15000.00,
       order_date: addDays(-8),
       request_date: addDays(-8),
-      status: 'ACKNOWLEDGE',
+      status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: '236-002',
@@ -6789,7 +6789,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 12.50,
       order_date: addDays(-15),
       request_date: addDays(-15),
-      status: 'DELIVER',
+      status: 'received',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6815,7 +6815,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 650.00,
       order_date: addDays(-1),
       request_date: addDays(-1),
-      status: 'REQUEST',
+      status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: 'CRIIS-005',

@@ -1,0 +1,31 @@
+## Session: 2026-01-20 (Feature #154) - PARALLEL EXECUTION - COMPLETED
+
+Feature #154 "Parts order ACKNOWLEDGE stage" - IMPLEMENTED AND VERIFIED
+
+**Implementation:**
+- Added acknowledged_date, acknowledged_by, acknowledged_by_name fields to PartsOrder interface
+- Created PATCH /api/parts-orders/:id/acknowledge endpoint with role validation
+- Added Acknowledge button to detail page (visible only to DEPOT_MANAGER/ADMIN)
+- Implemented confirmation dialog with loading states
+- Display acknowledged date and user name after acknowledgement
+- Fixed status value standardization (pending/acknowledged/shipped/received)
+
+**Verification (All 9 Steps):**
+✅ Logged in as depot manager (Jane Depot)
+✅ Navigated to Parts Ordered page
+✅ Found pending orders (#1 and #9)
+✅ Clicked Acknowledge button
+✅ Verified confirmation dialog
+✅ Confirmed acknowledgment
+✅ Verified status changed to "Acknowledged" (blue badge)
+✅ Verified timestamp captured: "January 20, 2026 at 12:12 AM"
+✅ Verified user captured: "Jane Depot"
+
+**Files Modified:**
+- backend/src/index.ts (interface, endpoint, status fixes)
+- frontend/src/pages/PartsOrderDetailPage.tsx (UI, handlers, dialog)
+
+**Screenshots:** feature154_*.png (5 screenshots captured)
+
+Feature #154 marked as PASSING
+Current Progress: 152/374 features passing (40.6%)

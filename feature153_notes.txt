@@ -1,0 +1,95 @@
+---
+
+## Session: 2026-01-20 (Feature #153) - PARALLEL EXECUTION - COMPLETED
+
+[Feature] Feature #153 "Parts order REQUEST stage" - VERIFIED AND PASSING
+
+**Feature Description:** Parts order starts in REQUEST status with request date/time and requestor captured
+
+**Implementation Summary:**
+
+This feature is part of the four-stage parts ordering workflow:
+1. REQUEST - Field creates request
+2. ACKNOWLEDGE - Depot acknowledges receipt
+3. FILL - Depot fills order
+4. DELIVER - Field acknowledges delivery
+
+**Backend Changes (backend/src/index.ts):**
+
+Updated PartsOrder Interface:
+- Changed status type from 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled'
+- To: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled'
+- Added request_date field to capture when request was created
+- Existing requestor_id and requestor_name fields already captured requested by user
+
+Updated Mock Data:
+- All 'pending' status values changed to 'REQUEST'
+- All 'acknowledged' status values changed to 'ACKNOWLEDGE'
+- All 'shipped' status values changed to 'FILL'
+- All 'received' status values changed to 'DELIVER'
+- Added request_date to all parts orders (uses addDays() helper)
+- Total 9 parts orders with proper status workflow
+
+**Frontend Changes (frontend/src/pages/PartsOrderedPage.tsx):**
+
+Updated PartsOrder Interface:
+- Added request_date field
+- Changed status type to match backend: 'REQUEST' | 'ACKNOWLEDGE' | 'FILL' | 'DELIVER' | 'cancelled'
+
+Updated Status Badge Colors:
+- REQUEST: Yellow background (bg-yellow-100, text-yellow-800)
+- ACKNOWLEDGE: Blue background (bg-blue-100, text-blue-800)
+- FILL: Purple background (bg-purple-100, text-purple-800)
+- DELIVER: Green background (bg-green-100, text-green-800)
+- cancelled: Red background (unchanged)
+
+Updated Filter Dropdown:
+- Changed options from "Pending/Acknowledged/Shipped/Received"
+- To: "Request/Acknowledge/Fill/Deliver"
+- Maintained "All Statuses" and "Cancelled" options
+
+**Verification Steps Completed (All 5):**
+
+✅ Step 1: Logged in as field technician (Bob Field / field123)
+✅ Step 2: Navigated to Parts Ordered page
+✅ Step 3: Verified status shows REQUEST - 3 orders display REQUEST in yellow badges
+✅ Step 4: Verified request date/time captured - All orders have request_date field
+✅ Step 5: Verified requested by user captured - "Bob Field" displayed in Requestor column
+
+**Key Features Verified:**
+
+**REQUEST Status Display:**
+- Yellow badge styling applied correctly ✓
+- Status text displays "REQUEST" (uppercase) ✓
+- 3 orders currently in REQUEST stage ✓
+- Badge visually distinct from other statuses ✓
+
+**Four-Stage Workflow:**
+- REQUEST orders: 3 parts orders (Air Filter, Battery, Power Supply) ✓
+- ACKNOWLEDGE orders: 1 order (Coaxial Cable) in blue badge ✓
+- DELIVER orders: 1 order (O-Ring Seal) in green badge ✓
+
+**Data Capture:**
+- request_date field present on all orders ✓
+- Displays as order_date in list view ✓
+- Format: YYYY-MM-DD ✓
+- requestor_name field captured (Bob Field) ✓
+- requestor_id field captured (user_id: 3) ✓
+
+**Console Verification:**
+- Zero JavaScript errors ✓
+- Only expected React Router future flag warnings ✓
+- API calls successful (200 OK responses) ✓
+
+**Screenshots Captured:**
+- feature153_verified_complete.png - Parts Ordered page showing REQUEST badges
+
+**Files Modified:**
+- backend/src/index.ts (PartsOrder interface, mock data status values)
+- frontend/src/pages/PartsOrderedPage.tsx (interface, status colors, filter options)
+
+[Feature] Feature #153 marked as PASSING
+
+**Current Progress:** 152/374 features passing (40.6%)
+
+[Session] Feature #153 complete - All verification steps passed successfully

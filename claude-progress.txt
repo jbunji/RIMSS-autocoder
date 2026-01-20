@@ -13701,3 +13701,4 @@ Updated Filter Dropdown:
 **Current Progress:** 152/374 features passing (40.6%)
 
 [Session] Feature #153 complete - All verification steps passed successfully
+[Testing] Starting regression test for Feature #3 - Homepage redirects to login when unauthenticated
