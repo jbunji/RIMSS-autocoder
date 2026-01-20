@@ -2508,6 +2508,58 @@ function initializeTCTOData(): void {
       created_at: addDays(-10),
     },
   ];
+
+  // Initialize completion data with some repairs linked to TCTOs
+  // TCTO-2024-001: CRIIS-001 and CRIIS-002 are compliant (with linked repairs for testing)
+  tctoAssetCompletionData.set(1, [
+    {
+      asset_id: 1, // CRIIS-001
+      is_compliant: true,
+      completion_date: addDays(-1),
+      linked_repair_id: null, // No repair linked for CRIIS-001
+      completed_by: 'John Admin',
+      completed_at: addDays(-1),
+    },
+    {
+      asset_id: 2, // CRIIS-002
+      is_compliant: true,
+      completion_date: addDays(-1),
+      linked_repair_id: 1, // Linked to repair #1 from MX-2024-001
+      completed_by: 'Bob Field',
+      completed_at: addDays(-1),
+    },
+    {
+      asset_id: 3, // CRIIS-003
+      is_compliant: true,
+      completion_date: addDays(-1),
+      linked_repair_id: null,
+      completed_by: 'Jane Depot',
+      completed_at: addDays(-1),
+    },
+  ]);
+
+  // Update compliant_assets to match completion data
+  tctoRecords[0].compliant_assets = [1, 2, 3];
+
+  // TCTO-2024-003: Both assets compliant (completed TCTO)
+  tctoAssetCompletionData.set(3, [
+    {
+      asset_id: 6, // CRIIS-006
+      is_compliant: true,
+      completion_date: addDays(-30),
+      linked_repair_id: null,
+      completed_by: 'Jane Depot',
+      completed_at: addDays(-30),
+    },
+    {
+      asset_id: 7, // CRIIS-007
+      is_compliant: true,
+      completion_date: addDays(-30),
+      linked_repair_id: null,
+      completed_by: 'Jane Depot',
+      completed_at: addDays(-30),
+    },
+  ]);
 }
 
 // Initialize TCTO data on startup
