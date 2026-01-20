@@ -1,0 +1,267 @@
+### Page state
+- Page URL: http://localhost:5173/spares
+- Page Title: RIMSS - Remote Independent Maintenance Status System
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e604]:
+    - generic [ref=e605]: CUI - Controlled Unclassified Information
+    - navigation [ref=e607]:
+      - generic [ref=e609]:
+        - generic [ref=e610]:
+          - button "Toggle sidebar" [ref=e611] [cursor=pointer]:
+            - img [ref=e612]
+          - generic [ref=e614]:
+            - generic [ref=e615]: RIMSS
+            - generic [ref=e616]: Remote Independent Maintenance Status System
+        - generic [ref=e617]:
+          - link "View notifications" [ref=e618] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e619]
+            - generic [ref=e621]: "4"
+          - 'button "Program: ACTS" [ref=e623] [cursor=pointer]':
+            - generic [ref=e624]: "Program:"
+            - generic [ref=e625]: ACTS
+            - img [ref=e626]
+          - button "Jane Depot" [ref=e629] [cursor=pointer]:
+            - img [ref=e630]
+            - generic [ref=e632]: Jane Depot
+            - img [ref=e633]
+    - generic [ref=e637]:
+      - navigation [ref=e638]:
+        - generic [ref=e639]:
+          - link "Dashboard" [ref=e640] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e641]
+            - text: Dashboard
+          - link "Assets" [ref=e643] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e644]
+            - text: Assets
+          - link "Configurations" [ref=e646] [cursor=pointer]:
+            - /url: /configurations
+            - img [ref=e647]
+            - text: Configurations
+          - link "Maintenance" [ref=e650] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e651]
+            - text: Maintenance
+          - link "Sorties" [ref=e653] [cursor=pointer]:
+            - /url: /sorties
+            - img [ref=e654]
+            - text: Sorties
+          - link "Spares" [ref=e656] [cursor=pointer]:
+            - /url: /spares
+            - img [ref=e657]
+            - text: Spares
+          - link "Parts Ordered" [ref=e659] [cursor=pointer]:
+            - /url: /parts-ordered
+            - img [ref=e660]
+            - text: Parts Ordered
+          - link "Software" [ref=e662] [cursor=pointer]:
+            - /url: /software
+            - img [ref=e663]
+            - text: Software
+          - link "Notifications" [ref=e665] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e666]
+            - text: Notifications
+          - link "Reports" [ref=e668] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e669]
+            - text: Reports
+      - paragraph [ref=e672]: RIMSS v0.1.0
+    - main [ref=e674]:
+      - generic [ref=e975]:
+        - generic [ref=e976]:
+          - generic [ref=e977]:
+            - img [ref=e978]
+            - heading "Spares Inventory" [level=1] [ref=e980]
+          - paragraph [ref=e981]:
+            - text: "Program:"
+            - generic [ref=e982]: Advanced Targeting Capability System (ACTS)
+        - generic [ref=e983]:
+          - generic [ref=e984]:
+            - heading "Search & Filter" [level=2] [ref=e986]
+            - generic [ref=e987]:
+              - button "Export PDF" [ref=e988] [cursor=pointer]:
+                - img [ref=e989]
+                - text: Export PDF
+              - button "Export Excel" [ref=e991] [cursor=pointer]:
+                - img [ref=e992]
+                - text: Export Excel
+              - button "Add Spare" [ref=e994] [cursor=pointer]:
+                - img [ref=e995]
+                - text: Add Spare
+          - generic [ref=e997]:
+            - generic [ref=e998]:
+              - generic [ref=e999]: Search
+              - generic [ref=e1000]:
+                - generic:
+                  - img
+                - textbox "Search" [ref=e1001]:
+                  - /placeholder: Search by serial, part number, or name...
+            - generic [ref=e1002]:
+              - generic [ref=e1003]: Status
+              - combobox "Status" [ref=e1004]:
+                - option "All Statuses" [selected]
+                - option "FMC - Full Mission Capable"
+                - option "PMC - Partial Mission Capable"
+                - option "NMCM - Not Mission Capable Maintenance"
+                - option "NMCS - Not Mission Capable Supply"
+                - option "CNDM - Cannot Determine Mission"
+            - generic [ref=e1005]:
+              - generic [ref=e1006]: Location
+              - combobox "Location" [ref=e1007]:
+                - option "All Locations" [selected]
+                - option "Depot Alpha"
+                - option "Depot Bravo"
+                - option "In Transit"
+            - button "Clear All" [disabled] [ref=e1010]
+        - generic [ref=e1011]:
+          - paragraph [ref=e1013]: Showing 3 of 3 spare parts
+          - table [ref=e1015]:
+            - rowgroup [ref=e1016]:
+              - row "Serial Number Part Number Part Name Status Location Actions" [ref=e1017]:
+                - columnheader [ref=e1018]:
+                  - checkbox [ref=e1019]
+                - columnheader "Serial Number" [ref=e1020] [cursor=pointer]:
+                  - generic [ref=e1021]:
+                    - text: Serial Number
+                    - img [ref=e1022]
+                - columnheader "Part Number" [ref=e1024] [cursor=pointer]:
+                  - generic [ref=e1025]:
+                    - text: Part Number
+                    - img [ref=e1026]
+                - columnheader "Part Name" [ref=e1028] [cursor=pointer]:
+                  - generic [ref=e1029]:
+                    - text: Part Name
+                    - img [ref=e1030]
+                - columnheader "Status" [ref=e1032] [cursor=pointer]:
+                  - generic [ref=e1033]:
+                    - text: Status
+                    - img [ref=e1034]
+                - columnheader "Location" [ref=e1036] [cursor=pointer]:
+                  - generic [ref=e1037]:
+                    - text: Location
+                    - img [ref=e1038]
+                - columnheader "Actions" [ref=e1040]
+            - rowgroup [ref=e1041]:
+              - row "ACTS-006 PN-OPTICS-01 Optical Sight Unit FMC Depot Alpha Edit Delete" [ref=e1042] [cursor=pointer]:
+                - cell [ref=e1043]:
+                  - checkbox [ref=e1044]
+                - cell "ACTS-006" [ref=e1045]:
+                  - generic [ref=e1047]: ACTS-006
+                - cell "PN-OPTICS-01" [ref=e1048]:
+                  - generic [ref=e1049]: PN-OPTICS-01
+                - cell "Optical Sight Unit" [ref=e1050]:
+                  - generic [ref=e1051]: Optical Sight Unit
+                - cell "FMC" [ref=e1052]:
+                  - generic [ref=e1053]: FMC
+                - cell "Depot Alpha" [ref=e1054]:
+                  - generic [ref=e1055]: Depot Alpha
+                - cell "Edit Delete" [ref=e1056]:
+                  - generic [ref=e1057]:
+                    - button "Edit" [ref=e1058]:
+                      - img [ref=e1059]
+                      - text: Edit
+                    - button "Delete" [ref=e1061]:
+                      - img [ref=e1062]
+                      - text: Delete
+              - row "ACTS-001 PN-TARGET-A Targeting System A FMC Depot Alpha Edit Delete" [ref=e1064] [cursor=pointer]:
+                - cell [ref=e1065]:
+                  - checkbox [ref=e1066]
+                - cell "ACTS-001" [ref=e1067]:
+                  - generic [ref=e1069]: ACTS-001
+                - cell "PN-TARGET-A" [ref=e1070]:
+                  - generic [ref=e1071]: PN-TARGET-A
+                - cell "Targeting System A" [ref=e1072]:
+                  - generic [ref=e1073]: Targeting System A
+                - cell "FMC" [ref=e1074]:
+                  - generic [ref=e1075]: FMC
+                - cell "Depot Alpha" [ref=e1076]:
+                  - generic [ref=e1077]: Depot Alpha
+                - cell "Edit Delete" [ref=e1078]:
+                  - generic [ref=e1079]:
+                    - button "Edit" [ref=e1080]:
+                      - img [ref=e1081]
+                      - text: Edit
+                    - button "Delete" [ref=e1083]:
+                      - img [ref=e1084]
+                      - text: Delete
+              - row "ACTS-003 PN-TARGET-B Targeting System B NMCM Depot Alpha Edit Delete" [ref=e1086] [cursor=pointer]:
+                - cell [ref=e1087]:
+                  - checkbox [ref=e1088]
+                - cell "ACTS-003" [ref=e1089]:
+                  - generic [ref=e1091]: ACTS-003
+                - cell "PN-TARGET-B" [ref=e1092]:
+                  - generic [ref=e1093]: PN-TARGET-B
+                - cell "Targeting System B" [ref=e1094]:
+                  - generic [ref=e1095]: Targeting System B
+                - cell "NMCM" [ref=e1096]:
+                  - generic [ref=e1097]: NMCM
+                - cell "Depot Alpha" [ref=e1098]:
+                  - generic [ref=e1099]: Depot Alpha
+                - cell "Edit Delete" [ref=e1100]:
+                  - generic [ref=e1101]:
+                    - button "Edit" [ref=e1102]:
+                      - img [ref=e1103]
+                      - text: Edit
+                    - button "Delete" [ref=e1105]:
+                      - img [ref=e1106]
+                      - text: Delete
+    - contentinfo [ref=e974]: CUI - Controlled Unclassified Information
+  - generic:
+    - generic:
+      - generic:
+        - dialog "Create New Spare Part" [active]:
+          - generic [ref=e1152]:
+            - button "Close" [ref=e1154] [cursor=pointer]:
+              - generic [ref=e1155]: Close
+              - img [ref=e1156]
+            - generic [ref=e1159]:
+              - heading "Create New Spare Part" [level=3] [ref=e1160]
+              - paragraph [ref=e1161]: Add a new spare part to the inventory
+              - generic [ref=e1162]:
+                - generic [ref=e1163]:
+                  - generic [ref=e1164]: Part Number *
+                  - textbox "Part Number *" [ref=e1165]:
+                    - /placeholder: e.g., PN001
+                - generic [ref=e1166]:
+                  - generic [ref=e1167]: Serial Number *
+                  - textbox "Serial Number *" [ref=e1168]:
+                    - /placeholder: e.g., SN123
+                - generic [ref=e1169]:
+                  - generic [ref=e1170]: Status
+                  - combobox "Status" [ref=e1171]:
+                    - option "Available" [selected]
+                    - option "In Use"
+                    - option "Maintenance"
+                    - option "Retired"
+                - generic [ref=e1172]:
+                  - generic [ref=e1173]: Location
+                  - combobox "Location" [ref=e1174]:
+                    - option "Select location (optional)" [selected]
+                    - option "Depot Alpha"
+                    - option "Depot Beta"
+                    - option "Depot Charlie"
+                    - option "Field Site 1"
+                    - option "Field Site 2"
+                    - option "Headquarters"
+                - generic [ref=e1175]:
+                  - generic [ref=e1176]: Warranty Expiration
+                  - textbox "Warranty Expiration" [ref=e1177]
+                - generic [ref=e1178]:
+                  - generic [ref=e1179]: Manufacturing Date
+                  - textbox "Manufacturing Date" [ref=e1180]
+                - generic [ref=e1181]:
+                  - generic [ref=e1182]: Unit Price
+                  - spinbutton "Unit Price" [ref=e1183]
+                - generic [ref=e1184]:
+                  - generic [ref=e1185]: Remarks
+                  - textbox "Remarks" [ref=e1186]:
+                    - /placeholder: Additional notes...
+                - generic [ref=e1187]:
+                  - button "Create Spare" [ref=e1188] [cursor=pointer]
+                  - button "Cancel" [ref=e1189] [cursor=pointer]
+```
