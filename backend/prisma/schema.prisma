@@ -32,6 +32,7 @@ model Program {
   sorties       Sortie[]
   tctos         Tcto[]
   notifications Notification[]
+  spares        Spare[]
 
   @@map("program")
 }
@@ -137,6 +138,7 @@ model Location {
   sruOrders      SruOrder[]
   badActors      BadActor[]
   notifications  Notification[]
+  spares         Spare[]
 
   @@map("location")
 }
@@ -835,4 +837,33 @@ model AdmVariable {
   chg_date  DateTime?
 
   @@map("adm_variable")
+}
+
+// ============================================================================
+// Spares Inventory Tables
+// ============================================================================
+
+model Spare {
+  spare_id     Int       @id @default(autoincrement())
+  pgm_id       Int
+  partno       String    @db.VarChar(50)
+  serno        String    @db.VarChar(50)
+  status       String    @default("AVAILABLE") @db.VarChar(20)
+  loc_id       Int?
+  warranty_exp DateTime?
+  mfg_date     DateTime?
+  unit_price   Decimal?  @db.Decimal(12, 2)
+  remarks      String?   @db.Text
+  active       Boolean   @default(true)
+  ins_by       String?   @db.VarChar(50)
+  ins_date     DateTime  @default(now())
+  chg_by       String?   @db.VarChar(50)
+  chg_date     DateTime?
+
+  // Relations
+  program  Program   @relation(fields: [pgm_id], references: [pgm_id])
+  location Location? @relation(fields: [loc_id], references: [loc_id])
+
+  @@unique([partno, serno])
+  @@map("spares")
 }

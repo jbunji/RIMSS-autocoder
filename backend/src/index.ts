@@ -10412,6 +10412,339 @@ app.post('/api/sorties/bulk-import', (req, res) => {
   });
 });
 
+// GET /api/spares - List spare parts inventory (assets not in config) for a program
+app.get('/api/spares', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (required or use default)
+  let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // If no program specified, use user's default program
+  if (!programIdFilter) {
+    const defaultProgram = user.programs.find(p => p.is_default);
+    programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+  }
+
+  // Check if user has access to this program
+  if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this program' });
+  }
+
+  // Get spare assets (active assets without cfg_set_id, typically at depot locations)
+  const allAssets = detailedAssets;
+
+  // Filter by program and "spare" status (not assigned to configuration)
+  // Spares are typically assets at depot with no configuration assignment
+  let filteredSpares = allAssets.filter(asset =>
+    asset.pgm_id === programIdFilter &&
+    asset.active === true &&
+    asset.loc_type === 'depot' // Spares are typically at depot
+  );
+
+  // Apply optional status filter
+  const statusFilter = req.query.status as string;
+  if (statusFilter) {
+    filteredSpares = filteredSpares.filter(spare => spare.status_cd === statusFilter);
+  }
+
+  // Apply optional search filter (searches serno, partno, part_name)
+  const searchQuery = (req.query.search as string)?.toLowerCase();
+  if (searchQuery) {
+    filteredSpares = filteredSpares.filter(spare =>
+      spare.serno.toLowerCase().includes(searchQuery) ||
+      spare.partno.toLowerCase().includes(searchQuery) ||
+      spare.part_name.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // Apply sorting
+  const sortBy = (req.query.sort_by as string) || 'partno';
+  const sortOrder = (req.query.sort_order as string) || 'asc';
+
+  // Valid sort columns
+  const validSortColumns = ['serno', 'partno', 'part_name', 'status_cd', 'location'];
+  if (validSortColumns.includes(sortBy)) {
+    filteredSpares.sort((a: AssetDetails, b: AssetDetails) => {
+      let aVal: string | number | null = null;
+      let bVal: string | number | null = null;
+
+      switch (sortBy) {
+        case 'serno':
+          aVal = a.serno.toLowerCase();
+          bVal = b.serno.toLowerCase();
+          break;
+        case 'partno':
+          aVal = a.partno.toLowerCase();
+          bVal = b.partno.toLowerCase();
+          break;
+        case 'part_name':
+          aVal = a.part_name.toLowerCase();
+          bVal = b.part_name.toLowerCase();
+          break;
+        case 'status_cd':
+          aVal = a.status_cd;
+          bVal = b.status_cd;
+          break;
+        case 'location':
+          aVal = a.location.toLowerCase();
+          bVal = b.location.toLowerCase();
+          break;
+      }
+
+      if (aVal === null || bVal === null) return 0;
+
+      let comparison = 0;
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        comparison = aVal.localeCompare(bVal);
+      } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+        comparison = aVal - bVal;
+      }
+
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+  }
+
+  // Get pagination params
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = Math.min(parseInt(req.query.limit as string, 10) || 25, 100);
+  const offset = (page - 1) * limit;
+
+  // Calculate total before pagination
+  const total = filteredSpares.length;
+
+  // Apply pagination
+  const paginatedSpares = filteredSpares.slice(offset, offset + limit);
+
+  // Get program info
+  const program = allPrograms.find(p => p.pgm_id === programIdFilter);
+
+  console.log(`[SPARES] List request by ${user.username} - Program: ${program?.pgm_cd}, Total: ${total}, Page: ${page}`);
+
+  res.json({
+    spares: paginatedSpares,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+    program: {
+      pgm_id: programIdFilter,
+      pgm_cd: program?.pgm_cd || 'UNKNOWN',
+      pgm_name: program?.pgm_name || 'Unknown Program',
+    },
+  });
+});
+
+// POST /api/spares - Create a new spare part record
+app.post('/api/spares', async (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions (depot_manager or admin can create spares)
+  if (user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  }
+
+  try {
+    const { partno, serno, status, loc_id, warranty_exp, mfg_date, unit_price, remarks, pgm_id } = req.body;
+
+    // Validation
+    if (!partno || !serno) {
+      return res.status(400).json({ error: 'Part number and serial number are required' });
+    }
+
+    // Use user's current program if not specified
+    const programId = pgm_id || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id;
+
+    // Check if spare with same partno+serno already exists
+    const existingSpare = await prisma.spare.findFirst({
+      where: {
+        partno,
+        serno,
+        active: true,
+      },
+    });
+
+    if (existingSpare) {
+      return res.status(409).json({ error: 'A spare with this part number and serial number already exists' });
+    }
+
+    // Create spare
+    const newSpare = await prisma.spare.create({
+      data: {
+        partno,
+        serno,
+        status: status || 'AVAILABLE',
+        loc_id: loc_id ? parseInt(loc_id) : null,
+        warranty_exp: warranty_exp ? new Date(warranty_exp) : null,
+        mfg_date: mfg_date ? new Date(mfg_date) : null,
+        unit_price: unit_price ? parseFloat(unit_price) : null,
+        remarks,
+        pgm_id: programId,
+        ins_by: user.username,
+      },
+      include: {
+        program: true,
+        location: true,
+      },
+    });
+
+    console.log(`[SPARES] Created spare ${newSpare.spare_id} by ${user.username}`);
+
+    res.status(201).json({
+      spare_id: newSpare.spare_id,
+      partno: newSpare.partno,
+      serno: newSpare.serno,
+      status: newSpare.status,
+      location: newSpare.location?.display_name || 'No Location',
+      loc_id: newSpare.loc_id,
+      warranty_exp: newSpare.warranty_exp?.toISOString() || null,
+      mfg_date: newSpare.mfg_date?.toISOString() || null,
+      unit_price: newSpare.unit_price ? parseFloat(newSpare.unit_price.toString()) : null,
+      remarks: newSpare.remarks,
+      pgm_id: newSpare.pgm_id,
+      active: newSpare.active,
+      ins_date: newSpare.ins_date.toISOString(),
+    });
+  } catch (error) {
+    console.error('[SPARES] Error creating spare:', error);
+    res.status(500).json({ error: 'Failed to create spare' });
+  }
+});
+
+// PUT /api/spares/:id - Update a spare part record
+app.put('/api/spares/:id', async (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions
+  if (user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  }
+
+  try {
+    const spareId = parseInt(req.params.id, 10);
+    const { partno, serno, status, loc_id, warranty_exp, mfg_date, unit_price, remarks } = req.body;
+
+    // Check if spare exists
+    const spare = await prisma.spare.findUnique({
+      where: { spare_id: spareId },
+    });
+
+    if (!spare) {
+      return res.status(404).json({ error: 'Spare not found' });
+    }
+
+    // Update spare
+    const updatedSpare = await prisma.spare.update({
+      where: { spare_id: spareId },
+      data: {
+        partno: partno || spare.partno,
+        serno: serno || spare.serno,
+        status: status || spare.status,
+        loc_id: loc_id !== undefined ? (loc_id ? parseInt(loc_id) : null) : spare.loc_id,
+        warranty_exp: warranty_exp !== undefined ? (warranty_exp ? new Date(warranty_exp) : null) : spare.warranty_exp,
+        mfg_date: mfg_date !== undefined ? (mfg_date ? new Date(mfg_date) : null) : spare.mfg_date,
+        unit_price: unit_price !== undefined ? (unit_price ? parseFloat(unit_price) : null) : spare.unit_price,
+        remarks: remarks !== undefined ? remarks : spare.remarks,
+        chg_by: user.username,
+        chg_date: new Date(),
+      },
+      include: {
+        program: true,
+        location: true,
+      },
+    });
+
+    console.log(`[SPARES] Updated spare ${updatedSpare.spare_id} by ${user.username}`);
+
+    res.json({
+      spare_id: updatedSpare.spare_id,
+      partno: updatedSpare.partno,
+      serno: updatedSpare.serno,
+      status: updatedSpare.status,
+      location: updatedSpare.location?.display_name || 'No Location',
+      loc_id: updatedSpare.loc_id,
+      warranty_exp: updatedSpare.warranty_exp?.toISOString() || null,
+      mfg_date: updatedSpare.mfg_date?.toISOString() || null,
+      unit_price: updatedSpare.unit_price ? parseFloat(updatedSpare.unit_price.toString()) : null,
+      remarks: updatedSpare.remarks,
+      pgm_id: updatedSpare.pgm_id,
+      active: updatedSpare.active,
+      ins_date: updatedSpare.ins_date.toISOString(),
+    });
+  } catch (error) {
+    console.error('[SPARES] Error updating spare:', error);
+    res.status(500).json({ error: 'Failed to update spare' });
+  }
+});
+
+// DELETE /api/spares/:id - Delete (soft) a spare part record
+app.delete('/api/spares/:id', async (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role permissions
+  if (user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  }
+
+  try {
+    const spareId = parseInt(req.params.id, 10);
+
+    // Check if spare exists
+    const spare = await prisma.spare.findUnique({
+      where: { spare_id: spareId },
+    });
+
+    if (!spare) {
+      return res.status(404).json({ error: 'Spare not found' });
+    }
+
+    // Soft delete (set active = false)
+    await prisma.spare.update({
+      where: { spare_id: spareId },
+      data: {
+        active: false,
+        chg_by: user.username,
+        chg_date: new Date(),
+      },
+    });
+
+    console.log(`[SPARES] Deleted spare ${spareId} by ${user.username}`);
+
+    res.json({ message: 'Spare deleted successfully' });
+  } catch (error) {
+    console.error('[SPARES] Error deleting spare:', error);
+    res.status(500).json({ error: 'Failed to delete spare' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`

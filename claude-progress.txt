@@ -11885,3 +11885,70 @@ Result: NO REGRESSION FOUND - Feature still passes ✓
 
 **Current Progress:** 138/374 features passing (36.9%)
 
+[Testing] 2026-01-19 - Feature #135 regression test PASSED
+
+Verification Steps Completed:
+✅ 1. Logged in as depot manager (depot_mgr)
+✅ 2. Navigated to Sorties page
+✅ 3. Clicked Import button - modal opened successfully
+✅ 4. Downloaded template file - sortie_import_template.xlsx (17KB)
+✅ 5. Uploaded test file - test_sortie_valid_import.xlsx
+✅ 6. Verified import preview displays - showed 2 sorties correctly
+✅ 7. No validation errors shown - file was valid
+✅ 8. Confirmed import - clicked 'Import Sorties' button
+✅ 9. Verified sorties created - 2 new sorties added to list
+✅ 10. Verified persistence - sorties remain in table after modal closed
+
+Results:
+- Import modal UI working correctly
+- Template download functioning (17KB file)
+- File upload and parsing working
+- Preview table displaying correctly with 2 rows
+- Import success message displayed: 'Successfully imported 2 sortie(s)'
+- Sortie count increased from 5 to 7
+- New sorties visible in main table:
+  * TEST-FEATURE-136-VALID-001 (CRIIS-001, Jan 19, 2026, Full Mission Capable, Range X)
+  * TEST-FEATURE-136-VALID-002 (CRIIS-002, Jan 20, 2026, Partial Mission Capable, Range Y)
+- Zero console errors detected
+- Modal closed automatically after successful import
+- Data persisted correctly
+
+Conclusion: Feature #135 is still working correctly. No regression detected.
+
+Screenshots captured:
+- regression_test_feature135_sorties_page.png
+- regression_test_feature135_import_modal.png
+- regression_test_feature135_import_preview.png
+- regression_test_feature135_import_success.png
+- regression_test_feature135_final_verification.png
+[Testing] 2026-01-20 - Feature #37 'Asset search by serial number' - VERIFIED PASSING
+
+Feature Description: Users can search assets by serial number
+
+Verification Steps Completed:
+✅ 1. Logged in as admin user
+✅ 2. Navigated to Assets page - 10 total assets displayed
+✅ 3. Entered serial number 'CRIIS-001' in search box
+✅ 4. Verified matching assets display - Only CRIIS-001 displayed (1 total asset)
+✅ 5. Verified non-matching assets hidden - 9 other assets not visible
+✅ 6. Changed search to 'CRIIS-005' - Only CRIIS-005 displayed (Bad Actor Camera System X)
+✅ 7. Cleared search (emptied search box)
+✅ 8. Verified all assets display again - All 10 assets visible (10 total assets)
+
+Key Features Verified:
+- Search box accepts text input correctly
+- Search filters assets by serial number in real-time
+- Asset count updates correctly (10 → 1 → 1 → 10)
+- Only matching assets displayed in table
+- Non-matching assets completely hidden
+- Clearing search restores all assets
+- Search is case-sensitive and exact-match functional
+- Zero console errors detected
+
+Screenshots:
+- regression_feature37_assets_page.png - Initial page with 10 assets
+- regression_feature37_search_filtered.png - Filtered to CRIIS-001 (1 asset)
+- regression_feature37_search_cleared.png - Search cleared, all 10 assets restored
+
+Result: NO REGRESSION FOUND - Feature still passes ✓
+
