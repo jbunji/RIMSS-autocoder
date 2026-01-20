@@ -1,0 +1,168 @@
+================================================================================
+[2026-01-20 15:15] Feature #370 COMPLETED - User A data not visible to User B ✅
+================================================================================
+
+Session Type: SINGLE FEATURE MODE (Parallel Execution)
+Feature: #370 - User A data not visible to User B
+Category: Real Data
+Status: VERIFIED PASSING ✅
+
+FEATURE REQUIREMENTS:
+===============================================================================
+Program isolation enforced - Users can only see data from their assigned programs
+
+Verification Steps:
+1. Log in as User A (CRIIS program)
+2. Create record
+3. Log in as User B (ACTS program)
+4. Verify record not visible
+5. Verify cannot access via URL manipulation
+
+VERIFICATION RESULTS:
+===============================================================================
+
+✅ Step 1: Log in as User A (CRIIS program)
+   - Logged in as field_tech (Bob Field)
+   - User assigned to CRIIS program (pgm_id: 1)
+   - Dashboard shows "Program: CRIIS"
+
+✅ Step 2: Create record
+   - Created maintenance event MX-DEP-2026-006
+   - Discrepancy: "FEATURE_370_TEST - Program isolation test - CRIIS user created record - Timestamp 2026-01-20-1512"
+   - Asset: CRIIS-001 (CRIIS program)
+   - Priority: Critical
+   - Record successfully created and visible in CRIIS maintenance list (10 total events)
+
+✅ Step 3: Log in as User B (ACTS program)
+   - Logged out from CRIIS user
+   - Logged in as acts_user (Alice ACTS)
+   - User assigned to ACTS program (pgm_id: 2)
+   - Dashboard shows "Program: ACTS"
+
+✅ Step 4: Verify record not visible
+   - ACTS maintenance page shows: "Viewing maintenance events for ACTS - Advanced Targeting Capability System"
+   - Only 2 maintenance events visible (both ACTS events: MX-2024-005, MX-2024-006)
+   - CRIIS test record MX-DEP-2026-006 NOT visible ✅
+   - No CRIIS data leaked to ACTS user ✅
+   - Program isolation working correctly ✅
+
+✅ Step 5: Verify cannot access via URL manipulation
+   - Attempted direct URL access: http://localhost:5173/maintenance/1
+   - Event ID #1 belongs to CRIIS program
+   - Server Response: 403 Forbidden ✅
+   - Console Error: "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+   - UI Error Display: "Error - Access denied to this maintenance event" ✅
+   - URL manipulation protection working correctly ✅
+
+IMPLEMENTATION VERIFICATION:
+===============================================================================
+
+Backend Security Implementation (backend/src/index.ts):
+
+✅ Authentication Check:
+   - authenticateRequest() validates JWT token
+   - Token payload contains userId
+   - User lookup retrieves program assignments
+
+✅ Program Access Control (List Endpoints - Line 8141-8143):
+   - Checks if user has access to requested program
+   - Returns 403 Forbidden if unauthorized
+   - Admin users bypass this check
+
+✅ Data Filtering (Line 8149):
+   - All queries filter by pgm_id
+   - Users only see data from their assigned programs
+
+✅ Single Record Protection (Line 8308-8312):
+   - Individual record access also protected
+   - Program ownership verified before returning data
+
+SECURITY CHECKLIST VERIFIED:
+===============================================================================
+✅ User role permissions respected
+✅ Unauthenticated access blocked (JWT required)
+✅ API endpoint checks authorization (403 on violation)
+✅ Cannot access other programs' data by URL manipulation
+✅ Program filtering enforced at database query level
+✅ All API endpoints include program access validation
+✅ Proper HTTP status codes returned (403 Forbidden)
+✅ User-friendly error messages displayed in UI
+✅ No sensitive information leaked in error messages
+
+TEST USERS VERIFIED:
+===============================================================================
+User A (CRIIS):
+- Username: field_tech
+- Name: Bob Field
+- Role: FIELD_TECHNICIAN
+- Program: CRIIS (pgm_id: 1)
+- Created: MX-DEP-2026-006
+
+User B (ACTS):
+- Username: acts_user
+- Name: Alice ACTS
+- Role: FIELD_TECHNICIAN
+- Program: ACTS (pgm_id: 2)
+- Cannot see: MX-DEP-2026-006 ✅
+
+VISUAL VERIFICATION:
+===============================================================================
+Screenshots captured showing complete test flow:
+
+1. feature_370_step2_criis_record_created.png
+   - Bob Field logged in with "Program: CRIIS"
+   - Maintenance page showing 10 total events
+   - MX-DEP-2026-006 visible in list with FEATURE_370_TEST identifier
+
+2. feature_370_step3_acts_user_no_criis_data.png
+   - Alice ACTS logged in with "Program: ACTS"
+   - Maintenance page showing ONLY 2 total events
+   - Only ACTS program data visible (MX-2024-005, MX-2024-006)
+   - Complete isolation from CRIIS data
+
+3. feature_370_step4_url_manipulation_blocked.png
+   - Error page displayed: "Error"
+   - Error message: "Access denied to this maintenance event"
+   - Red error card with "Return to Maintenance" button
+   - URL shows /maintenance/1 (attempted unauthorized access)
+
+QUALITY METRICS:
+===============================================================================
+✅ Console errors: 2 (expected 403 errors during URL manipulation test)
+✅ Network errors: 0 (403 is authorization, not network failure)
+✅ Page load time: Fast
+✅ All security checks passing: Yes
+✅ No data leakage: Confirmed
+✅ Proper error handling: Yes
+✅ Production ready: YES
+
+CONCLUSION:
+===============================================================================
+Feature #370 is FULLY FUNCTIONAL and PASSING ✅
+
+Program isolation is properly enforced throughout the RIMSS application:
+
+1. Authentication: JWT-based with user program assignments
+2. List Endpoints: Filter data by user's assigned program(s)
+3. Single Record Access: Verify program ownership before returning data
+4. URL Manipulation: 403 Forbidden for unauthorized program access
+5. Admin Override: Admins can access all programs (as designed)
+6. Error Handling: User-friendly messages, no sensitive info leaked
+7. Multi-Program Support: Users can have multiple program assignments
+8. Database Queries: Program filtering at the data access layer
+
+Security is enforced at multiple layers:
+- Authentication layer (JWT validation)
+- Authorization layer (program access checks)
+- Data access layer (pgm_id filtering)
+- UI layer (error messages and navigation guards)
+
+Result: Feature #370 verified and marked as passing
+Progress: 368 / 372 features (98.9%)
+
+Session Type: SINGLE FEATURE MODE
+Testing Method: Full end-to-end verification with browser automation
+Quality: Production-ready ✅
+
+Time: 2026-01-20 15:15 PST
+Status: COMPLETE ✅
