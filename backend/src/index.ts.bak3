@@ -6660,7 +6660,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 4500.00,
       order_date: addDays(-7),
       request_date: addDays(-7),
-      status: 'ACKNOWLEDGE',
+      status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: 'ACTS-005',
@@ -6685,7 +6685,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 45.00,
       order_date: addDays(-5),
       request_date: addDays(-5),
-      status: 'ACKNOWLEDGE',
+      status: 'acknowledged',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6711,7 +6711,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 2800.00,
       order_date: addDays(-10),
       request_date: addDays(-10),
-      status: 'FILL',
+      status: 'shipped',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: 'ARDS-004',
@@ -6763,7 +6763,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 15000.00,
       order_date: addDays(-8),
       request_date: addDays(-8),
-      status: 'ACKNOWLEDGE',
+      status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
       asset_sn: '236-002',
@@ -6789,7 +6789,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 12.50,
       order_date: addDays(-15),
       request_date: addDays(-15),
-      status: 'DELIVER',
+      status: 'received',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: null,
@@ -6815,7 +6815,7 @@ function initializePartsOrders(): PartsOrder[] {
       unit_price: 650.00,
       order_date: addDays(-1),
       request_date: addDays(-1),
-      status: 'REQUEST',
+      status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
       asset_sn: 'CRIIS-005',
@@ -8928,9 +8928,9 @@ app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
   order.status = 'acknowledged';
   order.acknowledged_date = new Date().toISOString();
   order.acknowledged_by = user.user_id;
-  order.acknowledged_by_name = `${user.first_name} ${user.last_name}`;
+  order.acknowledged_by_name = user.full_name;
 
-  console.log(`[PARTS] Order #${orderId} acknowledged by ${user.first_name} ${user.last_name} (${user.role})`);
+  console.log(`[PARTS] Order #${orderId} acknowledged by ${user.full_name} (${user.role})`);
 
   // Return updated order with program info
   const program = allPrograms.find(p => p.pgm_id === order.pgm_id);

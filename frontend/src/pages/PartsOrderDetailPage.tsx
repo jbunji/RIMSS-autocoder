@@ -138,7 +138,7 @@ export default function PartsOrderDetailPage() {
     }
   }
 
-  const canAcknowledge = user && (user.role === 'depot_manager' || user.role === 'admin') && order?.status === 'pending'
+  const canAcknowledge = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'pending'
 
   if (loading) {
     return (
