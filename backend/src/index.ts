@@ -2955,6 +2955,7 @@ interface Repair {
   eti_in: number | null; // ETI meter value at repair start
   eti_out: number | null; // ETI meter value at repair end
   eti_delta: number | null; // Calculated difference (eti_out - eti_in)
+  meter_changed: boolean; // Flag indicating physical meter was replaced
   created_by_name: string;
   created_at: string;
 }
@@ -3004,6 +3005,7 @@ function initializeRepairs(): void {
       eti_in: 780.5,
       eti_out: 782.0,
       eti_delta: 1.5,
+      meter_changed: false,
       created_by_name: 'Bob Field',
       created_at: addDays(-5),
     },
@@ -3037,6 +3039,7 @@ function initializeRepairs(): void {
       eti_in: 782.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'Bob Field',
       created_at: addDays(-3),
     },
@@ -3071,6 +3074,7 @@ function initializeRepairs(): void {
       eti_in: 1500.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'Jane Depot',
       created_at: addDays(-10),
     },
@@ -3105,6 +3109,7 @@ function initializeRepairs(): void {
       eti_in: 2100.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'Bob Field',
       created_at: addDays(-2),
     },
@@ -3139,6 +3144,7 @@ function initializeRepairs(): void {
       eti_in: 550.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'Bob Field',
       created_at: addDays(-1),
     },
@@ -3173,6 +3179,7 @@ function initializeRepairs(): void {
       eti_in: 1200.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'Jane Depot',
       created_at: addDays(-3),
     },
@@ -3207,6 +3214,7 @@ function initializeRepairs(): void {
       eti_in: 890.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'Jane Depot',
       created_at: addDays(-5),
     },
@@ -3241,6 +3249,7 @@ function initializeRepairs(): void {
       eti_in: 620.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'Bob Field',
       created_at: addDays(-7),
     },
@@ -3275,6 +3284,7 @@ function initializeRepairs(): void {
       eti_in: 1235.0,
       eti_out: 1238.5,
       eti_delta: 3.5,
+      meter_changed: false,
       created_by_name: 'Bob Field',
       created_at: addDays(-15),
     },
@@ -3308,6 +3318,7 @@ function initializeRepairs(): void {
       eti_in: 1238.5,
       eti_out: 1240.0,
       eti_delta: 1.5,
+      meter_changed: false,
       created_by_name: 'Bob Field',
       created_at: addDays(-14),
     },
@@ -3342,6 +3353,7 @@ function initializeRepairs(): void {
       eti_in: 3450.0,
       eti_out: 3455.0,
       eti_delta: 5.0,
+      meter_changed: false,
       created_by_name: 'Jane Depot',
       created_at: addDays(-20),
     },
@@ -3376,6 +3388,7 @@ function initializeRepairs(): void {
       eti_in: 150.0,
       eti_out: null,
       eti_delta: null,
+      meter_changed: false,
       created_by_name: 'John Admin',
       created_at: addDays(-4),
     },

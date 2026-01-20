@@ -26,7 +26,9 @@ interface Asset {
   uii?: string | null          // Unique Item Identifier
   mfg_date?: string | null     // Manufacturing date
   acceptance_date?: string | null  // Acceptance date
-  eti_hours?: number | null    // ETI tracking hours
+  eti_hours?: number | null    // ETI tracking hours (or hours for meter_type 'hours')
+  meter_type?: 'hours' | 'cycles' | 'eti' | null  // Type of meter for this asset
+  cycles_count?: number | null  // Cycles count (for assets that track cycles)
   last_maint_date?: string | null
   next_pmi_date?: string | null
   location?: string
@@ -89,22 +91,26 @@ interface AssetHistoryEntry {
   description: string
 }
 
-// ETI History interfaces
-interface ETIHistoryEntry {
-  eti_history_id: number
+// Meter History interfaces (supports hours, cycles, and ETI tracking)
+interface MeterHistoryEntry {
+  meter_history_id: number
   asset_id: number
   timestamp: string
   user_id: number
   username: string
   user_full_name: string
-  old_eti_hours: number | null
-  new_eti_hours: number
-  hours_added: number
+  meter_type: 'hours' | 'cycles' | 'eti'
+  old_value: number | null
+  new_value: number
+  value_added: number
   source: 'maintenance' | 'manual' | 'sortie'
   source_id: number | null
   source_ref: string | null
   notes: string | null
 }
+
+// Legacy type alias for backward compatibility
+type ETIHistoryEntry = MeterHistoryEntry
 
 // Meter history entry interface (ETM - Engineering Time Meters)
 interface MeterHistoryEntry {
@@ -278,6 +284,7 @@ export default function AssetDetailPage() {
   // ETI Update form state
   const [showEtiUpdateModal, setShowEtiUpdateModal] = useState(false)
   const [etiUpdateForm, setEtiUpdateForm] = useState({
+    meter_type: '' as 'hours' | 'cycles' | 'eti' | '',
     hours_to_add: '',
     source: 'manual' as 'maintenance' | 'manual' | 'sortie',
     source_ref: '',
@@ -345,6 +352,9 @@ export default function AssetDetailPage() {
 
   // Check if user can update ETI (ADMIN, DEPOT_MANAGER, or FIELD_TECHNICIAN)
   const canUpdateETI = user?.role === 'ADMIN' || user?.role === 'DEPOT_MANAGER' || user?.role === 'FIELD_TECHNICIAN'
+
+  // Check if user can replace meter (only ADMIN and DEPOT_MANAGER)
+  const canReplaceMeter = user?.role === 'ADMIN' || user?.role === 'DEPOT_MANAGER'
 
   // Fetch asset data
   useEffect(() => {
@@ -668,14 +678,17 @@ export default function AssetDetailPage() {
     setEtiUpdateSuccess(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${id}/eti`, {
+      const meterType = etiUpdateForm.meter_type || asset.meter_type || 'hours'
+
+      const response = await fetch(`http://localhost:3001/api/assets/${id}/meter`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          hours_to_add: parseFloat(etiUpdateForm.hours_to_add),
+          meter_type: meterType,
+          value_to_add: parseFloat(etiUpdateForm.hours_to_add),
           source: etiUpdateForm.source,
           source_ref: etiUpdateForm.source_ref || null,
           notes: etiUpdateForm.notes || null,
@@ -685,24 +698,30 @@ export default function AssetDetailPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update ETI hours')
+        throw new Error(data.error || 'Failed to update meter reading')
       }
 
-      // Update local asset state with new ETI
-      setAsset(prev => prev ? { ...prev, eti_hours: data.new_eti_hours } : null)
+      // Update local asset state with new meter value
+      if (meterType === 'cycles') {
+        setAsset(prev => prev ? { ...prev, cycles_count: data.new_value, meter_type: meterType } : null)
+      } else {
+        setAsset(prev => prev ? { ...prev, eti_hours: data.new_value, meter_type: meterType } : null)
+      }
 
-      // Refresh ETI history
+      // Refresh meter history
       setEtiHistory(prev => [data.history_entry, ...prev])
 
       // Reset form and show success
       setEtiUpdateForm({
+        meter_type: '',
         hours_to_add: '',
         source: 'manual',
         source_ref: '',
         notes: '',
       })
       setShowEtiUpdateModal(false)
-      setEtiUpdateSuccess(`ETI updated: ${data.old_eti_hours || 0} → ${data.new_eti_hours} hours`)
+      const unit = meterType === 'cycles' ? 'cycles' : 'hours'
+      setEtiUpdateSuccess(`${meterType.toUpperCase()} updated: ${data.old_value || 0} → ${data.new_value} ${unit}`)
 
       // Clear history cache so it refreshes when viewing History tab
       setHistory([])
@@ -710,6 +729,62 @@ export default function AssetDetailPage() {
       setEtiUpdateError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setEtiUpdating(false)
+    }
+  }
+
+  // Handle Meter Replacement form submission
+  const handleMeterReplacement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!token || !id || !asset) return
+
+    setMeterReplacing(true)
+    setMeterReplacementError(null)
+    setMeterReplacementSuccess(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${id}/replace-meter`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          replacement_reason: meterReplacementForm.replacement_reason,
+          new_meter_start_value: parseFloat(meterReplacementForm.new_meter_start_value),
+          notes: meterReplacementForm.notes || null,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to replace meter')
+      }
+
+      // Update local asset state with new meter value
+      setAsset(prev => prev ? { ...prev, eti_hours: data.new_meter_start_value } : null)
+
+      // Refresh ETI history to show replacement entry
+      setEtiHistory([])
+
+      // Reset form and show success
+      setMeterReplacementForm({
+        replacement_reason: '',
+        new_meter_start_value: '',
+        notes: '',
+      })
+      setShowMeterReplacementModal(false)
+      setMeterReplacementSuccess(`Meter replaced successfully. Old meter: ${data.old_meter_value || 0} hrs, New meter start: ${data.new_meter_start_value} hrs`)
+
+      // Clear history cache so it refreshes when viewing History tab
+      setHistory([])
+
+      // Auto-clear success message after 10 seconds
+      setTimeout(() => setMeterReplacementSuccess(null), 10000)
+    } catch (err) {
+      setMeterReplacementError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setMeterReplacing(false)
     }
   }
 
@@ -1193,11 +1268,15 @@ export default function AssetDetailPage() {
                 </p>
               </div>
 
-              {/* ETI Hours */}
+              {/* Meter Tracking */}
               <div>
-                <label className="block text-sm font-medium text-gray-500">ETI Hours</label>
+                <label className="block text-sm font-medium text-gray-500">
+                  {asset.meter_type === 'cycles' ? 'Cycles Count' : asset.meter_type === 'eti' ? 'ETI Hours' : asset.meter_type === 'hours' ? 'Hours' : 'Meter Reading'}
+                </label>
                 <p className="mt-1 text-gray-900">
-                  {asset.eti_hours !== null && asset.eti_hours !== undefined ? (
+                  {asset.meter_type === 'cycles' && asset.cycles_count !== null && asset.cycles_count !== undefined ? (
+                    <span className="text-lg font-semibold">{asset.cycles_count.toLocaleString()} cycles</span>
+                  ) : (asset.meter_type === 'hours' || asset.meter_type === 'eti') && asset.eti_hours !== null && asset.eti_hours !== undefined ? (
                     <span className="text-lg font-semibold">{asset.eti_hours.toLocaleString()} hrs</span>
                   ) : (
                     <span className="text-gray-400 italic">Not tracked</span>
@@ -1800,36 +1879,58 @@ export default function AssetDetailPage() {
               <h2 className="text-lg font-medium text-gray-900">ETI Tracking</h2>
               <p className="mt-1 text-sm text-gray-500">Elapsed Time Indicator history and updates</p>
             </div>
-            {canUpdateETI && (
-              <button
-                onClick={() => setShowEtiUpdateModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Update ETI
-              </button>
-            )}
+            <div className="flex gap-3">
+              {canUpdateETI && (
+                <button
+                  onClick={() => setShowEtiUpdateModal(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Update ETI
+                </button>
+              )}
+              {canReplaceMeter && asset?.eti_hours !== null && (
+                <button
+                  onClick={() => setShowMeterReplacementModal(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Replace Meter
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Current ETI Display */}
+          {/* Current Meter Display */}
           <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-700">Current ETI Hours</p>
+                <p className="text-sm font-medium text-blue-700">
+                  Current {asset?.meter_type === 'cycles' ? 'Cycles Count' : asset?.meter_type === 'eti' ? 'ETI Hours' : asset?.meter_type === 'hours' ? 'Hours' : 'Meter Reading'}
+                </p>
                 <p className="text-3xl font-bold text-blue-900">
-                  {asset?.eti_hours?.toLocaleString() || '0'} <span className="text-lg font-normal">hrs</span>
+                  {asset?.meter_type === 'cycles' ? (
+                    <>{asset?.cycles_count?.toLocaleString() || '0'} <span className="text-lg font-normal">cycles</span></>
+                  ) : (
+                    <>{asset?.eti_hours?.toLocaleString() || '0'} <span className="text-lg font-normal">hrs</span></>
+                  )}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-blue-600">Asset: {asset?.serno}</p>
                 <p className="text-sm text-blue-600">Part: {asset?.partno}</p>
+                {asset?.meter_type && (
+                  <p className="text-sm text-blue-600">Meter Type: {asset.meter_type.toUpperCase()}</p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Success message */}
+          {/* Success messages */}
           {etiUpdateSuccess && (
             <div className="px-6 py-3 bg-green-50 border-b border-green-100">
               <div className="flex items-center">
@@ -1837,6 +1938,16 @@ export default function AssetDetailPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="text-sm text-green-700">{etiUpdateSuccess}</span>
+              </div>
+            </div>
+          )}
+          {meterReplacementSuccess && (
+            <div className="px-6 py-3 bg-green-50 border-b border-green-100">
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-green-700">{meterReplacementSuccess}</span>
               </div>
             </div>
           )}
@@ -1880,13 +1991,13 @@ export default function AssetDetailPage() {
                         <span className="text-sm text-gray-500">{formatDateTime(entry.timestamp)}</span>
                       </div>
 
-                      {/* Hours change */}
+                      {/* Meter value change */}
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg font-semibold text-gray-900">
-                          {entry.old_eti_hours?.toLocaleString() || '0'} → {entry.new_eti_hours.toLocaleString()} hrs
+                          {entry.old_value?.toLocaleString() || '0'} → {entry.new_value.toLocaleString()} {entry.meter_type === 'cycles' ? 'cycles' : 'hrs'}
                         </span>
-                        <span className={`text-sm font-medium ${entry.hours_added >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ({entry.hours_added >= 0 ? '+' : ''}{entry.hours_added} hrs)
+                        <span className={`text-sm font-medium ${entry.value_added >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ({entry.value_added >= 0 ? '+' : ''}{entry.value_added} {entry.meter_type === 'cycles' ? 'cycles' : 'hrs'})
                         </span>
                       </div>
 
@@ -2581,7 +2692,7 @@ export default function AssetDetailPage() {
             {/* Modal panel */}
             <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Update ETI Hours</h3>
+                <h3 className="text-lg font-medium text-gray-900">Add Meter Reading</h3>
                 <button
                   onClick={() => setShowEtiUpdateModal(false)}
                   className="text-gray-400 hover:text-gray-500"
@@ -2592,10 +2703,19 @@ export default function AssetDetailPage() {
                 </button>
               </div>
 
-              {/* Current ETI */}
+              {/* Current Reading */}
               <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500">Current ETI</p>
-                <p className="text-xl font-bold text-gray-900">{asset?.eti_hours?.toLocaleString() || '0'} hrs</p>
+                <p className="text-sm text-gray-500">Current Reading</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {asset?.meter_type === 'cycles' ? (
+                    <>{asset?.cycles_count?.toLocaleString() || '0'} cycles</>
+                  ) : (
+                    <>{asset?.eti_hours?.toLocaleString() || '0'} hrs</>
+                  )}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Meter Type: {asset?.meter_type ? asset.meter_type.toUpperCase() : 'Not set'}
+                </p>
               </div>
 
               {/* Error message */}
@@ -2606,21 +2726,38 @@ export default function AssetDetailPage() {
               )}
 
               <form onSubmit={handleETIUpdate}>
-                {/* Hours to add */}
+                {/* Meter Type */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hours to Add/Subtract
+                    Meter Type
+                  </label>
+                  <select
+                    value={etiUpdateForm.meter_type || asset?.meter_type || 'hours'}
+                    onChange={(e) => setEtiUpdateForm(prev => ({ ...prev, meter_type: e.target.value as 'hours' | 'cycles' | 'eti' }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="hours">Hours</option>
+                    <option value="cycles">Cycles</option>
+                    <option value="eti">ETI (Elapsed Time Indicator)</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">Select the type of meter reading to add</p>
+                </div>
+
+                {/* Value to add */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {(etiUpdateForm.meter_type || asset?.meter_type) === 'cycles' ? 'Cycles to Add/Subtract' : 'Hours to Add/Subtract'}
                   </label>
                   <input
                     type="number"
-                    step="0.1"
+                    step={(etiUpdateForm.meter_type || asset?.meter_type) === 'cycles' ? '1' : '0.1'}
                     value={etiUpdateForm.hours_to_add}
                     onChange={(e) => setEtiUpdateForm(prev => ({ ...prev, hours_to_add: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., 50 or -10"
+                    placeholder={(etiUpdateForm.meter_type || asset?.meter_type) === 'cycles' ? 'e.g., 100 or -10' : 'e.g., 50 or -10'}
                     required
                   />
-                  <p className="mt-1 text-xs text-gray-500">Use negative numbers to subtract hours</p>
+                  <p className="mt-1 text-xs text-gray-500">Use negative numbers to subtract {(etiUpdateForm.meter_type || asset?.meter_type) === 'cycles' ? 'cycles' : 'hours'}</p>
                 </div>
 
                 {/* Source */}
@@ -2671,8 +2808,16 @@ export default function AssetDetailPage() {
                 {etiUpdateForm.hours_to_add && !isNaN(parseFloat(etiUpdateForm.hours_to_add)) && (
                   <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                     <p className="text-sm text-blue-700">
-                      New ETI will be: <span className="font-bold">
-                        {((asset?.eti_hours || 0) + parseFloat(etiUpdateForm.hours_to_add)).toLocaleString()} hrs
+                      New value will be: <span className="font-bold">
+                        {(etiUpdateForm.meter_type || asset?.meter_type) === 'cycles' ? (
+                          <>
+                            {((asset?.cycles_count || 0) + parseFloat(etiUpdateForm.hours_to_add)).toLocaleString()} cycles
+                          </>
+                        ) : (
+                          <>
+                            {((asset?.eti_hours || 0) + parseFloat(etiUpdateForm.hours_to_add)).toLocaleString()} hrs
+                          </>
+                        )}
                       </span>
                     </p>
                   </div>

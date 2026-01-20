@@ -1,0 +1,56 @@
+
+  // Handle Meter Replacement form submission
+  const handleMeterReplacement = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!token || !id || !asset) return
+
+    setMeterReplacing(true)
+    setMeterReplacementError(null)
+    setMeterReplacementSuccess(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${id}/replace-meter`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          replacement_reason: meterReplacementForm.replacement_reason,
+          new_meter_start_value: parseFloat(meterReplacementForm.new_meter_start_value),
+          notes: meterReplacementForm.notes || null,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to replace meter')
+      }
+
+      // Update local asset state with new meter value
+      setAsset(prev => prev ? { ...prev, eti_hours: data.new_meter_start_value } : null)
+
+      // Refresh ETI history to show replacement entry
+      setEtiHistory([])
+
+      // Reset form and show success
+      setMeterReplacementForm({
+        replacement_reason: '',
+        new_meter_start_value: '',
+        notes: '',
+      })
+      setShowMeterReplacementModal(false)
+      setMeterReplacementSuccess(`Meter replaced successfully. Old meter: ${data.old_meter_value || 0} hrs, New meter start: ${data.new_meter_start_value} hrs`)
+
+      // Clear history cache so it refreshes when viewing History tab
+      setHistory([])
+
+      // Auto-clear success message after 10 seconds
+      setTimeout(() => setMeterReplacementSuccess(null), 10000)
+    } catch (err) {
+      setMeterReplacementError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setMeterReplacing(false)
+    }
+  }
