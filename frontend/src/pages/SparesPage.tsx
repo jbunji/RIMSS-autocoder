@@ -14,6 +14,8 @@ import {
   XMarkIcon,
   CheckIcon,
   PlusIcon,
+  TrashIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -106,9 +108,11 @@ export default function SparesPage() {
 
   // Modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedSpare, setSelectedSpare] = useState<Spare | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [modalError, setModalError] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Reference data for form
   const [adminLocations, setAdminLocations] = useState<Location[]>([])
