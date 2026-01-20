@@ -30268,3 +30268,133 @@ Test Approach: Browser automation with Playwright
 Verification Method: Created 3 test notifications with different date configurations
 Code Quality: Production-ready ✅
 Feature Status: Still working correctly ✅
+
+================================================================================
+[2026-01-20 10:21 UTC] Feature #21 REGRESSION TEST - TESTING AGENT
+================================================================================
+
+Feature #21: Dashboard shows asset status summary widget - VERIFIED AND PASSING ✅
+
+Session Type: Regression testing of previously passing feature
+Agent Role: Testing Agent
+
+Test Execution - All 9 Steps PASSED:
+
+✅ Step 1: Log in as any user
+   - Logged in as field_tech (Bob Field)
+   - Authentication successful
+   - Program: CRIIS
+
+✅ Step 2: Navigate to dashboard
+   - Successfully navigated to dashboard
+   - URL: http://localhost:5173/dashboard
+   - Page loaded without errors
+
+✅ Step 3: Verify asset status widget displays
+   - Widget heading visible: "Asset Status Summary"
+   - Widget properly positioned on dashboard
+   - Clean layout and styling
+
+✅ Step 4: Verify FMC count shows
+   - FMC (Full Mission Capable): 5
+   - Label and count both visible
+   - Tooltip: "Asset is fully operational and mission ready"
+
+✅ Step 5: Verify PMC count shows
+   - PMC (Partial Mission Capable): 2
+   - Label and count both visible
+   - Tooltip: "Asset can perform some but not all mission types"
+
+✅ Step 6: Verify NMCM count shows
+   - NMCM (Not Mission Capable Maintenance): 1
+   - Label and count both visible
+   - Tooltip: "Asset is down due to maintenance requirements"
+
+✅ Step 7: Verify NMCS count shows
+   - NMCS (Not Mission Capable Supply): 1
+   - Label and count both visible
+   - Tooltip: "Asset is down awaiting parts/supplies"
+
+✅ Step 8: Verify CNDM count shows
+   - CNDM (Cannot Determine Mission): 1
+   - Label and count both visible
+   - Tooltip: "Asset status cannot be determined"
+
+✅ Step 9: Verify counts are real data from database
+   - Backend code review confirms data comes from database query
+   - Status counts calculated by iterating through programAssets
+   - Formula verified: statusCounts[status_cd]++
+   - Mission Capability Rate calculation: (FMC + PMC) / total * 100
+   - Displayed: 70% = (5 + 2) / 10 * 100 ✓
+   - All math checks out correctly
+
+Additional Verifications:
+
+Widget Content Verified:
+- Total Assets: 10 ✓
+- Mission Capability Rate: 70% ✓
+- FMC: 5 ✓
+- PMC: 2 ✓
+- NMCM: 1 ✓
+- NMCS: 1 ✓
+- CNDM: 1 ✓
+- Program filter footer: "Data for program: CRIIS" ✓
+
+Backend Implementation Verified:
+- Endpoint: GET /api/assets/status
+- Data source: programAssets from database
+- Status counting logic: Correct iteration and accumulation
+- Mission capability calculation: (FMC + PMC) / total * 100
+- Response includes: program_id, program_cd, total_assets, mission_capability_rate, status_summary
+
+Console Verification:
+- Zero JavaScript errors ✓
+- Zero warnings (except React Router future flags) ✓
+- Clean execution throughout test ✓
+
+Screenshots Captured:
+1. feature_21_asset_status_widget.png - Widget viewport screenshot
+2. feature_21_asset_status_complete.png - Full page screenshot showing complete widget
+
+UI/UX Quality:
+- Clear visual hierarchy
+- Color-coded status indicators (green, yellow, red, orange, gray)
+- Tooltips provide helpful descriptions
+- Responsive layout
+- Professional styling
+- All status codes displayed with proper labels
+
+Data Integrity:
+- All 5 status codes represented (FMC, PMC, NMCM, NMCS, CNDM)
+- Counts sum correctly: 5 + 2 + 1 + 1 + 1 = 10 total assets
+- Mission capability math correct: (5 + 2) / 10 = 0.70 = 70%
+- Program isolation working: Only CRIIS assets shown
+
+Feature Functionality:
+- Widget displays on dashboard ✓
+- All status counts visible ✓
+- Real database data ✓
+- Accurate calculations ✓
+- Proper tooltips ✓
+- Program filtering ✓
+
+Result: Feature #21 remains PASSING ✅
+No regressions detected ✓
+
+Progress: 253/374 features passing (67.6%)
+
+Session Duration: ~15 minutes
+Tests Executed: 9 verification steps via browser automation
+Quality: Production-ready dashboard widget ✅
+
+This feature is critical for operations personnel to quickly assess the overall
+health and readiness of their asset inventory. The widget provides an at-a-glance
+summary of asset status distribution and mission capability rate, enabling rapid
+decision-making about operational readiness.
+
+Feature Status: PASSING ✅ (No regression found)
+Testing Agent Session: Complete ✅
+
+================================================================================
+[2026-01-20 10:21 UTC] Testing Agent session complete
+================================================================================
