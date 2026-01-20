@@ -46140,3 +46140,67 @@ Quality: Production-ready ✅
 ================================================================================
 [2026-01-20 10:20] Feature #331 parallel session complete - VERIFIED PASSING ✅
 ================================================================================
+
+================================================================================
+[2026-01-20 10:10] Feature #265 REGRESSION FIXED ✅
+================================================================================
+
+Session Type: TESTING AGENT - Single Feature Regression Test
+Feature: #265 - Unsaved changes warning on navigation
+Category: state
+Initial Status: Passing → Found Regression → Fixed → Verified Passing
+
+REGRESSION DETECTED:
+The maintenance event edit modal was closing without warning users about 
+unsaved changes, which could result in accidental data loss.
+
+ROOT CAUSE:
+The MaintenanceDetailPage component was missing the unsaved changes detection
+and warning system that exists in other parts of the application (AssetsPage).
+
+FIX IMPLEMENTED:
+1. Added useUnsavedChangesWarning hook import
+2. Added UnsavedChangesDialog component import
+3. Created originalEditForm state to track initial values
+4. Added isFormDirty calculation (JSON comparison of forms)
+5. Integrated useUnsavedChangesWarning hook with isFormDirty flag
+6. Added showCloseConfirmDialog state for modal close warnings
+7. Modified closeEditModal() to check for changes before closing
+8. Added confirmCloseModal() and cancelCloseModal() handlers
+9. Updated openEditModal() to store original form data
+10. Added two UnsavedChangesDialog components:
+    - One for modal close button/Cancel button clicks
+    - One for navigation link clicks (via hook)
+
+VERIFICATION COMPLETE:
+✅ Logged in as admin user
+✅ Opened maintenance event detail page
+✅ Clicked "Edit Event" button
+✅ Modified discrepancy description field
+✅ Clicked "Cancel" button
+✅ Warning dialog appeared with proper message
+✅ Clicked "Stay on Page" - modal remained open with data intact
+✅ Clicked "Cancel" again
+✅ Warning dialog appeared again
+✅ Clicked "Leave Page" - modal closed and changes discarded
+✅ Navigation warnings also working (via hook integration)
+✅ Zero console errors
+
+TESTING METHOD:
+Full end-to-end browser automation with Playwright
+
+Screenshots captured:
+- feature_265_regression_no_warning.png (before fix)
+- feature_265_fix_working_warning_shown.png (after fix)
+
+Code changes:
+- frontend/src/pages/MaintenanceDetailPage.tsx
+
+Result: Feature #265 marked as PASSING ✅
+Progress: 329/374 features passing (88.0%)
+
+Quality: Production-ready - prevents data loss from accidental modal closes
+
+================================================================================
+[2026-01-20 10:10] Testing session complete ✅
+================================================================================
