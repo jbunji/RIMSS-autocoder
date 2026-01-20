@@ -1,0 +1,290 @@
+import { useState, useEffect } from 'react'
+import { useAuthStore } from '../stores/authStore'
+import { ChevronDownIcon, ChevronUpIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
+
+interface AssetDetails {
+  asset_id: number
+  serno: string
+  partno: string
+  part_name: string
+  status_cd: string
+  status_name: string
+  location: string
+  loc_type: string
+}
+
+interface SystemTypeGroup {
+  system_type: string
+  total_count: number
+  status_breakdown: Record<string, number>
+  assets: AssetDetails[]
+}
+
+interface InventoryReportData {
+  program: {
+    pgm_id: number
+    pgm_cd: string
+    pgm_name: string
+  }
+  total_assets: number
+  system_types: SystemTypeGroup[]
+  generated_at: string
+}
+
+export default function InventoryReportPage() {
+  const { token, user } = useAuthStore()
+  const [reportData, setReportData] = useState<InventoryReportData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [expandedSystems, setExpandedSystems] = useState<Set<string>>(new Set())
+  const [selectedProgram, setSelectedProgram] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetchInventoryReport()
+  }, [selectedProgram])
+
+  const fetchInventoryReport = async () => {
+    setLoading(true)
+    setError('')
+
+    try {
+      const params = new URLSearchParams()
+      if (selectedProgram) {
+        params.append('program_id', selectedProgram.toString())
+      }
+
+      const url = `http://localhost:3001/api/reports/inventory${params.toString() ? '?' + params.toString() : ''}`
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch inventory report')
+      }
+
+      const data = await response.json()
+      setReportData(data)
+
+      // Expand all systems by default
+      setExpandedSystems(new Set(data.system_types.map((st: SystemTypeGroup) => st.system_type)))
+    } catch (err) {
+      console.error('Error fetching inventory report:', err)
+      setError('Failed to load inventory report. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleSystemExpansion = (systemType: string) => {
+    setExpandedSystems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(systemType)) {
+        newSet.delete(systemType)
+      } else {
+        newSet.add(systemType)
+      }
+      return newSet
+    })
+  }
+
+  const handleExport = () => {
+    // TODO: Implement export to PDF/Excel
+    console.log('Export functionality to be implemented')
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-md bg-red-50 p-4">
+        <div className="text-sm text-red-700">{error}</div>
+      </div>
+    )
+  }
+
+  if (!reportData) {
+    return null
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Inventory Report by System Type</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Program: {reportData.program.pgm_name} ({reportData.program.pgm_cd})
+            </p>
+          </div>
+          <button
+            onClick={handleExport}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+            Export Report
+          </button>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="bg-white shadow rounded-lg mb-6 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Summary</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="text-sm font-medium text-blue-600">Total Assets</div>
+            <div className="mt-1 text-3xl font-bold text-blue-900">{reportData.total_assets}</div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <div className="text-sm font-medium text-green-600">System Types</div>
+            <div className="mt-1 text-3xl font-bold text-green-900">{reportData.system_types.length}</div>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-4">
+            <div className="text-sm font-medium text-purple-600">Generated</div>
+            <div className="mt-1 text-sm font-semibold text-purple-900">
+              {new Date(reportData.generated_at).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* System Type Groups */}
+      <div className="space-y-4">
+        {reportData.system_types.map(systemType => {
+          const isExpanded = expandedSystems.has(systemType.system_type)
+
+          return (
+            <div key={systemType.system_type} className="bg-white shadow rounded-lg overflow-hidden">
+              {/* System Type Header */}
+              <button
+                onClick={() => toggleSystemExpansion(systemType.system_type)}
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    {isExpanded ? (
+                      <ChevronUpIcon className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold text-gray-900">{systemType.system_type}</h3>
+                    <p className="text-sm text-gray-600">
+                      {systemType.total_count} {systemType.total_count === 1 ? 'asset' : 'assets'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status Breakdown Badges */}
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(systemType.status_breakdown).map(([status, count]) => (
+                    <span
+                      key={status}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                    >
+                      {status}: {count}
+                    </span>
+                  ))}
+                </div>
+              </button>
+
+              {/* Expanded Asset List */}
+              {isExpanded && (
+                <div className="border-t border-gray-200">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Serial Number
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Part Number
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Part Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Location
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Location Type
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {systemType.assets.map(asset => (
+                          <tr key={asset.asset_id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {asset.serno}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {asset.partno}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {asset.part_name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  asset.status_cd === 'FMC'
+                                    ? 'bg-green-100 text-green-800'
+                                    : asset.status_cd === 'PMC'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : asset.status_cd === 'NMCM' || asset.status_cd === 'NMCS'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}
+                              >
+                                {asset.status_name}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {asset.location}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                  asset.loc_type === 'depot'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-purple-100 text-purple-800'
+                                }`}
+                              >
+                                {asset.loc_type === 'depot' ? 'Depot' : 'Field'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Empty State */}
+      {reportData.system_types.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No inventory data available for this program.</p>
+        </div>
+      )}
+    </div>
+  )
+}
