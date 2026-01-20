@@ -613,7 +613,7 @@ export default function SparesPage() {
     ]
 
     // Data rows
-    const dataRows = spares.map(spare => [
+    const dataRows = allSpares.map(spare => [
       spare.serno,
       spare.partno,
       spare.part_name,
@@ -705,8 +705,12 @@ export default function SparesPage() {
     const zuluDate = getZuluDateForFilename()
     const filename = `CUI-Spares-${zuluDate}.xlsx`
 
-    // Write file
-    XLSX.writeFile(wb, filename)
+      // Write file
+      XLSX.writeFile(wb, filename)
+    } catch (err) {
+      console.error('Error exporting to Excel:', err)
+      alert('Failed to export Excel. Please try again.')
+    }
   }
 
   // Handle create spare button click
