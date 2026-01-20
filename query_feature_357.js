@@ -1,5 +1,5 @@
 const Database = require('better-sqlite3');
-const db = new Database('assistant.db');
+const db = new Database('features.db');
 
 const feature = db.prepare('SELECT * FROM features WHERE id = ?').get(357);
 

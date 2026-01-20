@@ -16,21 +16,45 @@ interface AuditLog {
   created_at: string
 }
 
+interface User {
+  user_id: number
+  username: string
+  full_name: string
+}
+
 export default function AuditLogsPage() {
   const { token } = useAuthStore()
   const [logs, setLogs] = useState<AuditLog[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null)
+  const [tableFilter, setTableFilter] = useState<string>('')
+  const [userFilter, setUserFilter] = useState<string>('')
+  const [actionFilter, setActionFilter] = useState<string>('')
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   useEffect(() => {
     fetchAuditLogs()
-  }, [])
+  }, [tableFilter, userFilter, actionFilter])
 
   const fetchAuditLogs = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:3001/api/audit-logs', {
+      const url = new URL('http://localhost:3001/api/audit-logs')
+      if (tableFilter) {
+        url.searchParams.append('table_name', tableFilter)
+      }
+      if (userFilter) {
+        url.searchParams.append('user_id', userFilter)
+      }
+      if (actionFilter) {
+        url.searchParams.append('action', actionFilter)
+      }
+      const response = await fetch(url.toString(), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -48,6 +72,26 @@ export default function AuditLogsPage() {
       setError(err instanceof Error ? err.message : 'Failed to fetch audit logs')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch users')
+      }
+
+      const data = await response.json()
+      setUsers(data.users || [])
+    } catch (err) {
+      console.error('Failed to fetch users:', err)
     }
   }
 
@@ -109,7 +153,66 @@ export default function AuditLogsPage() {
             A complete history of all create, update, and delete operations in the system.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none flex items-center gap-3">
+          <div>
+            <label htmlFor="action-filter" className="sr-only">
+              Filter by action
+            </label>
+            <select
+              id="action-filter"
+              name="action-filter"
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              <option value="">All Actions</option>
+              <option value="CREATE">CREATE</option>
+              <option value="UPDATE">UPDATE</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="user-filter" className="sr-only">
+              Filter by user
+            </label>
+            <select
+              id="user-filter"
+              name="user-filter"
+              value={userFilter}
+              onChange={(e) => setUserFilter(e.target.value)}
+              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              <option value="">All Users</option>
+              {users.map((user) => (
+                <option key={user.user_id} value={user.user_id}>
+                  {user.full_name} (@{user.username})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="table-filter" className="sr-only">
+              Filter by table
+            </label>
+            <select
+              id="table-filter"
+              name="table-filter"
+              value={tableFilter}
+              onChange={(e) => setTableFilter(e.target.value)}
+              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              <option value="">All Tables</option>
+              <option value="asset">Asset</option>
+              <option value="event">Event</option>
+              <option value="repair">Repair</option>
+              <option value="labor">Labor</option>
+              <option value="pmi_schedule">PMI Schedule</option>
+              <option value="tcto">TCTO</option>
+              <option value="sortie">Sortie</option>
+              <option value="user">User</option>
+              <option value="parts_request">Parts Request</option>
+            </select>
+          </div>
           <button
             type="button"
             onClick={fetchAuditLogs}
