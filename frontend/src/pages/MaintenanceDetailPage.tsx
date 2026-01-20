@@ -868,7 +868,7 @@ export default function MaintenanceDetailPage() {
 
     const timeoutId = setTimeout(() => {
       searchAvailableAssets(assetSearchQuery)
-    }, 300)
+    }, 150)
 
     return () => clearTimeout(timeoutId)
   }, [assetSearchQuery, isAddInstalledPartModalOpen, searchAvailableAssets])
@@ -1097,7 +1097,7 @@ export default function MaintenanceDetailPage() {
 
     const timeoutId = setTimeout(() => {
       searchRemovableAssets(removableAssetSearchQuery)
-    }, 300)
+    }, 150)
 
     return () => clearTimeout(timeoutId)
   }, [removableAssetSearchQuery, isAddRemovedPartModalOpen, searchRemovableAssets])

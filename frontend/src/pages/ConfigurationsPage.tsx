@@ -175,7 +175,7 @@ export default function ConfigurationsPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery)
-    }, 300)
+    }, 150)
     return () => clearTimeout(timer)
   }, [searchQuery])
 

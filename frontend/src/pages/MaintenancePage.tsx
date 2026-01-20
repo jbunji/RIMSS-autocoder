@@ -375,7 +375,7 @@ export default function MaintenancePage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery)
-    }, 300)
+    }, 150)
     return () => clearTimeout(timer)
   }, [searchQuery])
 
@@ -383,7 +383,7 @@ export default function MaintenancePage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedPmiSearch(pmiSearchQuery)
-    }, 300)
+    }, 150)
     return () => clearTimeout(timer)
   }, [pmiSearchQuery])
 
@@ -391,7 +391,7 @@ export default function MaintenancePage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTctoSearch(tctoSearch)
-    }, 300)
+    }, 150)
     return () => clearTimeout(timer)
   }, [tctoSearch])
 
