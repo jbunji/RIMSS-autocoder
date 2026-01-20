@@ -9764,6 +9764,75 @@ app.post('/api/assets/:id/reactivate', (req, res) => {
   });
 });
 
+// DELETE /api/assets/:id/permanent - Permanently delete an asset (hard delete, requires authentication and admin role)
+app.delete('/api/assets/:id/permanent', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Check role - only ADMIN can permanently delete assets
+  if (user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Only administrators can permanently delete assets' });
+  }
+
+  const assetId = parseInt(req.params.id, 10);
+  const assetIndex = detailedAssets.findIndex(a => a.asset_id === assetId);
+
+  if (assetIndex === -1) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+  const asset = detailedAssets[assetIndex];
+
+  // Check if user has access to this asset's program
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Access denied to this asset' });
+  }
+
+  // Store asset info before deletion for logging
+  const deletedAssetInfo = {
+    asset_id: asset.asset_id,
+    serno: asset.serno,
+    partno: asset.partno,
+    name: asset.part_name,
+    pgm_id: asset.pgm_id,
+  };
+
+  // Hard delete: completely remove from array
+  detailedAssets.splice(assetIndex, 1);
+
+  // Log the permanent deletion
+  console.log(`[ASSETS] Asset PERMANENTLY deleted by ${user.username}: ${deletedAssetInfo.serno} (ID: ${assetId})`);
+
+  // Add to activity log (audit trail)
+  const now = new Date();
+  const newActivity: ActivityLogEntry = {
+    activity_id: 1000 + dynamicActivityLog.length + 1,
+    timestamp: now.toISOString(),
+    user_id: user.user_id,
+    username: user.username,
+    user_full_name: `${user.first_name} ${user.last_name}`,
+    action_type: 'delete',
+    entity_type: 'asset',
+    entity_id: assetId,
+    entity_name: deletedAssetInfo.serno,
+    description: `PERMANENTLY deleted asset ${deletedAssetInfo.serno} (${deletedAssetInfo.name}) - CANNOT BE RECOVERED`,
+    pgm_id: deletedAssetInfo.pgm_id,
+  };
+  dynamicActivityLog.push(newActivity);
+
+  res.json({
+    message: `Asset "${deletedAssetInfo.serno}" permanently deleted - CANNOT BE RECOVERED`,
+    deleted_asset: deletedAssetInfo,
+    audit: newActivity,
+  });
+});
+
 // GET /api/reference/locations - Get available locations for asset forms
 app.get('/api/reference/locations', (req, res) => {
   const payload = authenticateRequest(req, res);

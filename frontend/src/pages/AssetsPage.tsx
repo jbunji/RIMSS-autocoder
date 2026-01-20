@@ -163,9 +163,9 @@ export default function AssetsPage() {
       partno: '',
       serno: '',
       name: '',
-      status_cd: '',
-      admin_loc: '',
-      cust_loc: '',
+      status_cd: 'FMC', // Default to Full Mission Capable
+      admin_loc: 'Depot Alpha', // Default to first depot location
+      cust_loc: 'Maintenance Bay 1', // Default to first maintenance location
       notes: '',
     },
   })
@@ -379,6 +379,41 @@ export default function AssetsPage() {
     } catch (err) {
       setDeleteError('Failed to delete asset. Please try again.')
       console.error('Error deleting asset:', err)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handlePermanentDeleteAsset = async () => {
+    if (!assetToDelete || !token) return
+
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/assets/${assetToDelete.asset_id}/permanent`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setSuccessMessage(result.message || `Asset "${assetToDelete.serno}" permanently deleted!`)
+        closeDeleteModal()
+        fetchAssets(pagination.page) // Refresh the list
+
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccessMessage(null), 5000)
+      } else {
+        const errorData = await response.json()
+        setDeleteError(errorData.error || 'Failed to permanently delete asset')
+      }
+    } catch (err) {
+      setDeleteError('Failed to permanently delete asset. Please try again.')
+      console.error('Error permanently deleting asset:', err)
     } finally {
       setIsDeleting(false)
     }
@@ -1368,8 +1403,16 @@ export default function AssetsPage() {
                       </Dialog.Title>
                       <div className="mt-2">
                         <p className="text-sm text-gray-500">
-                          Are you sure you want to delete this asset? This action cannot be undone.
+                          Choose how to delete this asset:
                         </p>
+                        <div className="mt-2 bg-blue-50 rounded-md p-3 border border-blue-200">
+                          <p className="text-sm text-blue-700 font-medium">Soft Delete (Recommended)</p>
+                          <p className="text-xs text-blue-600 mt-1">Asset can be recovered later if needed</p>
+                        </div>
+                        <div className="mt-2 bg-red-50 rounded-md p-3 border border-red-200">
+                          <p className="text-sm text-red-700 font-medium">Permanent Delete</p>
+                          <p className="text-xs text-red-600 mt-1">⚠️ Asset will be COMPLETELY removed from the database - CANNOT BE RECOVERED</p>
+                        </div>
                         {assetToDelete && (
                           <div className="mt-3 bg-gray-50 rounded-md p-3">
                             <dl className="text-sm">
@@ -1416,9 +1459,17 @@ export default function AssetsPage() {
                       type="button"
                       onClick={handleDeleteAsset}
                       disabled={isDeleting}
+                      className="inline-flex justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Soft Delete'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePermanentDeleteAsset}
+                      disabled={isDeleting}
                       className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isDeleting ? 'Deleting...' : 'Delete Asset'}
+                      {isDeleting ? 'Deleting...' : 'Permanent Delete'}
                     </button>
                   </div>
                 </Dialog.Panel>
