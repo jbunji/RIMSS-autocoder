@@ -36757,3 +36757,85 @@ Git Commit: dcd356e
 ================================================================================
 [2026-01-20 06:50 UTC] Feature #287 session complete - PARALLEL SESSION
 ================================================================================
+
+================================================================================
+[2026-01-20 $(date -u '+%H:%M') UTC] Feature #258 REGRESSION TEST - PASSING
+================================================================================
+
+Feature #258: Duplicate entry error is clear - VERIFIED PASSING ✅
+Category: error
+Description: Unique constraint violations are explained
+
+TEST EXECUTION - All 6 Steps PASSED:
+
+✅ Step 1: Log in as depot manager
+   - Logged in as depot_mgr successfully
+
+✅ Step 2: Create asset with existing serial+part
+   - Attempted to create duplicate asset
+   - Serial Number: CRIIS-001 (already exists)
+   - Part Number: PN-SENSOR-A (already exists)
+
+✅ Step 3: Verify error message mentions duplicate
+   - Error message: "An asset with serial number 'CRIIS-001' and part number 'PN-SENSOR-A' already exists in this program"
+   - Clearly uses "already exists" terminology ✅
+
+✅ Step 4: Verify indicates which field is duplicate
+   - Error explicitly identifies BOTH duplicate fields:
+     * Serial number: 'CRIIS-001'
+     * Part number: 'PN-SENSOR-A'
+   - Field names and values clearly stated ✅
+
+✅ Step 5: Modify to unique value
+   - Changed serial number to 'CRIIS-999' (unique)
+   - Kept part number as 'PN-SENSOR-A' (allowed)
+
+✅ Step 6: Verify success
+   - Asset created successfully
+   - Success message: "Asset 'CRIIS-999' created successfully!"
+   - Total assets: 10 → 11 ✅
+
+QUALITY ASSESSMENT:
+
+Error Message Quality: ✅ EXCELLENT
+- Clear identification of duplicate fields
+- Shows actual duplicate values
+- User-friendly language
+- Proper error styling (red background, prominent display)
+
+User Experience: ✅ EXCELLENT
+- Error displayed inline in dialog (no navigation away)
+- Form remains populated for easy correction
+- Clear success feedback after fix
+- No page reload required
+
+Technical Implementation: ✅ CORRECT
+- 400 Bad Request response (correct HTTP status)
+- Frontend properly catches and displays error
+- Backend validation working correctly
+- Unique constraint properly enforced at database level
+
+Console Verification: ✅ CLEAN
+- Only expected 400 error from duplicate attempt
+- Zero JavaScript errors
+- Only standard React Router warnings (expected)
+
+SCREENSHOTS CAPTURED:
+1. feature_258_step3_duplicate_error.png - Duplicate error with field details
+2. feature_258_step6_success.png - Success after using unique values
+
+Result: Feature #258 verified as PASSING ✅
+Progress: 286/374 features passing (76.5%)
+
+Session Type: REGRESSION TEST - Single Feature Mode
+Session Duration: ~15 minutes
+Testing Method: Full end-to-end browser automation
+Quality: Production-ready error handling with excellent UX ✅
+
+NO REGRESSION FOUND - Duplicate entry error handling works exactly as designed.
+Error messages are clear, specific, identify which fields are duplicate, and
+provide excellent user experience for error recovery.
+
+================================================================================
+[Testing] Session complete - Feature #258 verified PASSING - no regression found
+================================================================================
