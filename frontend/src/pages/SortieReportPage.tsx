@@ -67,6 +67,12 @@ export default function SortieReportPage() {
       return
     }
 
+    // Validate date range
+    if (new Date(endDate) < new Date(startDate)) {
+      setError('End date cannot be before start date')
+      return
+    }
+
     setLoading(true)
     setError('')
 
