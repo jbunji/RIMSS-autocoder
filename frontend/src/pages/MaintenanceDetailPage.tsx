@@ -1993,6 +1993,14 @@ export default function MaintenanceDetailPage() {
     }
   }, [event, fetchRepairs, fetchLinkedSortie, fetchAttachments])
 
+  // Clear ETI validation error when meter changed checkbox or ETI Out value changes
+  useEffect(() => {
+    // Only clear error if there is one and user is making changes
+    if (closeRepairError && closeRepairError.includes('ETI Out')) {
+      setCloseRepairError(null)
+    }
+  }, [closeRepairMeterChanged, closeRepairEtiOut])
+
   // Open close repair modal
   const openCloseRepairModal = (repair: Repair) => {
     setClosingRepair(repair)

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -109,6 +109,7 @@ const statusColors: Record<string, { bg: string; text: string; border: string }>
 
 export default function AssetsPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { token, currentProgramId, user } = useAuthStore()
 
   // Check if user can create assets
@@ -139,10 +140,10 @@ export default function AssetsPage() {
   const [custodialLocations, setCustodialLocations] = useState<Location[]>([])
   const [assetStatuses, setAssetStatuses] = useState<AssetStatus[]>([])
 
-  // Filters
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  // Filters - Initialize from URL search params
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || '')
+  const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '')
 
   // Sorting
   type SortColumn = 'serno' | 'partno' | 'part_name' | 'status_cd' | 'location' | 'eti_hours' | 'next_pmi_date'
@@ -171,6 +172,30 @@ export default function AssetsPage() {
 
   // Warn user about unsaved changes on page refresh/close
   useUnsavedChangesWarning(isDirty && isModalOpen)
+
+  // Handler to update search query and URL
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    const newParams = new URLSearchParams(searchParams)
+    if (value) {
+      newParams.set('search', value)
+    } else {
+      newParams.delete('search')
+    }
+    setSearchParams(newParams, { replace: true })
+  }
+
+  // Handler to update status filter and URL
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value)
+    const newParams = new URLSearchParams(searchParams)
+    if (value) {
+      newParams.set('status', value)
+    } else {
+      newParams.delete('status')
+    }
+    setSearchParams(newParams, { replace: true })
+  }
 
   // Debounce search input
   useEffect(() => {
@@ -767,7 +792,7 @@ export default function AssetsPage() {
                 className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                 placeholder="Search by S/N, P/N, or name..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
           </div>
@@ -781,7 +806,7 @@ export default function AssetsPage() {
               id="status"
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => handleStatusChange(e.target.value)}
             >
               <option value="">All Statuses</option>
               <option value="FMC">FMC - Full Mission Capable</option>
