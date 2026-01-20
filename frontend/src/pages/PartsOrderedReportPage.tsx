@@ -119,6 +119,12 @@ export default function PartsOrderedReportPage() {
   const fetchOrders = async () => {
     if (!token || !currentProgramId) return
 
+    // Validate date range if both dates are provided
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      setError('End date cannot be before start date')
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -511,6 +517,7 @@ export default function PartsOrderedReportPage() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
+              max={endDate || undefined}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
@@ -522,6 +529,7 @@ export default function PartsOrderedReportPage() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
+              min={startDate || undefined}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
