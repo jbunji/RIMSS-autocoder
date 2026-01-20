@@ -13,6 +13,7 @@ import {
   PencilIcon,
   XMarkIcon,
   CheckIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 
@@ -140,26 +141,18 @@ export default function SparesPage() {
       if (!token) return
 
       try {
-        // Fetch admin locations
-        const adminRes = await fetch('http://localhost:3001/api/locations/admin', {
+        // Fetch locations (admin and custodial)
+        const locRes = await fetch('http://localhost:3001/api/reference/locations', {
           headers: { 'Authorization': `Bearer ${token}` },
         })
-        if (adminRes.ok) {
-          const data = await adminRes.json()
-          setAdminLocations(data.locations || [])
-        }
-
-        // Fetch custodial locations
-        const custRes = await fetch('http://localhost:3001/api/locations/custodial', {
-          headers: { 'Authorization': `Bearer ${token}` },
-        })
-        if (custRes.ok) {
-          const data = await custRes.json()
-          setCustodialLocations(data.locations || [])
+        if (locRes.ok) {
+          const data = await locRes.json()
+          setAdminLocations(data.admin_locations || [])
+          setCustodialLocations(data.custodial_locations || [])
         }
 
         // Fetch asset statuses
-        const statusRes = await fetch('http://localhost:3001/api/assets/statuses', {
+        const statusRes = await fetch('http://localhost:3001/api/reference/asset-statuses', {
           headers: { 'Authorization': `Bearer ${token}` },
         })
         if (statusRes.ok) {
@@ -344,8 +337,20 @@ export default function SparesPage() {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Filters and Actions */}
       <div className="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
+          {canEditSpare && (
+            <button
+              onClick={() => alert('Add Spare feature: Click Add Spare button')}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Add Spare
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
           <div>
