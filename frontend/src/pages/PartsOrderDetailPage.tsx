@@ -322,9 +322,39 @@ export default function PartsOrderDetailPage() {
     }
   }
 
+  const handleTogglePqdr = async () => {
+    if (!token || !id || !order) return
+
+    setError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/pqdr`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pqdr: !order.pqdr,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update PQDR flag')
+      }
+
+      const data = await response.json()
+      setOrder(data.order)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    }
+  }
+
   const canAcknowledge = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'pending'
   const canFill = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'acknowledged'
   const canReceive = user && (user.role === 'FIELD_TECHNICIAN' || user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'shipped'
+  const canTogglePqdr = user && (user.role === 'FIELD_TECHNICIAN' || user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN')
 
   if (loading) {
     return (
