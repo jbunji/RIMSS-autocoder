@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import Breadcrumbs from '../components/Breadcrumbs'
 
 // Asset interface matching backend response
 interface Asset {
@@ -1082,6 +1083,14 @@ export default function AssetDetailPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      {/* Breadcrumbs */}
+      <Breadcrumbs
+        items={[
+          { label: 'Assets', path: '/assets' },
+          { label: asset.name || asset.serno, path: `/assets/${asset.asset_id}` },
+        ]}
+      />
+
       {/* Header */}
       <div className="mb-6">
         <button
