@@ -9973,6 +9973,10 @@ app.get('/api/sorties', (req, res) => {
 
   // Get query parameters
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+  const searchQuery = req.query.search ? String(req.query.search).toLowerCase() : null;
+  const startDate = req.query.start_date ? String(req.query.start_date) : null;
+  const endDate = req.query.end_date ? String(req.query.end_date) : null;
+  const tailNumber = req.query.tail_number ? String(req.query.tail_number).toLowerCase() : null;
 
   // Filter by user's accessible programs
   let filteredSorties = sorties.filter(s => userProgramIds.includes(s.pgm_id));
@@ -9980,6 +9984,32 @@ app.get('/api/sorties', (req, res) => {
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
     filteredSorties = filteredSorties.filter(s => s.pgm_id === programIdFilter);
+  }
+
+  // Apply search filter (mission ID, serial number, tail number)
+  if (searchQuery) {
+    filteredSorties = filteredSorties.filter(s =>
+      s.mission_id.toLowerCase().includes(searchQuery) ||
+      s.serno.toLowerCase().includes(searchQuery) ||
+      (s.ac_tailno && s.ac_tailno.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  // Apply date range filter
+  if (startDate) {
+    const startDateTime = new Date(startDate).getTime();
+    filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() >= startDateTime);
+  }
+  if (endDate) {
+    const endDateTime = new Date(endDate).getTime();
+    filteredSorties = filteredSorties.filter(s => new Date(s.sortie_date).getTime() <= endDateTime);
+  }
+
+  // Apply tail number filter
+  if (tailNumber) {
+    filteredSorties = filteredSorties.filter(s =>
+      s.ac_tailno && s.ac_tailno.toLowerCase().includes(tailNumber)
+    );
   }
 
   // Sort by date descending (newest first)
@@ -10219,14 +10249,18 @@ app.post('/api/sorties/bulk-import', (req, res) => {
     return res.status(403).json({ error: 'Insufficient permissions to bulk import sorties' });
   }
 
-  const { sorties: importSorties } = req.body;
+  const { sorties: importSorties, duplicateAction } = req.body;
 
   if (!importSorties || !Array.isArray(importSorties) || importSorties.length === 0) {
     return res.status(400).json({ error: 'Invalid import data: sorties array is required' });
   }
 
   const errors: string[] = [];
+  const warnings: string[] = [];
+  const duplicates: any[] = [];
   const created: Sortie[] = [];
+  const updated: Sortie[] = [];
+  const skipped: string[] = [];
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
   importSorties.forEach((sortieData, index) => {
@@ -10258,6 +10292,59 @@ app.post('/api/sorties/bulk-import', (req, res) => {
       return;
     }
 
+    // Check for duplicate mission_id (case-insensitive)
+    const missionId = sortieData.mission_id.trim();
+    const existingSortie = sorties.find(s =>
+      s.mission_id.toLowerCase() === missionId.toLowerCase() &&
+      userProgramIds.includes(s.pgm_id)
+    );
+
+    if (existingSortie) {
+      // Found duplicate - record it for user decision
+      duplicates.push({
+        row: rowNum,
+        mission_id: missionId,
+        serno: sortieData.serno,
+        sortie_date: sortieData.sortie_date,
+        existing: {
+          mission_id: existingSortie.mission_id,
+          serno: existingSortie.serno,
+          sortie_date: existingSortie.sortie_date,
+          sortie_effect: existingSortie.sortie_effect,
+          range: existingSortie.range,
+        },
+        new: {
+          mission_id: missionId,
+          serno: sortieData.serno,
+          sortie_date: sortieData.sortie_date,
+          sortie_effect: sortieData.sortie_effect || null,
+          range: sortieData.range || null,
+        }
+      });
+
+      // Handle duplicate based on user's choice
+      if (!duplicateAction) {
+        // No action specified - just report duplicates and don't process
+        warnings.push(`Row ${rowNum}: Duplicate mission ID '${missionId}' found`);
+        return;
+      } else if (duplicateAction === 'skip') {
+        // Skip duplicates
+        skipped.push(`Row ${rowNum}: Skipped duplicate mission ID '${missionId}'`);
+        return;
+      } else if (duplicateAction === 'update') {
+        // Update existing sortie
+        existingSortie.sortie_date = sortieData.sortie_date;
+        existingSortie.sortie_effect = sortieData.sortie_effect || existingSortie.sortie_effect;
+        existingSortie.range = sortieData.range || existingSortie.range;
+        existingSortie.remarks = sortieData.remarks || existingSortie.remarks;
+
+        updated.push(existingSortie);
+        console.log(`[SORTIES] Updated existing sortie ${existingSortie.sortie_id} (mission: ${missionId}) from import row ${rowNum}`);
+        return;
+      }
+      // If duplicateAction is 'create', continue to create new sortie below
+    }
+
     // Generate new sortie ID
     const newSortieId = sorties.length > 0 ? Math.max(...sorties.map(s => s.sortie_id)) + 1 + created.length : 1 + created.length;
 
@@ -10266,7 +10353,7 @@ app.post('/api/sorties/bulk-import', (req, res) => {
       sortie_id: newSortieId,
       pgm_id: asset.pgm_id,
       asset_id: asset.asset_id,
-      mission_id: sortieData.mission_id.trim(),
+      mission_id: missionId,
       serno: asset.serno,
       ac_tailno: asset.serno,
       sortie_date: sortieData.sortie_date,
@@ -10281,6 +10368,16 @@ app.post('/api/sorties/bulk-import', (req, res) => {
     created.push(newSortie);
   });
 
+  // If there are duplicates and no action specified, return duplicate info
+  if (duplicates.length > 0 && !duplicateAction) {
+    return res.status(409).json({
+      error: 'Duplicate mission IDs found',
+      duplicates,
+      warnings,
+      message: 'Please review duplicates and choose an action: skip, update, or create',
+    });
+  }
+
   // If there are validation errors, don't import anything
   if (errors.length > 0) {
     return res.status(400).json({
@@ -10293,12 +10390,15 @@ app.post('/api/sorties/bulk-import', (req, res) => {
   // Add all created sorties to the array
   sorties.push(...created);
 
-  console.log(`[SORTIES] Bulk imported ${created.length} sortie(s) by ${user.username}`);
+  console.log(`[SORTIES] Bulk imported ${created.length} sortie(s), updated ${updated.length}, skipped ${skipped.length} by ${user.username}`);
 
   res.status(201).json({
     message: 'Sorties imported successfully',
     imported: created.length,
+    updated: updated.length,
+    skipped: skipped.length,
     sorties: created,
+    warnings: skipped,
   });
 });
 

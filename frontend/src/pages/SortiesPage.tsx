@@ -63,9 +63,11 @@ export default function SortiesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Search filter
+  // Search and filter state
   const [searchQuery, setSearchQuery] = useState('')
-  const [filteredSorties, setFilteredSorties] = useState<Sortie[]>([])
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [tailNumberFilter, setTailNumberFilter] = useState('')
 
   // Add Sortie Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -107,6 +109,8 @@ export default function SortiesPage() {
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [importing, setImporting] = useState(false)
   const [importSuccess, setImportSuccess] = useState<string | null>(null)
+  const [importDuplicates, setImportDuplicates] = useState<any[]>([])
+  const [duplicateAction, setDuplicateAction] = useState<'skip' | 'update' | 'create' | ''>('')
 
   // Fetch sorties function
   const fetchSorties = async () => {
@@ -121,6 +125,24 @@ export default function SortiesPage() {
       // Apply program filter
       if (currentProgramId) {
         url.searchParams.append('program_id', currentProgramId.toString())
+      }
+
+      // Apply search filter
+      if (searchQuery.trim()) {
+        url.searchParams.append('search', searchQuery.trim())
+      }
+
+      // Apply date range filters
+      if (startDate) {
+        url.searchParams.append('start_date', startDate)
+      }
+      if (endDate) {
+        url.searchParams.append('end_date', endDate)
+      }
+
+      // Apply tail number filter
+      if (tailNumberFilter.trim()) {
+        url.searchParams.append('tail_number', tailNumberFilter.trim())
       }
 
       const response = await fetch(url.toString(), {
@@ -144,27 +166,10 @@ export default function SortiesPage() {
     }
   }
 
-  // Fetch sorties on mount and when token/program changes
+  // Fetch sorties on mount and when token/program/filters change
   useEffect(() => {
     fetchSorties()
-  }, [token, currentProgramId])
-
-  // Apply search filter
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredSorties(sorties)
-      return
-    }
-
-    const query = searchQuery.toLowerCase()
-    const filtered = sorties.filter(sortie =>
-      sortie.mission_id.toLowerCase().includes(query) ||
-      sortie.serno.toLowerCase().includes(query) ||
-      (sortie.ac_tailno && sortie.ac_tailno.toLowerCase().includes(query)) ||
-      (sortie.sortie_effect && sortie.sortie_effect.toLowerCase().includes(query))
-    )
-    setFilteredSorties(filtered)
-  }, [searchQuery, sorties])
+  }, [token, currentProgramId, searchQuery, startDate, endDate, tailNumberFilter])
 
   // Fetch assets when modal opens
   const fetchAssets = async () => {
@@ -568,16 +573,40 @@ export default function SortiesPage() {
             range: item.range || null,
             remarks: item.remarks || null,
           })),
+          duplicateAction: duplicateAction || undefined,
         }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to import sorties')
+      const result = await response.json()
+
+      // Handle duplicate detection (409 status)
+      if (response.status === 409 && result.duplicates) {
+        setImportDuplicates(result.duplicates)
+        setImportErrors([]) // Clear any previous errors
+        setImporting(false)
+        return
       }
 
-      const result = await response.json()
-      setImportSuccess(`Successfully imported ${result.imported} sortie(s)`)
+      if (!response.ok) {
+        // If backend returns an errors array (validation errors), use that
+        if (result.errors && Array.isArray(result.errors)) {
+          setImportErrors(result.errors)
+          setImporting(false)
+          return
+        }
+        // Otherwise throw the generic error
+        throw new Error(result.error || 'Failed to import sorties')
+      }
+
+      // Success
+      let successMessage = `Successfully imported ${result.imported} sortie(s)`
+      if (result.updated > 0) {
+        successMessage += `, updated ${result.updated}`
+      }
+      if (result.skipped > 0) {
+        successMessage += `, skipped ${result.skipped}`
+      }
+      setImportSuccess(successMessage)
 
       // Refresh sorties list
       fetchSorties()
@@ -589,6 +618,8 @@ export default function SortiesPage() {
         setImportPreview([])
         setImportErrors([])
         setImportSuccess(null)
+        setImportDuplicates([])
+        setDuplicateAction('')
       }, 2000)
     } catch (err) {
       console.error('Error importing sorties:', err)
@@ -605,7 +636,20 @@ export default function SortiesPage() {
     setImportPreview([])
     setImportErrors([])
     setImportSuccess(null)
+    setImportDuplicates([])
+    setDuplicateAction('')
   }
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery('')
+    setStartDate('')
+    setEndDate('')
+    setTailNumberFilter('')
+  }
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery || startDate || endDate || tailNumberFilter
 
   // Loading state
   if (loading) {
@@ -1225,6 +1269,108 @@ export default function SortiesPage() {
                 </div>
               )}
 
+              {/* Duplicate Warning and Action Selector */}
+              {importDuplicates.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                  <div className="flex items-start gap-2">
+                    <ExclamationCircleIcon className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <div className="flex-1 space-y-3">
+                      <h4 className="text-sm font-medium text-yellow-900">
+                        Duplicate Mission IDs Found ({importDuplicates.length})
+                      </h4>
+                      <p className="text-sm text-yellow-800">
+                        The following mission IDs already exist in the system. Please choose how to handle them:
+                      </p>
+
+                      {/* Duplicate Details */}
+                      <div className="max-h-48 overflow-y-auto">
+                        {importDuplicates.map((dup, index) => (
+                          <div key={index} className="bg-white rounded-md p-3 mb-2 border border-yellow-300">
+                            <div className="font-medium text-sm text-gray-900 mb-2">
+                              Row {dup.row}: Mission ID "{dup.mission_id}"
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-xs">
+                              <div>
+                                <div className="font-medium text-gray-700 mb-1">Existing Record:</div>
+                                <div className="text-gray-600 space-y-0.5">
+                                  <div>Serial: {dup.existing.serno}</div>
+                                  <div>Date: {dup.existing.sortie_date}</div>
+                                  <div>Effect: {dup.existing.sortie_effect || 'N/A'}</div>
+                                  <div>Range: {dup.existing.range || 'N/A'}</div>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-700 mb-1">Import Data:</div>
+                                <div className="text-gray-600 space-y-0.5">
+                                  <div>Serial: {dup.new.serno}</div>
+                                  <div>Date: {dup.new.sortie_date}</div>
+                                  <div>Effect: {dup.new.sortie_effect || 'N/A'}</div>
+                                  <div>Range: {dup.new.range || 'N/A'}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Action Selection */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-900">
+                          Choose Action for Duplicates:
+                        </label>
+                        <div className="space-y-2">
+                          <label className="flex items-start gap-2 p-2 rounded-md border-2 hover:bg-yellow-50 cursor-pointer"
+                            style={{ borderColor: duplicateAction === 'skip' ? '#d97706' : 'transparent' }}>
+                            <input
+                              type="radio"
+                              name="duplicateAction"
+                              value="skip"
+                              checked={duplicateAction === 'skip'}
+                              onChange={(e) => setDuplicateAction(e.target.value as 'skip')}
+                              className="mt-0.5"
+                            />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">Skip Duplicates</div>
+                              <div className="text-xs text-gray-600">Ignore duplicate rows and import only new records</div>
+                            </div>
+                          </label>
+                          <label className="flex items-start gap-2 p-2 rounded-md border-2 hover:bg-yellow-50 cursor-pointer"
+                            style={{ borderColor: duplicateAction === 'update' ? '#d97706' : 'transparent' }}>
+                            <input
+                              type="radio"
+                              name="duplicateAction"
+                              value="update"
+                              checked={duplicateAction === 'update'}
+                              onChange={(e) => setDuplicateAction(e.target.value as 'update')}
+                              className="mt-0.5"
+                            />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">Update Existing</div>
+                              <div className="text-xs text-gray-600">Update existing records with new data from import</div>
+                            </div>
+                          </label>
+                          <label className="flex items-start gap-2 p-2 rounded-md border-2 hover:bg-yellow-50 cursor-pointer"
+                            style={{ borderColor: duplicateAction === 'create' ? '#d97706' : 'transparent' }}>
+                            <input
+                              type="radio"
+                              name="duplicateAction"
+                              value="create"
+                              checked={duplicateAction === 'create'}
+                              onChange={(e) => setDuplicateAction(e.target.value as 'create')}
+                              className="mt-0.5"
+                            />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">Create Anyway</div>
+                              <div className="text-xs text-gray-600">Create new records even with duplicate mission IDs (not recommended)</div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Success Message */}
               {importSuccess && (
                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
@@ -1284,9 +1430,9 @@ export default function SortiesPage() {
               <button
                 onClick={handleConfirmImport}
                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={importing || importPreview.length === 0 || importErrors.length > 0}
+                disabled={importing || importPreview.length === 0 || importErrors.length > 0 || (importDuplicates.length > 0 && !duplicateAction)}
               >
-                {importing ? 'Importing...' : 'Import Sorties'}
+                {importing ? 'Importing...' : importDuplicates.length > 0 ? 'Import with Selected Action' : 'Import Sorties'}
               </button>
             </div>
           </Dialog.Panel>
