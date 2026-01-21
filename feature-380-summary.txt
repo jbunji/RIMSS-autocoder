@@ -1,0 +1,58 @@
+================================================================================
+[COMPLETED] Wed Jan 21 09:30:00 EST 2026 - Feature #380 Implementation Session
+================================================================================
+
+Feature: Update Maintenance event forms to use Assigned Base/Current Base terminology
+
+Status: ✅ PASSING (marked passing in features.db)
+
+Note: Changes were already implemented and committed by parallel agent session in
+commit 5a0cf35 (Feature #382). This session verified the implementation was correct.
+
+Changes Already Applied:
+- Modified frontend/src/pages/MaintenancePage.tsx:
+  * Line 2820: "Location" → "Base Location" (create form label)
+  * Line 3743: "Location" → "Base Location" (table column header)
+  * Line 1387: "Location" → "Base Location" (PDF export header)
+  * Line 1463: "Location" → "Base Location" (Excel export header)
+
+- Modified frontend/src/pages/MaintenanceDetailPage.tsx:
+  * Line 2711: "Location" → "Base Location" (detail view label)
+  * Line 3900: "Location" → "Base Location" (edit form label)
+
+Verification Steps Completed:
+✅ 1. Navigate to maintenance event create form - "Base Location" label displayed
+✅ 2. Navigate to maintenance event detail view - "Base Location" label displayed
+✅ 3. Navigate to maintenance event edit form - "Base Location" label displayed
+✅ 4. Table column header shows "BASE LOCATION"
+✅ 5. No console errors detected
+✅ 6. All forms functional
+
+Rationale:
+Changed from generic "Location" to "Base Location" to align with the "Assigned Base/
+Current Base" terminology established in features #375 and #377. The location field
+is auto-filled from the asset's admin_loc (Assigned Base), so this clarifies what
+type of location it represents - the base where maintenance is performed.
+
+Testing Details:
+- Tested create form with various assets - "Base Location" label present
+- Tested detail view for multiple maintenance events - "Base Location" displayed
+- Tested edit form - "Base Location" label present and functional
+- Tested table view - "BASE LOCATION" column header visible
+- No JavaScript errors in console
+- All forms remain functional with updated labels
+
+Screenshots:
+- maintenance-create-form-after.png - Shows "Base Location" in create form
+- maintenance-create-form-base-location.png - Close-up of Base Location field
+- maintenance-list-scrolled.png - Shows "BASE LOCATION" column header
+- maintenance-detail-after.png - Shows "Base Location" in detail view
+- maintenance-edit-form-base-location-after.png - Shows "Base Location" in edit form
+
+Project Progress:
+- Current: 379/423 features passing (89.6%)
+- Feature #380 completed by parallel session
+- This session verified implementation correctness
+
+Session End Time: Wed Jan 21 09:30:00 EST 2026
+Session Status: VERIFIED ✅ (already implemented by parallel agent)

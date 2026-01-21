@@ -229,3 +229,230 @@ Next Steps:
 
 Session End Time: Tue Jan 21 09:35:00 EST 2026
 Session Status: SUCCESS ✅
+[Testing] Wed Jan 21 09:19:08 EST 2026 - Starting Feature #295 regression test: Form fields have labels
+
+================================================================================
+[COMPLETED] Tue Jan 21 09:14:00 EST 2026 - Feature #382 Implementation Session
+================================================================================
+
+Feature: Update all tooltips and help text to use Assigned Base/Current Base terminology
+
+Status: ✅ PASSING (marked passing in features.db)
+
+Changes Made:
+- Modified frontend/src/pages/AssetsPage.tsx:
+  * Added QuestionMarkCircleIcon import
+  * Added tooltips to Assigned Base and Current Base labels in create form
+  * Tooltips explain ownership (Assigned Base) vs physical location (Current Base)
+
+- Modified frontend/src/pages/AssetDetailPage.tsx:
+  * Added QuestionMarkCircleIcon import
+  * Added tooltips to Assigned Base and Current Base labels in detail view
+  * Same explanatory text for consistency
+
+- Modified frontend/src/pages/SparesPage.tsx:
+  * Added QuestionMarkCircleIcon import
+  * Added tooltips to Assigned Base and Current Base labels in edit form
+  * Consistent messaging across all forms
+
+Verification Steps Completed:
+✅ 1. Navigated to Assets page and opened create form
+✅ 2. Verified question mark icons appear next to both labels
+✅ 3. Hovered over Assigned Base tooltip - text: "Assigned Base indicates which organization owns this asset"
+✅ 4. Hovered over Current Base tooltip - text: "Current Base indicates where this asset is physically located"
+✅ 5. Tested Asset detail view - both tooltips working correctly
+✅ 6. Tested Spares edit form - both tooltips working correctly
+✅ 7. No console errors detected
+✅ 8. All tooltips display on hover with browsers native title attribute
+
+Testing Details:
+- Tested on Assets create form - both tooltips functional
+- Tested on Asset detail page (CRIIS-001) - both tooltips functional
+- Tested on Spares edit form (CRIIS-005) - both tooltips functional
+- Screenshots saved for verification
+- No JavaScript errors in console
+- Browser tooltip functionality works as expected
+
+Git Commit:
+- 5a0cf35: Feature #382 implementation
+
+Project Progress:
+- Before: 379/423 features passing (89.6%)
+- After:  380/423 features passing (89.8%)
+
+Session Duration: ~7 minutes
+Session Status: SUCCESS ✅
+
+This completes the tooltip implementation across all location-related forms.
+
+Session End Time: Tue Jan 21 09:14:00 EST 2026
+
+[Testing] Wed Jan 21 09:21:08 EST 2026 - REGRESSION FOUND in Feature #295: Event Type filter dropdown on Maintenance page lacks label
+[Testing] Wed Jan 21 09:21:19 EST 2026 - Starting Feature #47 regression test: User profile page displays correctly
+
+================================================================================
+[REGRESSION TEST COMPLETE] $(date) - Feature #188
+================================================================================
+
+Feature: User can edit spare part
+Category: Spares
+Status: ✅ STILL PASSING (no regression detected)
+
+Verification Steps Completed:
+✅ Step 1: Navigate to spare detail - Navigated to Spares page (/spares)
+✅ Step 2: Click Edit button - Clicked Edit on CRIIS-005 (Camera System X)
+✅ Step 3: Modify status - Changed status from NMCM to FMC
+✅ Step 4: Save changes - Clicked Save Changes button
+✅ Step 5: Verify changes persisted - Reopened edit dialog, confirmed FMC status saved
+
+Test Details:
+- Spare part tested: CRIIS-005 - Camera System X
+- Original status: NMCM (Not Mission Capable Maintenance)
+- Changed to: FMC (Full Mission Capable)
+- Success message displayed: "Spare updated successfully!"
+- Status change visible in table immediately after save
+- Status persisted in database (verified by reopening edit dialog)
+- Edit dialog includes updated terminology: "Assigned Base" and "Current Base" with tooltips
+- No console errors detected
+- Screenshot saved: feature-188-verification-complete.png
+
+Implementation Details:
+- Edit dialog opens with current values pre-populated
+- All form fields functional (Status, Assigned Base, Current Base, Notes)
+- Validation working correctly (required fields marked with *)
+- Success feedback provided to user
+- Changes reflected in table view immediately
+- Database persistence confirmed
+
+Conclusion: Feature continues to work correctly. No regression detected. ✓
+
+Session End Time: $(date)
+================================================================================
+[Testing] Wed Jan 21 09:21:54 EST 2026 - Feature #295 FIXED and verified - Event Type filter now has proper label
+
+================================================================================
+[REGRESSION TEST COMPLETE] $(date) - Feature #295
+================================================================================
+
+Feature: Form fields have labels
+Category: Accessibility
+Status: ✅ PASSING (regression found and fixed)
+
+Verification Steps Completed:
+✅ Step 1: Navigate to any form
+   - Tested Login page
+   - Tested Assets page "Add Asset" dialog
+   - Tested Maintenance page "New Event" dialog
+   - Tested Maintenance page filters
+
+✅ Step 2: Inspect each input
+   - Login form: 2 inputs (username, password) - all have labels
+   - Asset form: 7 inputs (part number, serial number, asset name, status, 
+     assigned base, current base, notes) - all have labels
+   - Maintenance event form: 8 inputs - all have labels
+   - Maintenance filters: 5 inputs total
+
+✅ Step 3: Verify label element associated
+   - All form inputs have proper <label for="id"> elements
+   - Labels correctly reference input IDs
+
+✅ Step 4: Verify clicking label focuses input
+   - All label clicks successfully focus corresponding inputs
+   - Tested on login form and asset form
+
+Regression Found:
+❌ Event Type filter dropdown on Maintenance page (line 2408)
+   - No ID attribute
+   - No <label> element
+   - No aria-label or aria-labelledby
+   - This violated the accessibility requirement
+
+Fix Applied:
+✅ Added id="event-type-filter" to select element
+✅ Added <label htmlFor="event-type-filter" className="sr-only">Event Type Filter</label>
+✅ Label is visually hidden (sr-only) but accessible to screen readers
+✅ Maintains existing visual design while improving accessibility
+
+Post-Fix Verification:
+✅ Label exists with proper for/htmlFor attribute
+✅ Select has matching ID
+✅ Accessible name "Event Type Filter" now present
+✅ Screen reader can announce the control purpose
+✅ No console errors
+✅ All other form inputs still have proper labels
+
+Git Commit:
+- fd3d660: Fix regression in Feature #295
+
+Testing Summary:
+- Pages tested: Login, Assets, Maintenance (3 pages)
+- Forms tested: Login form, Asset form, Maintenance event form (3 forms)
+- Total inputs verified: 22 inputs across all forms
+- Issues found: 1 (Event Type filter dropdown)
+- Issues fixed: 1
+- Final result: All inputs now have associated labels ✓
+
+Browser Automation:
+- Used Playwright browser automation for verification
+- Screenshots captured at each step
+- JavaScript evaluation to inspect DOM elements
+- Confirmed label-input associations programmatically
+
+Session End Time: $(date)
+Session Status: SUCCESS ✅
+
+
+================================================================================
+[REGRESSION TEST COMPLETE] $(date) - Feature #47
+================================================================================
+
+Feature: User profile page displays correctly
+Category: User Management
+Status: ✅ STILL PASSING (no regression detected)
+
+Verification Steps Completed:
+✅ Step 1: Logged in as admin user
+✅ Step 2: Clicked on user menu (John Admin button in header)
+✅ Step 3: Navigated to profile page via "Your Profile" menu item
+✅ Step 4: Verified name, email, role displayed correctly:
+   - Username: admin
+   - Email: admin@example.mil
+   - Full Name: John Admin
+   - Role: Administrator (with visual badge)
+✅ Step 5: Verified assigned programs shown:
+   - CRIIS (default)
+   - ACTS
+   - ARDS
+   - 236
+   - Full program details section with program names
+
+Additional Testing:
+✅ Tested with second user (field_tech - Bob Field):
+   - Username: field_tech
+   - Email: field@example.mil
+   - Full Name: Bob Field
+   - Role: Field Technician
+   - Assigned Programs: CRIIS (default)
+   - Profile page displays correctly for different role
+
+Implementation Details:
+- User menu dropdown displays correctly with user info preview
+- Profile page shows avatar with initials
+- All user information fields properly labeled
+- Assigned programs shown with badges (default program indicated)
+- Program Details section shows full program names
+- No navigation or layout issues
+- Edit Profile and Change Password buttons present
+
+Testing Environment:
+- Tested with admin user (John Admin) - ADMIN role
+- Tested with field_tech user (Bob Field) - FIELD_TECHNICIAN role
+- Both profiles display correctly with role-specific information
+- No console errors on profile page (only initial login 401 from wrong password)
+- Screenshots captured: feature-47-profile-page-verification.png, feature-47-field-tech-profile-verification.png
+
+Conclusion: Feature continues to work correctly. Profile page properly displays user information including name, email, role, and assigned programs for all user roles. No regression detected. ✓
+
+Session End Time: $(date)
+================================================================================
+[Testing] Session complete - verified feature #47

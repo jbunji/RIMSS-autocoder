@@ -429,6 +429,34 @@ export default function ProfilePage() {
                 </dd>
               </div>
 
+              {/* Assigned Locations */}
+              <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                <dt className="text-sm font-medium text-gray-500">Assigned Locations</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                  {user.locations && user.locations.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {user.locations.map((location) => (
+                        <span
+                          key={location.loc_id}
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                            location.is_default
+                              ? 'bg-primary-100 text-primary-800 ring-1 ring-primary-600'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {location.display_name}
+                          {location.is_default && (
+                            <span className="ml-1 text-primary-600">(default)</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 italic">No locations assigned</span>
+                  )}
+                </dd>
+              </div>
+
               {/* User ID (for reference) */}
               <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                 <dt className="text-sm font-medium text-gray-500">User ID</dt>

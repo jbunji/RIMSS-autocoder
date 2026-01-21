@@ -14,6 +14,13 @@ export interface User {
     pgm_name: string
     is_default: boolean
   }>
+  locations?: Array<{
+    loc_id: number
+    display_name: string
+    majcom_cd?: string
+    site_cd?: string
+    is_default: boolean
+  }>
 }
 
 interface AuthState {

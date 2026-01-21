@@ -53,8 +53,9 @@ model User {
   chg_date      DateTime?
 
   // Relations
-  userPrograms UserProgram[]
-  auditLogs    AuditLog[]
+  userPrograms  UserProgram[]
+  userLocations UserLocation[]
+  auditLogs     AuditLog[]
 
   @@map("users")
 }
@@ -80,6 +81,22 @@ model UserProgram {
 
   @@unique([user_id, pgm_id])
   @@map("user_program")
+}
+
+model UserLocation {
+  user_location_id Int      @id @default(autoincrement())
+  user_id          Int
+  loc_id           Int
+  is_default       Boolean  @default(false)
+  ins_by           String?  @db.VarChar(50)
+  ins_date         DateTime @default(now())
+
+  // Relations
+  user     User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  location Location @relation(fields: [loc_id], references: [loc_id])
+
+  @@unique([user_id, loc_id])
+  @@map("user_location")
 }
 
 model Code {
@@ -132,13 +149,14 @@ model Location {
   chg_date     DateTime?
 
   // Relations
-  assetsAdmin    Asset[]        @relation("AdminLocation")
-  assetsCustodial Asset[]       @relation("CustodialLocation")
-  events         Event[]
-  sruOrders      SruOrder[]
-  badActors      BadActor[]
-  notifications  Notification[]
-  spares         Spare[]
+  assetsAdmin     Asset[]        @relation("AdminLocation")
+  assetsCustodial Asset[]        @relation("CustodialLocation")
+  events          Event[]
+  sruOrders       SruOrder[]
+  badActors       BadActor[]
+  notifications   Notification[]
+  spares          Spare[]
+  userLocations   UserLocation[]
 
   @@map("location")
 }

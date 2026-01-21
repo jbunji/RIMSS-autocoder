@@ -142,6 +142,10 @@ const mockUsers = [
       { pgm_id: 3, pgm_cd: 'ARDS', pgm_name: 'Airborne Reconnaissance Data System', is_default: false },
       { pgm_id: 4, pgm_cd: '236', pgm_name: 'Program 236', is_default: false },
     ],
+    locations: [
+      { loc_id: 154, display_name: '24892/1160/1426', is_default: true },
+      { loc_id: 212, display_name: '24892/1360/24893', is_default: false },
+    ],
   },
   {
     user_id: 2,
@@ -152,6 +156,9 @@ const mockUsers = [
     role: 'DEPOT_MANAGER',
     programs: [
       { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
+    ],
+    locations: [
+      { loc_id: 154, display_name: '24892/1160/1426', is_default: true },
     ],
   },
   {
@@ -164,6 +171,9 @@ const mockUsers = [
     programs: [
       { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
     ],
+    locations: [
+      { loc_id: 394, display_name: '24892/526/527', is_default: true },
+    ],
   },
   {
     user_id: 4,
@@ -175,6 +185,7 @@ const mockUsers = [
     programs: [
       { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
     ],
+    locations: [],
   },
   {
     user_id: 5,
@@ -185,6 +196,10 @@ const mockUsers = [
     role: 'FIELD_TECHNICIAN',
     programs: [
       { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+    ],
+    locations: [
+      { loc_id: 437, display_name: '29306/29031/29030', is_default: true },
+      { loc_id: 663, display_name: '29307/29032/29033', is_default: false },
     ],
   },
 ]
@@ -1064,7 +1079,7 @@ app.put('/api/users/:id', (req, res) => {
     return res.status(404).json({ error: 'User not found' })
   }
 
-  const { username, email, first_name, last_name, role, password, program_ids, default_program_id, active, admin_password } = req.body
+  const { username, email, first_name, last_name, role, password, program_ids, default_program_id, location_ids, default_location_id, active, admin_password } = req.body
   const existingUser = mockUsers[userIndex]
 
   // Check if role is being changed
@@ -1202,6 +1217,20 @@ app.put('/api/users/:id', (req, res) => {
     }
   })
 
+  // Build locations array with is_default flag
+  // Use default_location_id if provided and valid, otherwise use first location
+  const effectiveDefaultLocationId = default_location_id && location_ids?.includes(default_location_id)
+    ? default_location_id
+    : location_ids?.[0]
+
+  const locations = (location_ids || []).map((locId: number) => {
+    return {
+      loc_id: locId,
+      display_name: `Location ${locId}`, // In real app, fetch from database
+      is_default: locId === effectiveDefaultLocationId
+    }
+  })
+
   // Update the user
   const updatedUser = {
     user_id: userId,
@@ -1211,6 +1240,7 @@ app.put('/api/users/:id', (req, res) => {
     last_name,
     role,
     programs,
+    locations,
   }
 
   mockUsers[userIndex] = updatedUser
@@ -1280,7 +1310,7 @@ app.delete('/api/users/:id', async (req, res) => {
 app.post('/api/users', (req, res) => {
   if (!requireAdmin(req, res)) return
 
-  const { username, email, first_name, last_name, role, password, program_ids } = req.body
+  const { username, email, first_name, last_name, role, password, program_ids, location_ids } = req.body
 
   // Validate required fields
   if (!username || !email || !first_name || !last_name || !role || !password || !program_ids) {
@@ -1369,6 +1399,15 @@ app.post('/api/users', (req, res) => {
     }
   })
 
+  // Build locations array with is_default flag
+  const locations = (location_ids || []).map((locId: number, index: number) => {
+    return {
+      loc_id: locId,
+      display_name: `Location ${locId}`, // In real app, fetch from database
+      is_default: index === 0 // First location is default
+    }
+  })
+
   // Create the new user
   const newUser = {
     user_id: newUserId,
@@ -1378,6 +1417,7 @@ app.post('/api/users', (req, res) => {
     last_name,
     role,
     programs,
+    locations,
   }
 
   // Add to mock data
@@ -1390,6 +1430,31 @@ app.post('/api/users', (req, res) => {
     message: 'User created successfully',
     user: { ...newUser, active: true }
   })
+})
+
+// Get locations (admin only - for user management)
+app.get('/api/locations', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const locations = await prisma.location.findMany({
+      where: { active: true },
+      select: {
+        loc_id: true,
+        display_name: true,
+        majcom_cd: true,
+        site_cd: true,
+        unit_cd: true,
+        description: true,
+      },
+      orderBy: { display_name: 'asc' },
+    })
+
+    res.json({ locations })
+  } catch (error) {
+    console.error('[LOCATIONS] Error fetching locations:', error)
+    res.status(500).json({ error: 'Failed to fetch locations' })
+  }
 })
 
 // Get audit logs (admin only)
