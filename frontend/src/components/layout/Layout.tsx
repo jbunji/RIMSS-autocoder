@@ -22,7 +22,7 @@ export default function Layout() {
       </div>
 
       {/* Fixed Navbar */}
-      <div className="fixed top-7 left-0 right-0 z-40">
+      <div className="fixed top-7 left-0 right-0 z-40 overflow-x-hidden">
         <Navbar
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           sidebarOpen={sidebarOpen}

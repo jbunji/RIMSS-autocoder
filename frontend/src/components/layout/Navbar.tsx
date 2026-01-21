@@ -121,8 +121,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   }
 
   return (
-    <nav className="bg-primary-800 shadow-lg">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
+    <nav className="bg-primary-800 shadow-lg overflow-x-hidden">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-full overflow-x-hidden">
         <div className="flex h-16 items-center justify-between gap-2">
           {/* Left side - Menu button and logo */}
           <div className="flex items-center flex-shrink-0 min-w-0">

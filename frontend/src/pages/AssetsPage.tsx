@@ -957,7 +957,7 @@ export default function AssetsPage() {
       )}
 
       {/* Assets Table */}
-      <div className="bg-white shadow rounded-lg overflow-y-hidden">
+      <div className="bg-white shadow rounded-lg overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center">
