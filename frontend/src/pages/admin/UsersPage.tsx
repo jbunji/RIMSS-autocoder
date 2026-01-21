@@ -51,6 +51,7 @@ const createUserSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   program_ids: z.array(z.number()).min(1, 'At least one program must be selected'),
+  location_ids: z.array(z.number()).optional(),
 })
 
 // Zod schema for user editing (password is optional, admin_password required when role changes)
@@ -75,6 +76,8 @@ const editUserSchema = z.object({
     .optional(),
   program_ids: z.array(z.number()).min(1, 'At least one program must be selected'),
   default_program_id: z.number().optional(),
+  location_ids: z.array(z.number()).optional(),
+  default_location_id: z.number().optional(),
   admin_password: z.string().optional(),
 })
 
@@ -93,6 +96,11 @@ interface User {
     pgm_id: number
     pgm_cd: string
     pgm_name: string
+    is_default: boolean
+  }>
+  locations?: Array<{
+    loc_id: number
+    display_name: string
     is_default: boolean
   }>
 }
@@ -114,6 +122,12 @@ export default function UsersPage() {
   const [editDefaultProgramId, setEditDefaultProgramId] = useState<number | null>(null)
   const [originalRole, setOriginalRole] = useState<string | null>(null)
   const [isRoleChanged, setIsRoleChanged] = useState(false)
+
+  // Location state
+  const [locations, setLocations] = useState<Array<{ loc_id: number; display_name: string }>>([])
+  const [selectedLocations, setSelectedLocations] = useState<number[]>([])
+  const [editSelectedLocations, setEditSelectedLocations] = useState<number[]>([])
+  const [editDefaultLocationId, setEditDefaultLocationId] = useState<number | null>(null)
 
   const {
     register,
