@@ -3941,3 +3941,217 @@ Session End: Wed Jan 21 10:32 EST 2026
 
 ================================================================================
 
+
+================================================================================
+[REGRESSION TEST - PASSED] Feature #130 - User can delete repair
+================================================================================
+
+Test Date: Wed Jan 21 10:34:04 EST 2026
+Feature: User can delete repair
+Category: Repair
+Status: ✅ PASSING (no regression detected)
+
+Test Summary:
+Successfully verified that repair deletion functionality continues to work
+correctly. All test steps completed without errors.
+
+Verification Steps Completed:
+
+✅ Step 1: Create test repair
+  - Used existing maintenance event MX-2024-001 with 2 repairs
+  - Repair #1: CLOSED repair
+  - Repair #2: OPEN repair (target for deletion)
+
+✅ Step 2: Navigate to repair in event
+  - Logged in as admin user
+  - Navigated to Maintenance Event Details page
+  - Located Repair #2 with 1 labor record and REPEAT/RECUR flag
+
+✅ Step 3: Click Delete
+  - Clicked Delete button for Repair #2
+  - Delete button located and clicked successfully
+  - No UI errors or console errors
+
+✅ Step 4: Confirm deletion
+  - Confirmation modal appeared with:
+    * Clear warning: "This action cannot be undone"
+    * Repair details displayed (Repair #2, Corrective, 1/17/2026, OPEN)
+    * Warning about labor records being removed
+    * Cancel and Delete Repair buttons
+  - Modal design clear and user-friendly
+  - Clicked "Delete Repair" button to confirm
+
+✅ Step 5: Verify repair removed from list
+  - Repair #2 successfully deleted from the maintenance event
+  - Repair count updated from "(2 total, 1 open, 1 closed)" to "(1 total, 0 open, 1 closed)"
+  - Only Repair #1 (CLOSED) remains visible
+  - "Repeat/Recur Only" filter button removed (was only on deleted repair)
+  - Associated labor record removed as warned
+  - Page refreshed correctly showing updated state
+
+Technical Verification:
+✅ Zero console errors
+✅ Zero JavaScript warnings
+✅ Confirmation dialog displayed correctly
+✅ Deletion operation completed successfully
+✅ Database cascade working (labor records removed with repair)
+✅ UI updated properly after deletion
+✅ Page state consistent after deletion
+✅ No orphaned data
+
+Additional Observations:
+- Confirmation dialog provides excellent UX with clear warnings
+- Associated labor records properly removed (cascade delete working)
+- Repair count accurately reflects deletion
+- Delete button still available on remaining repair
+- No broken references or UI artifacts
+
+Screenshots Captured:
+- feature-130-before-delete.png (showing both repairs before deletion)
+- feature-130-delete-confirmation.png (confirmation dialog)
+- feature-130-after-delete.png (showing single repair after deletion)
+- feature-130-repairs-section-after-delete.png (repairs section detail)
+
+Test Result: PASSING ✅
+No regressions detected.
+Feature #130 continues to work exactly as specified.
+
+Project Progress: 408/423 features passing (96.5%)
+Testing Agent: Regression Test Session
+Session Duration: ~5 minutes
+Session End: Wed Jan 21 10:34:04 EST 2026
+
+================================================================================
+
+
+================================================================================
+[COMPLETED] Tue Jan 21 10:35:00 EST 2026 - Feature #410 Implementation Session
+================================================================================
+
+Feature: Seed LOC_SET data for all programs
+Category: functional
+Status: ✅ PASSING
+
+Description:
+Successfully seeded the LOC_SET table with location set data for all four 
+defense programs (CRIIS, ACTS, ARDS, 236). Each program has named location 
+sets following the [PROGRAM]_LOC naming convention.
+
+Implementation Summary:
+
+Database Seeding:
+- Created program_location mappings for 20 locations
+- Created 20 LOC_SET records across 4 programs
+- Location distribution:
+  * CRIIS_LOC: 7 locations (loc_id: 1-7)
+  * ACTS_LOC: 5 locations (loc_id: 8-12)
+  * ARDS_LOC: 4 locations (loc_id: 13-16)
+  * 236_LOC: 4 locations (loc_id: 17-20)
+
+Seeding Strategy:
+1. Used seed_program_locations_and_loc_set.mjs script
+2. Assigned distinct location ranges to each program
+3. Created program_location mappings for authorization
+4. Created LOC_SET records with set_name = [PROGRAM]_LOC
+5. Set display_name = [PROGRAM] - [Location Display Name]
+6. All records marked with ins_by='system' and active=true
+
+Verification Steps Completed:
+
+✅ Step 1: Verify CRIIS_LOC set exists with appropriate locations
+   - CRIIS_LOC found with 7 locations
+   - Locations include: Main Warehouse and 6 military site codes
+   - All locations properly mapped with foreign keys
+
+✅ Step 2: Verify ACTS_LOC set exists
+   - ACTS_LOC found with 5 locations
+   - All military site locations (majcom/site/unit format)
+   - Foreign key integrity confirmed
+
+✅ Step 3: Verify ARDS_LOC set exists
+   - ARDS_LOC found with 4 locations
+   - All locations properly mapped
+   - Unique constraint working (set_name, loc_id)
+
+✅ Step 4: Verify 236_LOC set exists
+   - 236_LOC found with 4 locations
+   - Program 236 locations properly assigned
+   - Database integrity maintained
+
+Technical Verification:
+✅ Total LOC_SET records: 20
+✅ All foreign keys valid (pgm_id, loc_id)
+✅ Unique constraint enforced: (set_name, loc_id)
+✅ All programs have at least one location set
+✅ Naming convention followed: [PROGRAM]_LOC
+✅ Audit fields populated correctly
+✅ Zero database errors during seeding
+
+Database Queries Executed:
+- Verified table existence: loc_set table exists
+- Counted records: 20 LOC_SET records created
+- Verified distinct sets: 236_LOC, ACTS_LOC, ARDS_LOC, CRIIS_LOC
+- Checked foreign key integrity: All joins successful
+- Validated data consistency: All mappings correct
+
+Legacy System Alignment:
+The implementation aligns with the legacy Oracle RIMSS (GLOBALEYE schema)
+which had a LOC_SET table with 376 records using names like:
+- LANTIRN_LOCS
+- CT_CRF_LOCATIONS
+- HILL_NETWORK
+- SJ_NETWORK
+
+The new system maintains this capability with a normalized relational design.
+
+Scripts Created:
+1. seed_program_locations_and_loc_set.mjs
+   - Main seeding script
+   - Idempotent (clears existing data before recreating)
+   - Assigns locations to programs
+   - Creates both program_location and loc_set records
+
+2. verify_feature_410.mjs
+   - Automated verification script
+   - Checks all four required location sets
+   - Displays detailed location listings
+   - Returns exit code 0 on success, 1 on failure
+
+3. feature-410-completion.md
+   - Comprehensive completion report
+   - Documents all verification steps
+   - Includes database queries and results
+   - Provides legacy system alignment context
+
+Browser Testing:
+✅ Navigated to http://localhost:5173
+✅ Logged in as admin user
+✅ Dashboard loaded successfully
+✅ Application showing proper data filtering by program (CRIIS)
+✅ Screenshot captured: feature-410-dashboard-after-seeding.png
+
+Dependencies:
+- Feature #405: LOC_SET table created ✅
+- Feature #407: Naming convention established ✅
+- Feature #406: Program-location management ✅
+
+Project Progress:
+- Before: 408/423 features passing (96.5%)
+- After:  409/423 features passing (96.7%)
+- Features implemented: #410
+
+Git Commit: deb712a
+Session Status: SUCCESS ✅
+Session Duration: ~30 minutes
+Session End Time: Tue Jan 21 10:35:00 EST 2026
+Execution Mode: Single Feature Mode (Parallel Execution)
+
+Notes:
+- Feature #410 was assigned in single feature mode (parallel execution)
+- Immediately marked as in-progress per instructions
+- All verification steps passed on first attempt
+- Seeding scripts are reusable across environments
+- Database integrity maintained throughout seeding process
+- Ready for location-based filtering features
+
+================================================================================
