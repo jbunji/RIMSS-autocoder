@@ -130,6 +130,10 @@ export default function LocationsPage() {
     fetchLocations()
   }
 
+  const handleAddSuccess = () => {
+    fetchLocations()
+  }
+
   const handleToggleActive = async (location: Location) => {
     setToggleLoading(location.loc_id)
     try {
@@ -170,31 +174,41 @@ export default function LocationsPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <div className="inline-flex rounded-md shadow-sm" role="group">
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setViewMode('table')}
-              className={`inline-flex items-center px-4 py-2 text-sm font-medium border ${
-                viewMode === 'table'
-                  ? 'bg-primary-600 text-white border-primary-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              } rounded-l-md focus:z-10 focus:ring-2 focus:ring-primary-500 focus:outline-none`}
+              onClick={() => setAddModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
-              <TableCellsIcon className="h-5 w-5 mr-2" />
-              Table
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Add Location
             </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('tree')}
-              className={`inline-flex items-center px-4 py-2 text-sm font-medium border-t border-r border-b ${
-                viewMode === 'tree'
-                  ? 'bg-primary-600 text-white border-primary-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              } rounded-r-md focus:z-10 focus:ring-2 focus:ring-primary-500 focus:outline-none`}
-            >
-              <Squares2X2Icon className="h-5 w-5 mr-2" />
-              Hierarchy
-            </button>
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`inline-flex items-center px-4 py-2 text-sm font-medium border ${
+                  viewMode === 'table'
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                } rounded-l-md focus:z-10 focus:ring-2 focus:ring-primary-500 focus:outline-none`}
+              >
+                <TableCellsIcon className="h-5 w-5 mr-2" />
+                Table
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('tree')}
+                className={`inline-flex items-center px-4 py-2 text-sm font-medium border-t border-r border-b ${
+                  viewMode === 'tree'
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                } rounded-r-md focus:z-10 focus:ring-2 focus:ring-primary-500 focus:outline-none`}
+              >
+                <Squares2X2Icon className="h-5 w-5 mr-2" />
+                Hierarchy
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -535,6 +549,13 @@ export default function LocationsPage() {
           onSuccess={handleEditSuccess}
         />
       )}
+
+      {/* Add Modal */}
+      <LocationAddModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onSuccess={handleAddSuccess}
+      />
     </div>
   )
 }

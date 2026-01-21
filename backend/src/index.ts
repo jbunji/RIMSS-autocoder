@@ -1945,6 +1945,68 @@ app.put('/api/admin/locations/:id', async (req, res) => {
   }
 })
 
+// Create new location (admin only)
+app.post('/api/admin/locations', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    // Get fields from request body
+    const {
+      display_name,
+      majcom_cd,
+      site_cd,
+      unit_cd,
+      squad_cd,
+      description,
+      geoloc,
+      active
+    } = req.body
+
+    // Validate required field
+    if (!display_name || display_name.trim() === '') {
+      return res.status(400).json({ error: 'Display name is required' })
+    }
+
+    // Create new location
+    const newLocation = await prisma.location.create({
+      data: {
+        display_name: display_name.trim(),
+        majcom_cd: majcom_cd || null,
+        site_cd: site_cd || null,
+        unit_cd: unit_cd || null,
+        squad_cd: squad_cd || null,
+        description: description || null,
+        geoloc: geoloc || null,
+        active: active !== undefined ? active : true,
+        ins_by: req.user?.username || 'system',
+        ins_date: new Date()
+      },
+      select: {
+        loc_id: true,
+        display_name: true,
+        majcom_cd: true,
+        site_cd: true,
+        unit_cd: true,
+        squad_cd: true,
+        description: true,
+        geoloc: true,
+        active: true,
+        ins_by: true,
+        ins_date: true,
+        chg_by: true,
+        chg_date: true,
+        old_loc_id: true,
+      }
+    })
+
+    console.log(`[ADMIN-LOCATIONS] Created new location ${newLocation.loc_id}: ${newLocation.display_name} by ${req.user?.username}`)
+    res.status(201).json(newLocation)
+  } catch (error) {
+    console.error('[ADMIN-LOCATIONS] Error creating location:', error)
+    res.status(500).json({ error: 'Failed to create location' })
+  }
+})
+
 // Get audit logs (admin only)
 app.get('/api/audit-logs', async (req, res) => {
   if (!requireAdmin(req, res)) return
