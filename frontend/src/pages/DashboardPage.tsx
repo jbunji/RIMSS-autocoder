@@ -286,7 +286,7 @@ const AUTO_REFRESH_INTERVAL = 60000
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, currentProgramId, token } = useAuthStore()
+  const { user, currentProgramId, currentLocationId, token } = useAuthStore()
   const [assetStatus, setAssetStatus] = useState<AssetStatusData | null>(null)
   const [pmiData, setPmiData] = useState<PMIData | null>(null)
   const [maintenanceData, setMaintenanceData] = useState<MaintenanceData | null>(null)
@@ -336,9 +336,11 @@ export default function DashboardPage() {
       setError(null)
 
       try {
-        const url = currentProgramId
-          ? `http://localhost:3001/api/dashboard/asset-status?program_id=${currentProgramId}`
-          : 'http://localhost:3001/api/dashboard/asset-status'
+        const params = new URLSearchParams()
+        if (currentProgramId) params.append('program_id', currentProgramId.toString())
+        if (currentLocationId) params.append('location_id', currentLocationId.toString())
+
+        const url = `http://localhost:3001/api/dashboard/asset-status${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -360,7 +362,7 @@ export default function DashboardPage() {
     }
 
     fetchAssetStatus()
-  }, [token, currentProgramId, refreshCount])
+  }, [token, currentProgramId, currentLocationId, refreshCount])
 
   // Fetch PMI data
   useEffect(() => {
@@ -371,9 +373,11 @@ export default function DashboardPage() {
       setPmiError(null)
 
       try {
-        const url = currentProgramId
-          ? `http://localhost:3001/api/pmi/due-soon?program_id=${currentProgramId}`
-          : 'http://localhost:3001/api/pmi/due-soon'
+        const params = new URLSearchParams()
+        if (currentProgramId) params.append('program_id', currentProgramId.toString())
+        if (currentLocationId) params.append('location_id', currentLocationId.toString())
+
+        const url = `http://localhost:3001/api/pmi/due-soon${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -395,7 +399,7 @@ export default function DashboardPage() {
     }
 
     fetchPMIData()
-  }, [token, currentProgramId, refreshCount])
+  }, [token, currentProgramId, currentLocationId, refreshCount])
 
   // Fetch maintenance jobs data
   useEffect(() => {
@@ -406,9 +410,11 @@ export default function DashboardPage() {
       setMaintenanceError(null)
 
       try {
-        const url = currentProgramId
-          ? `http://localhost:3001/api/dashboard/open-maintenance-jobs?program_id=${currentProgramId}`
-          : 'http://localhost:3001/api/dashboard/open-maintenance-jobs'
+        const params = new URLSearchParams()
+        if (currentProgramId) params.append('program_id', currentProgramId.toString())
+        if (currentLocationId) params.append('location_id', currentLocationId.toString())
+
+        const url = `http://localhost:3001/api/dashboard/open-maintenance-jobs${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -430,7 +436,7 @@ export default function DashboardPage() {
     }
 
     fetchMaintenanceData()
-  }, [token, currentProgramId, refreshCount])
+  }, [token, currentProgramId, currentLocationId, refreshCount])
 
   // Fetch parts awaiting action data
   useEffect(() => {
@@ -441,9 +447,11 @@ export default function DashboardPage() {
       setPartsError(null)
 
       try {
-        const url = currentProgramId
-          ? `http://localhost:3001/api/dashboard/parts-awaiting-action?program_id=${currentProgramId}`
-          : 'http://localhost:3001/api/dashboard/parts-awaiting-action'
+        const params = new URLSearchParams()
+        if (currentProgramId) params.append('program_id', currentProgramId.toString())
+        if (currentLocationId) params.append('location_id', currentLocationId.toString())
+
+        const url = `http://localhost:3001/api/dashboard/parts-awaiting-action${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -465,7 +473,7 @@ export default function DashboardPage() {
     }
 
     fetchPartsData()
-  }, [token, currentProgramId, refreshCount])
+  }, [token, currentProgramId, currentLocationId, refreshCount])
 
   // Fetch recent activity data
   useEffect(() => {
@@ -476,7 +484,13 @@ export default function DashboardPage() {
       setActivityError(null)
 
       try {
-        const response = await fetch('http://localhost:3001/api/dashboard/recent-activity?limit=10', {
+        const params = new URLSearchParams()
+        params.append('limit', '10')
+        if (currentLocationId) params.append('location_id', currentLocationId.toString())
+
+        const url = `http://localhost:3001/api/dashboard/recent-activity?${params.toString()}`
+
+        const response = await fetch(url, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -496,7 +510,7 @@ export default function DashboardPage() {
     }
 
     fetchActivityData()
-  }, [token, refreshCount])
+  }, [token, currentLocationId, refreshCount])
 
   // Track when all data has finished loading to update lastUpdated and clear refreshing state
   useEffect(() => {

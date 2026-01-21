@@ -14761,11 +14761,22 @@ app.get('/api/reports/inventory', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this program' });
   }
 
+  // Get user's location IDs for filtering
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
   // Get all assets for the program (both in config and spares)
-  const allAssets = detailedAssets.filter(asset =>
+  let allAssets = detailedAssets.filter(asset =>
     asset.pgm_id === programIdFilter &&
     asset.active === true
   );
+
+  // Apply location filtering for non-admin users
+  // Assets are filtered if they match ANY of the user's assigned locations (loc_ida OR loc_idc)
+  if (user.role !== 'ADMIN' && userLocationIds.length > 0) {
+    allAssets = allAssets.filter(asset =>
+      userLocationIds.includes(asset.loc_ida) || userLocationIds.includes(asset.loc_idc)
+    );
+  }
 
   // Helper function to extract system type from part name
   const extractSystemType = (partName: string): string => {
@@ -14826,7 +14837,7 @@ app.get('/api/reports/inventory', (req, res) => {
   // Get program info
   const program = allPrograms.find(p => p.pgm_id === programIdFilter);
 
-  console.log(`[REPORTS] Inventory report by ${user.username} - Program: ${program?.pgm_cd}, Total assets: ${allAssets.length}, System types: ${systemTypeGroups.length}`);
+  console.log(`[REPORTS] Inventory report by ${user.username} (${user.role}) - Program: ${program?.pgm_cd}, Locations: ${userLocationIds.length > 0 ? userLocationIds.join(',') : 'ALL'}, Total assets: ${allAssets.length}, System types: ${systemTypeGroups.length}`);
 
   res.json({
     program: {

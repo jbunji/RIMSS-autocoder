@@ -2318,3 +2318,73 @@ Session Status: SUCCESS
 Session Duration: ~25 minutes
 Session End Time: Tue Jan 21 10:05:00 EST 2026
 ================================================================================
+
+================================================================================
+[Testing] Tue Jan 21 10:05:00 EST 2026 - Feature #286 Regression Test Complete
+================================================================================
+Feature: Modals fit viewport on mobile
+Category: Responsive
+Status: ✅ VERIFIED - Still PASSING
+
+Description:
+Modal dialogs fit within mobile screen and are scrollable when needed
+
+Verification Steps Completed:
+✅ Step 1: Set viewport to 375px
+   - Browser resized to 375x667 (mobile viewport)
+   - Confirmed viewport dimensions
+
+✅ Step 2: Open a modal dialog
+   - Tested "Add Asset" modal on /assets page
+   - Tested "Add New User" modal on /admin/users page (longer form)
+   - Both modals opened successfully
+
+✅ Step 3: Verify modal fits in viewport
+   Asset Modal:
+   - Modal width: 375px (fits viewport horizontally) ✓
+   - Modal positioned with fixed container (inset-0) ✓
+   - Modal stays fixed when page scrolls ✓
+   - Screenshot: feature-286-modal-mobile-375px.png
+   
+   User Modal (longer form):
+   - Modal width: 375px (fits viewport horizontally) ✓
+   - Modal positioned with fixed container (inset-0) ✓
+   - Content height: 1128px (exceeds viewport 667px) ✓
+   - Screenshot: feature-286-user-modal-mobile.png
+
+✅ Step 4: Verify scrollable if needed
+   - User modal has scrollHeight (1128px) > clientHeight (667px) ✓
+   - Successfully scrolled within modal from top to bottom ✓
+   - All form fields accessible through scrolling ✓
+   - Scrolled to middle: feature-286-user-modal-scrolled.png
+   - Scrolled to bottom: feature-286-user-modal-bottom.png
+   - Modal container uses "overflow-y-auto" class ✓
+
+Technical Verification:
+✅ Modal structure correct:
+   - Fixed positioned container (.fixed.inset-0.overflow-y-auto)
+   - Dialog element positioned relative within fixed container
+   - Backdrop overlay (.fixed.inset-0.bg-black.bg-opacity-25)
+   - Proper z-index stacking (z-50)
+
+✅ Responsive behavior:
+   - Modal fits 375px mobile viewport width
+   - Content scrolls vertically when exceeds viewport height
+   - No horizontal overflow
+   - Modal remains fixed when underlying page scrolls
+
+✅ Console: No errors detected
+
+Result: Feature #286 is working correctly with no regressions found.
+Modal dialogs properly fit within mobile viewport (375px) and provide
+vertical scrolling when content exceeds viewport height. The modal
+implementation uses proper fixed positioning to stay within viewport.
+
+Session Duration: ~10 minutes
+Session Status: SUCCESS ✅
+
+Session End Time: Tue Jan 21 10:05:00 EST 2026
+================================================================================
+[Testing] Feature #286 verified - still passing
+
+[Testing] Session complete - verified feature #286
