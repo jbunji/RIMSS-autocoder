@@ -1502,6 +1502,7 @@ app.get('/api/locations', async (req, res) => {
         console.log(`[LOCATIONS] Filtering locations by programs: ${programIds.join(', ')}`)
 
         // Query to get distinct locations that have assets from the specified programs
+        // Use Prisma.sql to properly handle the array parameter
         const locationsFromAssets = await prisma.$queryRaw<Array<{loc_id: number, display_name: string, majcom_cd: string | null, site_cd: string | null, unit_cd: string | null, description: string | null}>>`
           SELECT DISTINCT
             l.loc_id,
@@ -1517,7 +1518,7 @@ app.get('/api/locations', async (req, res) => {
             FROM asset a
             JOIN part_list pl ON a.partno_id = pl.partno_id
             WHERE a.active = true
-            AND pl.pgm_id IN (${programIds.join(',')})
+            AND pl.pgm_id = ANY(ARRAY[${programIds.join(',')}]::int[])
             AND COALESCE(a.loc_ida, a.loc_idc) IS NOT NULL
           )
           ORDER BY l.display_name ASC;
@@ -8109,6 +8110,8 @@ interface AssetDetails {
   uii: string | null;  // Unique Item Identifier
   mfg_date: string | null;  // Manufacturing date
   acceptance_date: string | null;  // Acceptance date
+  loc_ida: number | null;  // Administrative location ID (Assigned Base)
+  loc_idc: number | null;  // Custodial location ID (Current Base)
   admin_loc: string;  // Administrative location code
   admin_loc_name: string;  // Administrative location name
   cust_loc: string;  // Custodial location code
@@ -8146,18 +8149,34 @@ function initializeDetailedAssets(): AssetDetails[] {
     return `W91WSL${assetId.toString().padStart(6, '0')}${partno.slice(0, 10)}`;
   };
 
+  // Location code to ID mapping (matches database location records)
+  // This maps the string location codes used in mock data to numeric IDs
+  const locationCodeToId: Record<string, number> = {
+    'DEPOT-A': 154,        // 24892/1160/1426
+    'FIELD-B': 394,        // 24892/526/527
+    'FIELD-C': 212,        // 24892/1360/24893
+    'MAINT-BAY-1': 154,    // Same as DEPOT-A for custodial location
+    'MAINT-BAY-2': 154,    // Same as DEPOT-A for custodial location
+    'MAINT-BAY-3': 154,    // Same as DEPOT-A for custodial location
+    'OPS-CENTER': 394,     // Same as FIELD-B for custodial location
+    'STORAGE-A': 394,      // Same as FIELD-B for custodial location
+    'FLIGHT-LINE': 212,    // Same as FIELD-C for custodial location
+    'COMM-CENTER': 212,    // Same as FIELD-C for custodial location
+    'IN-TRANSIT': 154,     // Default to DEPOT-A for in-transit assets
+  };
+
   return [
     // CRIIS program assets (pgm_id: 1)
-    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null, uii: generateUII(1, 'PN-SENSOR-A'), mfg_date: '2020-03-15', acceptance_date: '2020-06-01', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, meter_type: 'eti', cycles_count: null },
-    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null, uii: generateUII(2, 'PN-SENSOR-A'), mfg_date: '2020-05-22', acceptance_date: '2020-08-10', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update', uii: generateUII(3, 'PN-SENSOR-B'), mfg_date: '2019-11-08', acceptance_date: '2020-01-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: 7, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null, uii: generateUII(4, 'PN-CAMERA-X'), mfg_date: '2021-07-12', acceptance_date: '2021-10-01', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'FLIGHT-LINE', cust_loc_name: 'Flight Line', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001', uii: generateUII(5, 'PN-CAMERA-X'), mfg_date: '2019-02-28', acceptance_date: '2019-05-15', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: 'hours', cycles_count: null },
-    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002', uii: generateUII(6, 'PN-RADAR-01'), mfg_date: '2020-09-05', acceptance_date: '2020-12-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'STORAGE-A', cust_loc_name: 'Storage Area A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null, uii: generateUII(7, 'PN-RADAR-01'), mfg_date: '2019-06-20', acceptance_date: '2019-09-10', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending', uii: generateUII(8, 'PN-COMM-SYS'), mfg_date: '2021-01-18', acceptance_date: '2021-04-05', admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'COMM-CENTER', cust_loc_name: 'Communications Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(90), next_pmi_date: null, eti_hours: null, remarks: 'En route from vendor repair', uii: generateUII(9, 'PN-COMM-SYS'), mfg_date: '2018-11-30', acceptance_date: '2019-02-20', admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'IN-TRANSIT', cust_loc_name: 'In Transit', nha_asset_id: null, carrier: 'FedEx', tracking_number: '789456123012', ship_date: subtractDays(3) },
-    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null, uii: generateUII(10, 'PN-NAV-UNIT'), mfg_date: '2020-08-14', acceptance_date: '2020-11-01', admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null, uii: generateUII(1, 'PN-SENSOR-A'), mfg_date: '2020-03-15', acceptance_date: '2020-06-01', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-1'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, meter_type: 'eti', cycles_count: null },
+    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null, uii: generateUII(2, 'PN-SENSOR-A'), mfg_date: '2020-05-22', acceptance_date: '2020-08-10', loc_ida: locationCodeToId['FIELD-B'], loc_idc: locationCodeToId['OPS-CENTER'], admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update', uii: generateUII(3, 'PN-SENSOR-B'), mfg_date: '2019-11-08', acceptance_date: '2020-01-15', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-2'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: 7, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null, uii: generateUII(4, 'PN-CAMERA-X'), mfg_date: '2021-07-12', acceptance_date: '2021-10-01', loc_ida: locationCodeToId['FIELD-C'], loc_idc: locationCodeToId['FLIGHT-LINE'], admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'FLIGHT-LINE', cust_loc_name: 'Flight Line', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001', uii: generateUII(5, 'PN-CAMERA-X'), mfg_date: '2019-02-28', acceptance_date: '2019-05-15', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-1'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: 'hours', cycles_count: null },
+    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002', uii: generateUII(6, 'PN-RADAR-01'), mfg_date: '2020-09-05', acceptance_date: '2020-12-01', loc_ida: locationCodeToId['FIELD-B'], loc_idc: locationCodeToId['STORAGE-A'], admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'STORAGE-A', cust_loc_name: 'Storage Area A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null, uii: generateUII(7, 'PN-RADAR-01'), mfg_date: '2019-06-20', acceptance_date: '2019-09-10', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-3'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending', uii: generateUII(8, 'PN-COMM-SYS'), mfg_date: '2021-01-18', acceptance_date: '2021-04-05', loc_ida: locationCodeToId['FIELD-C'], loc_idc: locationCodeToId['COMM-CENTER'], admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'COMM-CENTER', cust_loc_name: 'Communications Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
+    { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(90), next_pmi_date: null, eti_hours: null, remarks: 'En route from vendor repair', uii: generateUII(9, 'PN-COMM-SYS'), mfg_date: '2018-11-30', acceptance_date: '2019-02-20', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['IN-TRANSIT'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'IN-TRANSIT', cust_loc_name: 'In Transit', nha_asset_id: null, carrier: 'FedEx', tracking_number: '789456123012', ship_date: subtractDays(3) },
+    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null, uii: generateUII(10, 'PN-NAV-UNIT'), mfg_date: '2020-08-14', acceptance_date: '2020-11-01', loc_ida: locationCodeToId['FIELD-B'], loc_idc: locationCodeToId['OPS-CENTER'], admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, meter_type: null, cycles_count: null },
 
     // ACTS program assets (pgm_id: 2) - REMOVED FOR FEATURE #369: Empty state shows when no data
     // Mock data removed to test empty state functionality
@@ -8304,8 +8323,22 @@ app.get('/api/assets', (req, res) => {
   // Get detailed assets from mutable array
   const allAssets = detailedAssets;
 
+  // Get user's location IDs for filtering
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
   // Filter by program and only include active assets (exclude soft-deleted)
   let filteredAssets = allAssets.filter(asset => asset.pgm_id === programIdFilter && asset.active !== false);
+
+  // SECURITY: Filter by location - assets must have Assigned Base (loc_ida) OR Current Base (loc_idc) matching user's locations
+  // Admin users with no location restrictions can see all assets
+  if (userLocationIds.length > 0) {
+    filteredAssets = filteredAssets.filter(asset => {
+      // Asset is visible if EITHER loc_ida OR loc_idc matches any of the user's locations
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+      return matchesAssignedBase || matchesCurrentBase;
+    });
+  }
 
   // Apply optional status filter
   const statusFilter = req.query.status as string;

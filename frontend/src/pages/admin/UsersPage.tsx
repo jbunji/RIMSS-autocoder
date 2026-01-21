@@ -134,6 +134,7 @@ export default function UsersPage() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateUserFormData>({
     resolver: zodResolver(createUserSchema),
@@ -154,6 +155,7 @@ export default function UsersPage() {
     handleSubmit: handleSubmitEdit,
     reset: resetEdit,
     setValue: setValueEdit,
+    watch: watchEdit,
     formState: { errors: errorsEdit, isSubmitting: isSubmittingEdit },
   } = useForm<EditUserFormData>({
     resolver: zodResolver(editUserSchema),
@@ -168,11 +170,38 @@ export default function UsersPage() {
     },
   })
 
+  // Watch role field for both forms
+  const selectedRole = watch('role')
+  const editSelectedRole = watchEdit('role')
+
   // Fetch users and locations on component mount
   useEffect(() => {
     fetchUsers()
     fetchLocations()
   }, [])
+
+  // Refetch locations when role changes (for create form)
+  // ADMIN gets all locations, non-ADMIN gets filtered by selected programs
+  useEffect(() => {
+    if (selectedRole === 'ADMIN') {
+      // Admin role selected - fetch all locations
+      fetchLocations()
+    } else if (selectedRole && selectedPrograms.length > 0) {
+      // Non-admin role with programs selected - filter by programs
+      fetchLocations(selectedPrograms)
+    }
+  }, [selectedRole])
+
+  // Refetch locations when role changes (for edit form)
+  useEffect(() => {
+    if (editSelectedRole === 'ADMIN') {
+      // Admin role selected - fetch all locations
+      fetchLocations()
+    } else if (editSelectedRole && editSelectedPrograms.length > 0) {
+      // Non-admin role with programs selected - filter by programs
+      fetchLocations(editSelectedPrograms)
+    }
+  }, [editSelectedRole])
 
   const fetchUsers = async () => {
     try {
@@ -197,9 +226,14 @@ export default function UsersPage() {
     }
   }
 
-  const fetchLocations = async () => {
+  const fetchLocations = async (programIds?: number[]) => {
     try {
-      const response = await fetch('http://localhost:3001/api/locations', {
+      // Build query string with program_ids if provided
+      const queryParams = programIds && programIds.length > 0
+        ? `?program_ids=${programIds.join(',')}`
+        : ''
+
+      const response = await fetch(`http://localhost:3001/api/locations${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -222,6 +256,16 @@ export default function UsersPage() {
         ? prev.filter(id => id !== programId)
         : [...prev, programId]
       setValue('program_ids', newSelection, { shouldValidate: true })
+
+      // Refetch locations filtered by the new program selection
+      // (unless role is ADMIN, which gets all locations)
+      if (selectedRole !== 'ADMIN' && newSelection.length > 0) {
+        fetchLocations(newSelection)
+      } else if (selectedRole !== 'ADMIN' && newSelection.length === 0) {
+        // No programs selected, show all locations
+        fetchLocations()
+      }
+
       return newSelection
     })
   }
@@ -238,6 +282,15 @@ export default function UsersPage() {
         const newDefault = newSelection[0] || null
         setEditDefaultProgramId(newDefault)
         setValueEdit('default_program_id', newDefault ?? undefined)
+      }
+
+      // Refetch locations filtered by the new program selection
+      // (unless role is ADMIN, which gets all locations)
+      if (editSelectedRole !== 'ADMIN' && newSelection.length > 0) {
+        fetchLocations(newSelection)
+      } else if (editSelectedRole !== 'ADMIN' && newSelection.length === 0) {
+        // No programs selected, show all locations
+        fetchLocations()
       }
 
       return newSelection
