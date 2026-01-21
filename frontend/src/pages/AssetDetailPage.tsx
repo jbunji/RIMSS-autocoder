@@ -5,6 +5,8 @@ import { useAuthStore } from '../stores/authStore'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import { UnsavedChangesDialog } from '../components/UnsavedChangesDialog'
+import { formatLocationHierarchical, compareLocations } from '../utils/locationFormatter'
+import type { Location as LocationType } from '../utils/locationFormatter'
 
 // Asset interface matching backend response
 interface Asset {
@@ -52,11 +54,7 @@ interface AssetStatus {
   description: string
 }
 
-interface Location {
-  loc_id: number
-  loc_cd: string
-  loc_name: string
-}
+type Location = LocationType
 
 // Hierarchy interfaces for NHA/SRA relationships
 interface HierarchyAsset {
@@ -1543,9 +1541,9 @@ export default function AssetDetailPage() {
                     onChange={(e) => handleInputChange('admin_loc', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   >
-                    {adminLocations.map((loc) => (
-                      <option key={loc.loc_cd} value={loc.loc_cd}>
-                        {loc.loc_name} ({loc.loc_cd})
+                    {adminLocations.sort(compareLocations).map((loc) => (
+                      <option key={loc.loc_id} value={loc.loc_id.toString()}>
+                        {formatLocationHierarchical(loc)}
                       </option>
                     ))}
                   </select>
@@ -1573,9 +1571,9 @@ export default function AssetDetailPage() {
                     onChange={(e) => handleInputChange('cust_loc', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   >
-                    {custodialLocations.map((loc) => (
-                      <option key={loc.loc_cd} value={loc.loc_cd}>
-                        {loc.loc_name} ({loc.loc_cd})
+                    {custodialLocations.sort(compareLocations).map((loc) => (
+                      <option key={loc.loc_id} value={loc.loc_id.toString()}>
+                        {formatLocationHierarchical(loc)}
                       </option>
                     ))}
                   </select>

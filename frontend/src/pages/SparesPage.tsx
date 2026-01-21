@@ -1524,9 +1524,9 @@ export default function SparesPage() {
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                           >
                             <option value="">Select location (optional)</option>
-                            {adminLocations.map((loc) => (
+                            {adminLocations.sort(compareLocations).map((loc) => (
                               <option key={loc.loc_id} value={loc.loc_id.toString()}>
-                                {loc.loc_name}
+                                {formatLocationHierarchical(loc)}
                               </option>
                             ))}
                           </select>
@@ -1738,9 +1738,9 @@ export default function SparesPage() {
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                           >
                             <option value="">Select location</option>
-                            {custodialLocations.map((loc) => (
-                              <option key={loc.loc_cd} value={loc.loc_cd}>
-                                {loc.loc_name}
+                            {custodialLocations.sort(compareLocations).map((loc) => (
+                              <option key={loc.loc_id} value={loc.loc_id.toString()}>
+                                {formatLocationHierarchical(loc)}
                               </option>
                             ))}
                           </select>

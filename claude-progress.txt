@@ -6386,3 +6386,89 @@ The feature is functioning as expected with no regressions detected.
 
 ================================================================================
 
+
+================================================================================
+[COMPLETED] Tue Jan 21 11:05:00 EST 2026 - Feature #423 Implementation Session
+================================================================================
+
+Feature: Filter locations by MAJCOM in dropdowns
+Category: functional
+Status: PASSING
+
+Implementation:
+- Updated backend /api/reference/locations endpoint to support MAJCOM filtering
+- Created LocationSelect component with MAJCOM filter and search functionality
+- Integrated component into AssetsPage for Assigned Base and Current Base fields
+- Hierarchical display format: BASE - UNIT (MAJCOM)
+
+Verification Completed:
+- Opened location dropdown - MAJCOM filter visible with options
+- Selected MAJCOM "743" - filtered to show only matching locations
+- Selected MAJCOM "24892" - filtering works correctly
+- Search functionality tested - filters by text input
+- Format verified: "1160 - 1426 (24892)", "1290 - 1495 (743)", etc.
+- Zero console errors
+
+Project Progress: 420/423 features passing (99.3%)
+Git Commit: c422e76
+Session Status: SUCCESS
+
+================================================================================
+[COMPLETED] Tue Jan 21 11:05:00 EST 2026 - Feature #78 Verification Session
+================================================================================
+
+Feature: Asset status transitions validated
+Category: Asset Management
+Status: ✅ PASSING
+
+Description:
+Verified that asset status changes follow business rules with proper validation
+for transitions between mission capability statuses (FMC, PMC, NMCM, NMCS, etc.).
+
+Verification Completed:
+✅ Step 1: Created/found asset with FMC status (CRIIS-001)
+✅ Step 2: Changed status to NMCM - required reason field appeared automatically
+✅ Step 3: Verified valid transition allowed - status saved successfully
+✅ Step 4: Attempted to save status change without reason
+✅ Step 5: Verified error message displayed - validation working correctly
+
+Key Findings:
+- Backend validation fully implemented (lines 625-677 in backend/src/index.ts)
+- Frontend edit form requires reason for NMC status changes
+- Status transition rules follow AFI 21-103 guidelines
+- Clear error messages guide users
+- Success messages confirm valid transitions
+- Audit trail maintained for all status changes
+
+Implementation Quality:
+✅ Backend validation with isValidStatusTransition() function
+✅ Frontend UX with automatic reason field display
+✅ Required field validation prevents invalid submissions
+✅ HTTP 400 returned for invalid transitions
+✅ Clear user feedback for both success and error cases
+✅ Zero critical JavaScript errors
+
+Test Data:
+- Asset: CRIIS-001 (Sensor Unit A)
+- Initial Status: FMC
+- Test Transition 1: FMC → NMCM with reason ✅ Success
+- Test Transition 2: NMCM → NMCS without reason ❌ Blocked (validation working)
+
+Screenshots Captured:
+1. feature-78-step1-edit-mode-fmc.png
+2. feature-78-step2-status-changed-to-nmcm-with-reason.png
+3. feature-78-step3-status-change-successful.png
+4. feature-78-step3-status-nmcm-confirmed.png
+5. feature-78-step4-trying-to-save-without-reason.png
+6. feature-78-step5-validation-error-shown.png
+7. feature-78-step5-validation-error-visible.png
+
+Session Duration: ~15 minutes
+Session Mode: Single Feature Mode (Parallel Execution)
+Session Status: SUCCESS ✅
+
+Project Progress: Feature #78 marked as PASSING
+Git Commit: Pending
+Next Steps: Commit changes and documentation
+
+================================================================================
