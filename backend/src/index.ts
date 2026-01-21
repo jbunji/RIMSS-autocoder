@@ -277,6 +277,185 @@ app.get('/api/auth/me', (req, res) => {
   res.json({ user })
 })
 
+// Global search endpoint - searches across assets, maintenance events, and configurations
+app.get('/api/search', (req, res) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Not authenticated' })
+  }
+
+  const token = authHeader.substring(7)
+  const payload = parseMockToken(token)
+
+  if (!payload) {
+    return res.status(401).json({ error: 'Invalid or expired token' })
+  }
+
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
+  }
+
+  // Get search query parameter (required)
+  const query = (req.query.q as string || '').trim().toLowerCase()
+
+  if (!query || query.length < 2) {
+    return res.json({
+      assets: [],
+      events: [],
+      configurations: [],
+      message: 'Search query must be at least 2 characters'
+    })
+  }
+
+  console.log(`[SEARCH] User ${user.username} searching for: "${query}"`)
+
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || []
+  const userProgramIds = user.programs?.map(p => p.pgm_id) || []
+
+  console.log(`[SEARCH] User locations: ${userLocationIds.join(', ')}`)
+  console.log(`[SEARCH] User programs: ${userProgramIds.join(', ')}`)
+
+  // Search assets (filter by program AND location)
+  let matchingAssets = detailedAssets.filter(asset => {
+    // Only include active assets from user's programs
+    if (asset.active === false) return false
+    if (!userProgramIds.includes(asset.pgm_id)) return false
+
+    // Apply location filtering
+    if (userLocationIds.length > 0) {
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
+      if (!matchesAssignedBase && !matchesCurrentBase) {
+        return false
+      }
+    }
+
+    // Search in asset fields
+    const serialMatch = asset.serialno?.toLowerCase().includes(query)
+    const partMatch = asset.partno?.toLowerCase().includes(query)
+    const nameMatch = asset.asset_name?.toLowerCase().includes(query)
+    const uiiMatch = asset.uii?.toLowerCase().includes(query)
+
+    return serialMatch || partMatch || nameMatch || uiiMatch
+  })
+
+  // Limit asset results to 20
+  matchingAssets = matchingAssets.slice(0, 20)
+
+  console.log(`[SEARCH] Found ${matchingAssets.length} matching assets`)
+
+  // Search maintenance events (filter by program AND location via asset join)
+  let matchingEvents = maintenanceEvents.filter(event => {
+    // Find the associated asset
+    const asset = detailedAssets.find(a => a.asset_id === event.asset_id)
+    if (!asset) return false
+
+    // Only include events from user's programs
+    if (!userProgramIds.includes(event.pgm_id)) return false
+
+    // Apply location filtering via asset
+    if (userLocationIds.length > 0) {
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
+      if (!matchesAssignedBase && !matchesCurrentBase) {
+        return false
+      }
+    }
+
+    // Search in event fields
+    const eventNumMatch = event.event_num?.toLowerCase().includes(query)
+    const descriptionMatch = event.description?.toLowerCase().includes(query)
+    const remarksMatch = event.remarks?.toLowerCase().includes(query)
+
+    return eventNumMatch || descriptionMatch || remarksMatch
+  })
+
+  // Limit event results to 20
+  matchingEvents = matchingEvents.slice(0, 20)
+
+  console.log(`[SEARCH] Found ${matchingEvents.length} matching events`)
+
+  // Search configurations (filter by program AND location via assets in config)
+  let matchingConfigurations = configurations.filter(config => {
+    // Only include configs from user's programs
+    if (!userProgramIds.includes(config.pgm_id)) return false
+
+    // For location filtering, check if any asset in this configuration set belongs to user's locations
+    if (userLocationIds.length > 0) {
+      const configAssets = detailedAssets.filter(a =>
+        a.cfg_set_id === config.cfg_set_id && a.active !== false
+      )
+
+      const hasAccessibleAsset = configAssets.some(asset => {
+        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
+        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
+        return matchesAssignedBase || matchesCurrentBase
+      })
+
+      if (!hasAccessibleAsset) {
+        return false
+      }
+    }
+
+    // Search in configuration fields
+    const nameMatch = config.name?.toLowerCase().includes(query)
+    const descriptionMatch = config.description?.toLowerCase().includes(query)
+    const versionMatch = config.version?.toLowerCase().includes(query)
+
+    return nameMatch || descriptionMatch || versionMatch
+  })
+
+  // Limit configuration results to 20
+  matchingConfigurations = matchingConfigurations.slice(0, 20)
+
+  console.log(`[SEARCH] Found ${matchingConfigurations.length} matching configurations`)
+
+  // Format results for frontend
+  const assetResults = matchingAssets.map(asset => ({
+    id: asset.asset_id,
+    type: 'asset' as const,
+    title: `${asset.serialno} - ${asset.asset_name}`,
+    subtitle: asset.partno,
+    status: asset.status_cd,
+    location: asset.loc_ida_display || asset.loc_idc_display,
+    url: `/assets/${asset.asset_id}`
+  }))
+
+  const eventResults = matchingEvents.map(event => {
+    const asset = detailedAssets.find(a => a.asset_id === event.asset_id)
+    return {
+      id: event.event_id,
+      type: 'event' as const,
+      title: `Event ${event.event_num}`,
+      subtitle: event.description,
+      status: event.status,
+      asset: asset ? `${asset.serialno} - ${asset.asset_name}` : 'Unknown Asset',
+      url: `/maintenance/${event.event_id}`
+    }
+  })
+
+  const configResults = matchingConfigurations.map(config => ({
+    id: config.cfg_set_id,
+    type: 'configuration' as const,
+    title: config.name,
+    subtitle: config.description,
+    version: config.version,
+    url: `/configurations/${config.cfg_set_id}`
+  }))
+
+  const totalResults = assetResults.length + eventResults.length + configResults.length
+
+  res.json({
+    query,
+    totalResults,
+    assets: assetResults,
+    events: eventResults,
+    configurations: configResults
+  })
+})
+
 // Token refresh endpoint
 app.post('/api/auth/refresh', (req, res) => {
   const authHeader = req.headers.authorization
