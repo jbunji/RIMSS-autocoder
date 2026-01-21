@@ -122,10 +122,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <nav className="bg-primary-800 shadow-lg">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-full">
+        <div className="flex h-16 items-center justify-between gap-2">
           {/* Left side - Menu button and logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0 min-w-0">
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white min-h-[44px] min-w-[44px]"
@@ -163,7 +163,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           </div>
 
           {/* Right side - Notifications, Program selector and user menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Notification Bell */}
             <Link
               to="/notifications"
@@ -183,11 +183,11 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               availableLocations.length > 1 ? (
                 // Multiple locations - show dropdown selector
                 <Menu as="div" className="relative">
-                  <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
-                    <MapPinIcon className="h-5 w-5 mr-1.5" aria-hidden="true" />
-                    <span className="hidden lg:inline">Location:</span>
-                    <span className="ml-1 font-semibold truncate max-w-[120px]">{currentLocation?.display_name || 'Select'}</span>
-                    <ChevronDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
+                  <Menu.Button className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
+                    <MapPinIcon className="h-5 w-5 sm:mr-1.5 flex-shrink-0" aria-hidden="true" />
+                    <span className="hidden xl:inline">Location:</span>
+                    <span className="hidden sm:inline ml-1 font-semibold truncate max-w-[80px] md:max-w-[120px]">{currentLocation?.display_name || 'Select'}</span>
+                    <ChevronDownIcon className="ml-1 sm:ml-2 h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   </Menu.Button>
 
                   <Transition
@@ -227,10 +227,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                 </Menu>
               ) : (
                 // Single location - show static display (no dropdown)
-                <div className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white min-h-[44px]">
-                  <MapPinIcon className="h-5 w-5 mr-1.5" aria-hidden="true" />
-                  <span className="hidden lg:inline">Location:</span>
-                  <span className="ml-1 font-semibold truncate max-w-[120px]">{currentLocation?.display_name || 'None'}</span>
+                <div className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-white min-h-[44px]">
+                  <MapPinIcon className="h-5 w-5 sm:mr-1.5 flex-shrink-0" aria-hidden="true" />
+                  <span className="hidden xl:inline">Location:</span>
+                  <span className="hidden sm:inline ml-1 font-semibold truncate max-w-[80px] md:max-w-[120px]">{currentLocation?.display_name || 'None'}</span>
                 </div>
               )
             )}
@@ -238,10 +238,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             {/* Program Selector */}
             {availablePrograms.length > 0 && (
               <Menu as="div" className="relative">
-                <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
-                  <span className="hidden sm:inline">Program:</span>
-                  <span className="ml-1 font-semibold">{currentProgram?.pgm_cd || 'Select'}</span>
-                  <ChevronDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
+                <Menu.Button className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
+                  <span className="hidden md:inline">Program:</span>
+                  <span className="ml-0 md:ml-1 font-semibold flex-shrink-0">{currentProgram?.pgm_cd || 'Select'}</span>
+                  <ChevronDownIcon className="ml-1 sm:ml-2 h-4 w-4 flex-shrink-0" aria-hidden="true" />
                 </Menu.Button>
 
                 <Transition
@@ -278,10 +278,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
             {/* User Menu */}
             <Menu as="div" className="relative">
-              <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
-                <UserCircleIcon className="h-6 w-6 mr-2" aria-hidden="true" />
-                <span className="hidden md:inline">{user?.first_name} {user?.last_name}</span>
-                <ChevronDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
+              <Menu.Button className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
+                <UserCircleIcon className="h-6 w-6 sm:mr-2 flex-shrink-0" aria-hidden="true" />
+                <span className="hidden lg:inline truncate max-w-[120px]">{user?.first_name} {user?.last_name}</span>
+                <ChevronDownIcon className="hidden sm:inline ml-1 sm:ml-2 h-4 w-4 flex-shrink-0" aria-hidden="true" />
               </Menu.Button>
 
               <Transition
