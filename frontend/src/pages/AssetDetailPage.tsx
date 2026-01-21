@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
 import Breadcrumbs from '../components/Breadcrumbs'
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
@@ -1497,7 +1498,15 @@ export default function AssetDetailPage() {
 
               {/* Assigned Base */}
               <div>
-                <label className="block text-sm font-medium text-gray-500">Assigned Base</label>
+                <label className="block text-sm font-medium text-gray-500">
+                  <span className="flex items-center gap-1">
+                    Assigned Base
+                    <QuestionMarkCircleIcon
+                      className="h-4 w-4 text-gray-400 cursor-help"
+                      title="Assigned Base indicates which organization owns this asset"
+                    />
+                  </span>
+                </label>
                 {isEditing ? (
                   <select
                     value={editForm.admin_loc || ''}
@@ -1519,7 +1528,15 @@ export default function AssetDetailPage() {
 
               {/* Current Base */}
               <div>
-                <label className="block text-sm font-medium text-gray-500">Current Base</label>
+                <label className="block text-sm font-medium text-gray-500">
+                  <span className="flex items-center gap-1">
+                    Current Base
+                    <QuestionMarkCircleIcon
+                      className="h-4 w-4 text-gray-400 cursor-help"
+                      title="Current Base indicates where this asset is physically located"
+                    />
+                  </span>
+                </label>
                 {isEditing ? (
                   <select
                     value={editForm.cust_loc || ''}

@@ -1384,7 +1384,7 @@ export default function MaintenancePage() {
     // Generate table with autoTable
     autoTable(doc, {
       startY: startY,
-      head: [['Job #', 'Serial #', 'Asset Name', 'Discrepancy', 'Type', 'Priority', 'Location', 'Date In', 'Duration', 'Status']],
+      head: [['Job #', 'Serial #', 'Asset Name', 'Discrepancy', 'Type', 'Priority', 'Base Location', 'Date In', 'Duration', 'Status']],
       body: tableData,
       theme: 'striped',
       headStyles: {
@@ -1460,7 +1460,7 @@ export default function MaintenancePage() {
     const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
 
     // Table header row
-    const headerRow = ['Job Number', 'Serial Number', 'Asset Name', 'Discrepancy', 'Event Type', 'Priority', 'Status', 'Location', 'Date In (ZULU)', 'Date Out (ZULU)', 'Days Open/Duration', 'PQDR Flag']
+    const headerRow = ['Job Number', 'Serial Number', 'Asset Name', 'Discrepancy', 'Event Type', 'Priority', 'Status', 'Base Location', 'Date In (ZULU)', 'Date Out (ZULU)', 'Days Open/Duration', 'PQDR Flag']
 
     // Data rows
     const dataRows = events.map(event => {
@@ -3740,7 +3740,7 @@ export default function MaintenancePage() {
                   Priority
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
+                  Base Location
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Started
