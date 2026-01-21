@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MagnifyingGlassIcon, MapPinIcon, TableCellsIcon, Squares2X2Icon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
 import LocationHierarchyTree from '../../components/admin/LocationHierarchyTree'
@@ -28,6 +29,7 @@ interface Pagination {
 
 export default function LocationsPage() {
   const { token } = useAuthStore()
+  const navigate = useNavigate()
   const [locations, setLocations] = useState<Location[]>([])
   const [majcoms, setMajcoms] = useState<string[]>([])
   const [pagination, setPagination] = useState<Pagination>({
@@ -111,12 +113,40 @@ export default function LocationsPage() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8">
-      <div className="sm:flex sm:items-center">
+      <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">Location Management</h1>
           <p className="mt-2 text-sm text-gray-700">
             View and search all locations in the system. Filter by MAJCOM or active status.
           </p>
+        </div>
+        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          <div className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium border ${
+                viewMode === 'table'
+                  ? 'bg-primary-600 text-white border-primary-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              } rounded-l-md focus:z-10 focus:ring-2 focus:ring-primary-500 focus:outline-none`}
+            >
+              <TableCellsIcon className="h-5 w-5 mr-2" />
+              Table
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('tree')}
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium border-t border-r border-b ${
+                viewMode === 'tree'
+                  ? 'bg-primary-600 text-white border-primary-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              } rounded-r-md focus:z-10 focus:ring-2 focus:ring-primary-500 focus:outline-none`}
+            >
+              <Squares2X2Icon className="h-5 w-5 mr-2" />
+              Hierarchy
+            </button>
+          </div>
         </div>
       </div>
 
@@ -223,8 +253,15 @@ export default function LocationsPage() {
         </div>
       )}
 
+      {/* Tree View */}
+      {!loading && !error && viewMode === 'tree' && (
+        <div className="mt-6">
+          <LocationHierarchyTree locations={locations} />
+        </div>
+      )}
+
       {/* Locations Table */}
-      {!loading && !error && (
+      {!loading && !error && viewMode === 'table' && (
         <div className="mt-6 flex flex-col">
           <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
@@ -309,7 +346,7 @@ export default function LocationsPage() {
       )}
 
       {/* Pagination */}
-      {!loading && !error && pagination.totalPages > 1 && (
+      {!loading && !error && viewMode === 'table' && pagination.totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow">
           <div className="flex flex-1 justify-between sm:hidden">
             <button
