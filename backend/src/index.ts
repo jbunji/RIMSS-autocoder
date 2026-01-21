@@ -1885,6 +1885,261 @@ app.put('/api/settings/:varName', async (req, res) => {
   }
 })
 
+// Program Locations: Get all programs with their assigned locations (admin only)
+app.get('/api/program-locations', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const programs = await prisma.program.findMany({
+      where: {
+        active: true,
+      },
+      include: {
+        programLocations: {
+          where: {
+            active: true,
+          },
+          include: {
+            location: true,
+          },
+        },
+      },
+      orderBy: {
+        pgm_name: 'asc',
+      },
+    })
+
+    console.log(`[PROGRAM-LOCATIONS] Retrieved ${programs.length} programs with location mappings`)
+    res.json({ programs })
+  } catch (error) {
+    console.error('[PROGRAM-LOCATIONS] Error fetching program locations:', error)
+    res.status(500).json({ error: 'Failed to fetch program locations' })
+  }
+})
+
+// Program Locations: Get locations for a specific program (admin only)
+app.get('/api/program-locations/:programId', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  const programId = parseInt(req.params.programId, 10)
+  if (isNaN(programId)) {
+    return res.status(400).json({ error: 'Invalid program ID' })
+  }
+
+  try {
+    const program = await prisma.program.findUnique({
+      where: { pgm_id: programId },
+      include: {
+        programLocations: {
+          where: {
+            active: true,
+          },
+          include: {
+            location: true,
+          },
+        },
+      },
+    })
+
+    if (!program) {
+      return res.status(404).json({ error: 'Program not found' })
+    }
+
+    console.log(`[PROGRAM-LOCATIONS] Retrieved locations for program ${program.pgm_name}`)
+    res.json({ program })
+  } catch (error) {
+    console.error('[PROGRAM-LOCATIONS] Error fetching program locations:', error)
+    res.status(500).json({ error: 'Failed to fetch program locations' })
+  }
+})
+
+// Program Locations: Get all available locations (admin only)
+app.get('/api/locations', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const locations = await prisma.location.findMany({
+      where: {
+        active: true,
+      },
+      orderBy: {
+        display_name: 'asc',
+      },
+    })
+
+    console.log(`[PROGRAM-LOCATIONS] Retrieved ${locations.length} active locations`)
+    res.json({ locations })
+  } catch (error) {
+    console.error('[PROGRAM-LOCATIONS] Error fetching locations:', error)
+    res.status(500).json({ error: 'Failed to fetch locations' })
+  }
+})
+
+// Program Locations: Add location to program (admin only)
+app.post('/api/program-locations/:programId/locations', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  const payload = authenticateRequest(req, res)
+  if (!payload) return
+
+  const programId = parseInt(req.params.programId, 10)
+  const { loc_id } = req.body
+
+  if (isNaN(programId)) {
+    return res.status(400).json({ error: 'Invalid program ID' })
+  }
+
+  if (!loc_id) {
+    return res.status(400).json({ error: 'Location ID is required' })
+  }
+
+  try {
+    // Check if program exists
+    const program = await prisma.program.findUnique({
+      where: { pgm_id: programId },
+    })
+
+    if (!program) {
+      return res.status(404).json({ error: 'Program not found' })
+    }
+
+    // Check if location exists
+    const location = await prisma.location.findUnique({
+      where: { loc_id },
+    })
+
+    if (!location) {
+      return res.status(404).json({ error: 'Location not found' })
+    }
+
+    // Check if mapping already exists
+    const existingMapping = await prisma.programLocation.findUnique({
+      where: {
+        pgm_id_loc_id: {
+          pgm_id: programId,
+          loc_id,
+        },
+      },
+    })
+
+    if (existingMapping) {
+      if (existingMapping.active) {
+        return res.status(400).json({ error: 'Location is already assigned to this program' })
+      } else {
+        // Reactivate the existing mapping
+        const reactivatedMapping = await prisma.programLocation.update({
+          where: { program_location_id: existingMapping.program_location_id },
+          data: {
+            active: true,
+            chg_by: payload.username,
+            chg_date: new Date(),
+          },
+          include: {
+            location: true,
+          },
+        })
+
+        console.log(`[PROGRAM-LOCATIONS] Reactivated location ${location.display_name} for program ${program.pgm_name} by ${payload.username}`)
+        return res.json({ programLocation: reactivatedMapping })
+      }
+    }
+
+    // Create new mapping
+    const programLocation = await prisma.programLocation.create({
+      data: {
+        pgm_id: programId,
+        loc_id,
+        ins_by: payload.username,
+      },
+      include: {
+        location: true,
+      },
+    })
+
+    // Log in audit log
+    await prisma.auditLog.create({
+      data: {
+        user_id: payload.userId,
+        action: 'CREATE',
+        table_name: 'ProgramLocation',
+        record_id: programLocation.program_location_id,
+        new_values: { pgm_id: programId, loc_id },
+        ip_address: getClientIP(req),
+      },
+    })
+
+    console.log(`[PROGRAM-LOCATIONS] Added location ${location.display_name} to program ${program.pgm_name} by ${payload.username}`)
+    res.json({ programLocation })
+  } catch (error) {
+    console.error('[PROGRAM-LOCATIONS] Error adding location to program:', error)
+    res.status(500).json({ error: 'Failed to add location to program' })
+  }
+})
+
+// Program Locations: Remove location from program (admin only)
+app.delete('/api/program-locations/:programId/locations/:locationId', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  const payload = authenticateRequest(req, res)
+  if (!payload) return
+
+  const programId = parseInt(req.params.programId, 10)
+  const locationId = parseInt(req.params.locationId, 10)
+
+  if (isNaN(programId) || isNaN(locationId)) {
+    return res.status(400).json({ error: 'Invalid program ID or location ID' })
+  }
+
+  try {
+    // Find the mapping
+    const mapping = await prisma.programLocation.findUnique({
+      where: {
+        pgm_id_loc_id: {
+          pgm_id: programId,
+          loc_id: locationId,
+        },
+      },
+      include: {
+        program: true,
+        location: true,
+      },
+    })
+
+    if (!mapping) {
+      return res.status(404).json({ error: 'Location is not assigned to this program' })
+    }
+
+    // Soft delete by setting active to false
+    const updatedMapping = await prisma.programLocation.update({
+      where: { program_location_id: mapping.program_location_id },
+      data: {
+        active: false,
+        chg_by: payload.username,
+        chg_date: new Date(),
+      },
+    })
+
+    // Log in audit log
+    await prisma.auditLog.create({
+      data: {
+        user_id: payload.userId,
+        action: 'DELETE',
+        table_name: 'ProgramLocation',
+        record_id: mapping.program_location_id,
+        old_values: { pgm_id: programId, loc_id: locationId, active: true },
+        new_values: { active: false },
+        ip_address: getClientIP(req),
+      },
+    })
+
+    console.log(`[PROGRAM-LOCATIONS] Removed location ${mapping.location.display_name} from program ${mapping.program.pgm_name} by ${payload.username}`)
+    res.json({ success: true, message: 'Location removed from program' })
+  } catch (error) {
+    console.error('[PROGRAM-LOCATIONS] Error removing location from program:', error)
+    res.status(500).json({ error: 'Failed to remove location from program' })
+  }
+})
+
 // Dashboard: Get asset status summary (requires authentication)
 app.get('/api/dashboard/asset-status', (req, res) => {
   const payload = authenticateRequest(req, res)
@@ -12422,12 +12677,63 @@ function initializeNotifications(): Notification[] {
       ins_by: 'depot_mgr',
       ins_date: subtractDays(20),
     },
+    {
+      msg_id: 6,
+      pgm_id: 1, // CRIIS
+      loc_id: 154, // Depot Alpha - visible to admin and depot_mgr
+      msg_text: 'Depot Alpha: Scheduled facility maintenance on Feb 1st. Depot will operate at reduced capacity.',
+      priority: 'HIGH',
+      start_date: subtractDays(1),
+      stop_date: addDays(10),
+      from_user: 'depot_mgr',
+      to_user: null,
+      acknowledged: false,
+      ack_by: null,
+      ack_date: null,
+      active: true,
+      ins_by: 'depot_mgr',
+      ins_date: subtractDays(1),
+    },
+    {
+      msg_id: 7,
+      pgm_id: 1, // CRIIS
+      loc_id: 394, // Field Site Bravo - visible to field_tech
+      msg_text: 'Field Site Bravo: New parts shipment arriving tomorrow. Coordinate with warehouse for pickup.',
+      priority: 'MEDIUM',
+      start_date: subtractDays(1),
+      stop_date: addDays(3),
+      from_user: 'admin',
+      to_user: null,
+      acknowledged: false,
+      ack_by: null,
+      ack_date: null,
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(1),
+    },
+    {
+      msg_id: 8,
+      pgm_id: 2, // ACTS
+      loc_id: 437, // ACTS location - visible to acts_user
+      msg_text: 'ACTS Site: Critical firmware update required for all Targeting Control units by end of week.',
+      priority: 'CRITICAL',
+      start_date: subtractDays(2),
+      stop_date: addDays(5),
+      from_user: 'admin',
+      to_user: null,
+      acknowledged: false,
+      ack_by: null,
+      ack_date: null,
+      active: true,
+      ins_by: 'admin',
+      ins_date: subtractDays(2),
+    },
   ];
 }
 
 // Mutable array for notifications tracking
 let notifications: Notification[] = initializeNotifications();
-let nextMsgId = 6; // Next ID for new notifications
+let nextMsgId = 9; // Next ID for new notifications
 
 // GET /api/notifications - List all notifications for user's program(s)
 app.get('/api/notifications', (req, res) => {
@@ -12497,7 +12803,7 @@ app.get('/api/notifications', (req, res) => {
     };
   });
 
-  console.log(`[NOTIFICATIONS] Retrieved ${notificationsWithProgram.length} notifications for user ${user.username}`);
+  console.log(`[NOTIFICATIONS] Retrieved ${notificationsWithProgram.length} notifications for user ${user.username} (locations: ${userLocationIds.join(', ') || 'all'})`);
   res.json(notificationsWithProgram);
 });
 
