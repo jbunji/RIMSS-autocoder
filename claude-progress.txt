@@ -814,3 +814,30 @@ program and physical location.
 
 Session End Time: Tue Jan 21 09:43:00 EST 2026
 ================================================================================
+
+================================================================================
+[Testing] Wed Jan 21 09:29:48 EST 2026 - Feature #372 Regression Test
+================================================================================
+
+Feature: Maintenance event full CRUD workflow
+Category: Workflow
+Status: Currently marked as PASSING - verifying no regression
+
+Description:
+Complete maintenance event lifecycle from creation through closure
+
+Verification Steps to Complete:
+1. Create new maintenance event with all required fields
+2. Add repair record to the event
+3. Add labor record to the repair
+4. Track parts removed during repair
+5. Track parts installed during repair
+6. Close the repair record
+7. Verify all repairs closed
+8. Close the maintenance event
+9. Verify event status is closed
+10. Verify stop_job date recorded
+11. Verify audit trail complete
+12. Export event details to PDF with CUI markings
+
+Starting test...
