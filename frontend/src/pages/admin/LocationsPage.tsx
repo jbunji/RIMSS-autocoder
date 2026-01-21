@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { MagnifyingGlassIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, MapPinIcon, TableCellsIcon, Squares2X2Icon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
+import LocationHierarchyTree from '../../components/admin/LocationHierarchyTree'
 
 interface Location {
   loc_id: number
@@ -42,6 +43,9 @@ export default function LocationsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMajcom, setSelectedMajcom] = useState('all')
   const [activeFilter, setActiveFilter] = useState('all')
+
+  // View mode state
+  const [viewMode, setViewMode] = useState<'table' | 'tree'>('table')
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('')

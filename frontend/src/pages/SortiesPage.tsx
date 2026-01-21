@@ -475,8 +475,8 @@ export default function SortiesPage() {
 
     // Example data rows
     const exampleRows = [
-      ['CRIIS-001', 'MISSION-001', '2026-01-20', 'Full Mission Capable', 'Range A', 'Example sortie'],
-      ['CRIIS-002', 'MISSION-002', '2026-01-21', 'Partial Mission Capable', 'Range B', 'Another example'],
+      ['CRIIS-001', 'MISSION-001', '2026-01-20', 'FMC', 'Range A', 'Example sortie'],
+      ['CRIIS-002', 'MISSION-002', '2026-01-21', 'PMC', 'Range B', 'Another example'],
     ]
 
     const allRows = [headerRow, ...exampleRows]
@@ -1021,9 +1021,14 @@ export default function SortiesPage() {
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">All</option>
-                <option value="Full Mission Capable">Full Mission Capable</option>
-                <option value="Partial Mission Capable">Partial Mission Capable</option>
-                <option value="Non-Mission Capable">Non-Mission Capable</option>
+                <option value="FMC">FMC - Full Mission Capable</option>
+                <option value="PMC">PMC - Partially Mission Capable</option>
+                <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
+                <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
+                <option value="PMCB">PMCB - Partially Mission Capable (Both)</option>
+                <option value="NMCM">NMCM - Not Mission Capable (Maintenance)</option>
+                <option value="NMCS">NMCS - Not Mission Capable (Supply)</option>
+                <option value="NMCB">NMCB - Not Mission Capable (Both)</option>
               </select>
             </div>
 
@@ -1295,9 +1300,14 @@ export default function SortiesPage() {
                   disabled={submitting}
                 >
                   <option value="">Select effectiveness...</option>
-                  <option value="Full Mission Capable">Full Mission Capable</option>
-                  <option value="Partial Mission Capable">Partial Mission Capable</option>
-                  <option value="Non-Mission Capable">Non-Mission Capable</option>
+                  <option value="FMC">FMC - Full Mission Capable</option>
+                  <option value="PMC">PMC - Partially Mission Capable</option>
+                  <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
+                  <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
+                  <option value="PMCB">PMCB - Partially Mission Capable (Both)</option>
+                  <option value="NMCM">NMCM - Not Mission Capable (Maintenance)</option>
+                  <option value="NMCS">NMCS - Not Mission Capable (Supply)</option>
+                  <option value="NMCB">NMCB - Not Mission Capable (Both)</option>
                 </select>
               </div>
 
@@ -1413,9 +1423,14 @@ export default function SortiesPage() {
                   disabled={submitting}
                 >
                   <option value="">-- Select Effect --</option>
-                  <option value="Full Mission Capable">Full Mission Capable</option>
-                  <option value="Partial Mission Capable">Partial Mission Capable</option>
-                  <option value="Non-Mission Capable">Non-Mission Capable</option>
+                  <option value="FMC">FMC - Full Mission Capable</option>
+                  <option value="PMC">PMC - Partially Mission Capable</option>
+                  <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
+                  <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
+                  <option value="PMCB">PMCB - Partially Mission Capable (Both)</option>
+                  <option value="NMCM">NMCM - Not Mission Capable (Maintenance)</option>
+                  <option value="NMCS">NMCS - Not Mission Capable (Supply)</option>
+                  <option value="NMCB">NMCB - Not Mission Capable (Both)</option>
                 </select>
               </div>
 
