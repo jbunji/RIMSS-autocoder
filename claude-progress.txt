@@ -2279,3 +2279,42 @@ Session End Time: Tue Jan 21 10:17:00 EST 2026
 ================================================================================
 [Testing] Feature #39 verified - still passing
 
+
+================================================================================
+[COMPLETED] Tue Jan 21 10:05:00 EST 2026 - Feature #399 Implementation Session
+================================================================================
+
+Feature: Spares inventory filter by location
+Category: functional
+Status: PASSING
+
+Description:
+Spare parts inventory is filtered by the location where spares are stored.
+Users only see spares at locations they are authorized to access.
+
+Implementation:
+- Modified GET /api/spares endpoint in backend/src/index.ts
+- Added location-based access control (userLocationIds filtering)
+- Filter logic: spare visible if loc_ida OR loc_idc matches user locations
+- Validates optional location_id query parameter against user access
+
+Testing Results:
+- field_tech (location 394): Sees 0 spares (correct - none at location 394)
+- admin (locations 154, 212): Sees 5 spares (all have loc_ida=154)
+- Screenshots: feature-399-field-tech-zero-spares.png, feature-399-admin-five-spares.png
+
+Technical Verification:
+- API returns 200 OK for all requests
+- Zero console errors (excluding React Router warnings)
+- Server-side filtering working correctly
+- Consistent with features #393-#397
+
+Project Progress:
+- Before: 397/423 features passing (93.9%)
+- After:  398/423 features passing (94.1%)
+
+Git Commit: cd1c993
+Session Status: SUCCESS
+Session Duration: ~25 minutes
+Session End Time: Tue Jan 21 10:05:00 EST 2026
+================================================================================
