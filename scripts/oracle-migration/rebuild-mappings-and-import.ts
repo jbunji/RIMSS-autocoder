@@ -317,16 +317,16 @@ async function rebuildRepairMappings(): Promise<void> {
 async function rebuildEventMappings(): Promise<void> {
   console.log("Rebuilding event ID mappings from database and CSV...");
 
-  // Events can be matched by asset_id + sortie_id + mission_date
+  // Events can be matched by asset_id + sortie_id + start_job date
   const events = await prisma.event.findMany({
-    select: { event_id: true, asset_id: true, sortie_id: true, mission_date: true }
+    select: { event_id: true, asset_id: true, sortie_id: true, start_job: true }
   });
 
-  console.log(`  Found ${events.length} events in database`);
+  console.log(`  Found ${events.length.toLocaleString()} events in database`);
 
   const dbEventMap = new Map<string, number>();
   for (const event of events) {
-    const dateStr = event.mission_date ? event.mission_date.toISOString().split('T')[0] : '';
+    const dateStr = event.start_job ? event.start_job.toISOString().split('T')[0] : '';
     const key = `${event.asset_id}|${event.sortie_id}|${dateStr}`;
     dbEventMap.set(key, event.event_id);
   }
@@ -344,8 +344,8 @@ async function rebuildEventMappings(): Promise<void> {
     processed++;
 
     const newAssetId = assetIdMap.get(row.ASSET_ID);
-    const missionDate = parseOracleDate(row.MISSION_DATE);
-    const dateStr = missionDate ? missionDate.toISOString().split('T')[0] : '';
+    const startJob = parseOracleDate(row.START_JOB);
+    const dateStr = startJob ? startJob.toISOString().split('T')[0] : '';
 
     if (newAssetId) {
       // We need sortie_id mapping too, but let's try without it first using a looser match

@@ -4479,6 +4479,9 @@ app.post('/api/events', (req, res) => {
   // Determine the location for this event
   const eventLocation = location || asset.admin_loc || 'Unknown';
 
+  // Determine location ID from location string (use asset's loc_ida if available, otherwise try to map)
+  let eventLocationId = asset.loc_ida || maintenanceLocationNameToId[eventLocation] || 154; // Default to DEPOT-A
+
   // Generate new event ID and job number (unique per location)
   const newEventId = maintenanceEventNextId++;
   const newJobNo = generateJobNumber(eventLocation);
@@ -4512,6 +4515,7 @@ app.post('/api/events', (req, res) => {
     status: 'open',
     pgm_id: asset.pgm_id,
     location: eventLocation,
+    loc_id: eventLocationId,
     etic: etic || null,
     sortie_id: validSortieId,
     created_by_id: user.user_id,
@@ -4666,6 +4670,13 @@ app.get('/api/events/:eventId/repairs', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this maintenance event' });
   }
 
+  // SECURITY: Check if user has access to this event's location
+  // Users must have the event's location in their assigned locations
+  const userLocationIds = user.locations.map(l => l.loc_id);
+  if (!userLocationIds.includes(event.loc_id)) {
+    return res.status(403).json({ error: 'Access denied to this maintenance event - location not authorized' });
+  }
+
   // Get repairs for this event
   const eventRepairs = repairs.filter(r => r.event_id === eventId);
 
@@ -4732,7 +4743,7 @@ app.get('/api/repairs/:id', (req, res) => {
     return res.status(404).json({ error: 'Repair not found' });
   }
 
-  // Get associated event to check program access
+  // Get associated event to check program and location access
   const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
   if (!event) {
     return res.status(404).json({ error: 'Associated maintenance event not found' });
@@ -4742,6 +4753,13 @@ app.get('/api/repairs/:id', (req, res) => {
   const userProgramIds = user.programs.map(p => p.pgm_id);
   if (!userProgramIds.includes(event.pgm_id)) {
     return res.status(403).json({ error: 'Access denied to this repair' });
+  }
+
+  // SECURITY: Check if user has access to this event's location
+  // Repairs are filtered based on location through their parent maintenance event
+  const userLocationIds = user.locations.map(l => l.loc_id);
+  if (!userLocationIds.includes(event.loc_id)) {
+    return res.status(403).json({ error: 'Access denied to this repair - location not authorized' });
   }
 
   res.json({ repair });
@@ -5859,6 +5877,12 @@ app.get('/api/repairs/:repairId/labor', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this repair' });
   }
 
+  // Check if user has access to this event's location
+  const userLocationIds = user.locations.map(l => l.loc_id);
+  if (!userLocationIds.includes(event.loc_id)) {
+    return res.status(403).json({ error: 'Access denied to labor at this location' });
+  }
+
   // Get labor records for this repair
   const repairLabor = laborRecords.filter(l => l.repair_id === repairId);
 
@@ -5907,6 +5931,12 @@ app.get('/api/labor/:id', (req, res) => {
   const userProgramIds = user.programs.map(p => p.pgm_id);
   if (!userProgramIds.includes(event.pgm_id)) {
     return res.status(403).json({ error: 'Access denied to this labor record' });
+  }
+
+  // Check if user has access to this event's location
+  const userLocationIds = user.locations.map(l => l.loc_id);
+  if (!userLocationIds.includes(event.loc_id)) {
+    return res.status(403).json({ error: 'Access denied to labor at this location' });
   }
 
   res.json(labor);

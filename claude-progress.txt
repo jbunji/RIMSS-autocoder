@@ -1956,3 +1956,80 @@ Project Progress:
 
 Session Status: SUCCESS ✅
 
+
+================================================================================
+[Testing] Tue Jan 21 10:11:00 EST 2026 - Feature #376 Regression Test Complete
+================================================================================
+Feature: Update Asset list table columns from Administrative/Custodial to Assigned Base/Current Base
+Category: functional
+Status: ✅ VERIFIED - Still PASSING
+
+Description:
+Change column headers in asset data tables from Administrative/Custodial Location to Assigned Base/Current Base
+
+Verification Steps Completed:
+✅ Step 1: Navigate to asset list view
+   - Successfully navigated to http://localhost:5173/assets
+   - Page loaded without errors
+
+✅ Step 2: Verify column header shows Assigned Base instead of Administrative Location
+   - Column header correctly displays "ASSIGNED BASE"
+   - Located at table position (5th column)
+
+✅ Step 3: Verify column header shows Current Base instead of Custodial Location
+   - Column header correctly displays "CURRENT BASE"
+   - Located at table position (6th column)
+
+Testing Details:
+- Page tested: Assets list page (/assets)
+- Browser: Playwright automation at 1280x720 resolution
+- User: admin (John Admin)
+- Program: CRIIS (Common Remotely Operated Integrated Reconnaissance System)
+- Total assets displayed: 5 assets
+- Console errors: None (zero errors)
+
+Screenshot captured:
+- feature-376-column-headers-verification.png
+
+Table Structure Verified:
+Column Order:
+1. Serial Number (sortable)
+2. Part Number (sortable)
+3. Name (sortable)
+4. Status (sortable)
+5. Assigned Base ✅ (formerly Administrative Location)
+6. Current Base ✅ (formerly Custodial Location)
+7. ETI Hours (sortable)
+8. Next PMI (sortable)
+9. Actions
+
+Sample Data Verified:
+- CRIIS-001: Assigned Base = "Depot Alpha", Current Base = "Maintenance Bay 1"
+- CRIIS-003: Assigned Base = "Depot Alpha", Current Base = "Maintenance Bay 2"
+- CRIIS-005: Assigned Base = "Depot Alpha", Current Base = "Maintenance Bay 1"
+- CRIIS-007: Assigned Base = "Depot Alpha", Current Base = "Maintenance Bay 3"
+- CRIIS-009: Assigned Base = "Depot Alpha", Current Base = "In Transit"
+
+Technical Verification:
+✅ Column headers correctly renamed from old terminology
+✅ Data properly displayed in both columns
+✅ No visual or layout issues
+✅ No console errors or warnings (except expected React Router future flags)
+✅ Table sorting functionality intact
+✅ Filter controls working correctly
+
+Result Summary:
+Feature #376 is working correctly with no regressions found. The column headers 
+have been successfully updated from the old military terminology 
+(Administrative/Custodial Location) to the new terminology (Assigned Base/Current Base).
+All data displays correctly and the table functionality remains intact.
+
+No issues detected. Feature continues to pass all requirements.
+
+Session Duration: ~3 minutes
+Session Status: SUCCESS ✅
+
+Session End Time: Tue Jan 21 10:11:00 EST 2026
+================================================================================
+[Testing] Feature #376 verified - still passing
+

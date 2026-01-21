@@ -1,0 +1,59 @@
+================================================================================
+[COMPLETED] Tue Jan 21 10:30:00 EST 2026 - Feature #394 Implementation Session
+================================================================================
+
+Feature: Asset queries combine program AND location filtering
+Category: Functional
+Status: ✅ PASSING (marked passing in features.db)
+
+Description:
+Asset queries filter by program AND (loc_ida OR loc_idc) ensuring both constraints are met
+
+Problem Identified:
+The assets API was filtering by program correctly but was showing assets from ALL
+of the user's assigned locations instead of just the currently selected location.
+
+Example of the bug:
+- Admin user has access to locations 154 and 212
+- Admin selects location 154 in the header
+- BEFORE FIX: Assets page showed assets from location 394 (WRONG!)
+- AFTER FIX: Assets page shows only assets from location 154 (CORRECT!)
+
+Implementation:
+Frontend Changes (frontend/src/pages/AssetsPage.tsx):
+1. Added currentLocationId to authStore destructuring
+2. Added currentLocationId to React Query cache key
+3. Added location_id parameter to API request
+
+Backend Changes (backend/src/index.ts):
+1. Added location_id query parameter parsing
+2. Added authorization check for requested location
+3. Implemented proper filtering by specific location
+4. Maintained backward compatibility (fallback to all user locations if not specified)
+
+Verification Steps Completed:
+✅ Step 1: Logged in as field_tech (CRIIS program, location 394)
+✅ Step 2: Queried assets via Assets page
+✅ Step 3: Verified only 3 assets shown (CRIIS-002, CRIIS-006, CRIIS-010)
+           All assets have loc_ida=394 or loc_idc=394
+
+Additional Verification:
+✅ Admin with location 154: 5 assets (CRIIS-001, 003, 005, 007, 009)
+✅ Admin with location 212: 2 assets (CRIIS-004, 008)
+✅ Location switching updates list immediately
+✅ No console errors
+✅ API includes both program_id and location_id parameters
+
+Security Benefits:
+✅ Users can only request locations they're assigned to
+✅ Assets properly isolated by both program AND location
+✅ No data leakage between locations
+
+Files Modified:
+- frontend/src/pages/AssetsPage.tsx
+- backend/src/index.ts
+
+Git Commit: 2c22036
+Project Progress: 392/423 features passing (92.7%)
+Session Duration: ~40 minutes
+Session Status: SUCCESS ✅
