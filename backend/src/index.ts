@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './trpc'
 
@@ -1518,7 +1518,7 @@ app.get('/api/locations', async (req, res) => {
             FROM asset a
             JOIN part_list pl ON a.partno_id = pl.partno_id
             WHERE a.active = true
-            AND pl.pgm_id = ANY(ARRAY[${programIds.join(',')}]::int[])
+            AND pl.pgm_id = ANY(ARRAY[${Prisma.join(programIds)}]::int[])
             AND COALESCE(a.loc_ida, a.loc_idc) IS NOT NULL
           )
           ORDER BY l.display_name ASC;
@@ -3205,6 +3205,7 @@ interface MaintenanceEvent {
   status: 'open' | 'closed';
   pgm_id: number;
   location: string;
+  loc_id: number; // Location ID where maintenance is performed
   etic?: string | null; // Estimated Time In Commission
   sortie_id?: number | null; // Associated sortie (optional)
   pqdr?: boolean; // Product Quality Deficiency Report flag
@@ -3221,6 +3222,16 @@ let maintenanceJobNextSeq = 11; // Start after mock job numbers (MX-2024-010)
 // Location-based job number tracking
 // Key: location string, Value: next sequence number for that location
 const locationJobSeqMap: Map<string, number> = new Map();
+
+// Map location display names to location IDs (for maintenance events)
+const maintenanceLocationNameToId: Record<string, number> = {
+  'Depot Alpha': 154,
+  'Depot Beta': 437,
+  'Field Site Bravo': 394,
+  'Field Site Charlie': 212,
+  'Field Site Delta': 663,
+  'Secure Facility': 154,
+};
 
 // Initialize maintenance events on startup
 function initializeMaintenanceEvents(): void {
@@ -3253,6 +3264,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Depot Alpha',
+      loc_id: maintenanceLocationNameToId['Depot Alpha'],
       sortie_id: 2, // Linked to CRIIS-SORTIE-002 (Camera system showed intermittent issues)
       pqdr: true, // Flagged for PQDR - suspected manufacturing defect
     },
@@ -3270,6 +3282,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Field Site Bravo',
+      loc_id: maintenanceLocationNameToId['Field Site Bravo'],
       sortie_id: 3, // Linked to CRIIS-SORTIE-003 (Power supply failure detected during flight)
       pqdr: false,
     },
@@ -3287,6 +3300,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Depot Alpha',
+      loc_id: maintenanceLocationNameToId['Depot Alpha'],
       sortie_id: null, // Not linked to a sortie (routine maintenance)
       pqdr: false,
     },
@@ -3304,6 +3318,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 1,
       location: 'Field Site Charlie',
+      loc_id: maintenanceLocationNameToId['Field Site Charlie'],
       pqdr: false,
     },
     // Open events - ACTS program
@@ -3321,6 +3336,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 2,
       location: 'Depot Alpha',
+      loc_id: maintenanceLocationNameToId['Depot Alpha'],
       pqdr: true, // Flagged for PQDR - recurring optical alignment issue
     },
     {
@@ -3337,6 +3353,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 2,
       location: 'Field Site Delta',
+      loc_id: maintenanceLocationNameToId['Field Site Delta'],
       pqdr: false,
     },
     // Open events - ARDS program
@@ -3354,6 +3371,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 3,
       location: 'Depot Beta',
+      loc_id: maintenanceLocationNameToId['Depot Beta'],
       pqdr: false,
     },
     // Closed events (for history)
@@ -3371,6 +3389,7 @@ function initializeMaintenanceEvents(): void {
       status: 'closed',
       pgm_id: 1,
       location: 'Depot Alpha',
+      loc_id: maintenanceLocationNameToId['Depot Alpha'],
       pqdr: false,
     },
     {
@@ -3387,6 +3406,7 @@ function initializeMaintenanceEvents(): void {
       status: 'closed',
       pgm_id: 2,
       location: 'Depot Alpha',
+      loc_id: maintenanceLocationNameToId['Depot Alpha'],
       pqdr: false,
     },
     // Program 236 open event
@@ -3404,6 +3424,7 @@ function initializeMaintenanceEvents(): void {
       status: 'open',
       pgm_id: 4,
       location: 'Secure Facility',
+      loc_id: maintenanceLocationNameToId['Secure Facility'],
       pqdr: false,
     },
   ];
@@ -4228,8 +4249,12 @@ app.get('/api/events', (req, res) => {
   // Get user's program IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
+  // Get user's location IDs
+  const userLocationIds = user.locations?.map(l => l.loc_id) || [];
+
   // Get query parameters
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+  const locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
   const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
   const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
   const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
@@ -4245,6 +4270,22 @@ app.get('/api/events', (req, res) => {
 
   // Filter by user's accessible programs
   let filteredEvents = allEvents.filter(event => userProgramIds.includes(event.pgm_id));
+
+  // SECURITY: Filter by location - maintenance events must be at locations the user has access to
+  // If a specific location is requested, filter by that location
+  // If no location specified and user has location restrictions, show events from all their locations
+  if (locationIdFilter) {
+    // Filter by the specific requested location (only if user has access to it)
+    if (userLocationIds.includes(locationIdFilter)) {
+      filteredEvents = filteredEvents.filter(event => event.loc_id === locationIdFilter);
+    } else {
+      // User doesn't have access to this location - return empty results
+      filteredEvents = [];
+    }
+  } else if (userLocationIds.length > 0) {
+    // No specific location requested - filter by all user's locations
+    filteredEvents = filteredEvents.filter(event => userLocationIds.includes(event.loc_id));
+  }
 
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
@@ -8153,8 +8194,11 @@ function initializeDetailedAssets(): AssetDetails[] {
   // This maps the string location codes used in mock data to numeric IDs
   const locationCodeToId: Record<string, number> = {
     'DEPOT-A': 154,        // 24892/1160/1426
+    'DEPOT-B': 437,        // Depot Beta location
     'FIELD-B': 394,        // 24892/526/527
     'FIELD-C': 212,        // 24892/1360/24893
+    'FIELD-D': 663,        // Field Site Delta location
+    'SECURE-FAC': 154,     // Secure Facility - using DEPOT-A as default
     'MAINT-BAY-1': 154,    // Same as DEPOT-A for custodial location
     'MAINT-BAY-2': 154,    // Same as DEPOT-A for custodial location
     'MAINT-BAY-3': 154,    // Same as DEPOT-A for custodial location
@@ -8163,6 +8207,16 @@ function initializeDetailedAssets(): AssetDetails[] {
     'FLIGHT-LINE': 212,    // Same as FIELD-C for custodial location
     'COMM-CENTER': 212,    // Same as FIELD-C for custodial location
     'IN-TRANSIT': 154,     // Default to DEPOT-A for in-transit assets
+  };
+
+  // Map location display names to location IDs (for maintenance events)
+  const locationNameToId: Record<string, number> = {
+    'Depot Alpha': 154,
+    'Depot Beta': 437,
+    'Field Site Bravo': 394,
+    'Field Site Charlie': 212,
+    'Field Site Delta': 663,
+    'Secure Facility': 154,
   };
 
   return [
