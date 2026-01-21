@@ -11,6 +11,7 @@ import DashboardPage from './pages/DashboardPage'
 import UsersPage from './pages/admin/UsersPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 import SettingsPage from './pages/admin/SettingsPage'
+import ProgramLocationsPage from './pages/admin/ProgramLocationsPage'
 import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
 import PMIPage from './pages/PMIPage'
@@ -143,6 +144,11 @@ function App() {
           <Route path="/admin/settings" element={
             <ProtectedRoute requiredRoles={['ADMIN']}>
               <SettingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/program-locations" element={
+            <ProtectedRoute requiredRoles={['ADMIN']}>
+              <ProgramLocationsPage />
             </ProtectedRoute>
           } />
 
