@@ -1730,6 +1730,100 @@ app.get('/api/locations', async (req, res) => {
   }
 })
 
+// Get all locations with search and filter (admin only - for location management)
+app.get('/api/admin/locations', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const search = req.query.search as string | undefined
+    const majcom = req.query.majcom as string | undefined
+    const active = req.query.active as string | undefined
+    const page = parseInt(req.query.page as string || '1', 10)
+    const limit = parseInt(req.query.limit as string || '50', 10)
+
+    // Build where clause
+    const where: any = {}
+
+    // Search by display_name (base name)
+    if (search) {
+      where.display_name = {
+        contains: search,
+        mode: 'insensitive' as const
+      }
+    }
+
+    // Filter by MAJCOM
+    if (majcom && majcom !== 'all') {
+      where.majcom_cd = majcom
+    }
+
+    // Filter by active status
+    if (active === 'true') {
+      where.active = true
+    } else if (active === 'false') {
+      where.active = false
+    }
+    // If active is undefined or 'all', don't filter by active status
+
+    // Get total count for pagination
+    const totalCount = await prisma.location.count({ where })
+
+    // Get locations with pagination
+    const locations = await prisma.location.findMany({
+      where,
+      select: {
+        loc_id: true,
+        display_name: true,
+        majcom_cd: true,
+        site_cd: true,
+        unit_cd: true,
+        squad_cd: true,
+        description: true,
+        geoloc: true,
+        active: true,
+        ins_by: true,
+        ins_date: true,
+        chg_by: true,
+        chg_date: true,
+      },
+      orderBy: { display_name: 'asc' },
+      skip: (page - 1) * limit,
+      take: limit,
+    })
+
+    // Get distinct MAJCOMs for filter dropdown
+    const majcoms = await prisma.location.findMany({
+      select: {
+        majcom_cd: true,
+      },
+      where: {
+        majcom_cd: {
+          not: null
+        }
+      },
+      distinct: ['majcom_cd'],
+      orderBy: { majcom_cd: 'asc' }
+    })
+
+    const totalPages = Math.ceil(totalCount / limit)
+
+    console.log(`[ADMIN-LOCATIONS] Retrieved ${locations.length} locations (page ${page}/${totalPages}, total: ${totalCount})`)
+    res.json({
+      locations,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages
+      },
+      majcoms: majcoms.map(m => m.majcom_cd).filter(Boolean)
+    })
+  } catch (error) {
+    console.error('[ADMIN-LOCATIONS] Error fetching locations:', error)
+    res.status(500).json({ error: 'Failed to fetch locations' })
+  }
+})
+
 // Get audit logs (admin only)
 app.get('/api/audit-logs', async (req, res) => {
   if (!requireAdmin(req, res)) return

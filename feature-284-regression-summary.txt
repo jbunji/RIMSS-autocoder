@@ -1,0 +1,104 @@
+Feature #284 Regression Test Summary
+=====================================
+Feature: No horizontal scroll on standard viewports
+Status: FAILING ❌ (Regression Detected)
+Test Date: 2026-01-21
+Agent: Testing Agent
+
+Test Results:
+-------------
+✅ 1920px Desktop: PASS (scrollWidth: 1920px = clientWidth)
+❌ 768px Tablet: FAIL (scrollWidth: 1410px > clientWidth: 768px)
+❌ 375px Mobile: FAIL (scrollWidth: 1402px > clientWidth: 375px)
+
+Regression Details:
+------------------
+The Assets page (/assets) causes horizontal scrolling at tablet and mobile viewports due to a wide data table with 9 columns requiring approximately 1400px minimum width.
+
+Test Method:
+- Browser automation with Playwright
+- Measured document.documentElement.scrollWidth vs clientWidth
+- Verified actual scrolling capability with window.scrollTo() tests
+- Tested on login page, dashboard, and assets page
+
+Root Cause Analysis:
+-------------------
+1. The assets table has 9 columns: Serial Number, Part Number, Name, Status, Assigned Base, Current Base, ETI Hours, Next PMI, Actions
+2. Minimum table width: ~1400px
+3. Table wrapper has overflow-x-auto for internal scrolling
+4. Despite overflow controls (overflow-x-hidden, overflow-x-clip), the table's width causes document-level horizontal scroll
+5. Browser behavior: overflow controls don't fully prevent horizontal scroll when child elements significantly exceed viewport
+
+Files Investigated:
+------------------
+- frontend/src/pages/AssetsPage.tsx (table implementation)
+- frontend/src/components/layout/Navbar.tsx (responsive navbar)
+- frontend/src/components/layout/Layout.tsx (layout wrapper)
+- frontend/src/styles/index.css (global overflow styles)
+
+Improvements Made (Partial Fix):
+-------------------------------
+1. Navbar.tsx:
+   - Added overflow-x-hidden to nav element
+   - Made location/program selectors responsive
+   - Reduced button padding on mobile (px-2 sm:px-3)
+   - Hide text labels on smaller screens (hidden sm:inline, hidden xl:inline)
+   - Added flex-shrink-0 to icons
+   - Changed spacing from space-x-4 to gap-2
+
+2. Layout.tsx:
+   - Added overflow-x-hidden to fixed navbar wrapper
+
+3. AssetsPage.tsx:
+   - Changed table wrapper from overflow-y-hidden to overflow-hidden
+   - Changed table class from min-w-full to w-full
+
+4. Global CSS (index.css):
+   - Already had overflow-x: clip on HTML element
+   - Already had overflow-x: hidden on body and #root
+
+Current State:
+-------------
+- Desktop (1920px): Works correctly, no horizontal scroll
+- Tablet/Mobile: Still has horizontal scroll due to wide table
+- Feature #284 marked as FAILING in database
+- Screenshots captured: feature-284-regression-768px.png, feature-284-regression-375px.png
+
+Recommended Solutions:
+---------------------
+1. **Responsive Table Cards** (Recommended):
+   - Convert table to stacked cards on mobile/tablet
+   - Show key fields (Serial, Part, Status) in card header
+   - Expand for full details
+   - Maintains usability on small screens
+
+2. **Column Hiding**:
+   - Hide less critical columns on mobile (ETI Hours, Next PMI)
+   - Show via expand/detail view
+   - Reduces minimum table width
+
+3. **Horizontal Scroll Within Container**:
+   - Accept table scrolling as UX pattern
+   - Ensure only table scrolls, not entire page
+   - Add visual indicators for scrollable content
+
+4. **CSS Grid Redesign**:
+   - Use CSS Grid with responsive breakpoints
+   - Reflow columns at smaller viewports
+   - More complex but most flexible
+
+Next Steps:
+----------
+1. Choose responsive strategy (recommend option #1)
+2. Implement responsive table/card layout
+3. Test across all viewport sizes
+4. Verify no other pages have similar issues
+5. Mark feature as passing after fix
+
+Technical Notes:
+---------------
+- Browser: Chrome/Chromium (via Playwright)
+- The issue affects all pages with wide data tables
+- Other pages tested (Login, Dashboard) pass all viewports
+- Console: Zero errors
+- Network: All API calls successful
