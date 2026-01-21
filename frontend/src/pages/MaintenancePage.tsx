@@ -2404,8 +2404,10 @@ export default function MaintenancePage() {
 
           {/* Event Type Filter */}
           <div className="relative sm:w-56">
+            <label htmlFor="event-type-filter" className="sr-only">Event Type Filter</label>
             <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <select
+              id="event-type-filter"
               value={eventTypeFilter}
               onChange={(e) => setEventTypeFilter(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none bg-white"
