@@ -168,9 +168,10 @@ export default function UsersPage() {
     },
   })
 
-  // Fetch users on component mount
+  // Fetch users and locations on component mount
   useEffect(() => {
     fetchUsers()
+    fetchLocations()
   }, [])
 
   const fetchUsers = async () => {
@@ -193,6 +194,25 @@ export default function UsersPage() {
       console.error('Error fetching users:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/locations', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setLocations(data.locations || [])
+      } else {
+        console.error('Failed to fetch locations')
+      }
+    } catch (err) {
+      console.error('Error fetching locations:', err)
     }
   }
 
@@ -229,6 +249,40 @@ export default function UsersPage() {
     setValueEdit('default_program_id', programId)
   }
 
+  // Location handlers (similar to program handlers)
+  const handleLocationToggle = (locationId: number) => {
+    setSelectedLocations(prev => {
+      const newSelection = prev.includes(locationId)
+        ? prev.filter(id => id !== locationId)
+        : [...prev, locationId]
+      setValue('location_ids', newSelection)
+      return newSelection
+    })
+  }
+
+  const handleEditLocationToggle = (locationId: number) => {
+    setEditSelectedLocations(prev => {
+      const newSelection = prev.includes(locationId)
+        ? prev.filter(id => id !== locationId)
+        : [...prev, locationId]
+      setValueEdit('location_ids', newSelection)
+
+      // If the unchecked location was the default, reset default to first selected
+      if (!newSelection.includes(editDefaultLocationId || 0)) {
+        const newDefault = newSelection[0] || null
+        setEditDefaultLocationId(newDefault)
+        setValueEdit('default_location_id', newDefault ?? undefined)
+      }
+
+      return newSelection
+    })
+  }
+
+  const handleEditDefaultLocationChange = (locationId: number) => {
+    setEditDefaultLocationId(locationId)
+    setValueEdit('default_location_id', locationId)
+  }
+
   const onSubmit = async (data: CreateUserFormData) => {
     try {
       setError(null)
@@ -247,6 +301,7 @@ export default function UsersPage() {
         setIsModalOpen(false)
         reset()
         setSelectedPrograms([])
+        setSelectedLocations([])
         fetchUsers() // Refresh the user list
 
         // Clear success message after 5 seconds
@@ -264,6 +319,7 @@ export default function UsersPage() {
   const openModal = () => {
     reset()
     setSelectedPrograms([])
+    setSelectedLocations([])
     setError(null)
     setIsModalOpen(true)
   }
@@ -272,6 +328,7 @@ export default function UsersPage() {
     setIsModalOpen(false)
     reset()
     setSelectedPrograms([])
+    setSelectedLocations([])
     setError(null)
   }
 
