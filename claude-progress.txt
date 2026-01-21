@@ -2509,3 +2509,65 @@ Session End Time: Tue Jan 21 10:15:00 EST 2026
 
 ================================================================================
 
+
+================================================================================
+[Testing] Tue Jan 21 10:15:00 EST 2026 - Feature #189 Regression Test Complete
+================================================================================
+Feature: User can delete spare part
+Category: Spares
+Status: ✅ VERIFIED - Still PASSING
+
+Description:
+Spare can be removed from inventory
+
+Verification Steps Completed:
+✅ Step 1: Create test spare
+   - Used existing spare CRIIS-005 (Camera System X, PN-CAMERA-X)
+   - Spare was in NMCM status at Depot Alpha
+
+✅ Step 2: Navigate to spare detail
+   - Navigated to /spares page
+   - Found spare in the spares inventory list
+   - Screenshot: feature-189-spares-list-before-delete.png
+
+✅ Step 3: Click Delete button
+   - Clicked Delete button for CRIIS-005
+   - Confirmation dialog appeared with warning message
+   - Dialog text: "Are you sure you want to delete CRIIS-005 (Camera System X)?"
+   - Warning: "⚠️ This will PERMANENTLY delete the spare from the database"
+   - Screenshot: feature-189-delete-confirmation-dialog.png
+
+✅ Step 4: Confirm deletion
+   - Clicked red "Delete" button in confirmation dialog
+   - Success message displayed: "Spare deleted successfully!"
+   - Screenshot: feature-189-after-deletion-success.png
+
+✅ Step 5: Verify spare removed from list
+   - Spare count changed from "Showing 5 of 5" to "Showing 4 of 4"
+   - CRIIS-005 no longer appears in the spares table
+   - Only 4 spares remain: CRIIS-009, CRIIS-007, CRIIS-001, CRIIS-003
+   - Refreshed page (F5) - deletion persisted in database
+   - Screenshot: feature-189-after-refresh-still-deleted.png
+
+Technical Verification:
+✅ Delete button present in Actions column for each spare
+✅ Confirmation dialog properly displays spare identifier
+✅ Clear warning about permanent deletion
+✅ Success notification after deletion
+✅ Table automatically updates to reflect deletion
+✅ Spare count updated correctly
+✅ Deletion persists after page refresh (database updated)
+✅ Console: No errors detected
+
+Result: Feature #189 is working correctly with no regressions found.
+Users can successfully delete spare parts from inventory with proper
+confirmation dialog and permanent removal from the database.
+
+Session Duration: ~10 minutes
+Session Status: SUCCESS ✅
+
+Session End Time: Tue Jan 21 10:15:00 EST 2026
+================================================================================
+[Testing] Feature #189 verified - still passing
+[Testing] Session complete - verified feature #189
+

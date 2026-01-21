@@ -37,6 +37,7 @@ import SortieReportPage from './pages/SortieReportPage'
 import BadActorReportPage from './pages/BadActorReportPage'
 import TestTimeoutPage from './pages/TestTimeoutPage'
 import TestToastsPage from './pages/TestToastsPage'
+import SearchResultsPage from './pages/SearchResultsPage'
 
 // Placeholder page component for routes not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -103,6 +104,7 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/search" element={<SearchResultsPage />} />
           <Route path="/assets" element={<AssetsPage />} />
           <Route path="/assets/:id" element={<AssetDetailPage />} />
           <Route path="/configurations" element={<ConfigurationsPage />} />

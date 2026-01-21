@@ -9,6 +9,7 @@ import {
   Cog6ToothIcon,
   BellIcon,
   MapPinIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -21,6 +22,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   const navigate = useNavigate()
   const { user, logout, currentProgramId, setCurrentProgram, currentLocationId, setCurrentLocation, token } = useAuthStore()
   const [unreadCount, setUnreadCount] = useState<number>(0)
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   // Get current program from user's programs
   const currentProgram = user?.programs?.find(p => p.pgm_id === currentProgramId)
@@ -99,6 +101,13 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     setCurrentLocation(locationId)
   }
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim().length >= 2) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
   return (
     <nav className="bg-primary-800 shadow-lg">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -120,6 +129,25 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                 RAMPOD Inventory & Maintenance System Software
               </span>
             </div>
+          </div>
+
+          {/* Center - Search bar */}
+          <div className="flex-1 max-w-md mx-4 hidden md:block">
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full rounded-md border-0 bg-primary-700 py-2 pl-10 pr-3 text-white placeholder:text-gray-300 focus:bg-white focus:text-gray-900 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 sm:text-sm min-h-[44px]"
+                  placeholder="Search assets, events, configs..."
+                  aria-label="Global search"
+                />
+              </div>
+            </form>
           </div>
 
           {/* Right side - Notifications, Program selector and user menu */}
