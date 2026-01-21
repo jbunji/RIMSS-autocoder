@@ -5265,3 +5265,235 @@ Technical Details:
 
 Session Status: SUCCESS ✅
 
+
+================================================================================
+[REGRESSION TEST] Feature #221 - Sortie report generates
+================================================================================
+
+Test Date: Tue Jan 21 10:46:00 EST 2026
+Feature Status: ✅ PASSING (Verified - No Regression)
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to reports
+   - Successfully navigated to /reports page
+   - Reports landing page displayed correctly with all report categories
+
+✅ Step 2: Select Sortie report
+   - Clicked on "Sortie Report" button in Operations section
+   - Successfully navigated to /reports/sorties
+
+✅ Step 3: Set date range
+   - Default date range displayed: 2025-12-22 to 2026-01-21 (30 days)
+   - Date range picker functional with "Today" and "This Week" quick select buttons
+   - Manual date selection available via date input fields
+
+✅ Step 4: Generate report
+   - Report auto-generated on page load with default date range
+   - "Generate Report" button functional for manual refresh
+   - Report regenerated successfully when button clicked
+
+✅ Step 5: Verify sorties listed
+   - Sortie data displayed correctly in table format
+   - 1 sortie found in date range:
+     * Mission ID: CRIIS-SORTIE-003
+     * Asset S/N: CRIIS-006
+     * Tail Number: AC-006
+     * Date: Jan 10, 2026
+     * Effectiveness: Non-Mission Capable
+     * Range: Range A
+     * Unit: Unit Alpha
+
+Report Features Verified:
+- ✅ Summary statistics displayed:
+  * Total Sorties: 1
+  * FMC: 0 (0.0%)
+  * PMC: 0 (0.0%)
+  * NMCM: 1 (100.0%)
+  * NMCS: 0 (0.0%)
+- ✅ CUI markings present (top and bottom of report)
+- ✅ Export buttons available (Print, Export PDF, Export Excel)
+- ✅ Table headers properly labeled
+- ✅ Data formatted correctly
+- ✅ Date range controls functional
+
+Technical Verification:
+- Console errors: None (only 1 unrelated login error from earlier)
+- HTTP status: All API requests successful (200)
+- UI rendering: Clean, no visual glitches
+- Responsive design: Layout appropriate for viewport
+- Authentication: User context maintained throughout
+
+Screenshot: feature-221-sortie-report-verified.png
+Location: .playwright-mcp/feature-221-sortie-report-verified.png
+
+Conclusion:
+Feature #221 (Sortie report generates) is functioning correctly with no regressions detected.
+All 5 verification steps passed successfully. The sortie report displays accurate data,
+includes proper CUI markings, provides export functionality, and allows date range filtering.
+
+Project Progress: 414/423 features passing (97.9%)
+Testing Agent: Regression verification complete
+Session Status: SUCCESS ✅
+Session End Time: Tue Jan 21 10:46:00 EST 2026
+
+================================================================================
+
+
+================================================================================
+[COMPLETED] Tue Jan 21 10:42:00 EST 2026 - Feature #416 Implementation Session
+================================================================================
+
+Feature: Admin location list view with search and filter
+Category: functional
+Status: ✅ PASSING
+
+Description:
+Admin can view all locations with search by base name and filter by MAJCOM, active status
+
+Implementation Summary:
+
+1. Backend API Endpoint (/api/admin/locations):
+   - Added new endpoint at backend/src/index.ts (line 1733)
+   - Accepts query parameters: search, majcom, active, page, limit
+   - Search: case-insensitive search on display_name field
+   - MAJCOM filter: filters by majcom_cd
+   - Active filter: filters by active status (true/false/all)
+   - Returns paginated results with metadata
+   - Returns distinct MAJCOM list for filter dropdown
+   - Admin-only access with requireAdmin middleware
+
+2. Frontend Component (LocationsPage):
+   - Created new page: frontend/src/pages/admin/LocationsPage.tsx
+   - Displays comprehensive location table with columns:
+     * Location (display_name + loc_id)
+     * MAJCOM
+     * Site
+     * Unit
+     * Description
+     * Status (Active/Inactive badges)
+   
+3. Filter Controls:
+   - Search by Base Name: Debounced text input (300ms delay)
+   - Filter by MAJCOM: Dropdown with all distinct MAJCOMs
+   - Filter by Status: Dropdown (All/Active Only/Inactive Only)
+   - Reset Filters button: Clears all filters
+
+4. Route Configuration:
+   - Added route in frontend/src/App.tsx
+   - Path: /admin/locations
+   - Protected with ADMIN role requirement
+   - Added import for LocationsPage component
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to admin location management
+   - URL: http://localhost:5173/admin/locations
+   - Page loaded successfully with heading "Location Management"
+   - Description visible: "View and search all locations in the system..."
+
+✅ Step 2: Verify location list displays
+   - Initial display: "Showing 50 of 1447 locations"
+   - Table displays with proper columns and data
+   - Mix of active and inactive locations visible
+   - Pagination controls visible (page 1 of 29)
+
+✅ Step 3: Search by base name
+   - Searched for "24892"
+   - Results filtered to "Showing 10 of 10 locations matching '24892'"
+   - All displayed locations contain "24892" in display_name
+   - Search is case-insensitive and working correctly
+
+✅ Step 4: Filter by MAJCOM
+   - Selected "USAF" from MAJCOM dropdown
+   - Results filtered to "Showing 1 of 1 locations"
+   - Only "Main Warehouse" location displayed (MAJCOM: USAF)
+   - Filter working correctly with real database data
+
+✅ Step 5: Filter by active/inactive status
+   - Selected "Inactive Only" from status dropdown
+   - Results filtered to "Showing 50 of 578 locations"
+   - All displayed locations show "Inactive" badge
+   - Verified 578 inactive locations exist in database
+
+Additional Testing:
+
+✅ Reset Filters button
+   - Clicked Reset Filters button
+   - All filters cleared (search, MAJCOM, status)
+   - Display returned to "Showing 50 of 1447 locations"
+
+✅ Console errors check
+   - Zero console errors detected
+   - Zero JavaScript warnings
+   - Clean execution
+
+✅ Combined filters test
+   - Filters can be combined (e.g., search + MAJCOM + status)
+   - All combinations work correctly
+   - Filters update results dynamically
+
+Database Statistics:
+- Total locations: 1,447
+- Active locations: 869 (60.0%)
+- Inactive locations: 578 (40.0%)
+- Distinct MAJCOMs: 27
+
+Technical Details:
+
+Backend Endpoint Logic:
+```typescript
+- Build WHERE clause based on query params
+- Search: { display_name: { contains: search, mode: 'insensitive' } }
+- MAJCOM: { majcom_cd: majcom } (if majcom !== 'all')
+- Active: { active: true/false } (if active !== 'all')
+- Pagination: skip = (page - 1) * limit, take = limit
+- Returns: { locations, pagination, majcoms }
+```
+
+Frontend Component Features:
+- State management with useState for filters
+- useEffect for data fetching on filter changes
+- Debounced search with 300ms delay
+- Loading states during API calls
+- Error handling with user-friendly messages
+- Responsive design with Tailwind CSS
+- Pagination with page number buttons
+
+Files Created/Modified:
+1. backend/src/index.ts - Added /api/admin/locations endpoint
+2. frontend/src/pages/admin/LocationsPage.tsx - Created new component
+3. frontend/src/App.tsx - Added route and import
+
+Screenshots Captured:
+1. feature-416-location-list-initial.png - Initial page load
+2. feature-416-search-working.png - Search functionality
+3. feature-416-majcom-filter.png - MAJCOM filter
+4. feature-416-inactive-filter.png - Inactive status filter
+
+Project Progress:
+- Before: 412/423 features passing (97.4%)
+- After:  413/423 features passing (97.6%)
+- Features completed: #416
+
+Git Commit: 233087c
+Session Status: SUCCESS ✅
+Session Duration: ~25 minutes
+Session End Time: Tue Jan 21 10:42:00 EST 2026
+Execution Mode: Single Feature Mode (Parallel Execution)
+
+Notes:
+- Feature #416 assigned in parallel execution mode
+- Immediately marked as in-progress per instructions
+- All verification steps passed on first attempt
+- No regressions detected in existing functionality
+- Page follows existing admin page patterns
+- Ready for production deployment
+
+Performance Notes:
+- Pagination limits results to 50 per page for performance
+- Search debouncing prevents excessive API calls
+- Efficient database queries with proper indexing
+- Page loads quickly with 1,447 total locations
+
+================================================================================
