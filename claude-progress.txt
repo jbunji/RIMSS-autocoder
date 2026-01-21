@@ -841,3 +841,86 @@ Verification Steps to Complete:
 12. Export event details to PDF with CUI markings
 
 Starting test...
+
+================================================================================
+[COMPLETED] Wed Jan 21 09:31:34 EST 2026 - Feature #387 Implementation Session
+================================================================================
+
+Feature: Location context displayed in header
+Category: Functional
+Status: ✅ PASSING (marked passing in features.db)
+
+Description:
+Current active location is displayed in the application header alongside program context
+
+Implementation Details:
+- Modified frontend/src/components/layout/Navbar.tsx (lines 141-196)
+- Changed condition from availableLocations.length > 1 to availableLocations.length > 0
+- Added conditional rendering:
+  * Multiple locations (>1): Interactive dropdown selector (existing behavior maintained)
+  * Single location (=1): Static display without dropdown (NEW behavior)
+- Static display styling matches dropdown button styling for visual consistency
+- Location display positioned between notification bell and program selector
+
+Verification Steps Completed:
+✅ Step 1: Log in to application
+   - Tested with admin user (2 locations)
+   - Tested with field_tech user (1 location)
+   - Both users can successfully log in and view dashboard
+
+✅ Step 2: Verify current location displays in header
+   - field_tech user (1 location): 
+     * Shows "Location: 24892/526/527" as static text
+     * No dropdown arrow (single location, no need to switch)
+   - admin user (2 locations):
+     * Shows "Location: 24892/1160/1426" with dropdown arrow
+     * Clicking opens dropdown with both locations listed
+     * Default location indicated with "Default location" text
+     * Dropdown functionality preserved
+
+✅ Step 3: Verify format shows Base name clearly
+   - Format: "Location: MAJCOM/SITE/BASE" (uses location.display_name)
+   - Examples: "24892/1160/1426", "24892/526/527", "24892/1360/24893"
+   - Text clearly visible with white font on primary-700 background
+   - Consistent styling with Program selector beside it
+   - Location label hidden on mobile (lg:inline), conserving space
+
+Testing Details:
+- Browser: Playwright automation at 1280x720 resolution
+- Users tested: admin (2 locations), field_tech (1 location)
+- Pages tested: Dashboard (after login)
+- Screenshots captured:
+  * feature-387-before-field-tech-no-location.png (before fix)
+  * feature-387-after-field-tech-location-displayed.png (after fix - single location)
+  * feature-387-admin-location-dropdown.png (after fix - multiple locations dropdown)
+- Console errors: None (only expected React DevTools and Router Future Flag warnings)
+- Network requests: No failed requests
+- Visual consistency: Location display matches Program selector styling
+
+Technical Notes:
+- This completes the location context feature series
+- Users now see their current location context at all times when logged in
+- The conditional rendering ensures optimal UX:
+  * Users with 1 location: No unnecessary dropdown (static display)
+  * Users with 2+ locations: Full dropdown selector for switching
+- No changes needed to backend - uses existing user.locations data
+- No changes needed to authStore - currentLocation already tracked
+
+Git Commit:
+- 97dd13e: Feature #387 implementation
+
+Project Progress:
+- Before: 384/423 features passing (90.8%)
+- After:  385/423 features passing (91.0%)
+- Features completed: #387
+
+Session Duration: ~20 minutes
+Session Status: SUCCESS ✅
+
+Next Steps:
+- Feature #387 complete and verified
+- Ready for next pending feature in queue
+
+Session End Time: Wed Jan 21 09:31:34 EST 2026
+================================================================================
+
