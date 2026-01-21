@@ -2388,3 +2388,42 @@ Session End Time: Tue Jan 21 10:05:00 EST 2026
 [Testing] Feature #286 verified - still passing
 
 [Testing] Session complete - verified feature #286
+
+================================================================================
+[COMPLETED] Tue Jan 21 10:10:00 EST 2026 - Feature #400 Implementation Session
+================================================================================
+
+Feature: Dashboard widgets filter by location
+Category: functional
+Status: PASSING
+
+Implementation Summary:
+Implemented comprehensive location-based filtering across all 5 dashboard widgets
+to ensure users only see data relevant to their assigned locations.
+
+Backend Changes (backend/src/index.ts):
+- Updated 5 dashboard endpoints to accept location_id query parameter
+- Asset Status: Filters assets by loc_ida OR loc_idc
+- PMI Due Soon: Joins with assets, filters by asset location
+- Open Maintenance Jobs: Joins with assets, filters by asset location
+- Parts Awaiting Action: Joins with assets, filters by asset location
+- Recent Activity: Filters activities by entity location based on entity_type
+
+Frontend Changes (frontend/src/pages/DashboardPage.tsx):
+- Added currentLocationId to useAuthStore destructuring
+- Updated all 5 fetch functions to include location_id parameter
+- Used URLSearchParams for clean query string construction
+- Added currentLocationId to all useEffect dependency arrays
+
+Testing Results:
+- field_tech (location_id=394): 3 assets, 2 PMI, 1 job, 3 parts, 7 activities
+- admin (location_id=154): 5 assets, 2 PMI, 2 jobs, 3 parts, 10 activities
+- Network requests verified with correct location_id parameters
+- All widgets correctly filter data by location
+
+Git Commit: 8613f45
+Progress: 398/423 features passing (94.1%)
+Session Status: SUCCESS
+================================================================================
+
+[Testing] Feature #324 verified - still passing

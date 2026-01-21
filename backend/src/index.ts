@@ -13893,8 +13893,9 @@ app.get('/api/sorties', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // Get user's program IDs
+  // Get user's program IDs and location IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
 
   // Get query parameters
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
@@ -13906,6 +13907,16 @@ app.get('/api/sorties', (req, res) => {
 
   // Filter by user's accessible programs
   let filteredSorties = sorties.filter(s => userProgramIds.includes(s.pgm_id));
+
+  // Apply location filtering for non-admin users
+  // Sorties are filtered based on the asset's location
+  if (user.role !== 'ADMIN' && userLocationIds.length > 0) {
+    filteredSorties = filteredSorties.filter(s => {
+      const asset = detailedAssets.find(a => a.asset_id === s.asset_id);
+      if (!asset) return false;
+      return userLocationIds.includes(asset.loc_ida) || userLocationIds.includes(asset.loc_idc);
+    });
+  }
 
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
@@ -14857,10 +14868,18 @@ app.get('/api/reports/inventory', (req, res) => {
 
 // GET /api/reports/pmi-schedule - Get PMI schedule report
 app.get('/api/reports/pmi-schedule', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
   try {
-    const userPrograms = (req.user as User)?.programs || [];
-    const userRole = (req.user as User)?.role;
-    const isAdmin = userRole === 'ADMIN';
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+    const isAdmin = user.role === 'ADMIN';
 
     // Get all PMI records - generated + custom
     const generatedPMI = generateMockPMIData();
@@ -14869,9 +14888,21 @@ app.get('/api/reports/pmi-schedule', (req, res) => {
     let allPMIs = [...filteredGeneratedPMI, ...customPMIRecords];
 
     // Filter by program unless admin
-    if (!isAdmin && userPrograms.length > 0) {
+    if (!isAdmin && userProgramIds.length > 0) {
       allPMIs = allPMIs.filter((pmi) => {
-        return userPrograms.includes(pmi.pgm_id);
+        return userProgramIds.includes(pmi.pgm_id);
+      });
+    }
+
+    // Apply location filtering for non-admin users
+    // PMI records are tied to assets, so filter based on asset location
+    if (!isAdmin && userLocationIds.length > 0) {
+      allPMIs = allPMIs.filter((pmi) => {
+        // Find the asset for this PMI
+        const asset = detailedAssets.find(a => a.asset_id === pmi.asset_id);
+        if (!asset) return false;
+        // Include PMI if asset is at any of the user's locations
+        return userLocationIds.includes(asset.loc_ida) || userLocationIds.includes(asset.loc_idc);
       });
     }
 
@@ -14934,17 +14965,32 @@ app.get('/api/reports/pmi-schedule', (req, res) => {
 
 // GET /api/reports/bad-actors - Get bad actor report
 app.get('/api/reports/bad-actors', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
   try {
-    const userPrograms = (req.user as User)?.programs || [];
-    const userRole = (req.user as User)?.role;
-    const isAdmin = userRole === 'ADMIN';
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+    const isAdmin = user.role === 'ADMIN';
 
     // Filter bad actors by user's program access
     let badActors = detailedAssets.filter(asset => asset.bad_actor === true);
 
     // Apply program filter unless admin
-    if (!isAdmin && userPrograms.length > 0) {
-      badActors = badActors.filter(asset => userPrograms.includes(asset.pgm_id));
+    if (!isAdmin && userProgramIds.length > 0) {
+      badActors = badActors.filter(asset => userProgramIds.includes(asset.pgm_id));
+    }
+
+    // Apply location filtering for non-admin users
+    if (!isAdmin && userLocationIds.length > 0) {
+      badActors = badActors.filter(asset =>
+        userLocationIds.includes(asset.loc_ida) || userLocationIds.includes(asset.loc_idc)
+      );
     }
 
     // For each bad actor, gather failure history from maintenance events
