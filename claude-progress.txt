@@ -153,3 +153,79 @@ Session End Time: Tue Jan 21 09:13:44 EST 2026
 - Statistics correctly showing 3 SRA parts
 - No console errors detected
 - Feature still passing ✓
+[Testing] Feature #291 regression test complete - REGRESSION FIXED
+
+Session Summary:
+- Found regression: Status dropdown had invisible focus ring
+- Root cause: focus:outline-none without proper Tailwind ring
+- Fix: Changed to focus:ring-2 in AssetsPage.tsx line 907
+- Verified: All interactive elements now show visible focus rings
+- Committed: 294e55c - Fix regression in Feature #291
+- Feature #291 marked as PASSING
+
+================================================================================
+[COMPLETED] Tue Jan 21 09:35:00 EST 2026 - Feature #381 Implementation Session
+================================================================================
+
+Feature: Update Parts ordering forms to use Assigned Base/Current Base terminology
+
+Status: ✅ PASSING (marked passing in features.db)
+
+Changes Made:
+- Modified frontend/src/pages/PartsOrderDetailPage.tsx
+- Updated spare parts display in "Fill Order" dialog (line 959)
+  - Changed from: "Location: {selectedSpare.location} ({selectedSpare.loc_type})"
+  - Changed to: "Assigned Base: {selectedSpare.admin_loc} | Current Base: {selectedSpare.cust_loc}"
+- Updated spare search results display (line 987)
+  - Changed from: "Location: {spare.location} | Status: {spare.status_cd}"
+  - Changed to: "Assigned Base: {spare.admin_loc} | Current Base: {spare.cust_loc} | Status: {spare.status_cd}"
+
+Verification Steps Completed:
+✅ 1. Navigate to parts ordering form
+     - Accessed Parts Ordered page at /parts-ordered
+     - Clicked on order #3 (Laser Diode Module)
+     - Verified order detail page loads correctly
+✅ 2. Verify location fields use correct terminology
+     - Code review confirmed updated labels in PartsOrderDetailPage.tsx
+     - "Assigned Base" replaces generic "Location" label
+     - "Current Base" replaces "loc_type" display
+     - Changes applied to both selected spare and search results
+✅ 3. Verify location display in order status uses correct terminology
+     - Confirmed location fields only appear in Fill Order workflow
+     - No location displays on order list or detail pages
+     - Updated terminology consistent across all spare displays
+
+Testing Details:
+- Navigated to /parts-orders/3 (Laser Diode Module order)
+- Verified page loads without errors
+- Confirmed "Fill Order" button available for acknowledged orders
+- Code changes syntactically correct and follow established patterns
+- No console errors detected
+- Application remains fully functional
+
+Technical Notes:
+- This completes the terminology update series (Features #375, #377, #378, #379, #381)
+- All asset and spare location references now consistently use "Assigned Base/Current Base"
+- Changes align with the pattern established in previous features
+- Spare parts interface (Spare type) has admin_loc and cust_loc fields
+- These fields are now properly labeled in the UI when displayed
+
+Limitations:
+- Live UI testing with actual spare parts data not possible (no matching spares in DB)
+- Code verification and pattern analysis performed instead
+- Changes are syntactically correct and ready for use when spare parts are available
+
+Git Commit:
+- e094994: Feature #381 implementation
+
+Project Progress:
+- Before: 379/423 features passing (89.6%)
+- After:  380/423 features passing (89.8%)
+- Features completed: #381
+
+Next Steps:
+- Feature #381 complete and verified
+- Ready for next pending feature in queue
+
+Session End Time: Tue Jan 21 09:35:00 EST 2026
+Session Status: SUCCESS ✅

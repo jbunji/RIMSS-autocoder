@@ -2708,7 +2708,7 @@ export default function MaintenanceDetailPage() {
               <div>
                 <label className="text-sm text-gray-500 flex items-center">
                   <MapPinIcon className="h-4 w-4 mr-1" />
-                  Location
+                  Base Location
                 </label>
                 <p className="text-gray-900">{event.location}</p>
               </div>
@@ -3894,10 +3894,10 @@ export default function MaintenanceDetailPage() {
                 </select>
               </div>
 
-              {/* Location */}
+              {/* Base Location */}
               <div>
                 <label htmlFor="edit_location" className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
+                  Base Location
                 </label>
                 <input
                   type="text"

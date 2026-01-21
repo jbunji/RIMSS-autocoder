@@ -14,6 +14,7 @@ import {
   ChevronDownIcon,
   ChevronUpDownIcon,
   DocumentArrowDownIcon,
+  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/authStore'
@@ -1360,7 +1361,13 @@ export default function AssetsPage() {
                     {/* Assigned Base */}
                     <div>
                       <label htmlFor="admin_loc" className="block text-sm font-medium text-gray-700">
-                        Assigned Base <span className="text-red-500">*</span>
+                        <span className="flex items-center gap-1">
+                          Assigned Base <span className="text-red-500">*</span>
+                          <QuestionMarkCircleIcon
+                            className="h-4 w-4 text-gray-400 cursor-help"
+                            title="Assigned Base indicates which organization owns this asset"
+                          />
+                        </span>
                       </label>
                       <select
                         id="admin_loc"
@@ -1388,7 +1395,13 @@ export default function AssetsPage() {
                     {/* Current Base */}
                     <div>
                       <label htmlFor="cust_loc" className="block text-sm font-medium text-gray-700">
-                        Current Base <span className="text-red-500">*</span>
+                        <span className="flex items-center gap-1">
+                          Current Base <span className="text-red-500">*</span>
+                          <QuestionMarkCircleIcon
+                            className="h-4 w-4 text-gray-400 cursor-help"
+                            title="Current Base indicates where this asset is physically located"
+                          />
+                        </span>
                       </label>
                       <select
                         id="cust_loc"

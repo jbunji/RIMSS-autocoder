@@ -2814,10 +2814,10 @@ export default function MaintenancePage() {
                 </p>
               </div>
 
-              {/* Location */}
+              {/* Base Location */}
               <div>
                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
+                  Base Location
                 </label>
                 <input
                   type="text"
