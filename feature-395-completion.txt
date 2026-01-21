@@ -1,0 +1,61 @@
+================================================================================
+[COMPLETED] Tue Jan 21 10:10:00 EST 2026 - Feature #395 Implementation Session
+================================================================================
+
+Feature: Maintenance event queries filter by location
+Category: Functional
+Status: ✅ PASSING (marked passing in features.db)
+
+Description:
+Maintenance events are filtered based on the location where maintenance is
+performed and user assigned locations. Users only see maintenance events at
+locations they have access to.
+
+Implementation Summary:
+----------------------
+
+Added location-based filtering for maintenance events to ensure users only see
+maintenance events at locations they have access to. This completes the
+location-based security model for maintenance operations.
+
+Changes Made:
+
+1. MaintenanceEvent Interface:
+   - Added loc_id: number field (line 3208)
+
+2. Location Mapping:
+   - Created maintenanceLocationNameToId mapping
+   - Depot Alpha: 154, Field Site Bravo: 394, Field Site Charlie: 212
+   - Field Site Delta: 663, Depot Beta: 437, Secure Facility: 154
+
+3. Mock Data:
+   - Updated all 10 maintenance events with loc_id field
+
+4. GET /api/events Endpoint:
+   - Extract user's location IDs
+   - Filter events by user's assigned locations
+   - Support location_id query parameter
+   - Return empty results for unauthorized locations
+
+5. POST /api/events Endpoint:
+   - Auto-assign loc_id when creating new events
+   - Use asset's loc_ida or map from location name
+
+Testing Results:
+---------------
+
+✅ field_tech (location 394 - Field Site Bravo):
+   - Sees 1 event: MX-2024-002 at Field Site Bravo
+   - Does NOT see events at other locations
+
+✅ admin (locations 154, 212 - Depot Alpha, Field Site Charlie):
+   - Sees 3 events: MX-2024-001, 003 (Depot Alpha), 004 (Field Site Charlie)
+   - Does NOT see MX-2024-002 at Field Site Bravo
+
+Screenshots:
+- feature-395-field-tech-filtered-events.png
+- feature-395-admin-filtered-events.png
+
+Git Commit: f58c6c5
+Progress: 393/423 features passing (92.9%)
+Session Status: SUCCESS ✅
