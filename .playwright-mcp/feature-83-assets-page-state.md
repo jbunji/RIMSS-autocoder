@@ -1,0 +1,309 @@
+### Page state
+- Page URL: http://localhost:5173/assets
+- Page Title: RIMSS - RAMPOD Inventory & Maintenance System Software
+- Page Snapshot:
+```yaml
+- generic [ref=e26]:
+  - link "Skip to main content" [ref=e27] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e28]: CUI - Controlled Unclassified Information
+  - navigation [ref=e30]:
+    - generic [ref=e32]:
+      - generic [ref=e33]:
+        - button "Toggle sidebar" [ref=e34] [cursor=pointer]:
+          - img [ref=e35]
+        - generic [ref=e37]:
+          - generic [ref=e38]: RIMSS
+          - generic [ref=e39]: RAMPOD Inventory & Maintenance System Software
+      - generic [ref=e42]:
+        - generic:
+          - img
+        - searchbox "Global search" [ref=e43]
+      - generic [ref=e44]:
+        - link "View notifications" [ref=e45] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e46]
+          - generic [ref=e48]: "7"
+        - 'button "Location: 24892/1160/1426" [ref=e50] [cursor=pointer]':
+          - img [ref=e51]
+          - generic [ref=e54]: "Location:"
+          - generic [ref=e55]: 24892/1160/1426
+          - img [ref=e56]
+        - 'button "Program: CRIIS" [ref=e59] [cursor=pointer]':
+          - generic [ref=e60]: "Program:"
+          - generic [ref=e61]: CRIIS
+          - img [ref=e62]
+        - button "John Admin" [ref=e65] [cursor=pointer]:
+          - img [ref=e66]
+          - generic [ref=e68]: John Admin
+          - img [ref=e69]
+  - generic [ref=e73]:
+    - navigation [ref=e74]:
+      - generic [ref=e75]:
+        - link "Dashboard" [ref=e76] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e77]
+          - text: Dashboard
+        - link "Assets" [ref=e79] [cursor=pointer]:
+          - /url: /assets
+          - img [ref=e80]
+          - text: Assets
+        - link "Configurations" [ref=e82] [cursor=pointer]:
+          - /url: /configurations
+          - img [ref=e83]
+          - text: Configurations
+        - link "Maintenance" [ref=e86] [cursor=pointer]:
+          - /url: /maintenance
+          - img [ref=e87]
+          - text: Maintenance
+        - link "Sorties" [ref=e89] [cursor=pointer]:
+          - /url: /sorties
+          - img [ref=e90]
+          - text: Sorties
+        - link "Spares" [ref=e92] [cursor=pointer]:
+          - /url: /spares
+          - img [ref=e93]
+          - text: Spares
+        - link "Parts Ordered" [ref=e95] [cursor=pointer]:
+          - /url: /parts-ordered
+          - img [ref=e96]
+          - text: Parts Ordered
+        - link "Software" [ref=e98] [cursor=pointer]:
+          - /url: /software
+          - img [ref=e99]
+          - text: Software
+        - link "Notifications" [ref=e101] [cursor=pointer]:
+          - /url: /notifications
+          - img [ref=e102]
+          - text: Notifications
+        - link "Reports" [ref=e104] [cursor=pointer]:
+          - /url: /reports
+          - img [ref=e105]
+          - text: Reports
+      - generic [ref=e107]:
+        - paragraph [ref=e108]: Administration
+        - link "Admin" [ref=e109] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e110]
+          - text: Admin
+        - link "Users" [ref=e112] [cursor=pointer]:
+          - /url: /admin/users
+          - img [ref=e113]
+          - text: Users
+    - paragraph [ref=e116]: RIMSS v0.1.0
+  - main [ref=e118]:
+    - generic [ref=e440]:
+      - generic [ref=e441]:
+        - generic [ref=e442]:
+          - heading "Assets" [level=1] [ref=e443]
+          - paragraph [ref=e444]: Viewing assets for CRIIS - Common Remotely Operated Integrated Reconnaissance System
+        - generic [ref=e445]:
+          - generic [ref=e446]: 5 total assets
+          - button "Export PDF" [ref=e447] [cursor=pointer]:
+            - img [ref=e448]
+            - text: Export PDF
+          - button "Export Excel" [ref=e450] [cursor=pointer]:
+            - img [ref=e451]
+            - text: Export Excel
+          - button "Add Asset" [ref=e453] [cursor=pointer]:
+            - img [ref=e454]
+            - text: Add Asset
+      - generic [ref=e457]:
+        - generic [ref=e458]:
+          - generic [ref=e459]: Search
+          - generic [ref=e460]:
+            - generic:
+              - img
+            - textbox "Search" [ref=e461]:
+              - /placeholder: Search by S/N, P/N, or name...
+        - generic [ref=e462]:
+          - generic [ref=e463]: Status
+          - combobox "Status" [ref=e464]:
+            - option "All Statuses" [selected]
+            - option "FMC - Full Mission Capable"
+            - option "PMC - Partially Mission Capable"
+            - option "PMCM - Partially Mission Capable (Maintenance)"
+            - option "PMCS - Partially Mission Capable (Supply)"
+            - option "PMCB - Partially Mission Capable (Both)"
+            - option "NMCM - Not Mission Capable (Maintenance)"
+            - option "NMCS - Not Mission Capable (Supply)"
+            - option "NMCB - Not Mission Capable (Both)"
+        - button "Refresh" [active] [ref=e466] [cursor=pointer]:
+          - img [ref=e467]
+          - text: Refresh
+      - table [ref=e471]:
+        - rowgroup [ref=e472]:
+          - row "Serial Number Part Number Name Status Assigned Base Current Base ETI Hours Next PMI Actions" [ref=e473]:
+            - columnheader "Serial Number" [ref=e474]:
+              - button "Serial Number" [ref=e875] [cursor=pointer]:
+                - text: Serial Number
+                - img [ref=e877]
+            - columnheader "Part Number" [ref=e479]:
+              - button "Part Number" [ref=e879] [cursor=pointer]:
+                - text: Part Number
+                - img [ref=e881]
+            - columnheader "Name" [ref=e484]:
+              - button "Name" [ref=e883] [cursor=pointer]:
+                - text: Name
+                - img [ref=e885]
+            - columnheader "Status" [ref=e489]:
+              - button "Status" [ref=e887] [cursor=pointer]:
+                - text: Status
+                - img [ref=e889]
+            - columnheader "Assigned Base" [ref=e494]
+            - columnheader "Current Base" [ref=e495]
+            - columnheader "ETI Hours" [ref=e496]:
+              - button "ETI Hours" [ref=e891] [cursor=pointer]:
+                - text: ETI Hours
+                - img [ref=e893]
+            - columnheader "Next PMI" [ref=e501]:
+              - button "Next PMI" [ref=e895] [cursor=pointer]:
+                - text: Next PMI
+                - img [ref=e897]
+            - columnheader "Actions" [ref=e506]:
+              - generic [ref=e507]: Actions
+        - rowgroup [ref=e508]:
+          - row "CRIIS-001 PN-SENSOR-A Sensor Unit A FMC - Full Mission Capable Depot Alpha Maintenance Bay 1 1,250 Mar 6, 2026 View Delete CRIIS-001" [ref=e509]:
+            - cell "CRIIS-001" [ref=e510]:
+              - generic "CRIIS-001" [ref=e512]
+            - cell "PN-SENSOR-A" [ref=e513]
+            - cell "Sensor Unit A" [ref=e514]:
+              - generic "Sensor Unit A" [ref=e515]
+            - cell "FMC - Full Mission Capable" [ref=e516]:
+              - generic [ref=e899]:
+                - text: FMC
+                - generic [ref=e900]: "- Full Mission Capable"
+            - cell "Depot Alpha" [ref=e519]
+            - cell "Maintenance Bay 1" [ref=e520]
+            - cell "1,250" [ref=e521]
+            - cell "Mar 6, 2026" [ref=e522]
+            - cell "View Delete CRIIS-001" [ref=e523]:
+              - generic [ref=e524]:
+                - button "View" [ref=e525] [cursor=pointer]
+                - button "Delete CRIIS-001" [ref=e526] [cursor=pointer]:
+                  - img [ref=e527]
+                  - generic [ref=e529]: Delete CRIIS-001
+          - row "CRIIS-003 PN-SENSOR-B Sensor Unit B Awaiting software update PMC - Partial Mission Capable Depot Alpha Maintenance Bay 2 2,100 Apr 15, 2026 View Delete CRIIS-003" [ref=e530]:
+            - cell "CRIIS-003" [ref=e531]:
+              - generic "CRIIS-003" [ref=e533]
+            - cell "PN-SENSOR-B" [ref=e534]
+            - cell "Sensor Unit B Awaiting software update" [ref=e535]:
+              - generic "Sensor Unit B" [ref=e536]
+              - generic "Awaiting software update" [ref=e537]
+            - cell "PMC - Partial Mission Capable" [ref=e538]:
+              - generic [ref=e901]:
+                - text: PMC
+                - generic [ref=e902]: "- Partial Mission Capable"
+            - cell "Depot Alpha" [ref=e541]
+            - cell "Maintenance Bay 2" [ref=e542]
+            - cell "2,100" [ref=e543]
+            - cell "Apr 15, 2026" [ref=e544]
+            - cell "View Delete CRIIS-003" [ref=e545]:
+              - generic [ref=e546]:
+                - button "View" [ref=e547] [cursor=pointer]
+                - button "Delete CRIIS-003" [ref=e548] [cursor=pointer]:
+                  - img [ref=e549]
+                  - generic [ref=e551]: Delete CRIIS-003
+          - row "CRIIS-005 BA PN-CAMERA-X Camera System X Intermittent power failure - MX-2024-001 NMCM - Not Mission Capable Maintenance Depot Alpha Maintenance Bay 1 3,200 - View Delete CRIIS-005" [ref=e552]:
+            - cell "CRIIS-005 BA" [ref=e553]:
+              - generic [ref=e554]:
+                - generic "CRIIS-005" [ref=e555]
+                - generic "Bad Actor" [ref=e556]: BA
+            - cell "PN-CAMERA-X" [ref=e557]
+            - cell "Camera System X Intermittent power failure - MX-2024-001" [ref=e558]:
+              - generic "Camera System X" [ref=e559]
+              - generic "Intermittent power failure - MX-2024-001" [ref=e560]
+            - cell "NMCM - Not Mission Capable Maintenance" [ref=e561]:
+              - generic [ref=e903]:
+                - text: NMCM
+                - generic [ref=e904]: "- Not Mission Capable Maintenance"
+            - cell "Depot Alpha" [ref=e564]
+            - cell "Maintenance Bay 1" [ref=e565]
+            - cell "3,200" [ref=e566]
+            - cell "-" [ref=e567]
+            - cell "View Delete CRIIS-005" [ref=e568]:
+              - generic [ref=e569]:
+                - button "View" [ref=e570] [cursor=pointer]
+                - button "Delete CRIIS-005" [ref=e571] [cursor=pointer]:
+                  - img [ref=e572]
+                  - generic [ref=e574]: Delete CRIIS-005
+          - row "CRIIS-007 PN-RADAR-01 Radar Unit 01 FMC - Full Mission Capable Depot Alpha Maintenance Bay 3 2,500 Feb 4, 2026 View Delete CRIIS-007" [ref=e575]:
+            - cell "CRIIS-007" [ref=e576]:
+              - generic "CRIIS-007" [ref=e578]
+            - cell "PN-RADAR-01" [ref=e579]
+            - cell "Radar Unit 01" [ref=e580]:
+              - generic "Radar Unit 01" [ref=e581]
+            - cell "FMC - Full Mission Capable" [ref=e582]:
+              - generic [ref=e905]:
+                - text: FMC
+                - generic [ref=e906]: "- Full Mission Capable"
+            - cell "Depot Alpha" [ref=e585]
+            - cell "Maintenance Bay 3" [ref=e586]
+            - cell "2,500" [ref=e587]
+            - cell "Feb 4, 2026" [ref=e588]
+            - cell "View Delete CRIIS-007" [ref=e589]:
+              - generic [ref=e590]:
+                - button "View" [ref=e591] [cursor=pointer]
+                - button "Delete CRIIS-007" [ref=e592] [cursor=pointer]:
+                  - img [ref=e593]
+                  - generic [ref=e595]: Delete CRIIS-007
+          - row "CRIIS-009 Transit PN-COMM-SYS Communication System En route from vendor repair CNDM - Cannot Determine Mission Depot Alpha In Transit - - View Delete CRIIS-009" [ref=e596]:
+            - cell "CRIIS-009 Transit" [ref=e597]:
+              - generic [ref=e598]:
+                - generic "CRIIS-009" [ref=e599]
+                - generic "In Transit" [ref=e600]: Transit
+            - cell "PN-COMM-SYS" [ref=e601]
+            - cell "Communication System En route from vendor repair" [ref=e602]:
+              - generic "Communication System" [ref=e603]
+              - generic "En route from vendor repair" [ref=e604]
+            - cell "CNDM - Cannot Determine Mission" [ref=e605]:
+              - generic [ref=e907]:
+                - text: CNDM
+                - generic [ref=e908]: "- Cannot Determine Mission"
+            - cell "Depot Alpha" [ref=e608]
+            - cell "In Transit" [ref=e609]
+            - cell "-" [ref=e610]
+            - cell "-" [ref=e611]
+            - cell "View Delete CRIIS-009" [ref=e612]:
+              - generic [ref=e613]:
+                - button "View" [ref=e614] [cursor=pointer]
+                - button "Delete CRIIS-009" [ref=e615] [cursor=pointer]:
+                  - img [ref=e616]
+                  - generic [ref=e618]: Delete CRIIS-009
+      - generic [ref=e619]:
+        - heading "Status Legend" [level=3] [ref=e620]
+        - generic [ref=e621]:
+          - generic [ref=e622]:
+            - generic [ref=e909]:
+              - text: FMC
+              - generic [ref=e910]: "- Full Mission Capable"
+            - generic [ref=e625]: Full Mission Capable
+          - generic [ref=e626]:
+            - generic [ref=e911]:
+              - text: PMC
+              - generic [ref=e912]: "- Partial Mission Capable"
+            - generic [ref=e629]: Partial Mission Capable
+          - generic [ref=e630]:
+            - generic [ref=e913]:
+              - text: NMCM
+              - generic [ref=e914]: "- Not Mission Capable Maintenance"
+            - generic [ref=e633]: Not Mission Capable (Maint)
+          - generic [ref=e634]:
+            - generic [ref=e915]:
+              - text: NMCS
+              - generic [ref=e916]: "- Not Mission Capable Supply"
+            - generic [ref=e637]: Not Mission Capable (Supply)
+          - generic [ref=e638]:
+            - generic [ref=e917]:
+              - text: CNDM
+              - generic [ref=e918]: "- Cannot Determine Mission"
+            - generic [ref=e641]: Cannot Determine Mission
+        - generic [ref=e642]:
+          - generic [ref=e643]:
+            - generic [ref=e644]: BA
+            - generic [ref=e645]: = Bad Actor (chronic failures)
+          - generic [ref=e646]:
+            - generic [ref=e647]: Transit
+            - generic [ref=e648]: = In Transit
+  - contentinfo [ref=e439]: CUI - Controlled Unclassified Information
+```
