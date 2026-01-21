@@ -333,9 +333,9 @@ app.get('/api/search', (req, res) => {
     }
 
     // Search in asset fields
-    const serialMatch = asset.serialno?.toLowerCase().includes(query)
+    const serialMatch = asset.serno?.toLowerCase().includes(query)
     const partMatch = asset.partno?.toLowerCase().includes(query)
-    const nameMatch = asset.asset_name?.toLowerCase().includes(query)
+    const nameMatch = asset.part_name?.toLowerCase().includes(query)
     const uiiMatch = asset.uii?.toLowerCase().includes(query)
 
     return serialMatch || partMatch || nameMatch || uiiMatch
@@ -416,10 +416,10 @@ app.get('/api/search', (req, res) => {
   const assetResults = matchingAssets.map(asset => ({
     id: asset.asset_id,
     type: 'asset' as const,
-    title: `${asset.serialno} - ${asset.asset_name}`,
+    title: `${asset.serno} - ${asset.part_name}`,
     subtitle: asset.partno,
     status: asset.status_cd,
-    location: asset.loc_ida_display || asset.loc_idc_display,
+    location: asset.admin_loc_name || asset.cust_loc_name,
     url: `/assets/${asset.asset_id}`
   }))
 
@@ -431,7 +431,7 @@ app.get('/api/search', (req, res) => {
       title: `Event ${event.event_num}`,
       subtitle: event.description,
       status: event.status,
-      asset: asset ? `${asset.serialno} - ${asset.asset_name}` : 'Unknown Asset',
+      asset: asset ? `${asset.serno} - ${asset.part_name}` : 'Unknown Asset',
       url: `/maintenance/${event.event_id}`
     }
   })
@@ -2315,8 +2315,19 @@ app.get('/api/pmi', (req, res) => {
   // Get user's accessible program IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
+  // Get user's location IDs for location-based filtering
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Get location filter from query string (optional)
+  const locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // Validate location filter if specified
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
 
   // Get search filter from query string (optional) - searches asset serial number, name, and PMI type
   const searchFilter = req.query.search ? (req.query.search as string).toLowerCase().trim() : null;
@@ -2341,6 +2352,28 @@ app.get('/api/pmi', (req, res) => {
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
     filteredPMI = filteredPMI.filter(pmi => pmi.pgm_id === programIdFilter);
+  }
+
+  // SECURITY: Filter by location - PMI records shown only if associated asset is at user's locations
+  // Join with assets to get location information
+  if (locationIdFilter) {
+    // Filter by specific requested location
+    filteredPMI = filteredPMI.filter(pmi => {
+      const asset = detailedAssets.find(a => a.asset_id === pmi.asset_id);
+      if (!asset) return false;
+      const matchesAssignedBase = asset.loc_ida === locationIdFilter;
+      const matchesCurrentBase = asset.loc_idc === locationIdFilter;
+      return matchesAssignedBase || matchesCurrentBase;
+    });
+  } else if (userLocationIds.length > 0) {
+    // Filter by all user's locations (non-admin users)
+    filteredPMI = filteredPMI.filter(pmi => {
+      const asset = detailedAssets.find(a => a.asset_id === pmi.asset_id);
+      if (!asset) return false;
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+      return matchesAssignedBase || matchesCurrentBase;
+    });
   }
 
   // Update days_until_due and status dynamically
@@ -2410,8 +2443,19 @@ app.get('/api/tcto', (req, res) => {
   // Get user's program IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
+  // Get user's location IDs for location-based filtering
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Get location filter from query string (optional)
+  const locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // Validate location filter if specified
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
 
   // Get status filter from query string (optional)
   const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
@@ -2419,12 +2463,48 @@ app.get('/api/tcto', (req, res) => {
   // Get search filter from query string (optional)
   const searchFilter = req.query.search ? (req.query.search as string).toLowerCase().trim() : null;
 
+  // Helper function to check if an asset is at user's location(s)
+  const isAssetAtUserLocation = (assetId: number): boolean => {
+    const asset = detailedAssets.find(a => a.asset_id === assetId);
+    if (!asset) return false;
+
+    if (locationIdFilter) {
+      // Check against specific location filter
+      return asset.loc_ida === locationIdFilter || asset.loc_idc === locationIdFilter;
+    } else if (userLocationIds.length > 0) {
+      // Check against all user's locations
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+      return matchesAssignedBase || matchesCurrentBase;
+    }
+    // Admin users with no location restrictions see all assets
+    return true;
+  };
+
   // Filter TCTO records by user's accessible programs
   let filteredTCTO = tctoRecords.filter(tcto => userProgramIds.includes(tcto.pgm_id));
 
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
     filteredTCTO = filteredTCTO.filter(tcto => tcto.pgm_id === programIdFilter);
+  }
+
+  // SECURITY: Filter by location - only show TCTOs that have at least one affected asset at user's locations
+  // Also filter the affected_assets and compliant_assets arrays to only include assets at user's locations
+  if (locationIdFilter || userLocationIds.length > 0) {
+    filteredTCTO = filteredTCTO
+      .map(tcto => {
+        // Filter affected and compliant assets by location
+        const filteredAffectedAssets = tcto.affected_assets.filter(isAssetAtUserLocation);
+        const filteredCompliantAssets = tcto.compliant_assets.filter(isAssetAtUserLocation);
+
+        return {
+          ...tcto,
+          affected_assets: filteredAffectedAssets,
+          compliant_assets: filteredCompliantAssets,
+        };
+      })
+      .filter(tcto => tcto.affected_assets.length > 0); // Only show TCTOs with at least one affected asset at user's location
   }
 
   // Apply status filter if specified
@@ -2441,7 +2521,7 @@ app.get('/api/tcto', (req, res) => {
     );
   }
 
-  // Calculate compliance info for each TCTO
+  // Calculate compliance info for each TCTO (using the filtered asset arrays)
   const tctoWithCompliance = filteredTCTO.map(tcto => {
     const daysUntilDeadline = calculateDaysUntilDeadline(tcto.compliance_deadline);
     const compliancePercentage = tcto.affected_assets.length > 0
