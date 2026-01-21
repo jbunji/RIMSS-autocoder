@@ -138,51 +138,61 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               )}
             </Link>
 
-            {/* Location Selector */}
-            {availableLocations.length > 1 && (
-              <Menu as="div" className="relative">
-                <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
+            {/* Location Display/Selector */}
+            {availableLocations.length > 0 && (
+              availableLocations.length > 1 ? (
+                // Multiple locations - show dropdown selector
+                <Menu as="div" className="relative">
+                  <Menu.Button className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
+                    <MapPinIcon className="h-5 w-5 mr-1.5" aria-hidden="true" />
+                    <span className="hidden lg:inline">Location:</span>
+                    <span className="ml-1 font-semibold truncate max-w-[120px]">{currentLocation?.display_name || 'Select'}</span>
+                    <ChevronDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
+                  </Menu.Button>
+
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      {availableLocations.map((location) => (
+                        <Menu.Item key={location.loc_id}>
+                          {({ active }) => (
+                            <button
+                              onClick={() => handleLocationChange(location.loc_id)}
+                              className={`${
+                                active ? 'bg-gray-100' : ''
+                              } ${
+                                currentLocationId === location.loc_id ? 'bg-primary-50 text-primary-800' : 'text-gray-700'
+                              } block w-full px-4 py-2 text-left text-sm`}
+                            >
+                              <div className="flex items-center">
+                                <MapPinIcon className="h-4 w-4 mr-2 flex-shrink-0" aria-hidden="true" />
+                                <span className="font-medium">{location.display_name}</span>
+                              </div>
+                              {location.is_default && (
+                                <div className="text-xs text-gray-500 ml-6">Default location</div>
+                              )}
+                            </button>
+                          )}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
+              ) : (
+                // Single location - show static display (no dropdown)
+                <div className="flex items-center rounded-md bg-primary-700 px-3 py-2.5 text-sm font-medium text-white min-h-[44px]">
                   <MapPinIcon className="h-5 w-5 mr-1.5" aria-hidden="true" />
                   <span className="hidden lg:inline">Location:</span>
-                  <span className="ml-1 font-semibold truncate max-w-[120px]">{currentLocation?.display_name || 'Select'}</span>
-                  <ChevronDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
-                </Menu.Button>
-
-                <Transition
-                  as={Fragment}
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    {availableLocations.map((location) => (
-                      <Menu.Item key={location.loc_id}>
-                        {({ active }) => (
-                          <button
-                            onClick={() => handleLocationChange(location.loc_id)}
-                            className={`${
-                              active ? 'bg-gray-100' : ''
-                            } ${
-                              currentLocationId === location.loc_id ? 'bg-primary-50 text-primary-800' : 'text-gray-700'
-                            } block w-full px-4 py-2 text-left text-sm`}
-                          >
-                            <div className="flex items-center">
-                              <MapPinIcon className="h-4 w-4 mr-2 flex-shrink-0" aria-hidden="true" />
-                              <span className="font-medium">{location.display_name}</span>
-                            </div>
-                            {location.is_default && (
-                              <div className="text-xs text-gray-500 ml-6">Default location</div>
-                            )}
-                          </button>
-                        )}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Items>
-                </Transition>
-              </Menu>
+                  <span className="ml-1 font-semibold truncate max-w-[120px]">{currentLocation?.display_name || 'None'}</span>
+                </div>
+              )
             )}
 
             {/* Program Selector */}
