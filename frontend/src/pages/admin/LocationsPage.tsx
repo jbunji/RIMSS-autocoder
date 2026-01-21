@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MagnifyingGlassIcon, MapPinIcon, TableCellsIcon, Squares2X2Icon, PencilIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, MapPinIcon, TableCellsIcon, Squares2X2Icon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
 import LocationHierarchyTree from '../../components/admin/LocationHierarchyTree'
 import LocationEditModal from '../../components/admin/LocationEditModal'
+import LocationAddModal from '../../components/admin/LocationAddModal'
 
 interface Location {
   loc_id: number
@@ -54,6 +55,9 @@ export default function LocationsPage() {
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
+
+  // Add modal state
+  const [addModalOpen, setAddModalOpen] = useState(false)
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('')
