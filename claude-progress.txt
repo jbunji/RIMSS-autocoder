@@ -2651,3 +2651,170 @@ This feature was part of a suite of location-based filtering features
 the same pattern as asset, maintenance, repair, labor, spares, and parts
 filtering - all using the user's location assignments to restrict data
 access. The implementation is consistent, secure, and working correctly.
+
+================================================================================
+[COMPLETED] Tue Jan 21 10:25:00 EST 2026 - Feature #402 Implementation Session
+================================================================================
+
+Feature: Search results filter by location
+Category: functional
+Status: ✅ PASSING (marked passing in features.db)
+
+Description:
+Implemented global search functionality that searches across assets, maintenance
+events, and configurations. Search results are filtered by the user's assigned
+locations, ensuring users only see data they have access to.
+
+Implementation Summary:
+
+Backend (backend/src/index.ts):
+- Added GET /api/search endpoint (line 279+)
+- Accepts query parameter 'q' (minimum 2 characters)
+- Authenticates user via JWT token
+- Gets user's location IDs and program IDs for filtering
+- Searches three data types:
+
+  1. Assets:
+     - Searches in: serialno (serno), partno, part_name, uii
+     - Filters by: user programs AND user locations (loc_ida OR loc_idc)
+     - Returns: asset_id, serno, part_name, partno, status, location, URL
+
+  2. Maintenance Events:
+     - Searches in: event_num, description, remarks
+     - Filters by: user programs AND location (via asset relationship)
+     - Returns: event_id, event_num, description, status, asset info, URL
+
+  3. Configurations:
+     - Searches in: name, description, version
+     - Filters by: user programs AND checks if any asset in config matches user locations
+     - Returns: cfg_set_id, name, description, version, URL
+
+- Results limited to 20 per category for performance
+- Comprehensive logging for debugging ([SEARCH] prefix in logs)
+- Fixed field name mismatch: serialno→serno, asset_name→part_name
+- Fixed location display: loc_ida_display→admin_loc_name, loc_idc_display→cust_loc_name
+
+Frontend Changes:
+
+1. Navbar (frontend/src/components/layout/Navbar.tsx):
+   - Added MagnifyingGlassIcon import from @heroicons/react/24/outline
+   - Added searchQuery state
+   - Added handleSearchSubmit function (navigates to /search?q=...)
+   - Added centered search bar between logo and right-side items
+   - Search bar hidden on mobile (md:block), visible on desktop
+   - Placeholder: "Search assets, events, configs..."
+   - Proper ARIA label: "Global search"
+   - Min height 44px for accessibility
+
+2. Search Results Page (frontend/src/pages/SearchResultsPage.tsx - NEW FILE):
+   - Created comprehensive search results display component
+   - Features:
+     * Fetches results from /api/search endpoint
+     * Groups results by type (assets, events, configurations)
+     * Color-coded type badges (blue=asset, orange=event, purple=config)
+     * Shows total results count
+     * Displays "no results" state with helpful message
+     * Each result shows: type icon, title, subtitle, status/location/version
+     * Clickable cards that link to detail pages
+     * Loading and error states
+     * Responsive design
+
+3. App Routes (frontend/src/App.tsx):
+   - Added SearchResultsPage import
+   - Added /search route to protected routes (requires authentication)
+
+Testing Results:
+
+Test 1: Admin User (locations 154, 212):
+- Searched for: "sensor"
+- Results: 2 assets found
+  * CRIIS-001 - Sensor Unit A (PN-SENSOR-A) at Depot Alpha - FMC
+  * CRIIS-003 - Sensor Unit B (PN-SENSOR-B) at Depot Alpha - PMC
+- Backend log: [SEARCH] User locations: 154, 212
+- Backend log: [SEARCH] User programs: 1, 2, 3, 4
+- Backend log: [SEARCH] Found 2 matching assets
+- Screenshot: feature-402-search-results-admin.png
+
+Test 2: Field Technician User (location 394):
+- Searched for: "sensor"
+- Results: 1 asset found
+  * CRIIS-002 - Sensor Unit A (PN-SENSOR-A) at Field Site Bravo - FMC
+- Backend log: [SEARCH] User locations: 394
+- Backend log: [SEARCH] User programs: 1
+- Backend log: [SEARCH] Found 1 matching assets
+- Screenshot: feature-402-search-results-field-tech.png
+
+Location Filtering Verification:
+✅ Admin user sees assets from locations 154, 212 (Depot Alpha)
+✅ Field tech user sees only assets from location 394 (Field Site Bravo)
+✅ Different users get different results for the same query
+✅ Results properly filtered by loc_ida OR loc_idc
+✅ No unauthorized data leakage
+
+Technical Verification:
+✅ Search bar visible in navbar (desktop only, hidden on mobile)
+✅ Search form submission works correctly
+✅ URL updates with query parameter (?q=sensor)
+✅ API returns 200 OK status
+✅ Zero console errors (only expected React Router warnings)
+✅ Proper authentication/authorization checks
+✅ Backend logs show correct filtering logic
+✅ Results formatted correctly for frontend display
+✅ Links navigate to correct detail pages
+
+Feature Test Steps Completed:
+Step 1: ✅ Log in as user with specific location
+  - Tested with field_tech (location 394)
+  - Tested with admin (locations 154, 212)
+
+Step 2: ✅ Perform global search
+  - Searched for "sensor" via navbar search box
+  - Results loaded successfully
+
+Step 3: ✅ Verify results only include items from user locations
+  - field_tech: 1 result from location 394 only
+  - admin: 2 results from locations 154, 212
+  - Confirmed different result sets for different users
+
+Bug Fixes During Implementation:
+1. Fixed field name mismatch in search logic:
+   - Changed asset.serialno → asset.serno
+   - Changed asset.asset_name → asset.part_name
+
+2. Fixed field name mismatch in result formatting:
+   - Changed asset.serialno → asset.serno
+   - Changed asset.asset_name → asset.part_name
+   - Changed asset.loc_ida_display → asset.admin_loc_name
+   - Changed asset.loc_idc_display → asset.cust_loc_name
+
+Security Verification:
+✅ Requires authentication (JWT token)
+✅ Filters by user's assigned locations only
+✅ Cannot access data from other locations
+✅ Program-based filtering also enforced
+✅ Proper error handling for unauthorized access
+
+Project Progress:
+- Before: 399/423 features passing (94.3%)
+- After:  400/423 features passing (94.6%)
+- Features implemented this session: #402
+
+Git Commit: 6d80c6c
+Session Status: SUCCESS ✅
+Session Duration: ~25 minutes
+Session End Time: Tue Jan 21 10:25:00 EST 2026
+
+Next Steps:
+- Feature #402 is complete and verified
+- Global search is now available to all authenticated users
+- Search respects both program and location isolation
+- Ready for next feature implementation
+
+Notes:
+- Search is limited to 20 results per category for performance
+- Search is case-insensitive
+- Minimum query length is 2 characters
+- Backend auto-restart handled gracefully during development
+- Field name differences in AssetDetails interface documented for future reference
+
+================================================================================

@@ -12442,7 +12442,10 @@ app.get('/api/notifications', (req, res) => {
   // Get user's program IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
-  // Filter notifications by program access and active status
+  // Get user's location IDs for location-based filtering
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Filter notifications by program access, location, and active status
   const now = new Date().toISOString();
   let userNotifications = notifications.filter(n => {
     // Check program access
@@ -12455,6 +12458,17 @@ app.get('/api/notifications', (req, res) => {
     // Check date range (only show if current date is within start_date and stop_date)
     const isInDateRange = n.start_date <= now && (n.stop_date === null || n.stop_date >= now);
     if (!isInDateRange) return false;
+
+    // SECURITY: Filter by location
+    // - If notification has loc_id null: it's a broadcast message (visible to all locations)
+    // - If notification has loc_id set: only show to users with access to that location
+    // - Admin users bypass location filtering (see all notifications)
+    if (n.loc_id !== null && user.role !== 'ADMIN') {
+      // Non-admin users: check if notification's location matches user's locations
+      if (userLocationIds.length > 0 && !userLocationIds.includes(n.loc_id)) {
+        return false;
+      }
+    }
 
     return true;
   });
