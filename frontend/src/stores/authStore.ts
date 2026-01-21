@@ -55,12 +55,14 @@ export const useAuthStore = create<AuthState>()(
       currentLocationId: null,
       sessionExpired: false,
 
-      setUser: (user) => set({
+      setUser: (user) => set((state) => ({
         user,
         isAuthenticated: !!user,
-        currentProgramId: user?.programs?.find(p => p.is_default)?.pgm_id || user?.programs?.[0]?.pgm_id || null,
-        currentLocationId: user?.locations?.find(l => l.is_default)?.loc_id || user?.locations?.[0]?.loc_id || null
-      }),
+        // Only set currentProgramId if not already persisted
+        currentProgramId: state.currentProgramId || user?.programs?.find(p => p.is_default)?.pgm_id || user?.programs?.[0]?.pgm_id || null,
+        // Only set currentLocationId if not already persisted
+        currentLocationId: state.currentLocationId || user?.locations?.find(l => l.is_default)?.loc_id || user?.locations?.[0]?.loc_id || null
+      })),
 
       setToken: (token) => set({ token }),
 
