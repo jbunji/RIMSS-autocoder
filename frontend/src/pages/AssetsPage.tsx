@@ -352,11 +352,14 @@ export default function AssetsPage() {
 
   // Fetch reference data for form
   const fetchReferenceData = useCallback(async () => {
-    if (!token) return
+    if (!token || !currentProgramId) return
 
     try {
+      // FEATURE #409: Pass program_id to filter locations by program-location mapping
+      const locUrl = `http://localhost:3001/api/reference/locations?program_id=${currentProgramId}`
+
       const [locResponse, statusResponse] = await Promise.all([
-        fetch('http://localhost:3001/api/reference/locations', {
+        fetch(locUrl, {
           headers: { 'Authorization': `Bearer ${token}` },
         }),
         fetch('http://localhost:3001/api/reference/asset-statuses', {
@@ -368,6 +371,7 @@ export default function AssetsPage() {
         const locData = await locResponse.json()
         setAdminLocations(locData.admin_locations || [])
         setCustodialLocations(locData.custodial_locations || [])
+        console.log('[ASSETS-PAGE] Loaded locations for program:', currentProgramId, 'Admin locations:', locData.admin_locations?.length, 'Custodial locations:', locData.custodial_locations?.length)
       }
 
       if (statusResponse.ok) {
@@ -377,7 +381,7 @@ export default function AssetsPage() {
     } catch (err) {
       console.error('Error fetching reference data:', err)
     }
-  }, [token])
+  }, [token, currentProgramId])
 
   // Fetch reference data on mount
   useEffect(() => {
