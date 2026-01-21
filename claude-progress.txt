@@ -3689,3 +3689,70 @@ Progress: 407/423 features passing (96.2%)
 
 ================================================================================
 [Testing] 2026-01-21 10:29:52 - Session complete - Feature #157 regression fixed and verified ✅
+
+================================================================================
+[COMPLETED] Tue Jan 21 10:30:00 EST 2026 - Feature #408 Implementation Session
+================================================================================
+
+Feature: User location options filtered by program-location mapping
+Category: functional
+Status: PASSING
+
+Description:
+When filtering or selecting locations, only locations valid for user program are available.
+
+Implementation Summary:
+
+Backend Changes (backend/src/index.ts):
+- Added pgm_id field to all user location objects
+- admin: locations 154, 212 (both pgm_id=1 CRIIS)
+- depot_mgr: location 154 (pgm_id=1 CRIIS)
+- field_tech: location 394 (pgm_id=1 CRIIS)
+- acts_user: locations 437, 663 (both pgm_id=2 ACTS)
+
+Frontend Changes (frontend/src/components/layout/Navbar.tsx):
+- Modified availableLocations to filter by currentProgramId
+- Added automatic location switching when program changes
+- If current location invalid for new program, switches to first valid location
+
+Testing Results:
+- admin on CRIIS: Shows 2 CRIIS locations (154, 212)
+- admin on ACTS: No location dropdown (no ACTS locations)
+- acts_user on ACTS: Shows 2 ACTS locations (437, 663)
+- Zero console errors
+- All verification steps passed
+
+Project Progress: 408/423 features passing (96.5%)
+Git Commit: c9becc7
+Session Status: SUCCESS
+================================================================================
+
+[Testing] 2026-01-21 10:31:21 - Feature #83 'Asset list pagination works' - REGRESSION DETECTED
+
+Issue Summary:
+The feature test requires >20 assets to verify pagination works correctly.
+Currently, the system only has 5 assets in the database, which is insufficient
+to test pagination functionality.
+
+Problem Details:
+1. Pagination controls are conditionally rendered when pagination.total_pages > 1
+2. With limit=10 assets per page, we need at least 11 assets to see pagination
+3. Feature test explicitly requires >20 assets (Step 1)
+4. Current state: Only 5 assets exist
+5. Additionally, discovered location dropdown issue - when opening Add Asset modal,
+   the location dropdowns show 'Select assigned base...' with no locations populated
+
+Test Environment:
+- Assets Page: http://localhost:5173/assets
+- Total Assets: 5
+- Expected: >20 assets for comprehensive pagination testing
+- Pagination limit: 10 assets per page (line 229 in AssetsPage.tsx)
+
+Next Steps Required:
+1. Investigate why seed data doesn't include >20 assets
+2. Fix location dropdown population issue in Add Asset modal
+3. Add more seed data or create script to generate test assets
+4. Re-test pagination functionality once sufficient data exists
+
+Status: FAILING - Cannot verify pagination without adequate test data
+
