@@ -869,6 +869,40 @@ export default function UsersPage() {
                       )}
                     </div>
 
+                    {/* Location Assignments */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Location Assignments
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">Select one or more locations (optional)</p>
+                      <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
+                        {locations.length > 0 ? (
+                          locations.map((location) => (
+                            <label
+                              key={location.loc_id}
+                              className={`flex items-center p-2 rounded-md border cursor-pointer transition-colors ${
+                                selectedLocations.includes(location.loc_id)
+                                  ? 'border-primary-500 bg-primary-50'
+                                  : 'border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedLocations.includes(location.loc_id)}
+                                onChange={() => handleLocationToggle(location.loc_id)}
+                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                              />
+                              <div className="ml-3">
+                                <span className="text-sm font-medium text-gray-900">{location.display_name}</span>
+                              </div>
+                            </label>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500 p-2">No locations available</p>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Password */}
                     <div>
                       <label htmlFor="password" className="block text-sm font-medium text-gray-700">
@@ -1175,6 +1209,60 @@ export default function UsersPage() {
                       {errorsEdit.program_ids && (
                         <p className="mt-1 text-sm text-red-600">{errorsEdit.program_ids.message}</p>
                       )}
+                    </div>
+
+                    {/* Location Assignments */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Location Assignments
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">Select one or more locations, then set the default location (optional)</p>
+                      <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
+                        {locations.length > 0 ? (
+                          locations.map((location) => {
+                            const isSelected = editSelectedLocations.includes(location.loc_id)
+                            const isDefault = editDefaultLocationId === location.loc_id
+                            return (
+                              <div
+                                key={location.loc_id}
+                                className={`flex items-center justify-between p-2 rounded-md border transition-colors ${
+                                  isSelected
+                                    ? 'border-primary-500 bg-primary-50'
+                                    : 'border-gray-200 hover:bg-gray-50'
+                                }`}
+                              >
+                                <label className="flex items-center cursor-pointer flex-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => handleEditLocationToggle(location.loc_id)}
+                                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                  />
+                                  <div className="ml-3">
+                                    <span className="text-sm font-medium text-gray-900">{location.display_name}</span>
+                                  </div>
+                                </label>
+                                {isSelected && (
+                                  <div className="flex items-center ml-4">
+                                    <input
+                                      type="radio"
+                                      name="default_location"
+                                      checked={isDefault}
+                                      onChange={() => handleEditDefaultLocationChange(location.loc_id)}
+                                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                                    />
+                                    <span className={`ml-2 text-xs ${isDefault ? 'text-primary-700 font-semibold' : 'text-gray-500'}`}>
+                                      {isDefault ? 'Default' : 'Set as Default'}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })
+                        ) : (
+                          <p className="text-sm text-gray-500 p-2">No locations available</p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Password (optional for edit) */}

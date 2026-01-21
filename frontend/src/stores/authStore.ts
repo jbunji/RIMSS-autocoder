@@ -29,6 +29,7 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   currentProgramId: number | null
+  currentLocationId: number | null
   sessionExpired: boolean
 
   // Actions
@@ -36,6 +37,7 @@ interface AuthState {
   setToken: (token: string | null) => void
   setLoading: (loading: boolean) => void
   setCurrentProgram: (programId: number) => void
+  setCurrentLocation: (locationId: number) => void
   setSessionExpired: (expired: boolean) => void
   login: (user: User, token: string) => void
   logout: () => void
@@ -50,12 +52,14 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: true,
       currentProgramId: null,
+      currentLocationId: null,
       sessionExpired: false,
 
       setUser: (user) => set({
         user,
         isAuthenticated: !!user,
-        currentProgramId: user?.programs?.find(p => p.is_default)?.pgm_id || user?.programs?.[0]?.pgm_id || null
+        currentProgramId: user?.programs?.find(p => p.is_default)?.pgm_id || user?.programs?.[0]?.pgm_id || null,
+        currentLocationId: user?.locations?.find(l => l.is_default)?.loc_id || user?.locations?.[0]?.loc_id || null
       }),
 
       setToken: (token) => set({ token }),
@@ -63,6 +67,8 @@ export const useAuthStore = create<AuthState>()(
       setLoading: (isLoading) => set({ isLoading }),
 
       setCurrentProgram: (programId) => set({ currentProgramId: programId }),
+
+      setCurrentLocation: (locationId) => set({ currentLocationId: locationId }),
 
       setSessionExpired: (sessionExpired) => set({ sessionExpired }),
 
@@ -72,7 +78,8 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: true,
         isLoading: false,
         sessionExpired: false,
-        currentProgramId: user.programs?.find(p => p.is_default)?.pgm_id || user.programs?.[0]?.pgm_id || null
+        currentProgramId: user.programs?.find(p => p.is_default)?.pgm_id || user.programs?.[0]?.pgm_id || null,
+        currentLocationId: user?.locations?.find(l => l.is_default)?.loc_id || user?.locations?.[0]?.loc_id || null
       }),
 
       logout: () => set({
@@ -80,7 +87,8 @@ export const useAuthStore = create<AuthState>()(
         token: null,
         isAuthenticated: false,
         isLoading: false,
-        currentProgramId: null
+        currentProgramId: null,
+        currentLocationId: null
       }),
 
       clearAuth: () => set({
@@ -88,14 +96,16 @@ export const useAuthStore = create<AuthState>()(
         token: null,
         isAuthenticated: false,
         isLoading: false,
-        currentProgramId: null
+        currentProgramId: null,
+        currentLocationId: null
       }),
     }),
     {
       name: 'rimss-auth-storage',
       partialize: (state) => ({
         token: state.token,
-        currentProgramId: state.currentProgramId
+        currentProgramId: state.currentProgramId,
+        currentLocationId: state.currentLocationId
       }),
     }
   )
