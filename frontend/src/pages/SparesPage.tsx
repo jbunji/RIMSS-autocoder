@@ -62,8 +62,8 @@ interface Spare {
 // Zod schema for editing spare
 const editSpareSchema = z.object({
   status_cd: z.string().trim().min(1, 'Status is required'),
-  admin_loc: z.string().trim().min(1, 'Administrative location is required'),
-  cust_loc: z.string().trim().min(1, 'Custodial location is required'),
+  admin_loc: z.string().trim().min(1, 'Assigned base is required'),
+  cust_loc: z.string().trim().min(1, 'Current base is required'),
   notes: z.string().trim().max(500, 'Notes must be at most 500 characters').optional().or(z.literal('')),
 })
 
@@ -605,8 +605,8 @@ export default function SparesPage() {
       'Status',
       'Location',
       'Location Type',
-      'Admin Location',
-      'Custodial Location',
+      'Assigned Base',
+      'Current Base',
       'UII',
       'Manufacture Date',
       'In Transit',
@@ -663,8 +663,8 @@ export default function SparesPage() {
       { wch: 12 },  // Status
       { wch: 25 },  // Location
       { wch: 15 },  // Location Type
-      { wch: 20 },  // Admin Location
-      { wch: 20 },  // Custodial Location
+      { wch: 20 },  // Assigned Base
+      { wch: 20 },  // Current Base
       { wch: 18 },  // UII
       { wch: 15 },  // Manufacture Date
       { wch: 12 },  // In Transit
@@ -1694,10 +1694,10 @@ export default function SparesPage() {
                           )}
                         </div>
 
-                        {/* Administrative Location */}
+                        {/* Assigned Base */}
                         <div>
                           <label htmlFor="admin_loc" className="block text-sm font-medium text-gray-700">
-                            Administrative Location *
+                            Assigned Base *
                           </label>
                           <select
                             id="admin_loc"
@@ -1716,10 +1716,10 @@ export default function SparesPage() {
                           )}
                         </div>
 
-                        {/* Custodial Location */}
+                        {/* Current Base */}
                         <div>
                           <label htmlFor="cust_loc" className="block text-sm font-medium text-gray-700">
-                            Custodial Location *
+                            Current Base *
                           </label>
                           <select
                             id="cust_loc"
@@ -1912,8 +1912,8 @@ export default function SparesPage() {
                             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                           >
                             <option value="status_cd">Status</option>
-                            <option value="admin_loc">Administrative Location</option>
-                            <option value="cust_loc">Custodial Location</option>
+                            <option value="admin_loc">Assigned Base</option>
+                            <option value="cust_loc">Current Base</option>
                           </select>
                         </div>
 

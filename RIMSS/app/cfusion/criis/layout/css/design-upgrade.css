@@ -1,0 +1,804 @@
+/*******************************************************************************
+ * RIMSS DESIGN UPGRADE STYLESHEET
+ *
+ * Modern, vibrant styling to transform the legacy interface.
+ * Include this file AFTER all existing CSS files.
+ *
+ * Author: Claude
+ * Version: 1.0
+ * Date: January 2026
+ ******************************************************************************/
+
+/* =============================================================================
+   CSS CUSTOM PROPERTIES (Variables)
+   ============================================================================= */
+:root {
+  /* Primary Colors - Deep Blue Palette */
+  --primary-900: #1E3A8A;
+  --primary-800: #1E40AF;
+  --primary-700: #1D4ED8;
+  --primary-600: #2563EB;
+  --primary-500: #3B82F6;
+  --primary-400: #60A5FA;
+  --primary-300: #93C5FD;
+  --primary-200: #BFDBFE;
+  --primary-100: #DBEAFE;
+  --primary-50: #EFF6FF;
+
+  /* Status Colors */
+  --success-600: #16A34A;
+  --success-500: #22C55E;
+  --success-400: #4ADE80;
+  --success-100: #DCFCE7;
+
+  --warning-600: #D97706;
+  --warning-500: #F59E0B;
+  --warning-400: #FBBF24;
+  --warning-100: #FEF3C7;
+
+  --danger-600: #DC2626;
+  --danger-500: #EF4444;
+  --danger-400: #F87171;
+  --danger-100: #FEE2E2;
+
+  /* Accent Colors */
+  --violet-500: #8B5CF6;
+  --pink-500: #EC4899;
+  --cyan-500: #06B6D4;
+
+  /* Neutral Colors */
+  --gray-900: #111827;
+  --gray-800: #1F2937;
+  --gray-700: #374151;
+  --gray-600: #4B5563;
+  --gray-500: #6B7280;
+  --gray-400: #9CA3AF;
+  --gray-300: #D1D5DB;
+  --gray-200: #E5E7EB;
+  --gray-100: #F3F4F6;
+  --gray-50: #F9FAFB;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+  --gradient-dark: linear-gradient(180deg, #1F2937 0%, #111827 100%);
+  --gradient-success: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+  --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  --gradient-rainbow: linear-gradient(90deg, #3B82F6, #8B5CF6, #EC4899);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  --shadow-glow-primary: 0 4px 15px rgba(59, 130, 246, 0.4);
+  --shadow-glow-success: 0 4px 15px rgba(34, 197, 94, 0.4);
+  --shadow-glow-warning: 0 4px 15px rgba(245, 158, 11, 0.4);
+  --shadow-glow-danger: 0 4px 15px rgba(239, 68, 68, 0.4);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-medium: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-base: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
+/* =============================================================================
+   KEYFRAME ANIMATIONS
+   ============================================================================= */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+@keyframes pulse-success {
+  0%, 100% {
+    box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.6);
+  }
+}
+
+@keyframes pulse-danger {
+  0%, 100% {
+    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* =============================================================================
+   GLOBAL / BODY STYLES
+   ============================================================================= */
+html, body {
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+}
+
+body, .wrapper {
+  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 50%, #F1F5F9 100%) !important;
+  min-height: 100vh;
+}
+
+/* Subtle pattern overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* =============================================================================
+   HEADER STYLES
+   ============================================================================= */
+#skin_header {
+  background: var(--gradient-dark) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3) !important;
+  position: relative;
+}
+
+/* Glowing accent line at bottom of header */
+#skin_header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-rainbow);
+}
+
+#skin_title {
+  color: white !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#skin_sub_title {
+  color: var(--primary-400) !important;
+}
+
+#skin_header_menu ul li a {
+  color: var(--primary-400) !important;
+  transition: var(--transition-base);
+}
+
+#skin_header_menu ul li a:hover {
+  color: var(--primary-300) !important;
+  text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+}
+
+/* =============================================================================
+   NAVIGATION BAR
+   ============================================================================= */
+#skin_nav_bar {
+  background: var(--gradient-primary) !important;
+  box-shadow: 0 2px 15px rgba(30, 64, 175, 0.4) !important;
+  border-bottom: none !important;
+}
+
+#skin_nav_menu li {
+  background: transparent !important;
+  border: none !important;
+  transition: var(--transition-medium);
+  position: relative;
+}
+
+/* Animated underline on hover */
+#skin_nav_menu li::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-400), #A78BFA);
+  transition: var(--transition-medium);
+  transform: translateX(-50%);
+}
+
+#skin_nav_menu li:hover::after {
+  width: 80%;
+}
+
+#skin_nav_menu li:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+#skin_nav_menu li a {
+  color: white !important;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-size: 11px !important;
+}
+
+#skin_nav_menu li a:hover {
+  background: transparent !important;
+}
+
+/* Active state styling */
+body#home #skin_nav_menu li#m-home,
+body#reports #skin_nav_menu li#m-reports,
+body#admin #skin_nav_menu li#m-admin,
+body#maintenance #skin_nav_menu li#m-maint {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+body#home #skin_nav_menu li#m-home::after,
+body#reports #skin_nav_menu li#m-reports::after,
+body#admin #skin_nav_menu li#m-admin::after,
+body#maintenance #skin_nav_menu li#m-maint::after {
+  width: 80%;
+}
+
+/* Dropdown menus */
+#skin_nav_menu ul {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl) !important;
+  animation: slideIn 0.2s ease;
+}
+
+#skin_nav_menu li li {
+  background: white !important;
+  border: none !important;
+  border-bottom: 1px solid var(--gray-100) !important;
+}
+
+#skin_nav_menu li li:last-child {
+  border-bottom: none !important;
+}
+
+#skin_nav_menu ul li a {
+  color: var(--gray-700) !important;
+  font-weight: 400 !important;
+  padding: 10px 15px !important;
+  transition: var(--transition-base);
+}
+
+#skin_nav_menu li li:hover,
+#skin_nav_menu li li a:hover {
+  background: var(--primary-50) !important;
+  color: var(--primary-700) !important;
+}
+
+/* =============================================================================
+   APPLICATION MENU (Secondary Nav)
+   ============================================================================= */
+#application_menu {
+  background: linear-gradient(135deg, var(--gray-700) 0%, var(--gray-800) 100%) !important;
+  box-shadow: var(--shadow-base);
+}
+
+#application_menu #menulist li a {
+  transition: var(--transition-base);
+}
+
+#application_menu #menulist li a:hover {
+  background: var(--primary-500) !important;
+  color: white !important;
+}
+
+/* =============================================================================
+   BUTTONS - Modern with Gradients and Shadows
+   ============================================================================= */
+input[type="submit"],
+input[type="button"],
+button,
+.btn {
+  background: var(--gradient-primary) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 20px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  box-shadow: var(--shadow-glow-primary), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transition: var(--transition-medium) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+input[type="submit"]:hover,
+input[type="button"]:hover,
+button:hover,
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  background: var(--gradient-primary-hover) !important;
+}
+
+input[type="submit"]:active,
+input[type="button"]:active,
+button:active,
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Success/FMC Button */
+.btn-success,
+input.btn-success {
+  background: var(--gradient-success) !important;
+  box-shadow: var(--shadow-glow-success) !important;
+}
+
+/* Warning/PMC Button */
+.btn-warning,
+input.btn-warning {
+  background: var(--gradient-warning) !important;
+  box-shadow: var(--shadow-glow-warning) !important;
+}
+
+/* Danger/NMC Button */
+.btn-danger,
+input.btn-danger {
+  background: var(--gradient-danger) !important;
+  box-shadow: var(--shadow-glow-danger) !important;
+}
+
+/* =============================================================================
+   DATA TABLES
+   ============================================================================= */
+table.results,
+table.lookup,
+table.tblImport,
+table.tblMappings {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-lg) !important;
+  background: white !important;
+}
+
+thead.resultHead,
+tr.header {
+  background: var(--gradient-primary) !important;
+  color: white !important;
+}
+
+thead.resultHead th,
+tr.header th {
+  padding: 14px 16px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  letter-spacing: 0.5px !important;
+  border: none !important;
+  color: white !important;
+}
+
+tbody tr {
+  transition: var(--transition-base);
+}
+
+tbody tr:hover,
+tr.over td {
+  background: linear-gradient(90deg, var(--primary-50) 0%, white 100%) !important;
+  transform: scale(1.005);
+}
+
+tr.alt td,
+tr.even {
+  background: var(--gray-50) !important;
+}
+
+tr.odd {
+  background: white !important;
+}
+
+tbody td,
+tr.asset td,
+tr.code td,
+tr.tcto td {
+  padding: 12px 16px !important;
+  border: none !important;
+  border-bottom: 1px solid var(--gray-100) !important;
+  font-size: 13px !important;
+}
+
+/* =============================================================================
+   STATUS BADGES - Pill-shaped with Animations
+   ============================================================================= */
+.green, .green6, .green8,
+.status-fmc {
+  background: var(--gradient-success) !important;
+  color: white !important;
+  border-radius: var(--radius-full) !important;
+  padding: 4px 14px !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: var(--shadow-glow-success) !important;
+  display: inline-block !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.yellow, .yellow6, .yellow8,
+.status-pmc {
+  background: var(--gradient-warning) !important;
+  color: white !important;
+  border-radius: var(--radius-full) !important;
+  padding: 4px 14px !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: var(--shadow-glow-warning) !important;
+  display: inline-block !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.red, .red6, .red8,
+.status-nmc {
+  background: var(--gradient-danger) !important;
+  color: white !important;
+  border-radius: var(--radius-full) !important;
+  padding: 4px 14px !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  animation: pulse-danger 2s ease-in-out infinite;
+  display: inline-block !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.blue, .blue6, .blue8 {
+  background: var(--gradient-primary) !important;
+  color: white !important;
+  border-radius: var(--radius-full) !important;
+  padding: 4px 14px !important;
+  font-weight: 700 !important;
+  display: inline-block !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* =============================================================================
+   CARDS & CONTENT PANELS - Glassmorphism Effect
+   ============================================================================= */
+.mainContent,
+#mainform,
+#dashboard {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  padding: 24px !important;
+  margin: 16px !important;
+  transition: var(--transition-medium);
+}
+
+.mainContent:hover,
+#mainform:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px);
+}
+
+.section_header {
+  background: var(--gradient-primary) !important;
+  color: white !important;
+  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+  padding: 12px 20px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 12px !important;
+  margin: -24px -24px 20px -24px !important;
+}
+
+/* Dashboard specific */
+#dashboard {
+  border: none !important;
+  height: auto !important;
+  min-height: 125px !important;
+}
+
+/* =============================================================================
+   FORM INPUTS - Polished with Focus States
+   ============================================================================= */
+input.form_field,
+input.calendar_field,
+input.time_field,
+select.select_field,
+textarea.text_area_field {
+  border: 2px solid var(--gray-200) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 14px !important;
+  font-size: 13px !important;
+  background: white !important;
+  transition: var(--transition-base) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+input.form_field:focus,
+input.calendar_field:focus,
+input.time_field:focus,
+select.select_field:focus,
+textarea.text_area_field:focus {
+  outline: none !important;
+  border-color: var(--primary-500) !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), var(--shadow-sm) !important;
+}
+
+input.form_field:hover,
+select.select_field:hover,
+textarea.text_area_field:hover {
+  border-color: var(--gray-300) !important;
+}
+
+/* Required field indicator */
+span.required_field {
+  color: var(--danger-500) !important;
+  font-size: 14px !important;
+}
+
+/* Labels */
+label {
+  color: var(--gray-700) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+}
+
+/* =============================================================================
+   DIALOGS & MODALS
+   ============================================================================= */
+.ui-dialog {
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25) !important;
+  border: none !important;
+  overflow: hidden;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+  background: var(--gradient-primary) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 16px 20px !important;
+}
+
+.ui-dialog .ui-dialog-title {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+}
+
+.ui-widget-overlay {
+  background: rgba(17, 24, 39, 0.7) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* =============================================================================
+   MESSAGES & ALERTS
+   ============================================================================= */
+div.messages {
+  background: linear-gradient(135deg, var(--gray-100) 0%, white 100%) !important;
+  border-bottom: 2px solid var(--primary-500) !important;
+  box-shadow: var(--shadow-base) !important;
+}
+
+label.successMessage {
+  color: var(--success-600) !important;
+  background: var(--success-100);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  display: inline-block;
+}
+
+label.warningMessage {
+  color: var(--warning-600) !important;
+  background: var(--warning-100);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  display: inline-block;
+}
+
+label.errorMessage {
+  color: var(--danger-600) !important;
+  background: var(--danger-100);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  display: inline-block;
+}
+
+/* =============================================================================
+   FOOTER
+   ============================================================================= */
+.footer,
+#skin_footer {
+  background: var(--gradient-dark) !important;
+  color: var(--gray-400) !important;
+  border-top: 1px solid rgba(59, 130, 246, 0.2) !important;
+  position: relative;
+}
+
+.footer::before,
+#skin_footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-rainbow);
+}
+
+#skin_footer a {
+  color: var(--primary-400) !important;
+  transition: var(--transition-base);
+}
+
+#skin_footer a:hover {
+  color: var(--primary-300) !important;
+  text-decoration: underline !important;
+}
+
+/* =============================================================================
+   HIGHLIGHT STATES
+   ============================================================================= */
+.highlight,
+.highlightStatic {
+  background: var(--gradient-primary) !important;
+  color: white !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.highlight a,
+.highlightStatic a {
+  color: white !important;
+}
+
+/* =============================================================================
+   SCROLLBAR STYLING (WebKit)
+   ============================================================================= */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--gray-400), var(--gray-500));
+  border-radius: var(--radius-full);
+  border: 2px solid var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--gray-500), var(--gray-600));
+}
+
+/* =============================================================================
+   SELECTION STYLING
+   ============================================================================= */
+::selection {
+  background: var(--primary-500);
+  color: white;
+}
+
+::-moz-selection {
+  background: var(--primary-500);
+  color: white;
+}
+
+/* =============================================================================
+   LOADING / SKELETON STATES
+   ============================================================================= */
+.loading,
+.skeleton {
+  background: linear-gradient(90deg, var(--gray-200) 0%, var(--gray-100) 50%, var(--gray-200) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+.text-primary { color: var(--primary-600) !important; }
+.text-success { color: var(--success-600) !important; }
+.text-warning { color: var(--warning-600) !important; }
+.text-danger { color: var(--danger-600) !important; }
+.text-muted { color: var(--gray-500) !important; }
+
+.bg-primary { background: var(--gradient-primary) !important; }
+.bg-success { background: var(--gradient-success) !important; }
+.bg-warning { background: var(--gradient-warning) !important; }
+.bg-danger { background: var(--gradient-danger) !important; }
+
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow-md { box-shadow: var(--shadow-md) !important; }
+.shadow-lg { box-shadow: var(--shadow-lg) !important; }
+.shadow-glow { box-shadow: var(--shadow-glow-primary) !important; }
+
+.rounded { border-radius: var(--radius-md) !important; }
+.rounded-lg { border-radius: var(--radius-lg) !important; }
+.rounded-xl { border-radius: var(--radius-xl) !important; }
+.rounded-full { border-radius: var(--radius-full) !important; }
+
+.animate-fade { animation: fadeIn 0.3s ease; }
+.animate-slide { animation: slideIn 0.3s ease; }
+.animate-pulse { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* =============================================================================
+   PRINT STYLES
+   ============================================================================= */
+@media print {
+  body, .wrapper {
+    background: white !important;
+  }
+
+  #skin_header,
+  #skin_nav_bar,
+  .footer,
+  #skin_footer {
+    display: none !important;
+  }
+
+  .mainContent {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+}

@@ -1495,9 +1495,9 @@ export default function AssetDetailPage() {
                 )}
               </div>
 
-              {/* Administrative Location */}
+              {/* Assigned Base */}
               <div>
-                <label className="block text-sm font-medium text-gray-500">Administrative Location</label>
+                <label className="block text-sm font-medium text-gray-500">Assigned Base</label>
                 {isEditing ? (
                   <select
                     value={editForm.admin_loc || ''}
@@ -1517,9 +1517,9 @@ export default function AssetDetailPage() {
                 )}
               </div>
 
-              {/* Custodial Location */}
+              {/* Current Base */}
               <div>
-                <label className="block text-sm font-medium text-gray-500">Custodial Location</label>
+                <label className="block text-sm font-medium text-gray-500">Current Base</label>
                 {isEditing ? (
                   <select
                     value={editForm.cust_loc || ''}

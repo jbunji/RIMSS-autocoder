@@ -54,8 +54,8 @@ const createAssetSchema = z.object({
     .optional()
     .or(z.literal('')),
   status_cd: z.string().trim().min(1, 'Status is required'),
-  admin_loc: z.string().trim().min(1, 'Administrative location is required'),
-  cust_loc: z.string().trim().min(1, 'Custodial location is required'),
+  admin_loc: z.string().trim().min(1, 'Assigned base is required'),
+  cust_loc: z.string().trim().min(1, 'Current base is required'),
   notes: z.string().trim().max(500, 'Notes must be at most 500 characters').optional().or(z.literal('')),
 })
 
@@ -79,6 +79,10 @@ interface Asset {
   next_pmi_date: string | null
   eti_hours: number | null
   remarks: string | null
+  admin_loc: string
+  admin_loc_name?: string
+  cust_loc: string
+  cust_loc_name?: string
 }
 
 interface Pagination {
@@ -982,7 +986,10 @@ export default function AssetsPage() {
                       <SortableHeader column="status_cd" label="Status" />
                     </th>
                     <th scope="col" className="px-6 py-3 text-left">
-                      <SortableHeader column="location" label="Location" />
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Base</span>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left">
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Current Base</span>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left">
                       <SortableHeader column="eti_hours" label="ETI Hours" />
@@ -1034,9 +1041,11 @@ export default function AssetsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={asset.status_cd} statusName={asset.status_name} />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{asset.location}</div>
-                        <div className="text-xs text-gray-500 capitalize">{asset.loc_type}</div>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {asset.admin_loc_name || asset.admin_loc}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {asset.cust_loc_name || asset.cust_loc}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {asset.eti_hours != null ? asset.eti_hours.toLocaleString() : '-'}
@@ -1346,10 +1355,10 @@ export default function AssetsPage() {
                       )}
                     </div>
 
-                    {/* Administrative Location */}
+                    {/* Assigned Base */}
                     <div>
                       <label htmlFor="admin_loc" className="block text-sm font-medium text-gray-700">
-                        Administrative Location <span className="text-red-500">*</span>
+                        Assigned Base <span className="text-red-500">*</span>
                       </label>
                       <select
                         id="admin_loc"
@@ -1374,10 +1383,10 @@ export default function AssetsPage() {
                       )}
                     </div>
 
-                    {/* Custodial Location */}
+                    {/* Current Base */}
                     <div>
                       <label htmlFor="cust_loc" className="block text-sm font-medium text-gray-700">
-                        Custodial Location <span className="text-red-500">*</span>
+                        Current Base <span className="text-red-500">*</span>
                       </label>
                       <select
                         id="cust_loc"

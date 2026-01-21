@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.2//EN" "http://java.sun.com/j2ee/dtds/application_1_2.dtd">
+   <application id="Application_ID">
+      <display-name>Adobe_ColdFusion_10</display-name>
+      <description>Adobe ColdFusion 10</description>
+      <module id="WebModule_1">
+         <web>
+            <web-uri>cfusion</web-uri>
+            <context-root>/RIMSS</context-root>
+         </web>
+      </module>
+      <module id="WebModule_2">
+         <web>
+            <web-uri>rds</web-uri>
+            <context-root>/CFIDE</context-root>
+         </web>
+      </module>
+   </application>
+   
+   
