@@ -1,0 +1,148 @@
+================================================================================
+REGRESSION TEST SUMMARY - Feature #87
+================================================================================
+
+Feature: Asset ETI tracking displays
+Category: Asset Management
+Status: ✅ PASSING - No Regressions Detected
+
+Description:
+Elapsed Time Indicator (ETI) shows on life-limited items with full history tracking
+
+================================================================================
+VERIFICATION RESULTS
+================================================================================
+
+✅ Step 1: Navigate to asset with ETI tracking
+   - Successfully navigated to Assets page (http://localhost:5173/assets)
+   - Found multiple assets with ETI tracking enabled
+   - Assets list properly displays ETI Hours column
+   - Assets without ETI correctly show "-" placeholder
+
+✅ Step 2: Verify ETI value displayed
+   - ETI Hours column visible and functional in Assets table
+   - Values displayed with proper formatting:
+     * CRIIS-001: 1,250 hrs
+     * CRIIS-003: 2,100 hrs
+     * CRIIS-005: 3,200 hrs
+     * CRIIS-007: 2,500 hrs
+     * CRIIS-009: - (no ETI configured)
+   - Column is sortable
+   - All values accurate and properly formatted
+
+✅ Step 3: Verify ETI history accessible
+   - Asset detail page has dedicated "ETI Tracking" tab
+   - Tab displays current ETI hours prominently: 1,250 hrs
+   - Complete audit trail visible with history entries:
+
+     Entry 1 (Most Recent):
+     - Type: Maintenance
+     - Date: Dec 7, 2025, 10:59 AM
+     - Change: 1,200 → 1,250 hrs (+50 hrs)
+     - Reference: MX-2024-008
+     - Note: "ETI recorded during 30-day PMI"
+     - User: Jane Depot (depot_mgr)
+
+     Entry 2:
+     - Type: Sortie
+     - Date: Oct 23, 2025, 10:59 AM
+     - Change: 1,100 → 1,200 hrs (+100 hrs)
+     - Reference: SORTIE-2024-045
+     - Note: "Post-mission ETI update"
+     - User: Jane Depot (depot_mgr)
+
+   - History shows proper chronological order
+   - Each entry includes all relevant metadata
+   - Action buttons present: "Update ETI" and "Replace Meter"
+
+================================================================================
+TECHNICAL QUALITY ASSESSMENT
+================================================================================
+
+✅ Console Errors: None critical
+   - One minor React warning (missing key prop) - non-blocking
+   - No JavaScript errors affecting functionality
+
+✅ API Calls: All successful
+   - Asset list loaded correctly
+   - Asset detail loaded correctly
+   - ETI history loaded correctly
+
+✅ UI/UX Quality:
+   - Navigation smooth and responsive
+   - Tab switching works correctly
+   - Data displays clearly with proper formatting
+   - Responsive layout working
+   - Color coding appropriate (blue for current value)
+   - Typography clear and readable
+
+✅ Data Accuracy:
+   - All ETI values match expected data
+   - History calculations correct
+   - Timestamps accurate
+   - References properly linked
+   - User attribution correct
+
+✅ Functional Requirements Met:
+   - ETI values display on life-limited items
+   - Non-ETI assets properly handled
+   - History accessible and detailed
+   - Audit trail complete
+   - Update mechanisms present
+
+================================================================================
+TEST ENVIRONMENT
+================================================================================
+
+Frontend URL: http://localhost:5173
+Backend: Node.js (running)
+Database: PostgreSQL
+Browser: Playwright automation
+User: admin (ADMIN role)
+Program: CRIIS
+Test Date: Tue Jan 21 11:10:00 EST 2026
+
+================================================================================
+SCREENSHOTS CAPTURED
+================================================================================
+
+1. feature-87-step1-assets-with-eti.png
+   - Assets list page showing ETI Hours column
+
+2. feature-87-step2-eti-column-visible.png
+   - Scrolled view with ETI Hours column clearly visible
+   - Shows all asset ETI values
+
+3. feature-87-step2-asset-detail-with-eti-tab.png
+   - Asset detail page with ETI Tracking tab visible
+   - Shows navigation tabs
+
+4. feature-87-step3-eti-history-accessible.png
+   - ETI Tracking tab content
+   - Current ETI hours and complete history displayed
+
+================================================================================
+CONCLUSION
+================================================================================
+
+Result: ✅ REGRESSION TEST PASSED
+
+Feature #87 is functioning correctly with no regressions detected. All three
+verification steps passed successfully:
+
+1. Assets with ETI tracking are easily navigable
+2. ETI values display accurately in the asset list
+3. ETI history is accessible and provides detailed audit trail
+
+The feature meets all functional requirements and quality standards. The ETI
+tracking system properly handles both assets with and without ETI enabled,
+displays values with appropriate formatting, and provides comprehensive
+history tracking with full audit information.
+
+No fixes required. Feature continues to pass.
+
+Project Progress: 421/423 features passing (99.5%)
+Session Status: SUCCESS
+Tested by: Testing Agent (Automated Regression Testing)
+
+================================================================================
