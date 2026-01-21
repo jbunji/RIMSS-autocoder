@@ -3467,3 +3467,120 @@ Date: January 21, 2026
 
 ================================================================================
 [Testing] Session complete - verified feature #310 - NO REGRESSION DETECTED ✅
+================================================================================
+[COMPLETED] Tue Jan 21 10:30:00 EST 2026 - Feature #405 Implementation Session
+================================================================================
+
+Feature: Create LOC_SET table for program-to-location mapping
+Category: functional
+Status: ✅ PASSING
+
+Description:
+Database includes loc_set table that maps programs to their allowed locations.
+This enables creating named location sets/groups for organizing locations
+within programs (e.g., "LANTIRN_LOCS", "CT_CRF_LOCATIONS", etc.).
+
+Implementation Summary:
+
+Database Schema Changes:
+
+1. Created LocSet Prisma Model (backend/prisma/schema.prisma):
+   - set_id (primary key, auto-increment)
+   - set_name (location set name, e.g., "HILL_NETWORK")
+   - pgm_id (foreign key to program)
+   - loc_id (foreign key to location)
+   - display_name (optional display name)
+   - active, ins_by, ins_date, chg_by, chg_date (audit fields)
+
+2. Migration Created (20260121_add_loc_set_table/migration.sql):
+   - CREATE TABLE loc_set with all required columns
+   - Primary key on set_id (auto-increment)
+   - Unique constraint on (set_name, loc_id)
+   - Foreign key: pgm_id → program.pgm_id
+   - Foreign key: loc_id → location.loc_id
+
+3. Updated Relations:
+   - Program model: Added locSets relation
+   - Location model: Added locSets relation
+
+Key Differences from program_location Table:
+
+program_location:
+- Simple many-to-many mapping
+- pgm_id + loc_id (which programs can access which locations)
+- Used for authorization/filtering
+
+loc_set:
+- Named location groupings
+- set_name + pgm_id + loc_id
+- Allows creating logical groups like "HILL_NETWORK", "SJ_NETWORK"
+- Multiple locations can belong to same named set
+- Legacy Oracle system had 376 loc_set records
+
+Verification Steps Completed:
+
+✅ Step 1: Verify loc_set table exists
+   - Table successfully created in database
+   - Confirmed via information_schema query
+
+✅ Step 2: Verify columns (set_id, set_name, pgm_id, loc_id)
+   - All required columns present with correct data types:
+     * set_id: integer (NOT NULL, PRIMARY KEY)
+     * set_name: varchar(100) (NOT NULL)
+     * pgm_id: integer (NOT NULL)
+     * loc_id: integer (NOT NULL)
+     * display_name: varchar(255) (NULL)
+     * Plus standard audit fields: active, ins_by, ins_date, chg_by, chg_date
+
+✅ Step 3: Verify foreign key constraints
+   - loc_set.pgm_id → program.pgm_id (RESTRICT)
+   - loc_set.loc_id → location.loc_id (RESTRICT)
+   - Both foreign keys properly configured
+
+✅ Step 4: Test CRUD operations
+   - CREATE: Successfully inserted test record
+   - READ: Successfully queried record by set_id
+   - DELETE: Successfully removed test record
+   - Prisma Client properly generated with LocSet model
+
+Technical Verification:
+✅ Prisma schema updated with LocSet model
+✅ Migration SQL executed successfully
+✅ Prisma Client regenerated
+✅ Foreign key constraints verified in database
+✅ Unique constraint on (set_name, loc_id) working
+✅ Zero errors during migration and testing
+
+Legacy Data Context:
+The original Oracle RIMSS system (GLOBALEYE schema) had a LOC_SET table with
+376 records. Examples of set names from legacy data:
+- "LANTIRN_LOCS" - Locations for LANTIRN program
+- "CT_CRF_LOCATIONS" - Common test CRF locations
+- "HILL_NETWORK" - Hill AFB network locations
+- "SJ_NETWORK" - Seymour Johnson network locations
+- "RAFL_NETWORK" - RAF Lakenheath network locations
+- "A10_LOCS" - A-10 aircraft locations
+
+This table enables flexible location grouping for dropdown lists, filters,
+and access control beyond simple program-to-location mapping.
+
+Project Progress:
+- Before: 404/423 features passing (95.5%)
+- After:  405/423 features passing (95.7%)
+- Features implemented: #405
+
+Git Commit: dc97cf3
+Session Status: SUCCESS ✅
+Session Duration: ~15 minutes
+Session End Time: Tue Jan 21 10:30:00 EST 2026
+
+Notes:
+- Feature #405 was assigned in parallel execution mode
+- Previous session started implementation but didn't complete it
+- This session completed the database schema changes and verification
+- Migration applied successfully without data loss
+- Prisma Client regenerated to include LocSet type
+- All test steps passed with comprehensive verification script
+- Ready for UI/API implementation if needed in future features
+
+================================================================================

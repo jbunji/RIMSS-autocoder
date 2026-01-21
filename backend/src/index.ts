@@ -158,7 +158,7 @@ const mockUsers = [
       { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
     ],
     locations: [
-      { loc_id: 154, display_name: '24892/1160/1426', is_default: true },
+      { loc_id: 154, display_name: '24892/1160/1426', is_default: true, pgm_id: 1 }, // CRIIS location
     ],
   },
   {
@@ -172,7 +172,7 @@ const mockUsers = [
       { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
     ],
     locations: [
-      { loc_id: 394, display_name: '24892/526/527', is_default: true },
+      { loc_id: 394, display_name: '24892/526/527', is_default: true, pgm_id: 1 }, // CRIIS location
     ],
   },
   {
@@ -198,8 +198,8 @@ const mockUsers = [
       { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
     ],
     locations: [
-      { loc_id: 437, display_name: '29306/29031/29030', is_default: true },
-      { loc_id: 663, display_name: '29307/29032/29033', is_default: false },
+      { loc_id: 437, display_name: '29306/29031/29030', is_default: true, pgm_id: 2 }, // ACTS location
+      { loc_id: 663, display_name: '29307/29032/29033', is_default: false, pgm_id: 2 }, // ACTS location
     ],
   },
 ]
@@ -10772,7 +10772,7 @@ app.post('/api/assets/bulk-delete', (req, res) => {
 });
 
 // POST /api/assets - Create a new asset (requires authentication and depot_manager/admin role)
-app.post('/api/assets', (req, res) => {
+app.post('/api/assets', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -10815,6 +10815,49 @@ app.post('/api/assets', (req, res) => {
   const validCustLocs = custodialLocations.map(l => l.loc_cd);
   if (!validCustLocs.includes(cust_loc)) {
     return res.status(400).json({ error: 'Invalid custodial location' });
+  }
+
+  // FEATURE #409: Validate locations against program-location mapping
+  try {
+    // Get valid locations for this program
+    const programLocations = await prisma.programLocation.findMany({
+      where: {
+        pgm_id: pgm_id,
+        active: true,
+      },
+      select: {
+        loc_id: true,
+      },
+    });
+
+    const validLocationIds = new Set(programLocations.map(pl => pl.loc_id));
+
+    // Get location IDs for admin_loc and cust_loc
+    const adminLocInfo = adminLocations.find(l => l.loc_cd === admin_loc);
+    const custLocInfo = custodialLocations.find(l => l.loc_cd === cust_loc);
+
+    if (!adminLocInfo || !custLocInfo) {
+      return res.status(400).json({ error: 'Invalid location code provided' });
+    }
+
+    // Validate admin location is valid for this program
+    if (!validLocationIds.has(adminLocInfo.loc_id)) {
+      return res.status(400).json({
+        error: `Administrative location '${adminLocInfo.loc_name}' is not valid for the selected program. Please select a location that is assigned to this program.`
+      });
+    }
+
+    // Validate custodial location is valid for this program
+    if (!validLocationIds.has(custLocInfo.loc_id)) {
+      return res.status(400).json({
+        error: `Custodial location '${custLocInfo.loc_name}' is not valid for the selected program. Please select a location that is assigned to this program.`
+      });
+    }
+
+    console.log(`[ASSET-CREATE] Validated locations for program ${pgm_id}: admin=${admin_loc}, custodial=${cust_loc}`);
+  } catch (error) {
+    console.error('[ASSET-CREATE] Error validating program-location mapping:', error);
+    return res.status(500).json({ error: 'Failed to validate location assignments' });
   }
 
   // Check for duplicate serial number + part number combination (within same program)
@@ -11162,18 +11205,56 @@ app.delete('/api/assets/:id/permanent', (req, res) => {
 });
 
 // GET /api/reference/locations - Get available locations for asset forms
-app.get('/api/reference/locations', (req, res) => {
+app.get('/api/reference/locations', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
-  // Filter out inactive (deleted) locations
-  const activeAdminLocations = adminLocations.filter(loc => loc.active !== false);
-  const activeCustodialLocations = custodialLocations.filter(loc => loc.active !== false);
+  try {
+    const programId = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
-  res.json({
-    admin_locations: activeAdminLocations,
-    custodial_locations: activeCustodialLocations,
-  });
+    // If program_id is provided, filter locations by program-location mapping
+    if (programId) {
+      const programLocations = await prisma.programLocation.findMany({
+        where: {
+          pgm_id: programId,
+          active: true,
+        },
+        include: {
+          location: true,
+        },
+      });
+
+      // Extract location IDs that are valid for this program
+      const validLocationIds = new Set(programLocations.map(pl => pl.loc_id));
+
+      // Filter locations to only include those valid for the program
+      const activeAdminLocations = adminLocations.filter(loc =>
+        loc.active !== false && validLocationIds.has(loc.loc_id)
+      );
+      const activeCustodialLocations = custodialLocations.filter(loc =>
+        loc.active !== false && validLocationIds.has(loc.loc_id)
+      );
+
+      console.log(`[REFERENCE-LOCATIONS] Filtered locations for program ${programId}: ${validLocationIds.size} valid locations`);
+
+      return res.json({
+        admin_locations: activeAdminLocations,
+        custodial_locations: activeCustodialLocations,
+      });
+    }
+
+    // If no program_id, return all active locations (backwards compatibility)
+    const activeAdminLocations = adminLocations.filter(loc => loc.active !== false);
+    const activeCustodialLocations = custodialLocations.filter(loc => loc.active !== false);
+
+    res.json({
+      admin_locations: activeAdminLocations,
+      custodial_locations: activeCustodialLocations,
+    });
+  } catch (error) {
+    console.error('[REFERENCE-LOCATIONS] Error fetching locations:', error);
+    res.status(500).json({ error: 'Failed to fetch locations' });
+  }
 });
 
 // POST /api/reference/locations - Create a new location

@@ -30,7 +30,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
   // Get current location from user's locations
   const currentLocation = user?.locations?.find(l => l.loc_id === currentLocationId)
-  const availableLocations = user?.locations || []
+  // Filter locations by current program - only show locations valid for the selected program
+  const availableLocations = user?.locations?.filter(l => l.pgm_id === currentProgramId) || []
 
   // Fetch unread notification count
   useEffect(() => {
@@ -95,6 +96,17 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
   const handleProgramChange = (programId: number) => {
     setCurrentProgram(programId)
+
+    // When switching programs, check if current location is valid for the new program
+    // If not, switch to the first valid location for the new program
+    const locationsForNewProgram = user?.locations?.filter(l => l.pgm_id === programId) || []
+    const currentLocationIsValid = locationsForNewProgram.some(l => l.loc_id === currentLocationId)
+
+    if (!currentLocationIsValid && locationsForNewProgram.length > 0) {
+      // Find the default location for this program, or use the first one
+      const defaultLocation = locationsForNewProgram.find(l => l.is_default) || locationsForNewProgram[0]
+      setCurrentLocation(defaultLocation.loc_id)
+    }
   }
 
   const handleLocationChange = (locationId: number) => {
