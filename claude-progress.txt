@@ -106,3 +106,50 @@ All asset-related interfaces now use "Assigned Base/Current Base" terminology
 consistently throughout the application.
 
 Session End Time: Tue Jan 21 09:10:15 EST 2026
+[Testing] Wed Jan 21 09:12:56 EST 2026 - Starting Feature #291 verification: Focus ring visible
+[Testing] Wed Jan 21 09:13:44 EST 2026 - Feature #262 verification COMPLETE - All steps passed
+
+================================================================================
+[REGRESSION TEST COMPLETE] Tue Jan 21 09:13:44 EST 2026 - Feature #262
+================================================================================
+
+Feature: File upload errors clear message
+Category: Error Handling
+Status: ✅ STILL PASSING (no regression detected)
+
+Verification Steps Completed:
+✅ Step 1: Attempted to upload 15MB file (exceeds 10MB limit)
+✅ Step 2: Verified error message: "File size exceeds 10MB limit"
+✅ Step 3: Attempted to upload .exe file (invalid type)
+✅ Step 4: Verified error message: "Invalid file type. Only PDF, images, Word, Excel, and text files are allowed."
+
+Implementation Details:
+- Client-side validation: File size checked on selection
+- Server-side validation: File type validated on upload attempt
+- Error messages: Clear, specific, and user-friendly
+- Visual feedback: Red background for error visibility
+- API response: Appropriate 400 Bad Request for invalid uploads
+
+Testing Environment:
+- Tested on Maintenance Event #1 (MX-2024-001)
+- Upload dialog working correctly
+- No console errors (except expected 400 response)
+- Screenshots captured: feature-262-invalid-file-type-accepted.png, feature-262-invalid-file-type-error.png
+
+Conclusion: Feature continues to work correctly. No regression detected. ✓
+
+Session End Time: Tue Jan 21 09:13:44 EST 2026
+================================================================================
+[Testing] Wed Jan 21 09:14:24 EST 2026 - Feature #291 fix verification:
+- Changed focus:outline-none to focus:ring-2 on Status dropdown
+- Dropdown now shows visible blue focus ring
+- All interactive elements tested: buttons, inputs, links, dropdowns
+- All show visible focus indicators
+[Testing] Wed Jan 21 09:14:31 EST 2026 - Feature #104 verification PASSED - SRA association management working correctly
+- Successfully navigated to configuration detail page
+- Added new SRA part (PN-POWER-MOD) as child of NHA (PN-SENSOR-A)
+- Verified SRA visible in BOM tab with correct parent relationship
+- Verified SRA visible in Hierarchy tab with proper tree structure
+- Statistics correctly showing 3 SRA parts
+- No console errors detected
+- Feature still passing ✓

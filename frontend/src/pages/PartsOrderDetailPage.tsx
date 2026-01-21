@@ -956,7 +956,7 @@ export default function PartsOrderDetailPage() {
                         <div>
                           <p className="font-medium text-gray-900">{selectedSpare.part_name}</p>
                           <p className="text-sm text-gray-600">S/N: {selectedSpare.serno} | P/N: {selectedSpare.partno}</p>
-                          <p className="text-sm text-gray-600">Location: {selectedSpare.location} ({selectedSpare.loc_type})</p>
+                          <p className="text-sm text-gray-600">Assigned Base: {selectedSpare.admin_loc} | Current Base: {selectedSpare.cust_loc}</p>
                           <p className="text-sm text-gray-600">Status: {selectedSpare.status_cd}</p>
                         </div>
                         <button
@@ -984,7 +984,7 @@ export default function PartsOrderDetailPage() {
                         >
                           <p className="font-medium text-gray-900">{spare.part_name}</p>
                           <p className="text-sm text-gray-600">S/N: {spare.serno} | P/N: {spare.partno}</p>
-                          <p className="text-sm text-gray-600">Location: {spare.location} | Status: {spare.status_cd}</p>
+                          <p className="text-sm text-gray-600">Assigned Base: {spare.admin_loc} | Current Base: {spare.cust_loc} | Status: {spare.status_cd}</p>
                         </button>
                       ))}
                     </div>
