@@ -51,7 +51,7 @@ const createUserSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   program_ids: z.array(z.number()).min(1, 'At least one program must be selected'),
-  location_ids: z.array(z.number()).optional(),
+  location_ids: z.array(z.number()).min(1, 'At least one location must be assigned'),
 })
 
 // Zod schema for user editing (password is optional, admin_password required when role changes)
@@ -76,7 +76,7 @@ const editUserSchema = z.object({
     .optional(),
   program_ids: z.array(z.number()).min(1, 'At least one program must be selected'),
   default_program_id: z.number().optional(),
-  location_ids: z.array(z.number()).optional(),
+  location_ids: z.array(z.number()).min(1, 'At least one location must be assigned'),
   default_location_id: z.number().optional(),
   admin_password: z.string().optional(),
 })
