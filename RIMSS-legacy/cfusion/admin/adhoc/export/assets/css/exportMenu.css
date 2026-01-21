@@ -1,0 +1,269 @@
+
+
+@media print  { .exportnoprint  { display: none; } }
+@media screen { .exportnoscreen { display: none; } }
+
+	.exportTable table{
+		border-collapse:collapse;
+		border:1px solid #CCC;
+		border-width:1px 0px 1px 1px;
+		padding:0px !important;
+		margin:0px !important;
+		width:100%;
+			
+	}
+	
+	
+	
+	.exportTable table th{
+		background-color:#666;
+		color:white;
+		font-family:arial, verdana, sans-serif;	
+		font-size:12px;
+		padding:1px;
+		border-right:1px solid #ccc;
+		font-weight:normal;	
+		padding:0px !important;
+		margin:0px !important;
+	}
+	
+	.exportTable table td{
+		
+		color:black;
+		font-family:arial, verdana, sans-serif;	
+		font-size:12px;
+		padding:1px;
+		border-right:1px solid #ccc;
+		text-align:center;	
+		padding:0px !important;
+		margin:0px !important;	
+	}
+	
+	.exportTable table a{
+		
+		color:black;
+		text-decoration:none;		
+	}
+	
+	.exportTable .alt{
+		background-color:#E6E6E6 !important;	
+	}
+	
+	.exportTable .over{
+		background-color:#bcd4ec !important;
+		cursor:pointer;	
+	}
+	
+	.exportIFrame
+	{
+		width:100%;
+		height:500px;	
+		
+	}
+	
+	.exportMenu{
+	       
+	padding: 0; 
+	margin:0;
+	list-style-type: none;
+	float:right;
+		
+	}
+	.exportMenu li
+	{
+	display:list-item;
+	float:left;
+	margin: 0 2px 0 0 ;
+	padding:0;
+	vertical-align:middle;
+	} 
+	
+	.exportMenu li a
+	{
+	
+	float: left;
+	width: 5em;
+	display: block;
+	border: 1px solid #D0D0D0;
+	color: #000;
+	background-color: #E6E6E6;
+	text-decoration: none;
+	text-align: center;
+	vertical-align:middle;
+	padding:2px 0px;
+	margin-left:0px;
+	font-family:arial, verdana, sans-serif;
+	
+	} 
+	
+	.exportMenu li img
+	{
+		margin-top:3px;
+		outline:none;
+	}
+	
+	.exportMenu li a:hover , .exportMenu ul li a:visited:hover {
+		background-color:#CCC;  
+		outline:none;
+	}
+	
+	.exporting{
+		background-color:#FFFFCC !important;	
+	}
+	/* Hide from IE5-Mac \*/
+	.exportMenu li a
+	{
+	float: none;
+	}
+	/* End hide */ 
+	
+	
+
+/*
+.exportMenu li {   
+  list-style-type:none; 
+  float:left; 
+  width:9em;
+  border:1px solid #BDBDBD; 
+  font-family:arial, verdana, sans-serif;
+  font-size:0.8em;
+  text-align:center;
+  text-decoration:none;
+  padding:2px 0px;  
+  }
+.exportMenu li img {   
+  vertical-align:middle;
+  }
+
+.exportMenu li:hover {   
+	background-color:#E6E6E6;  
+  }
+
+ .exportTypes{
+	padding:0;   
+   margin:0;
+   clear:both; 
+ }
+ 
+  */
+.exportclearfix {display: inline-block;}
+.exportclearfix:after {content: "."; display: block; height: 0; clear: both; visibility: hidden;}
+
+a.dt-button.adhocExcel
+{
+	background-image: url("../images/excel.png");
+    background-position:left;
+	background-repeat:no-repeat;
+	float: left;
+	height: 25px;
+	width: 6em;
+	display: block;
+	border: 1px solid #D0D0D0;
+	color: #000;
+	background-color: #E6E6E6;
+	text-decoration: none;
+	text-align: middle;
+	vertical-align:center;
+	padding:2px 0px;
+	margin-left:0px;
+	margin-right:5px;
+	margin-top:5px;
+	margin-bottom:5px;
+	font-family:arial, verdana, sans-serif;
+}
+
+button.dt-button.adhocExcel
+{
+	background-image: url("../images/excel.png");
+    background-position:left;
+	background-repeat:no-repeat;
+	float: left;
+	height: 25px;
+	width: 6em;
+	display: block;
+	border: 1px solid #D0D0D0;
+	color: #000;
+	background-color: #E6E6E6;
+	text-decoration: none;
+	text-align: middle;
+	vertical-align:center;
+	padding:2px 0px;
+	margin-left:0px;
+	margin-right:5px;
+	margin-top:5px;
+	margin-bottom:5px;
+	font-family:arial, verdana, sans-serif;
+}
+
+a.dt-button.adhocExcel:hover { 
+	outline:none;
+	cursor:pointer;
+	background-color:#CCC; 
+}
+
+button.dt-button.adhocExcel:hover { 
+	outline:none;
+	cursor:pointer;
+	background-color:#CCC; 
+}
+
+a.dt-button.adhocPrint
+{
+	background-image: url("../images/print.png");
+    background-position:left;
+	background-repeat:no-repeat;
+	float: left;
+	height: 25px;
+	width: 6em;
+	display: block;
+	border: 1px solid #D0D0D0;
+	color: #000;
+	background-color: #E6E6E6;
+	text-decoration: none;
+	text-align: middle;
+	vertical-align:center;
+	padding:2px 0px;
+	margin-left:0px;
+	margin-right:5px;
+	margin-top:5px;
+	margin-bottom:5px;
+	font-family:arial, verdana, sans-serif;
+}
+
+button.dt-button.adhocPrint
+{
+	background-image: url("../images/print.png");
+    background-position:left;
+	background-repeat:no-repeat;
+	float: left;
+	height: 25px;
+	width: 6em;
+	display: block;
+	border: 1px solid #D0D0D0;
+	color: #000;
+	background-color: #E6E6E6;
+	text-decoration: none;
+	text-align: middle;
+	vertical-align:center;
+	padding:2px 0px;
+	margin-left:0px;
+	margin-right:5px;
+	margin-top:5px;
+	margin-bottom:5px;
+	font-family:arial, verdana, sans-serif;
+}
+
+a.dt-button.adhocPrint:hover { 
+	outline:none;
+	cursor:pointer;
+	background-color:#CCC;  
+}
+
+button.dt-button.adhocPrint:hover { 
+	outline:none;
+	cursor:pointer;
+	background-color:#CCC;  
+}
+  
+ 
+  

@@ -1,0 +1,542 @@
+#wrapper.container-fluid{
+	padding-right: 0 !important;
+    padding-left: 0 !important;
+}
+
+.dashboardTable>caption{
+	text-align: center; /* Override bootstrap css */
+}
+
+#skin_header
+{
+	/*background-image:url(../images/bannerBG.png);*/
+	/*background-repeat:repeat-x;*/
+	height: 100%;
+	background-color:#242424 !important;
+	
+	border-bottom:1px solid #000;
+	color:#027fd1;
+}
+
+
+/*****************
+ *  skin_header_left 
+ *	Content on the left side in header
+ *	
+*/
+#skin_header_left
+{
+	width:45%;
+	float:left;
+	padding-left:5px;
+}
+/*****************
+ *  skin_header_right 
+ *	Content on the right side in header
+ *	
+*/
+#skin_header_right
+{
+	width:45%;
+	float:right;
+	padding-right:5px;
+	text-align:right;
+	font-size:11px;
+}
+
+/*
+ *
+ *  skin_header_bottom
+ *  Content on the bottom in header
+ *
+ */
+#skin_header_bottom {
+    width: 100%;
+    
+    bottom: 0 !important;
+}
+
+/*RCS*/
+#skin_title
+{
+	font-weight:bold;
+	font-size:24px;
+}
+
+/*F-15*/
+#skin_sub_title
+{
+	font-weight:normal;
+	font-size:24px;
+}
+
+/*Page Sub Title*/
+#skin_sub_header
+{
+	font-style:italic;
+	color:#CCCCCC;
+	font-weight:normal;
+	text-align:left;
+}
+
+
+/***************************************
+ * Header Menu
+ * 	Help - Contact - Logout		 
+ */
+ 
+#skin_header_menu ul
+{
+	list-style-type:none;
+	color:#027fd1;
+	font-size:10px;
+	margin:0px;
+	height:0px;
+	text-align:right;
+	float:right;
+}
+
+#skin_header_menu ul li
+{
+	list-style-type:none;
+	color:#027fd1;
+	font-size:12px;
+	margin:0px;
+	padding:0px 3px;
+	display:block;
+	float:left;
+	font-weight:bold;
+}
+
+#skin_header_menu ul li a:hover
+{
+	text-decoration:underline;
+	color:#3897d6;
+}
+
+#skin_header_menu ul li a
+{
+	color:#027fd1;
+	text-decoration:none;
+	
+}
+
+/*Welcome: username*/
+#skin_header_welcome
+{
+	color:#CCCCCC;
+	padding-top:4px;
+}
+/* Username Text*/
+#skin_username
+{
+	color:#FFFFFF;
+	font-weight:bold !important;
+}
+
+#skin_header_info
+{
+	color:#CCCCCC;
+}
+
+
+#dashboard {
+    /*border: 1px solid red #242424*/;
+    border-width: 1px 0px;
+	/*
+background-color:#FEFEF2;
+*/
+background-color:#EEE;
+	margin:3px 0px;
+	border:3px double gray;
+	font-size:12px;
+	height:125px;
+	overflow:auto;
+	 -webkit-border-radius: 5px;
+     -moz-border-radius: 5px;
+     border-radius: 5px;
+
+}
+
+#dashboard .detail {
+width:75%;
+float:left;
+text-align:center;	
+}
+
+#dashboard .dataTables_scrollBody{
+	border:1px solid #ccc;
+	background-color:#fafafa;
+	
+	/*
+	background-color: white;
+    border: 1px solid #ccc;
+    height: 7.5em;
+    overflow: auto;
+    width: 100%;
+	*/
+}
+
+#dashboard .intransit {
+width:23%;
+text-align:center; 
+margin-left:75%;  
+}
+
+
+/***************************************
+ * MAIN NAVIGATION
+ * 			 
+ */
+
+#skin_nav_bar
+{
+	background-color:#05619e;
+	width:100%;
+	border-bottom:1px solid #000;
+	white-space:nowrap;
+	min-width:775px;
+}
+ 
+* html #skin_nav_menu ul {
+		width: 1%;
+}
+
+#skin_nav_menu 
+{
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+
+#skin_nav_menu li.right
+{
+	float:right !important;
+}
+
+#skin_nav_menu li
+{
+	list-style:none;
+	float:left;
+	line-height:2.5em;
+	cursor:pointer;
+	color:#FFFFFF;
+	border-right: 1px solid #272727;
+	border-left: 1px solid #39393b;
+	font-size:10px;
+	min-width:8em;
+	text-align:center;
+	background-color:#084a76;
+}
+
+#skin_nav_menu li a
+{
+	display:block;
+	min-width:8em;
+	padding:0px 5px;
+	color:#FFFFFF;
+	text-decoration:none;
+	text-align:center;
+	outline:none;
+}
+
+#skin_nav_menu li a:hover
+{
+	background-color:#3897d6;
+}
+
+
+#skin_nav_menu ul
+{
+	position: absolute;
+	display: none;
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px;
+	z-index: 1000;
+	cursor:pointer;
+	border-bottom:1px solid #000000;
+}
+
+#skin_nav_menu li li
+{
+	clear:both;
+	width:230px;
+	display:block;
+	border:none;
+	background:none;
+	background-color:#CCCCCC;
+	border-left:1px solid #000000;
+	border-right:1px solid #000000;
+	border-top:1px solid #000000;
+	font-size:10px;
+	line-height:1.5em;
+	text-align:left;
+}
+
+#skin_nav_menu ul ul
+{
+	margin: 0px 0 0 0;
+	z-index:1000;
+}
+
+#skin_nav_menu ul li
+{
+	color:#000000;
+	text-align:left;
+}
+
+#skin_nav_menu ul li a
+{
+	display:block;
+	border:none;
+	color:#000000;
+	outline:none;
+	
+}
+
+#skin_nav_menu li li a
+{
+	text-align:left;
+	outline:none;
+}
+
+#skin_nav_menu li li:hover, #skin_nav_menu li li a:hover
+{
+	background-color:#D6EBEB;
+	outline:none;
+}
+
+
+#skin_nav_menu li a:link,
+#skin_nav_menu li a:hover,
+#skin_nav_menu li a:visited,
+#skin_nav_menu li a:active
+{
+	text-decoration: none;
+}
+
+/***************************************
+ *
+ *	This will hilight different sections
+ *  valid ids for the <body> tag
+ *  home, reports, admin, maintenance or imds
+ *  <body id="home"> (default)
+ *
+*****************************************/
+/*home section*/
+body#home #skin_nav_menu li#m-home,
+/*reports section*/
+body#reports #skin_nav_menu li#m-reports,
+/*admin section*/
+body#admin #skin_nav_menu li#m-admin,
+/*maintenance section*/
+body#maintenance #skin_nav_menu li#m-maint,
+/*imds login section*/
+body#imdslogin #skin_nav_menu li#imds,
+/*home section*/
+body#home #skin_nav_menu li#m-home a,
+/*reports section*/
+body#reports #skin_nav_menu li#m-reports a,
+/*admin section*/
+body#admin #skin_nav_menu li#m-admin a,
+/*maintenance section*/
+body#maintenance #skin_nav_menu li#m-maint a,
+/*imds login section*/
+body#imdslogin #skin_nav_menu li#imds a
+{
+	background-color:#3897d6;
+
+}
+
+/*WEB-GUI section*/
+#skin_nav_menu li#m-webgui
+{
+	
+	/*background-image:url(../images/navbarBG_hoverB.png);
+	background-repeat:repeat-x;*/
+	background-color:#3897d6;
+
+}
+
+
+
+/***************************************
+ * CONTENT
+ * 			 
+ */
+
+#skin_content {
+    width: 100%;
+    height: 100%;
+    background-color: #ccc;
+    overflow: scroll;
+}
+
+/***************************************
+ * FOOTER
+ * 			 
+ */
+#skin_footer
+{
+
+	background-color:#242424;
+	clear:both; 
+	color:#CCCCCC;
+	font-size:11px;
+	padding:3px;
+	overflow: auto;
+}
+
+#skin_footer a
+{
+
+    color:#027fd1;
+	text-decoration:none;
+
+}
+
+#skin_footer .notifications
+{
+    font-size:12px;
+	text-align:right;
+
+}
+
+
+/* #skin_footer, .push 
+{ 
+	height:50px;
+	line-height:36px;
+	padding:0px 5px;
+} */
+
+
+/*******************************************************************************
+ * HACKS : Clearfix
+ *
+ * Clearfix provides a means to for an element to contain all it's floated 
+ * children even if it's not normally tall enough to do so. For more information
+ * on clearfix please see:
+ * http://www.positioniseverything.net/easyclearing.html
+ */
+.clearfix:after
+{
+    content: "."; 
+    display: block; 
+    height: 0; 
+    clear: both; 
+    visibility: hidden;
+}
+.clearfix
+{
+	min-width: 0;		/* trigger hasLayout for IE7 */
+	display: inline-block;
+	/* \*/	display: block;	/* Hide from IE Mac */
+}
+* html .clearfix
+{
+	/* \*/  height: 1%;	/* Hide from IE Mac */ 
+}
+
+a.dt-button.excelBtn
+{
+	background-image: url("../../../common/images/icons/excel.png");
+    background-position:right;
+	background-repeat:no-repeat;
+	background-color: transparent;
+	border: none;
+	text-align:left;
+	color:white;
+    text-decoration:none;
+	/*display:block;*/
+	height:32px;
+	width:125px;
+	padding-left:15px;
+	line-height:32px;
+	font-weight:bold;
+	font-size:10px;
+}
+
+button.dt-button.excelBtn
+{
+	background-image: url("../../../common/images/icons/excel.png");
+    background-position:right;
+	background-repeat:no-repeat;
+	background-color: transparent;
+	border: none;
+	text-align:left;
+	color:white;
+    text-decoration:none;
+	/*display:block;*/
+	height:32px;
+	width:125px;
+	padding-left:15px;
+	line-height:32px;
+	font-weight:bold;
+	font-size:10px;
+}
+
+a.dt-button.excelBtn:hover { 
+	outline:none;
+	cursor:pointer;
+	color: #7bbaf9;
+}
+
+button.dt-button.excelBtn:hover { 
+	outline:none;
+	cursor:pointer;
+	color: #7bbaf9;
+}
+
+a.dt-button.pdfBtn
+{
+	background-image: url("../../../common/images/icons/pdf.png");
+    background-position:right;
+	background-repeat:no-repeat;
+	background-color: transparent;
+	border: none;
+	text-align:left;
+	color:white;
+    text-decoration:none;
+	/*display:block;*/
+	height:32px;
+	width:125px;
+	padding-left:15px;
+	line-height:32px;
+	font-weight:bold;
+	font-size:10px;
+}
+
+button.dt-button.pdfBtn
+{
+	background-image: url("../../../common/images/icons/pdf.png");
+    background-position:right;
+	background-repeat:no-repeat;
+	background-color: transparent;
+	border: none;
+	text-align:left;
+	color:white;
+    text-decoration:none;
+	/*display:block;*/
+	height:32px;
+	width:125px;
+	padding-left:15px;
+	line-height:32px;
+	font-weight:bold;
+	font-size:10px;
+}
+
+a.dt-button.pdfBtn:hover { 
+	outline:none;
+	cursor:pointer;
+	color: #7bbaf9;
+}
+
+button.dt-button.pdfBtn:hover { 
+	outline:none;
+	cursor:pointer;
+	color: #7bbaf9;
+}
+
+

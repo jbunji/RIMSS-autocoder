@@ -1,0 +1,9 @@
+; NT_USERDB.def : Declares the module parameters for the DLL.
+
+LIBRARY      "NT_USERDB"
+DESCRIPTION  'NT_USERDB Windows Dynamic Link Library'
+
+EXPORTS
+    ; All tag request procedures should be listed below
+	
+	ProcessTagRequest	@1

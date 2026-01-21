@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Starting the ColdFusion Server Monitor</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf363cdd-7ff1.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf363cdd-7ff1.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7fce.html" title="Gathering information about ColdFusion servers"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff3.html" title="Viewing Server Monitor Reports"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff7.html"><b>Using the ColdFusion Server Monitor</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Starting the ColdFusion Server Monitor</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSD34F7B5B-6547-4fb2-B80C-9C24FC1C7719"><span class="topictitle1">Start the ColdFusion Server Monitor</span>
+</a></p></li><li><p><a href="#WSE06B4957-B296-4115-9583-A7C7188599A4"><span class="topictitle1">Start the ColdFusion Multiserver Monitor</span>
+</a></p></li></ul></div></div></div></div><div><p>The ColdFusion Server Monitor is a SWF application that
+you access from the ColdFusion Administrator. The Server Monitor
+begins gathering and displaying data when you start it.</p>
+<p>The ColdFusion Multiserver Monitor is a SWF application that
+can provide information about more than one ColdFusion server. To
+gather detailed information about one ColdFusion server, use the
+Server Monitor. To gather information about several servers, use
+the Multiserver Monitor.</p>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSD34F7B5B-6547-4fb2-B80C-9C24FC1C7719" class="nochunk"><a name="WSD34F7B5B-6547-4fb2-B80C-9C24FC1C7719"><!-- --></a><h2 class="topictitle2">Start the ColdFusion Server Monitor</h2><div><ol><li><p>Start the ColdFusion Administrator.</p>
+</li>
+<li><p>Select Server Monitoring &gt; Server Monitor, and then click
+Launch Server Monitor.</p>
+</li>
+</ol>
+</div></div>
+<div id="WSE06B4957-B296-4115-9583-A7C7188599A4" class="nochunk"><a name="WSE06B4957-B296-4115-9583-A7C7188599A4"><!-- --></a><h2 class="topictitle2">Start the ColdFusion Multiserver Monitor</h2><div><ol><li><p>Start the ColdFusion Administrator.</p>
+</li>
+<li><p>Select Server Monitoring &gt; Server Monitor, and then click
+Launch Multiserver Monitor.</p>
+<div class="note"><span class="notetitle">Note:  </span> The cross domain details need
+to be mentioned in the crossdomain.xml file and this file must be
+placed directly under webroot. Previously, this file was placed under
+&lt;webroot&gt;/CFIDE/multiservermonitor-access-policy.xml. For
+more information, see <a href="http://www.adobe.com/devnet/flashplayer/articles/fplayer9_security.html" target="_self">www.adobe.com/devnet/flashplayer/articles/fplayer9_security.html</a></div>
+</li>
+</ol>
+<p>By default, server monitoring is turned off. To start and stop
+monitoring, profiling, and memory tracking, click the corresponding
+buttons in the top bar of the Server Monitor. The following table
+indicates what data the Server Monitor collects when you click the
+Start button:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e14339"><p>Button</p>
+</th>
+<th valign="top" width="NaN%" id="d16e14342"><p>Action</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e14339 "><p>Start Monitoring</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e14342 "><p>Starts gathering information about all requests,
+including active requests, slowest requests, active sessions, cumulative
+server usage, highest hit counts, template cache status, request
+throttle data, requests that timed out, requests with errors, and
+server alerts. The Server Monitor does not gather information for
+requests that are excluded on the Filter Settings page.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e14339 "><p>Start Profiling</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e14342 "><p>Starts gathering tag and function timing
+information for the Slowest Requests report; the CFML stack trace
+for the Active Requests report; information about active queries,
+slowest queries, cached queries, and query cache status; database
+pool status; and the most frequently run queries. This information
+gathering lets you find bottlenecks in your application. You can
+view details about each request that is slow or consumes a lot of memory.
+You can determine which tags and functions cause the request to
+run slowly and which variables consume the most memory. You can
+use this information on both development and production servers.
+To gather the profiling information, turn on monitoring, profiling,
+and, if needed, memory tracking.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e14339 "><p>Start Memory Tracking</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e14342 "><p>Starts gathering information about memory
+consumption, including overall memory usage, the queries and sessions
+that use the most memory, the memory usage of all application and
+server scopes, and profiling information on the largest variables
+on the Requests by Memory Usage report, if profiling is enabled.</p>
+<p>You
+must enable profiling to view query-related reports; you must enable
+profiling and memory tracking to view the Queries by Memory Usage
+report.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e14339 "><p>Reset All Statistics</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e14342 "><p>Resets all statistics collected on the server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e14339 "><p>Refresh</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e14342 "><p>Updates the data for all the graphs, reports,
+and message boxes on the page.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7fce.html" title="Gathering information about ColdFusion servers"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff3.html" title="Viewing Server Monitor Reports"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff7.html"><b>Using the ColdFusion Server Monitor</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

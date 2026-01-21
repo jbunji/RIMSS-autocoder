@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updates>
+
+       <item>
+         <title>ColdFusion 10 Update 17</title>
+         <description>ColdFusion 10 Update 17 addresses a vulnerability mentioned in the security bulletin APSB15-21. In some cases the connector would need to be reconfigured. 
+ For details, click on the "Read More" link below.
+ </description>
+		 <cfhf_id>hf-10-00017</cfhf_id>
+         <cfhf_technotelink>http://www.adobe.com/go/cf10_update17</cfhf_technotelink>
+         <cfhf_type>General</cfhf_type>      
+         <cfhf_updatelevel>17</cfhf_updatelevel>
+		 <cfhf_installdate>Thu, 17 Sep 2015 13:41:44 -0400</cfhf_installdate>
+		 <cfhf_backupdir>/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017</cfhf_backupdir>
+       </item>
+</updates>

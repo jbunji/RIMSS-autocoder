@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Packaging and Deployment section</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf3638e6-7fc5.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf3638e6-7fc5.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf364104-7ff4.html" title="Security section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc2.html" title="Enterprise Manager section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Packaging and Deployment section</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fc4"><span class="topictitle1">ColdFusion Archives page</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d318518-70025aed134e6f6a20b-8000"><span class="topictitle2">Build an archive</span>
+</a></p></li></ul></li><li><p><a href="#WSe61e35da8d318518-7361f1b2134d172af67-8000"><span class="topictitle1">J2EE Archives</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d318518-7361f1b2134d172af67-7fff"><span class="topictitle2">J2EE archives overview</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fc3"><span class="topictitle2">J2EE Archives page</span>
+</a></p></li></ul></li></ul></div></div></div></div><div><p>The Packaging and Deployment
+section of the Administrator lets you create and deploy CAR files.
+You can also create J2EE EAR or WAR files that include an existing
+ColdFusion application and the ColdFusion runtime system.</p>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc4" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc4"><!-- --></a><h2 class="topictitle2">ColdFusion Archives page</h2><div><p>The ColdFusion Archives
+page includes tools that let you archive and deploy ColdFusion applications,
+configuration settings, data source information, and other types
+of information to back up your files faster. The complete list of archivable
+information includes the following:</p>
+<ul><li><p>Name and file location</p>
+</li>
+<li><p>Server settings</p>
+</li>
+<li><p>ColdFusion mappings</p>
+</li>
+<li><p>Data sources</p>
+</li>
+<li><p>Solr collections</p>
+</li>
+<li><p>Scheduled tasks</p>
+</li>
+<li><p>Event gateway instances</p>
+</li>
+<li><p>Java applets</p>
+</li>
+<li><p>CFX tags</p>
+</li>
+<li><p>Archive to do lists</p>
+</li>
+</ul>
+<p>After you archive the information, you can use the Administrator
+to deploy your web applications to the same ColdFusion server or
+to a ColdFusion server running on a different computer. Additionally,
+you can use these features to deploy and receive any ColdFusion
+archive file electronically.</p>
+<p>The Archive Settings page lets you configure various archive
+system settings that apply to all archive and deployment operations.
+For more information, see the Online Help.</p>
+</div><div id="WSe61e35da8d318518-70025aed134e6f6a20b-8000" class="nochunk"><a name="WSe61e35da8d318518-70025aed134e6f6a20b-8000"><!-- --></a><h3 class="topictitle3">Build an archive</h3><div><p>To archive a definition, </p>
+<div class="para"><ol><li><p>To access the ColdFusion Archives page, select Packaging
+and Deployment &gt; ColdFusion Archives in the left navigation pane
+of the ColdFusion Administrator.</p>
+</li>
+<li><p>On the ColdFusion Archives page, locate the name of the archive
+definition that you want to archive, and then click the Build Archive
+icon. The Archive Wizard appears.</p>
+</li>
+<li><p>In the Archive Wizard, review the archive summary information,
+and then click Next to continue. The Choose Archive File Location
+page appears.</p>
+</li>
+<li><p>In the Choose Archive File Location page, do the following:</p>
+<div class="para"><ul><li><p>In the File Name text box, specify the full path where you
+want to store the archive, followed by the name of the archive.</p>
+<p>The
+archive name must have a .car extension.</p>
+</li>
+<li><p>For U NIX users only: If you must run this archive as a privileged
+user, select the Run This Archive As A Specific User option, and
+then enter any system account name in the User name text box and
+the corresponding account password in the Password text box. The
+user name and password must match the existing user name and password
+for this system; the archive process will run as that user. If the
+user name and password do not match the existing user name and password
+for this system account, the build procedure fails.</p>
+</li>
+</ul>
+</div>
+</li>
+<li><p>Click Next to create the archive.</p>
+</li>
+</ol>
+When the archive
+operation completes, one of the following archive messages appears:</div>
+<div class="para"><ul><li><p><strong>Build Successful: </strong>The archive was successfully
+created and stored in the location that you specified in step 4.
+Click OK and then click Close on the wizard page.</p>
+</li>
+<li><p><strong>Build Failed:</strong> The archive was not created. To determine
+the cause of the problem, review the information appearing on the
+page, and click Details to further analyze the cause of the problem.</p>
+</li>
+</ul>
+</div>
+</div></div></div>
+<div id="WSe61e35da8d318518-7361f1b2134d172af67-8000" class="nochunk"><a name="WSe61e35da8d318518-7361f1b2134d172af67-8000"><!-- --></a><h2 class="topictitle2">J2EE Archives</h2><div><ul class="navlinklist"></ul>
+</div><div id="WSe61e35da8d318518-7361f1b2134d172af67-7fff" class="nochunk"><a name="WSe61e35da8d318518-7361f1b2134d172af67-7fff"><!-- --></a><h3 class="topictitle3">J2EE archives overview</h3><div><p>ColdFusion lets you create an EAR or WAR file that contains
+an entire application. This archive file contains the ColdFusion
+web application, settings for ColdFusion (such as data source definitions),
+the CFM pages used by your application (text or compiled Java),
+and optionally, the ColdFusion Administrator.This feature lets you
+quickly create an archive file that a J2EE administrator can use
+to deploy your ColdFusion application. </p>
+<p>J2EE archives are different from ColdFusion archives (CAR) files.
+For information on CAR files, see Create and deploy applicationarchives.
+For details, see ColdFusion Archive overview. </p>
+<p><strong>Context root </strong>Because the J2EE environment supports multiple,
+isolated web applications running in a server instance, each J2EE
+web application running in a server is rooted at a unique base URL,
+called a context root (or context path). The J2EE application server
+uses the initial portion of the URL (that is, the portion immediately
+following http://<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">hostname</i>) to determine which web application processes
+an incoming request.For example, if you are running ColdFusion with a
+context root of cfmx, you display the ColdFusion Administrator using
+the URL http://<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">hostname</i>/<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cfmx</i>/CFIDE/administrator/index.cfm.Most
+J2EE application servers allow one application in each server instance
+to use / (forward slash) for the context root. The Remote Development
+Services (RDS) web application is not required if you use a context
+root of /.</p>
+</div></div><div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc3" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc3"><!-- --></a><h3 class="topictitle3">J2EE Archives page</h3><div><p>The J2EE Archives page lets you create
+an enterprise application archive (EAR) file or web application
+archive (WAR) file that contains the following items:</p>
+<ul><li><p>The ColdFusion web application.</p>
+</li>
+<li><p>Server settings, such as data sources and custom tag paths.</p>
+</li>
+<li><p>The CFML pages of your application, stored in the root directory
+of the ColdFusion web application.</p>
+</li>
+</ul>
+<p>With this EAR or WAR file, a J2EE administrator can deploy your
+ColdFusion MX application to a J2EE application server.</p>
+<div class="tip"><img src="images/tip_help.png" />If you are creating a cluster of server instances
+when running the multiserver configuration, use this page to create
+the WAR or EAR files required to create each of the servers in the
+cluster.</div><p>You can create a J2EE archive regardless of whether you are running
+ColdFusion MX in the server configuration or the J2EE configuration.
+However, you must be running the J2EE configuration to deploy an
+EAR or WAR file.</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e6201"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e6204"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Achive Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies a name for the J2EE archive definition.
+This is also the name given to the EAR or WAR file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Application Directory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies the location of the CFM files
+to be included beneath the web root of the ColdFusion web application.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Distribution Directory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies the directory where ColdFusion
+places the EAR or WAR file. ColdFusion uses the name archivename.ear
+or archivename.war, depending on the archive type.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Archive Type</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies whether ColdFusion creates a Web
+Application Archive (WAR) file or an Enterprise Application Archive
+(EAR) file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Context Root (valid for EAR)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>If you create an EAR file, you can optionally
+specify a context root for the ColdFusion web application. The default
+is an empty context root. For more information, see the J2EE Packaging
+overview.If you create a WAR file, the context root is handled in
+an application-server-specific manner. In some application servers,
+the default context root is the name of the WAR file; in others,
+you specify the context root using the deploy tool or through a
+server-specific configuration file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Serial Number</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies a valid serial number for ColdFusion
+Enterprise Edition.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Previous Serial Number (if Upgrade)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specify the serial number of the previous
+ColdFusion installation.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Include COM Support</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Include COM Support Specifies whether to
+include the modules that provide COM support. Omitting COM support
+reduces the size of the archive by about 12 MB.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Disable Debugging</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies whether to disable debugging in
+the ColdFusion web application.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Include CFML Source</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies whether to use the original CFM
+files or to convert the pages to Java bytecode.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Include CF Administrator</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies whether to include the modules
+and directories for the ColdFusion Administrator (the CFIDE directory
+structure). Omitting the ColdFusion Administrator reduces the size
+of the archive by about 2 MB.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e6201 "><p>Configure Data Sources to be Included in
+Archive</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e6204 "><p>Specifies the data sources to include in
+the J2EE archive. Use the Right and Left Arrow buttons to select and
+remove data sources. Use the Double Arrow buttons to select and
+remove all data sources with one click. </p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf364104-7ff4.html" title="Security section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc2.html" title="Enterprise Manager section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

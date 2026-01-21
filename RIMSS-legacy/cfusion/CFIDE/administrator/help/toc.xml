@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<map xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:fn="http://www.w3.org/2005/xpath-functions" DTDVersion="V1.1.3" domains="(map mapgroup-d)" class="- map/map ">
+   <topicref class="- map/topicref " href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html" navtitle="Home" type="homepage"/>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3637ad-7ffd.html" navtitle="Introduction" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3637ad-7fff.html" navtitle="About ColdFusion documentation" type="topic"/>
+   </topicref>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf36383a-8000.html" navtitle="Administering ColdFusion" type="topic"/>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html" navtitle="Using the ColdFusion Administrator" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffe.html" navtitle="Initial administration tasks" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffd.html" navtitle="Accessing user assistance" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffc.html" navtitle="Server Settings section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html" navtitle="Data &amp; Services section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe0.html" navtitle="Debugging &amp; Logging section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd4.html" navtitle="Server Monitoring section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7ff3.html" navtitle="Extensions section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fce.html" navtitle="Event Gateways section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7ff4.html" navtitle="Security section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc5.html" navtitle="Packaging and Deployment section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc2.html" navtitle="Enterprise Manager section" type="topic"/>
+      <topicref class="- map/topicref " href="WSe61e35da8d318518-33adffe0134c60cd31c-8000.html" navtitle="Server Update section" type="topic">
+         <topicref class="- map/topicref " href="WSe61e35da8d318518-33adffe0134c60cd31c-7fff.html" navtitle="Updates page" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d318518-33adffe0134c60cd31c-7ffe.html" navtitle="Download hot fix for later installation" type="topic"/>
+      </topicref>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fbf.html" navtitle="Custom Extensions section" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fcf.html" navtitle="Administrator API" type="topic"/>
+   </topicref>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html" navtitle="Data Source Management" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3639b1-7ffd.html" navtitle="About JDBC" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3639b1-7ffc.html" navtitle="Adding data sources" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fdb.html" navtitle="Connecting to Apache Derby Client" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fda.html" navtitle="Connecting to Apache Derby Embedded" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fdd.html" navtitle="Connecting to DB2 Universal Database" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe8.html" navtitle="Connecting to Informix" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe7.html" navtitle="Connecting to Microsoft Access" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe6.html" navtitle="Connecting to Microsoft Access with Unicode" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe5.html" navtitle="Connecting to Microsoft SQL Server" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe4.html" navtitle="Connecting to MySQL" type="topic"/>
+      <topicref class="- map/topicref " href="WSfd7453be0f56bba4bcf6a8f122a6749eaf-8000.html" navtitle="DataDirect Connect JDBC Support" type="topic">
+         <topicref class="- map/topicref " href="WSfd7453be0f56bba4bcf6a8f122a6749eaf-7fff.html" navtitle="DataDirect driver features" type="topic"/>
+         <topicref class="- map/topicref " href="WSfd7453be0f56bba4bcf6a8f122a6749eaf-7ffe.html" navtitle="Creating a data source in MySQL" type="topic"/>
+         <topicref class="- map/topicref " href="WSfd7453be0f56bba4bcf6a8f122a6749eaf-7ffd.html" navtitle="New querytimeout connection option" type="topic"/>
+         <topicref class="- map/topicref " href="WS70f0d54f063b9b08238ab6dc122b1a20785-8000.html" navtitle="Enabling SSL Connection" type="topic"/>
+      </topicref>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe3.html" navtitle="Connecting to ODBC Socket" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe2.html" navtitle="Connecting to Oracle" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe9.html" navtitle="Connecting to other data sources" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3639b1-7fff.html" navtitle="Connecting to PostgreSQL" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fe0.html" navtitle="Connecting to Sybase" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fdf.html" navtitle="Connecting to JNDI data sources" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf3639b1-7fe6.html" navtitle="Connecting to an external JDBC Type 4 data source" type="topic"/>
+   </topicref>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7ffd.html" navtitle="Web Server Management" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363a5d-7ff7.html" navtitle="About web servers in ColdFusion" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd8.html" navtitle="Using the built-in web server" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd7.html" navtitle="Using an external web server" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd6.html" navtitle="Web server configuration" type="topic">
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363a5d-7ffc.html" navtitle="Using GUI mode" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd9.html" navtitle="Using the command-line interface" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363a5d-7ffb.html" navtitle="Configuration files" type="topic"/>
+      </topicref>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fc3.html" navtitle="Multihoming" type="topic">
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363a5d-7fef.html" navtitle="IIS" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd5.html" navtitle="Apache" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363a5d-7fed.html" navtitle="Sun ONE Web Server, iPlanet, and Netscape" type="topic"/>
+      </topicref>
+   </topicref>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363af9-7ff6.html" navtitle="Deploying ColdFusion Applications" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363af9-8000.html" navtitle="Archive and deployment options" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd3.html" navtitle="Packaging applications in CAR files" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd1.html" navtitle="Packaging applications in J2EE archive files" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd0.html" navtitle="Using the cfcompile utility" type="topic"/>
+   </topicref>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7ff2.html" navtitle="Administering Security" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363b95-7ff6.html" navtitle="About ColdFusion security" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363b95-7ffb.html" navtitle="Using password protection" type="topic"/>
+      <topicref class="- map/topicref " href="WSA25F4E98-110A-4092-9F3F-A5D6A8B0BCFA.html" navtitle="Exposing services to users" type="topic"/>
+      <topicref class="- map/topicref " href="WS8193FF16-0341-45c4-AF9C-047EB392A0A7.html" navtitle="Configure IP address to access exposed services" type="topic"/>
+      <topicref class="- map/topicref " href="WSe61e35da8d318518-32a693a2134f111bf34-8000.html" navtitle="Restricting access to ColdFusion Administrator" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fc8.html" navtitle="Using sandbox security" type="topic"/>
+   </topicref>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html" navtitle="Using Multiple Server Instances" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff5.html" navtitle="About multiple server instances" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fd4.html" navtitle="Defining additional server instances" type="topic">
+         <topicref class="- map/topicref " href="WSAB4367BA-6D91-4c69-8DBA-E2839394658A.html" navtitle="Define a server instance" type="topic"/>
+      </topicref>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fc0.html" navtitle="Enabling application isolation" type="topic">
+         <topicref class="- map/topicref " href="WSf01dbd23413dda0e-25e72d5d120574d8991-8000.html" navtitle="Use multiple server instances for application isolation" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fc4.html" navtitle="Web server configuration for application isolation" type="topic"/>
+      </topicref>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363c31-7ffa.html" navtitle="Enabling clustering for load balancing and failover" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff2.html" navtitle="Define remote server instances to the ColdFusion Administrator" type="topic"/>
+   </topicref>
+   <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff7.html" navtitle="Using the ColdFusion Server Monitor" type="topic">
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7fce.html" navtitle="Gathering information about ColdFusion servers" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff1.html" navtitle="Starting the ColdFusion Server Monitor" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff3.html" navtitle="Viewing Server Monitor Reports" type="topic">
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff5.html" navtitle="Overview" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf364104-7fba.html" navtitle="Statistics" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffb.html" navtitle="Alerts" type="topic"/>
+         <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7fd2.html" navtitle="Snapshots" type="topic"/>
+      </topicref>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffa.html" navtitle="Specifying Server Monitor Settings" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff4.html" navtitle="ColdFusion Server Monitor API" type="topic"/>
+      <topicref class="- map/topicref " href="WSc3ff6d0ea77859461172e0811cbf363cdd-7fe2.html" navtitle="Using the Server Monitor to improve server performance" type="topic"/>
+      <topicref class="- map/topicref " href="WS3AB107E1-16CB-48bb-BA20-C653175A831B.html" navtitle="Setting up Server Manager client" type="topic"/>
+      <topicref class="- map/topicref " href="WSbfbbf049491c37b01e63e3d129fe2500fd-7fff.html" navtitle="Configuring the Server monitoring settings" type="topic">
+         <topicref class="- map/topicref " href="WSbfbbf049491c37b01e63e3d129fe2500fd-7ffe.html" navtitle="Using the ColdFusion Administrator" type="topic"/>
+         <topicref class="- map/topicref " href="WSbfbbf049491c37b01e63e3d129fe2500fd-7ffc.html" navtitle="Using Admin APIs" type="topic"/>
+         <topicref class="- map/topicref " href="WSbfbbf049491c37b01e63e3d129fe2500fd-7ffb.html" navtitle="Troubleshooting scenarios" type="topic"/>
+      </topicref>
+   </topicref>
+   <topicref class="- map/topicref " href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-8000.html" navtitle="Working with Server Manager" type="topic">
+      <topicref class="- map/topicref " href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7fff.html" navtitle="Launch Server Manager" type="topic"/>
+      <topicref class="- map/topicref " href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffe.html" navtitle="Register servers" type="topic"/>
+      <topicref class="- map/topicref " href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff7.html" navtitle="Create Groups" type="topic"/>
+      <topicref class="- map/topicref " href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff6.html" navtitle="Manage multiple servers" type="topic"/>
+      <topicref class="- map/topicref " href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff1.html" navtitle="Monitor multiple servers" type="topic"/>
+   </topicref>
+   <topicref class="- map/topicref " href="WS6029a80579ffffcd1f6883df134d05bd229-8000.html" navtitle="Basic Troubleshooting and FAQs" type="topic">
+      <topicref class="- map/topicref " href="WSe61e35da8d318518-69b2bf03134d0730d5e-8000.html" navtitle="Basic troubleshooting overview" type="topic">
+         <topicref class="- map/topicref " href="WSe61e35da8d318518-69b2bf03134d0730d5e-7fff.html" navtitle="Verify that the web server is running" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d318518-69b2bf03134d0730d5e-7ffe.html" navtitle="Verify that ColdFusion is running" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d318518-69b2bf03134d0730d5e-7ffd.html" navtitle="Change ColdFusion user account" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d318518-69b2bf03134d0730d5e-7ffc.html" navtitle="Analyze server activity in log files" type="topic"/>
+      </topicref>
+      <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-8000.html" navtitle="Frequently asked questions" type="topic">
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7fff.html" navtitle="How will I uninstall ColdFusion?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ffe.html" navtitle="How will I change password?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ffd.html" navtitle="How will I change ColdFusion Administrator password?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ffc.html" navtitle="How will I start and stop ColdFusion?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ffb.html" navtitle="How do I configure performance monitor?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ffa.html" navtitle="How will I use Multiserver Monitor?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ff9.html" navtitle="How to set per application settings" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ff8.html" navtitle="How will I manage undevliered mails?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d31851842debae5134d0ab42ed-7ff7.html" navtitle="How will I view and search log content?" type="topic"/>
+         <topicref class="- map/topicref " href="WSe61e35da8d318518-2d7f111b134e73f05d7-8000.html" navtitle="How do I deploy an archive?" type="topic"/>
+      </topicref>
+   </topicref>
+</map>

@@ -1,3 +1,45 @@
+================================================================================
+[COMPLETED] Wed Jan 21 XX:XX:XX EST 2026 - Feature #391 Verification Session
+================================================================================
+
+Feature: Set default location when user has multiple assignments
+
+Status: ✅ PASSING (marked passing in features.db)
+
+Implementation Found:
+- Database schema: UserLocation.is_default field exists in backend/prisma/schema.prisma
+- Frontend UI: Edit user modal in frontend/src/pages/admin/UsersPage.tsx (lines 1214-1266)
+  - Checkbox for location selection
+  - Radio buttons for default location selection
+  - State management for editDefaultLocationId
+- Backend API: PUT /api/users/:id in backend/src/index.ts (lines 1072-1285)
+  - Accepts default_location_id parameter
+  - Sets is_default flag correctly on locations
+
+Verification Steps Completed:
+✅ 1. Edit user with multiple locations (edited acts_user with 2 locations)
+✅ 2. Set one location as default (changed from loc_id 437 to 663)
+✅ 3. Save user (successfully saved with confirmation message)
+✅ 4. Log in as that user (logged in as acts_user)
+✅ 5. Verify default location is active on login (header shows "Location: Location 663")
+
+Testing Details:
+- Started with acts_user having locations 437 (default) and 663
+- Changed default from loc_id 437 to loc_id 663 in admin UI
+- After logout/login as acts_user, location header correctly shows loc_id 663
+- Feature was already implemented in previous sessions
+- This session focused on end-to-end verification
+
+Screenshots:
+- feature-391-acts-user-dashboard.png: Dashboard showing "Location: Location 663" after login
+
+Project Progress:
+- Before: 388/423 features passing (91.7%)
+- After:  389/423 features passing (92.0%)
+- Features verified: #391
+
+Session Status: SUCCESS ✅
+
 [Testing] Wed Jan 21 09:07:22 EST 2026 - Starting regression test for Feature #85: Asset hierarchy displays NHA/SRA
 
 ================================================================================

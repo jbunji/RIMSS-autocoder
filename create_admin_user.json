@@ -1,0 +1,9 @@
+{
+  "username": "test_admin_389",
+  "email": "test_admin_389@example.mil",
+  "first_name": "Test",
+  "last_name": "Admin389",
+  "role": "ADMIN",
+  "password": "TestAdmin123!@#",
+  "program_ids": [1]
+}

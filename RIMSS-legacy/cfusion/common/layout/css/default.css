@@ -1,0 +1,738 @@
+html, body {
+   height: 100%;
+   margin: 0;
+   padding: 0;
+   border: none;
+   font-size: 10pt;
+   font-family:Arial,Verdana, Geneva, Helvetica, sans-serif;
+}
+
+* {
+    margin: 0;
+}
+
+.wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    min-width: 750px;
+    margin: 0 auto -50px; /* the bottom margin is the negative value of the footer's height */
+    background-color:#CCCCCC;
+}
+
+
+.content {
+	margin-bottom:5px;
+}
+
+.footer, .push {
+    height: 50px; /* .push must be the same height as .footer */
+    
+}
+
+.footer{
+	background-color:#242424;
+    clear:both; 
+    color:#CCCCCC;
+    font-size:11px;
+	clear:both; 
+
+}
+
+.footer table{
+	width:100%;
+	margin: 0;
+   padding: 0;
+}
+
+.footer table td{
+
+}
+
+form {
+   margin:0;
+   padding:0;
+}
+
+
+
+
+
+table.layout {
+   height: 100%;
+   width: 100%;
+   margin: 0;
+   padding: 0;
+}
+
+tr.layout_header td {
+	width: 100%;
+	max-width:100%;
+	height: 25%;
+	min-height: 25%; 
+	border-bottom: 1px solid white;
+}
+
+tr.layout_body {
+}
+
+tr.layout_body > td {
+    width: 100%;
+    height: 67.5%;
+}
+
+
+
+table.footer {
+   width: 100%;
+   margin: 0;
+   padding: 0;
+}
+
+tr.layout_footer td {
+    width: 100%;
+}
+
+table.results {
+   border-collapse:collapse;
+   font-family:Arial, Helvetica, sans-serif;
+   font-size:12px;
+   width:100%;
+   margin-bottom:10px;
+}
+
+tr.alt td {
+   background: #ecf6fc;
+}
+
+tr.over td {
+   background: #bcd4ec;
+}
+
+thead.resultHead {
+   border:1px solid #333333;
+   background:#666666;  
+   padding: 4px;
+   color:white;
+}
+
+tbody.resultbody td {
+   vertical-align:top;
+}
+
+div.footerLeft {
+    float: left;
+}
+
+div.footerCenter {
+	text-align:center;
+}
+
+div.footerRight {
+    float: right;
+}
+
+TABLE.stdForm
+{
+}
+
+TD.stdFormInput
+{
+   border-top: 1px solid Black;
+   border-left : 1px solid #000000;
+   vertical-align: top;
+}
+
+TD.stdFormLabel
+{
+   border-top: 1px solid Black;
+   vertical-align: top;
+}
+
+TD.stdFormSpanInput
+{
+   border-top: 1px solid Black;
+   text-align: center;
+   vertical-align: top;
+}
+
+TD.stdFormSpanLabel
+{
+   border-top: 1px solid Black;
+   text-align: center;
+   vertical-align: top;
+}
+
+TD.stdFormInputLast
+{
+   border-top: 1px solid Black;
+   border-bottom: 1px solid Black;
+   border-left : 1px solid #000000;
+   vertical-align: top;
+}
+
+TD.stdFormLabelLast
+{
+   border-top: 1px solid Black;
+   border-bottom: 1px solid Black;
+   vertical-align: top;
+}
+
+TD.stdFormSpanInputLast
+{
+   border-top: 1px solid Black;
+   border-bottom: 1px solid Black;
+   text-align: center;
+   vertical-align: top;
+}
+
+TD.stdFormSpanLabelLast
+{
+   border-top: 1px solid Black;
+   border-bottom: 1px solid Black;
+   text-align: center;
+   vertical-align: top;
+}
+
+table.lookup {
+    width: 100%;
+    border-collapse:collapse;
+    margin: auto;
+}
+
+tr.odd {
+    background-color:#fff;
+}
+
+tr.even {
+    background-color:#c8cdd1;
+}
+
+tr.header {
+    background-color:#000;
+    color:#fff;
+}
+
+tr.header th {
+    border: 1px solid #000;
+    margin: 0;
+    padding: 2px 0px;
+}
+
+tr.asset span {
+    cursor: default;
+}
+
+tr.asset td {
+    text-align: center;
+    border: 1px solid #000;
+    margin: 0;
+    padding: 2px 0px;
+}
+
+tr.code span {
+    cursor: default;
+}
+
+tr.code td {
+    text-align: center;
+    border: 1px solid #000;
+    margin: 0;
+    padding: 2px 0px;
+}
+
+tr.tcto span {
+    cursor: default;
+}
+
+tr.tcto td {
+    text-align: center;
+    border: 1px solid #000;
+    margin: 0;
+    padding: 2px 0px;
+}
+
+tr.sra span {
+    cursor: default;
+}
+
+tr.sra td {
+    text-align: center;
+    border: 1px solid #000;
+    margin: 0;
+    padding: 2px 0px;
+}
+
+.highlight {
+    background: #027fd1 !important;
+    color: #fff !important;
+}
+
+.highlight a {
+    color: #fff !important;
+}
+
+.highlightStatic {
+    background: #027fd1 !important;
+    color: #fff !important;
+}
+
+.highlightStatic a {
+    color: #fff !important;
+}
+
+.center { text-align : center; }
+.noedit8 { background: #dddddd; color:black; font-size:8pt; font-family:Arial, Helvetica, sans-serif; }
+.noedit10 { background: #dddddd; color:black; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+.noedit12 { background: #dddddd; color:black; font-size:12pt; font-family:Arial, Helvetica, sans-serif; }
+
+.font8 { font-size:8pt; font-family:Arial, Helvetica, sans-serif; }
+.font10 { font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+.font12 { font-size:12pt; font-family:Arial, Helvetica, sans-serif; }
+
+.clear6 { color:black; font-size:6pt; font-family:Arial, Helvetica, sans-serif; }
+.clear8 { color:black; font-size:8pt; font-family:Arial, Helvetica, sans-serif; }
+.clear  { color:black; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.white6 { background: white; color:black; font-size:6pt; font-family:Arial, Helvetica, sans-serif; }
+.white8 { background: white; color:black; font-size:8pt; font-family:Arial, Helvetica, sans-serif; }
+.white8 { background: white; color:black; font-size:9pt; font-family:Arial, Helvetica, sans-serif; }
+.white  { background: white; color:black; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.red6 { background:red; color:white; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.red8 { background:red; color:white; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.red  { background:red; color:white; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.yellow6 { background:yellow; color:black; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.yellow8 { background:yellow; color:black; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.yellow  { background:yellow; color:black; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.orange6 { background:orange; color:white; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.orange8 { background:orange; color:white; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.orange  { background:orange; color:white; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.green6 { background:green; color:white; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.green8 { background:green; color:white; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.green  { background:green; color:white; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.magenta6 { background:magenta; color:white; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.magenta8 { background:magenta; color:white; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.magenta  { background:magenta; color:white; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.cyan6 { background:cyan; color:black; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.cyan8 { background:cyan; color:black; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.cyan  { background:cyan; color:black; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.blue6 {background: #00007F; color:white; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.blue8 {background: #00007F; color:white; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.blue  {background: #00007F; color:white; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.gray6 { background:darkgray; color:black; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.gray8 { background:darkgray; color:black; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.gray  { background:darkgray; color:black; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+.black6 { background:black; color:white; font-size:6pt; font-family:Arial, Helvetica, sans-serif; width: 40px; height: 15px; }
+.black8 { background:black; color:white; font-size:8pt; font-family:Arial, Helvetica, sans-serif; width: 60px; }
+.black  { background:black; color:white; font-size:10pt; font-family:Arial, Helvetica, sans-serif; }
+
+table.oldStyle
+{
+  text-align : center;
+  font-size : 8pt;
+  border : 0px solid black;
+  background  : #a9a9a9;
+}
+
+th.oldStyle
+{
+  border-bottom : 2px solid black;
+  border-right : 2px solid black;
+  background  : #bbbbbb;
+}
+
+td.oldStyle
+{
+  font-size : 8pt;
+  text-align : left;
+  padding-left : 0px;
+  padding-right : 0px;
+  border : 0px solid black;
+  background  : #aaaaaa;
+}
+
+td.list
+{
+  font-size : 8pt;
+  text-align : left;
+  padding-left : 4px;
+  padding-right : 4px;
+  border : 0px solid black;
+  background  : #dddddd;
+}
+
+input.oldStyle {
+    width : 200px; height : 20px;
+}
+
+input.uppercase {
+    text-transform : uppercase;
+}
+
+div.messages {
+    height: 30px;
+    width: 100%;
+    background-color: #a1a1a1;
+    text-align: center;
+    line-height: 30px;
+    border-bottom: 1px solid #000;
+}
+
+span.required_field {
+    font-weight: bold;
+    color: #ff0000;
+    padding-left: 1px;
+	padding-right:1px;
+}
+
+label.plainMessage {
+    font-weight : bold;
+    color : #000; 
+}
+
+label.successMessage
+{
+  font-weight : bold;
+  color : #003300; 
+}
+
+label.warningMessage
+{
+  font-weight : bold;
+  color : #FFFF00; 
+}
+
+label.errorMessage
+{
+  font-weight : bold;
+  color : #FF0000; 
+}
+
+label.primaryKey
+{
+  font-weight : bold;
+  color : #004000; 
+}
+
+label.foreignKey
+{
+  font-weight : normal;
+  color : #7F0000; 
+}
+
+label.foreignKeyNN
+{
+  font-weight : bold;
+  color : #7F0000; 
+}
+
+label
+{
+  color : #00007F; 
+}
+
+textarea.remarks
+{
+  text-transform : uppercase;
+  font-family: Arial, sans-serif;
+}
+
+input.form_field {
+    margin: 0;
+    padding: 0;
+    padding-left: 2px;
+    border: 1px solid #027fd1;
+    text-transform: uppercase;
+}
+
+/*
+input.required_form_field {
+    background-color: #ccc;
+}
+*/
+
+input.calendar_field {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    padding-left: 0 !important;
+    width: 85px;
+    max-width: 85px;
+}
+
+input.time_field {
+    text-align: center;
+    margin: 0px;
+    padding: 0px 5px;
+    width: 50px;
+    max-width: 50px;
+}
+
+textarea.text_area_field {
+    margin: 1px 0px 0px 0px;
+    padding: 0px;
+    min-width: 98%;
+    max-width: 98%;
+    border: 1px solid #027fd1;
+    text-transform: uppercase;
+}
+
+select.select_field {
+    margin: 0px;
+    padding: 0px;
+    height: 20px;
+    border: 1px solid #027fd1;
+}
+
+H1.oldStyle { font-family : Verdana, Arial, Helvetica, sans-serif; font-weight : 600; text-transform : none; font-size : 24px; color : black; text-align : center; color : #292929; }
+H2.oldStyle { font-family : Verdana, Arial, Helvetica, sans-serif; font-weight : 500; text-transform : none; font-size : 18px; color : black; text-align : center; color : #292929; }
+H3.oldStyle { font-family : Verdana, Arial, Helvetica, sans-serif; font-weight : 400; text-transform : none; font-size : 16px; color : black; }
+H4.oldStyle { font-family : Verdana, Arial, Helvetica, sans-serif; font-weight : 300; text-transform : none; font-size : 14px; color : black; }
+H5.oldStyle { font-family : Verdana, Arial, Helvetica, sans-serif; font-weight : 200; text-transform : none; font-size : 12px; color : black; }
+H6.oldStyle { font-family : Verdana, Arial, Helvetica, sans-serif; font-weight : 100; text-transform : none; font-size : 10px; color : black; }
+
+/*  form layouts  */
+div.form_div {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#mainform {
+    margin: 5px 1px;
+    border: 0px none;
+    padding: 5px;
+}
+
+/*  table layouts  */
+.content_table {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.content_table td {
+    border: 1px solid white;
+}
+
+.no_width_content_table {
+    margin: 0 auto;
+    padding: 0;
+    border-collapse: collapse;
+}
+
+.no_width_content_table td {
+    padding: 0px 5px;
+    border: 1px solid white;
+}
+    
+.horizontal_rule {
+    height: 1px;
+    background-color: #000;
+}
+
+.two_column_table {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.two_column_table .column {
+    margin: 0;
+    padding: 0;
+    height: 20px;
+    width: 50%;
+    border-collapse: collapse;
+}
+
+.six_column_table {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.six_column_table .label_column {
+    margin: 0;
+    padding: 0;
+    height: 20px;
+    width: 10%;
+    border-collapse: collapse;
+}
+
+.six_column_table .column {
+    margin: 0;
+    padding: 0;
+    height: 20px;
+    width: 23%;
+    border-collapse: collapse;
+}
+
+/* SORTIE import table */
+table.tblImport {
+       font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;
+       border:1px solid black; 
+       margin:auto;
+       font-size:12px;
+       margin-top:5px;
+       border-collapse:collapse; 
+	   
+       
+    }
+    
+    table.tblColumns {
+     
+     width:100%:
+     padding:0px;
+     margin:0px;
+     font-size:12px;
+     border-collapse:collapse; 
+     border:1px solid black;
+     border-width:0 0 0 1;     
+        
+    }
+    
+    
+    table.tblImport .columnMapings {
+        width:60%;        
+        
+    }
+    table.tblImport .columnItems {
+        width:40%;        
+        
+    }
+    
+    
+    table.tblColumns th {
+       background-color:gray !important;
+       color:black;
+       padding:2px;
+       
+    }
+    
+    table.tblImport th, table.tblMappings th, table#tblFailureResults th.columnItems {
+       background-color:#027FD1;
+       color:white;
+       padding:2px;
+       
+    }
+    
+	    table.tblImport th, table.tblMappings th {
+       background-color:#027FD1;
+       color:white;
+       padding:2px;
+       
+    }
+	
+    table.tblImport ul{
+       margin:0px;
+       padding:0px;
+       list-style:none;
+
+    }
+    
+    table.tblImport ul li{
+       margin:1px;
+       padding:2px;
+       border:1px solid black;
+       list-style:none;
+       cursor:pointer;
+       background-color:#ddd;
+       
+    }
+    
+    
+    
+    
+    table.tblImport li.hilight{
+       background-color:#B2B2B2;
+       color:white;  
+    }
+    
+    table.tblImport ul li.selected{
+      background-color:white;
+      font-weight:bold;
+      color:black;  
+       
+    }
+    
+    table.tblImport select {
+        background-color:#eee;
+        width:200px;
+        height:235px;
+    }
+    
+    table.tblImport .columns, table.tblColumns td{
+       /*background-color:#EBEB99;  */
+	   background-color: #F5F5DC;  
+    }
+
+    table.tblImport div.columnListing{
+       height:190px;
+       overflow:auto;
+       width:auto;
+    
+    }
+    
+    table.tblMappings{
+        margin:auto;
+        width:755px;
+        font-family:Verdana, Geneva, Arial, Helvetica, sans-serif;
+        font-size:12px;
+        font-weight:normal;
+        border:1px solid black;
+        border-collapse:collapse; 
+		background-color:#F5F5DC;
+        
+    }
+    
+    table.tblMappings td,table.tblMappings th{
+        
+     font-weight:normal;   
+     text-align:center;  
+	  
+    }
+	
+	table.tblMappings th{
+        background-color:gray; 
+      
+    }
+    
+	
+	
+    
+   /*
+ table.tblMappings tbody tr:nth-of-type(odd) {
+        background-color:#F5F5DC;
+    } 
+	table.tblMappings tbody tr:nth-of-type(even) {
+        background-color:#F5F5DC;
+    } 
+*/
+    
+    
+    div.resetMappings{
+       text-align:center;
+    }
+    
+    div#mappingButtons{
+       text-align:center;   
+    }
+    
+    div#mappingsInfo{
+       display:none;    
+    }
+    
+    
+

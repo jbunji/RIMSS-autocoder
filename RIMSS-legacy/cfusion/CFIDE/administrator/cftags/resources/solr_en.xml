@@ -1,0 +1,232 @@
+<cfprocessingdirective suppresswhitespace="yes" pageencoding="ISO-8859-1">
+<cfsilent>
+<!--
+L10N Resource File
+Section: Solr
+Locale: English (en)
+Find the requested resource by id
+-->
+</cfsilent>
+<cfswitch expression="#ATTRIBUTES.id#">
+
+<cfcase value="pagenameq8">ColdFusion Collections</cfcase>
+<cfcase value="pageHeader_verity">Data &amp; Services &gt; ColdFusion Collections</cfcase>
+<cfcase value="verity_welcome">
+The Solr indexing engines allows you to easily develop search capabilities for your ColdFusion applications. A Solr collection is a group of information that can be indexed and searched as a set. Use this form to create and manage your Solr collections.
+</cfcase>
+<cfcase value="l10n_add">Add New Solr Collections</cfcase>
+<cfcase value="name">Name</cfcase>
+<cfcase value="verity_name_required">A name for your collection is required.</cfcase>
+<cfcase value="path">Path</cfcase>
+<cfcase value="verity_path_required">A path for your Solr collection is required.</cfcase>
+<cfcase value="browse_button">Browse Server</cfcase>
+<cfcase value="l10n_addcol">Create Collection</cfcase>
+<cfcase value="verity_optimize_warn"><cfoutput>Optimizing a collection can take several minutes. #CALLER.nl# Proceed?</cfoutput></cfcase>
+<cfcase value="verity_purge_warn"><cfoutput>Purging a collection cannot be undone. #CALLER.nl# Remove all indices in this collection?</cfoutput></cfcase>
+<cfcase value="verity_delete_warn"><cfoutput>Deleting a collection cannot be undone. #CALLER.nl# Destroy this collection?</cfoutput></cfcase>
+<cfcase value="l10n_ioptimize3">Optimize Collection</cfcase>
+<cfcase value="l10n_ipurge3">Purge Collection</cfcase>
+<cfcase value="l10n_idelete3">Delete Collection</cfcase>
+<cfcase value="l10n_iindex3">Index Collection</cfcase>
+<cfcase value="l10n_ireload3">Reload Collection</cfcase>
+<cfcase value="conn1z2_solr">Solr Collections</cfcase>
+<cfcase value="actions">Actions</cfcase>
+<cfcase value="aliasname">Name</cfcase>
+<cfcase value="Documents">Documents</cfcase>
+<cfcase value="size_kb">Size (Kb)</cfcase>
+<cfcase value="lastmod">Last Modified</cfcase>
+<cfcase value="no_server">
+Unable to retrieve collections from the Search Services.<br />
+Ensure that you have installed ColdFusion Search Service and it is running.
+</cfcase>
+<cfcase value="valid_collection_name">Please enter a valid name for this collection.</cfcase>
+<cfcase value="valid_collection_path">Please enter a valid Directory Path for this collection.</cfcase>
+<cfcase value="collection_indexed"><cfoutput>Collection <cfoutput>#EncodeForHTML(CALLER.collectionname)# Indexed: #CALLER.indexResult.inserted# files inserted, #CALLER.indexResult.updated# files updated.</cfoutput></cfoutput></cfcase>
+<cfcase value="solr_alias_required">An alias name is required.</cfcase>
+<cfcase value="collection_aliased"><cfoutput>
+                  Alias <cfoutput>#EncodeForHTML(FORM.SolrAliasName)# created for #EncodeForHTML(CALLER.collectionname)#.</cfoutput>
+               </cfoutput></cfcase>
+<cfcase value="solr_newname_required">A new collection name is required.</cfcase>
+<cfcase value="collection_renamed"><cfoutput>
+                  <cfoutput>#EncodeForHTML(CALLER.collectionname)# renamed to #EncodeForHTML(FORM.SolrNewName)#.</cfoutput>
+               </cfoutput></cfcase>
+<cfcase value="solr_highlighting_remote">Could not determine collection path locally. See the section Term Highlighting in the <i>Developing Coldfusion 9 Applications</i> to enable term highlighting for the entire document.</cfcase>
+<cfcase value="collection_hightlightenabled"><cfoutput>
+                  <cfoutput>Term highlighting enabled for #EncodeForHTML(CALLER.collectionname)#. Reindex collection for these changes to take effect </cfoutput>
+               </cfoutput></cfcase>
+<cfcase value="fullterm_collection_hightlightenabled"><cfoutput>
+                  <cfoutput>Full term highlighting disabled for #EncodeForHTML(CALLER.collectionname)#. Reindex collection for these changes to take effect </cfoutput>
+               </cfoutput></cfcase>
+<cfcase value="pagename_indexveritycollection">Index Solr Collections</cfcase>
+<cfcase value="indexcollection_pageHeader_manage">Data &amp; Services &gt; ColdFusion Collections &gt; Manage Collection</cfcase>
+<cfcase value="indexcollection_pageHeader_index">Data &amp; Services &gt; ColdFusion Collections &gt; Index Collection</cfcase>
+<cfcase value="solrindex_welcome">
+NOTE: Because you have a remote Solr server configured, you must ensure that the documents
+to be indexed are accessible from the ColdFusion server machine as well as the computer
+on which the Solr search services run. Also, if the local and remote file paths do not match exactly,
+you can use the Remote Directory Path field to define a prefix that maps the local path to the path
+on the remote Solr host.
+</cfcase>
+<cfcase value="l10n_indexcollection">Index Collection:</cfcase>
+<cfcase value="l10n_indexextensions">File Extensions</cfcase>
+<cfcase value="l10n_indexdirpath">Directory Path</cfcase>
+<cfcase value="l10n_LocalIndexdirpath">Local Directory Path</cfcase>
+<cfcase value="browser_server">Browse Server</cfcase>
+<cfcase value="l10n_indexdirprefix">Remote Directory Path</cfcase>
+<cfcase value="recurse_index_sub_dirs">Recursively Index Sub Directories</cfcase>
+<cfcase value="l10n_indexreturnurl">Return URL</cfcase>
+<cfcase value="10n_indexlanguage">Language</cfcase>
+<cfcase value="cancel">Cancel</cfcase>
+<cfcase value="submit">Submit</cfcase>
+<cfcase value="l10n_termhighlight_title">Enable Term Highlighting:</cfcase>
+<cfcase value="termhighlight_desc">
+<p> By default, Solr highlights searched terms available in the summary content. Click Enable to highlight contents in the entire document. After you enable/disable, and reindex the collection.</p>
+</cfcase>
+<cfcase value="Enable">Enable</cfcase>
+<cfcase value="Disable">Disable</cfcase>
+<cfcase value="termhighlight_note">
+Note: Enabling term highlighting for the entire document increases index size. 
+</cfcase>
+<cfcase value="termhighlight_remote_note">
+<p>By default, Solr highlights searched terms only in the summary content. See the section Term Highlighting in the <i>Developing Coldfusion 9 Applications</i> to enable term highlighting for the entire document.</p>
+</cfcase>
+<cfcase value="l10n_aliascollection">Alias Collection:</cfcase>
+<cfcase value="l10n_aliasname">Collection Alias</cfcase>
+<cfcase value="l10n_renamecollection">Rename Collection:</cfcase>
+<cfcase value="l10n_corerename">New name for Collection</cfcase>
+<cfcase value="solrupdated">
+Solr Server Configuration information updated.
+</cfcase>
+<cfcase value="solrmigrationupdated">
+Solr Collections have been migrated successfully.
+</cfcase>
+<cfcase value="solr_pagename">Solr Server</cfcase>
+<cfcase value="pageHeader_solr">Data &amp; Services &gt; Solr Server</cfcase>
+<cfcase value="Solrconfig_welcome">
+You can install and configure Solr search service on a host other than the one
+on which ColdFusion runs. That is the host that Coldfusion will use while performing search operations.
+Click the Show Advanced Settings to configure these values.
+You should not need to change the advanced values if you are running with the ColdFusion installed
+version of Solr.
+</cfcase>
+<cfcase value="l10n_addsolr_config">Configure Solr Server</cfcase>
+<cfcase value="solr_host">Solr Host Name</cfcase>
+<cfcase value="solr_home">Solr Home</cfcase>
+<cfcase value="button_browse">Browse Server</cfcase>
+<cfcase value="solr_adminport">Solr Admin Port</cfcase>
+<cfcase value="solr_webapp">Solr Webapp</cfcase>
+<cfcase value="l10n_graphcache_root">Context root of the solr server.</cfcase>
+<cfcase value="solr_buffersize">Solr Buffer Limit</cfcase>
+<cfcase value="l10n_graphcache_text">Size in MB after which, the docs are committed to the Solr Server while indexing. More the buffer limit, better the performance.
+</cfcase>
+<cfcase value="solr_username">User name</cfcase>
+<cfcase value="solr_pwd">Password</cfcase>
+<cfcase value="l10n_graphcache_condition">If basic authentication is enabled on Solr Server, specify the credentials.</cfcase>
+<cfcase value="solr_httpsenable">Solr Connection</cfcase>
+<cfcase value="ws_enable">Use HTTPS connection</cfcase>
+<cfcase value="solr_adminhttpsport">Solr Admin HTTPS Port</cfcase>
+<cfcase value="hideAdvancedSettings">Show Advanced Settings</cfcase>
+<cfcase value="l10n_addsolr_indexlang">Configure Indexing languages</cfcase>
+<cfcase value="Solrconfig_welcome_short">
+After adding a stemmer, specify the language and the suffix.
+         </cfcase>
+<cfcase value="solr_solrlanguage">New language</cfcase>
+<cfcase value="solr_lang_suffix">New language suffix</cfcase>
+<cfcase value="button_add_language">Add</cfcase>
+<cfcase value="map_active">Current Languages</cfcase>
+<cfcase value="map_logical_path">Language Name</cfcase>
+<cfcase value="map_dir_path">Language Suffix</cfcase>
+<cfcase value="delete_mapping_confirmation">Are you sure you want to delete this ColdFusion Mapping?</cfcase>
+<cfcase value="edit">Edit</cfcase>
+<cfcase value="delete">Delete</cfcase>
+<cfcase value="migrate_collections">Migrate Collections</cfcase>
+<cfcase value="Solrmigration_welcome">
+Migrate old Solr collections.
+</cfcase>
+<cfcase value="solr_oldpath">Old Solr Home</cfcase>
+<cfcase value="migrate_solr_button">Migrate Solr Collections</cfcase>
+<cfcase value="solr_migrate_restart">Restart the Solr server before creating any new collection.</cfcase>
+<cfcase value="solrEnglish">English</cfcase>
+<cfcase value="error_create"><cfoutput>
+  Unable to create collection #EncodeForHTML(FORM.NewCollectionName)#.<br />
+  #EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+  #EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+  </cfoutput></cfcase>
+<cfcase value="col_optimized"><cfoutput>#EncodeForHTML(URL.CollectionName)# Optimized</cfoutput></cfcase>
+<cfcase value="error_optimize"><cfoutput>
+Unable to optimize collection #EncodeForHTML(URL.CollectionName)#.<br />
+#EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+#EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+</cfoutput></cfcase>
+<cfcase value="col_reloaded"><cfoutput>#EncodeForHTML(URL.CollectionName)# Reloaded</cfoutput></cfcase>
+<cfcase value="error_reload"><cfoutput>
+Unable to reload collection #EncodeForHTML(URL.CollectionName)#.<br />
+#EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+#EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+</cfoutput></cfcase>
+<cfcase value="col_purged"><cfoutput>#EncodeForHTML(URL.CollectionName)# Purged</cfoutput></cfcase>
+<cfcase value="error_purge"><cfoutput>
+Unable to purge collection #EncodeForHTML(URL.CollectionName)#.<br />
+#EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+#EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+</cfoutput></cfcase>
+<cfcase value="col_deleted"><cfoutput>#EncodeForHTML(URL.CollectionName)# removed.</cfoutput></cfcase>
+<cfcase value="errorDeleteCollection"><cfoutput>
+Unable to delete collection #EncodeForHTML(URL.CollectionName)#.<br />
+#EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+#EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+</cfoutput></cfcase>
+<cfcase value="errors_get"><cfoutput>
+Unable to retrieve the default collections directory.<br />
+#EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+#EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+</cfoutput></cfcase>
+<cfcase value="error_indexing_collection"><cfoutput>
+There was an error indexing this collection. <br />
+#REQUEST.esapiutils.encodeForHTMLFilePath(caller.cfcatch.message)#<br />
+#REQUEST.esapiutils.encodeForHTMLFilePath(caller.cfcatch.detail)#
+</cfoutput></cfcase>
+<cfcase value="error_aliasing_collection"><cfoutput>
+There was an error aliasing this collection. <br />
+#EncodeForHTML(CALLER.cfcatch.message)#<br />
+   </cfoutput></cfcase>
+<cfcase value="error_renaming_collection"><cfoutput>
+There was an error renaming this collection. <br />
+#EncodeForHTML(CALLER.cfcatch.message)#<br />
+   </cfoutput></cfcase>
+<cfcase value="error_enable_higlighting_collection"><cfoutput>
+There was an error enabling highlighting for this collection. <br />
+#EncodeForHTML(CALLER.cfcatch.message)#<br />
+   </cfoutput></cfcase>
+<cfcase value="error_disable_higlighting_collection"><cfoutput>
+There was an error disabling highlighting for this collection. <br />
+#EncodeForHTML(CALLER.cfcatch.message)#<br />
+   </cfoutput></cfcase>
+<cfcase value="lang_error_msg">If specifying a language, both the fields are mandatory</cfcase>
+<cfcase value="error_solrupdate"><cfoutput>
+An error occurred while attempting to save your changes. <br />
+#EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+#EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+      </cfoutput></cfcase>
+<cfcase value="error_msg">Old Solr Home path can not be empty</cfcase>
+<cfcase value="col_removed"><cfoutput>#EncodeForHTML(URL.RemoveLanguage)# Removed</cfoutput></cfcase>
+<cfcase value="error_remove"><cfoutput>
+Unable to remove language #EncodeForHTML(URL.RemoveLanguage)#.<br />
+#EncodeForHTML(CALLER.CFCATCH.Message)#<br />
+#EncodeForHTML(CALLER.CFCATCH.Detail)#<br />
+</cfoutput></cfcase>
+<cfcase value="error_host">Please enter a valid host name or IP address ( xxx.xxx.xxx.xxx ).</cfcase>
+<cfcase value="error_solradminport">Please enter a valid Solr Admin port. The default Admin port is 8985.</cfcase>
+<cfcase value="error_solrwebapp">Please enter a webapp. The default Solr webapp is 'solr'.</cfcase>
+<cfcase value="error_solrbuffersize">Enter the buffer limit in MB. The default value is 40 MB</cfcase>
+<cfcase value="error_username">Enter the username for basic authentication</cfcase>
+<cfcase value="error_solrpassword">Enter the password for basic authentication</cfcase>
+<cfcase value="error_solrhttpsenable">Enter the password for basic authentication</cfcase>
+<cfcase value="error_solradminhttpsport">Please enter a valid Solr Admin HTTPS port. The default Admin HTTPS port is 8443.</cfcase>
+<cfcase value="error_solrlanguage">Enter the name of new language</cfcase>
+<cfcase value="error_solrprefix">Enter the suffix of the language</cfcase>
+
+<cfdefaultcase><cfset bSuccess="false"/></cfdefaultcase>
+</cfswitch>
+</cfprocessingdirective>
+

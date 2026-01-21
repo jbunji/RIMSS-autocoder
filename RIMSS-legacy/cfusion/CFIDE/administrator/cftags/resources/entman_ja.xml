@@ -1,0 +1,210 @@
+<cfprocessingdirective suppresswhitespace="yes" pageencoding="UTF-8">
+<cfsilent>
+<!--
+L10N Resource File
+Section: entman
+Locale: English (en)
+Find the requested resource by id
+-->
+</cfsilent>
+<cfswitch expression="#ATTRIBUTES.id#">
+
+<cfcase value="entman_pagename_editserver"><cfoutput>エンタープライズマネージャー／インスタンスマネージャー／サーバーを編集 : #EncodeForHTML(URL.serverName)#</cfoutput></cfcase>
+<cfcase value="entman_pagename_addserver">エンタープライズマネージャー／インスタンスマネージャー／サーバーを追加</cfcase>
+<cfcase value="entman_description">
+                ColdFusion エンタープライズ版では、同じコンピューター上に複数の ColdFusion サーバーを作成して管理できます
+        </cfcase>
+<cfcase value="_serverexists">以下のサーバー名が使用中です。</cfcase>
+<cfcase value="entman_addserver_description">
+ColdFusion エンタープライズ版では、ローカルマシンに存在するサーバーとの
+クラスタに参加できるリモートサーバーを追加できます。
+</cfcase>
+<cfcase value="entman_remoteserver_description">
+注意 : リモート ColdFusion インスタンスを起動 / 停止 / 再起動するには、リモートマシンで Jetty サーバーを起動してください (jetty.xml で ipaddress にホストの値を設定)
+</cfcase>
+<cfcase value="inst_manager2"><cfoutput>エンタープライズマネージャー／インスタンスマネージャー／#EncodeForHTML(URL.servername)#</cfoutput></cfcase>
+<cfcase value="entman_editremoteserverproperties">
+リモートサーバープロパティの編集
+</cfcase>
+<cfcase value="addremoteserver">リモート ColdFusion インスタンスの追加</cfcase>
+<cfcase value="remote_server_name">ColdFusion インスタンス名 *</cfcase>
+<cfcase value="remote_server_name_label">リモートインスタンスのサーバー名を入力してください</cfcase>
+<cfcase value="remote_server_ip">リモートホスト (IP アドレスまたは DNS 名) *</cfcase>
+<cfcase value="remote_server_ip_label">リモートインスタンスの IP アドレスまたは DNS 名を入力してください</cfcase>
+<cfcase value="remote_server_port">リモートポート *</cfcase>
+<cfcase value="remote_server_port_label">リモートインスタンスの server.xml からプロトコル AJP のコネクタポート値を入力してください</cfcase>
+<cfcase value="remote_http_port">HTTP ポート *</cfcase>
+<cfcase value="remote_http_port_label">リモートインスタンスの Administrator にアクセスできる HTTP ポートを入力してください</cfcase>
+<cfcase value="remote_jvm_route">JVM ルート *</cfcase>
+<cfcase value="remote_jvm_route_label">リモートインスタンスの server.xml からエンジンの jvmRoute 属性値を入力してください</cfcase>
+<cfcase value="remote_lbfactor">負荷分散係数 *</cfcase>
+<cfcase value="remote_lbfactor_label">リモートインスタンスの負荷分散係数を入力してください</cfcase>
+<cfcase value="remote_admin_port">Admin コンポーネントのポート</cfcase>
+<cfcase value="remote_admin_port_label">リモートインスタンスで Admin コンポーネントが稼働しているポートを入力してください</cfcase>
+<cfcase value="remote_admin_user_name">Admin コンポーネントのユーザー名</cfcase>
+<cfcase value="remote_admin_user_name_label">リモートインスタンスで稼働している Admin コンポーネントのユーザー名を入力してください</cfcase>
+<cfcase value="remote_admin_password">Admin コンポーネントのパスワード</cfcase>
+<cfcase value="remote_admin_password_label">リモートインスタンスで稼働している Admin コンポーネントのパスワードを入力してください</cfcase>
+<cfcase value="remote_https">HTTPS を使用</cfcase>
+<cfcase value="admindetails">サーバーの起動 / 停止には、Admin ポート、Admin ユーザー名、Admin パスワードが必要です</cfcase>
+<cfcase value="remotedetails">* で示されている必須フィールドに入力してください</cfcase>
+<cfcase value="button_gatewaty_addz">送信</cfcase>
+<cfcase value="button_gatewaty_addx">キャンセル</cfcase>
+<cfcase value="cluster">クラスタマネージャ</cfcase>
+<cfcase value="badclustchar">クラスタ名には文字と数字を使用できます。句読点と空の名前は使用できません。</cfcase>
+<cfcase value="badclustcharmsg"><cfoutput>無効なクラスタ名 : <strong>#EncodeForHTML(FORM.clustername)#</strong></cfoutput></cfcase>
+<cfcase value="newcluster_addedSuccessfully">
+新規のクラスタが正常に追加されました。
+</cfcase>
+<cfcase value="clustermanager">
+エンタープライズマネージャー／クラスタマネージャー
+</cfcase>
+<cfcase value="addnewclust">新規クラスタの追加</cfcase>
+<cfcase value="clustname">クラスタ名</cfcase>
+<cfcase value="button_add"> 追加 </cfcase>
+<cfcase value="configdclust">設定済みクラスタ</cfcase>
+<cfcase value="actions">アクション</cfcase>
+<cfcase value="clustername">クラスタ名</cfcase>
+<cfcase value="serversincluster">クラスタ内のサーバー</cfcase>
+<cfcase value="arch_noclustersDefined">クラスタが定義されていません。</cfcase>
+<cfcase value="button_edit">編集</cfcase>
+<cfcase value="button_delete">削除</cfcase>
+<cfcase value="delete_cluster_confirmation"><cfoutput>クラスタ #EncodeForHTML(CALLER.name)# を削除しますか？</cfoutput></cfcase>
+<cfcase value="bad_char1">
+リモートサーバーには使用できない文字が含まれています。フォームフィールドを空にはできません。また、サーバー名に句読点や英数字以外の文字も使用できません。
+</cfcase>
+<cfcase value="host_not_found">
+リモートサーバーに対して指定されているホスト名または IP アドレスが無効です。
+</cfcase>
+<cfcase value="entman_pagename_instanceManager">インスタンスマネージャ</cfcase>
+<cfcase value="server_updatedSuccessfully"><cfoutput>
+                        サーバー #EncodeForHTML(FORM.servername)# が正常に更新されました。これらの変更を有効にするには、サーバーインスタンスを再起動する必要があります。
+                </cfoutput></cfcase>
+<cfcase value="instance_manager">エンタープライズマネージャー／インスタンスマネージャー</cfcase>
+<cfcase value="entman_welc">
+        ColdFusion エンタープライズ版では、新しいサーバーインスタンスを作成して管理できます。ローカルに (このマシンに) 作成して実行することも、
+        リモートサーバーを作成してクラスタに登録することもできます。
+</cfcase>
+<cfcase value="slocal">新規インスタンスの追加</cfcase>
+<cfcase value="sremote">リモートインスタンスの登録</cfcase>
+<cfcase value="badchar1"><cfoutput>
+                        サーバー名 <i>#EncodeForHTML(FORM.servername)#</i> には使用できない文字が含まれています。サーバー名には文字と数字のみを使用できます。句読点、英数字以外の文字、空の名前なども使用できません。
+                </cfoutput></cfcase>
+<cfcase value="doopname"><cfoutput>
+                        サーバー名 <i>#EncodeForHTML(FORM.servername)#</i> は既に使用されています。別のサーバー名を選択してください。
+                </cfoutput></cfcase>
+<cfcase value="entman_pagename_enterpriseAdmin">エンタープライズ Administrator ― 新規 CF インスタンスの作成中</cfcase>
+<cfcase value="s1">[手順 1 / 2] 新規 CF インスタンスの作成中... </cfcase>
+<cfcase value="s2">[手順 2 / 2] CF ランタイムの作成中。時間がかかる場合があります... </cfcase>
+<cfcase value="instancedone">完了</cfcase>
+<cfcase value="clickhere">エンタープライズマネージャに戻ります</cfcase>
+<cfcase value="doopname_1"><cfoutput>Windows サービス #EncodeForHTML(CALLER.regname)# は既に登録されています</cfoutput></cfcase>
+<cfcase value="cluster_editserver"><cfoutput>エンタープライズマネージャー／クラスタマネージャー／サーバーを編集 : #EncodeForHTML(FORM.servername)#</cfoutput></cfcase>
+<cfcase value="pagenamemsg_updateserversettings">サーバー設定の更新中</cfcase>
+<cfcase value="headlinePleasewait">作業中です。しばらくお待ちください。</cfcase>
+<cfcase value="update">サーバーが更新されました。これらの変更を有効にするには、サーバーを再起動する必要があります。</cfcase>
+<cfcase value="weightwrong">0 ～ 100 の数字を入力してください。</cfcase>
+<cfcase value="entadmin_edit">編集</cfcase>
+<cfcase value="entadmin_strtedit">編集するサーバーの起動</cfcase>
+<cfcase value="entadmin_view">Web サイト</cfcase>
+<cfcase value="entadmin_admin">CF Admin</cfcase>
+<cfcase value="entadmin_run">起動中</cfcase>
+<cfcase value="entadmin_notrun">停止済み</cfcase>
+<cfcase value="entadmin_stop">停止</cfcase>
+<cfcase value="entadmin_start">起動</cfcase>
+<cfcase value="entadmin_refresh">再起動</cfcase>
+<cfcase value="entadmin_delete">削除</cfcase>
+<cfcase value="delete_confirmation">このサーバーを削除してもよろしいですか。すべてのリソースが削除されます。復元はできません。</cfcase>
+<cfcase value="remote_delete_confirmation">このリモートサーバーを削除してもよろしいですか。このマシンで定義されているすべてのクラスタから削除されます。</cfcase>
+<cfcase value="delete_running">起動中のサーバーは削除できません。サーバーを停止してから削除できます。</cfcase>
+<cfcase value="_admin">CF Admin</cfcase>
+<cfcase value="entadmin_noclust">なし</cfcase>
+<cfcase value="clustall">&lt;&lt;すべて&gt;&gt;</cfcase>
+<cfcase value="available_servers">使用可能なサーバー</cfcase>
+<cfcase value="cfservers_in_cluster"><cfoutput>クラスタ内のサーバー :&nbsp;#EncodeForHTML(URL.cluster)# </cfoutput></cfcase>
+<cfcase value="filterByCluster">クラスタによるフィルタ</cfcase>
+<cfcase value="ccname">名前</cfcase>
+<cfcase value="servdirt">サーバーディレクトリ</cfcase>
+<cfcase value="http__port">HTTP ポート</cfcase>
+<cfcase value="clusport">リモートポート</cfcase>
+<cfcase value="svr__hst">ホスト</cfcase>
+<cfcase value="svr__cluster">クラスタ</cfcase>
+<cfcase value="cluster_editcluster"><cfoutput>エンタープライズマネージャー／クラスタマネージャー／クラスタ #EncodeForHTML(URL.cluster)# を編集</cfoutput></cfcase>
+<cfcase value="no_clustx_rep"><cfoutput>リモートサーバー <strong>#EncodeForHTML(CALLER.adds[x])#</strong> をクラスタに追加できません。稼働していないようです。
+サーバーを起動してから、クラスタへの追加を試みてください。</cfoutput></cfcase>
+<cfcase value="no_clustx_msg"><cfoutput>サーバー #EncodeForHTML(CALLER.adds[x])# は稼働していません</cfoutput></cfcase>
+<cfcase value="cluster_updatedSuccessfully"><cfoutput>
+                        <cfif retval neq "">
+                        #CALLER.retval# <br>
+                        </cfif>
+これらの変更を有効にするには、すべてのサーバーインスタンスおよび設定されているすべての Web サーバーを再起動する必要があります。
+</cfoutput></cfcase>
+<cfcase value="clust_manager1"><cfoutput>エンタープライズマネージャー／クラスタマネージャー／#EncodeForHTML(URL.cluster)#</cfoutput></cfcase>
+<cfcase value="modifyServersInCluster"><cfoutput>クラスタ内のサーバーを変更 :&nbsp; #EncodeForHTML(URL.cluster)#</cfoutput></cfcase>
+<cfcase value="notclust">サーバーはクラスタ化されていません</cfcase>
+<cfcase value="clust">クラスタ内のサーバー</cfcase>
+<cfcase value="mcastport">マルチキャストポート</cfcase>
+<cfcase value="cluststickon">スティッキーセッション *</cfcase>
+<cfcase value="can">キャンセル</cfcase>
+<cfcase value="button_submit"> 送信 </cfcase>
+<cfcase value="j2eesession_note">* メモ :セッションレプリケーションまたはスティッキーセッションには J2EE セッションを使用する必要があります。クラスタに関連するすべてのインスタンスは、J2EE セッションを使用する必要があります。そのため、[サーバーの設定] ---&gt; [メモリ変数] を選択し、クラスタメンバーごとに [J2EE セッション変数の使用] チェックボックスを選択する必要があります。
+</cfcase>
+<cfcase value="ntrun">このクラスタのメンバーは起動していません。クラスタ設定を変更する場合は、クラスタ内のすべてのサーバーを起動する必要があります。サーバーを起動し、それから、変更を再送信してください。</cfcase>
+<cfcase value="svrn"><cfoutput>次のサーバーを起動してください :<strong>#CALLER.svrObj.getName()#</strong></cfoutput></cfcase>
+<cfcase value="addserver">新規 ColdFusion サーバーの追加</cfcase>
+<cfcase value="local_server_name">サーバー名</cfcase>
+<cfcase value="local_server_directory">サーバーディレクトリ</cfcase>
+<cfcase value="create_service">Windows サービスの作成</cfcase>
+<cfcase value="sub">送信</cfcase>
+<cfcase value="editserver"><cfoutput>ColdFusion サーバーを編集 : #EncodeForHTML(URL.servername)#</cfoutput></cfcase>
+<cfcase value="httpport">内部 Web サーバーポート</cfcase>
+<cfcase value="enable_jws">JWS の有効化 (内部 Web サーバー)</cfcase>
+<cfcase value="enable_dirbrowse">負荷分散係数</cfcase>
+<cfcase value="port_error">
+ポートの値はゼロより大きい数値である必要があります。
+</cfcase>
+<cfcase value="lb_error">
+負荷分散係数はゼロより大きい数値である必要があります。
+</cfcase>
+<cfcase value="archive_error"><cfoutput>
+問題が発生しました<br />
+<cfoutput>
+<b>メッセージ</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+<b>詳細</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+</cfoutput>
+</cfoutput></cfcase>
+<cfcase value="entman_error"><cfoutput>
+        問題が発生しました<br />
+        <cfoutput>
+                <b>メッセージ</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+        <b>詳細</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+        </cfoutput>
+</cfoutput></cfcase>
+<cfcase value="remotesvrerror"><cfoutput>クラスタ <strong>#URL.cluster#</strong> 内の以下のリモートサーバーに接続できません。ネットワーク経由で到達できないか、起動していないことが原因です。そのため、クラスタに加えた変更はすべてのクラスタメンバーに反映されませんでした。この設定を有効にするには、クラスタ内のすべてのリモートサーバーに到達できる必要があります。ネットワーク / サーバーステータスを調べ、設定を再送信してください。
+</cfoutput></cfcase>
+<cfcase value="Zentman_error"><cfoutput>
+問題が発生しました<br />
+<cfoutput>
+<b>メッセージ</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+<b>詳細</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+</cfoutput>
+</cfoutput></cfcase>
+<cfcase value="mc_error_portnum">マルチキャストポート番号はゼロより大きい数値である必要があります。</cfcase>
+<cfcase value="cluster_error">
+クラスタにはメンバーが必要です
+</cfcase>
+<cfcase value="entman_error_new"><cfoutput>
+問題が発生しました<br />
+<cfoutput>
+<b>メッセージ</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+<b>詳細</b> : #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+</cfoutput>
+</cfoutput></cfcase>
+<cfcase value="lb_error1">
+値はゼロより大きい数値である必要があります。
+</cfcase>
+
+<cfdefaultcase><cfset bSuccess="false"/></cfdefaultcase>
+</cfswitch>
+</cfprocessingdirective>
+

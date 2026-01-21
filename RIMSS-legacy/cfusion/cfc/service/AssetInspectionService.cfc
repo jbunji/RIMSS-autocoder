@@ -1,0 +1,160 @@
+import cfc.dao.AssetInspectionDao;
+import cfc.model.AssetInspection;
+import cfc.utils.Datasource;
+
+component output="false" hint="CFBuilder-Generated:ASSET_INSPECTION" displayName="AssetInspectionService" name="AssetInspectionService" {
+
+    variables.instance = {
+        AssetInspectionDao = ''
+    };
+	
+
+	/* init */
+	public function init(required Datasource datasource) {
+        variables.instance.AssetInspectionDao = new AssetInspectionDao(arguments.datasource);
+		/* return success */
+		return this;
+	}
+	
+	/* ASSETINSPECTION SERVICES */
+	
+	/* Create ASSET_INSPECTION */
+	public AssetInspection function createAssetInspection(AssetInspection item) {
+		/* Auto-generated method 
+           Insert a new record in ASSET_INSPECTION 
+           Add authorization or any logical checks for secure access to your data */
+        var idcol=variables.instance.AssetInspectionDao.create(arguments.item);
+        var qry = variables.instance.AssetInspectionDao.readByRowId(local.idcol);
+        var AssetInspection = loadObjectFromQuery(local.qry); 
+
+        /* return created item */
+        return local.AssetInspection;
+	}	
+	
+	/* Delete AssetInspection */
+	public void function deleteAssetInspection(string histId) {
+		/* Auto-generated method
+           Delete a record in the database 
+           Add authorization or any logical checks for secure access to your data */
+				 
+		variables.instance.AssetInspectionDao.delete(arguments.histId); 
+
+		/* return success */
+		return;
+	}
+	
+	/* Get AssetInspection */
+	public AssetInspection function getAssetInspection(string histId) {
+		/* Auto-generated method
+		   Retrieve a single record and return it as a query or array 
+           Add authorization or any logical checks for secure access to your data */
+        var qry = variables.instance.AssetInspectionDao.read(arguments.histId);
+        var obj = loadObjectFromQuery(qry);  
+
+		/* return item */
+		return local.obj;
+	}
+	
+	
+	public AssetInspection function getAssetInspectionByRepairId(string histId) {
+		/* Auto-generated method
+		   Retrieve a single record and return it as a query or array 
+           Add authorization or any logical checks for secure access to your data */
+        var qry = variables.instance.AssetInspectionDao.readByRepairId(arguments.histId);
+        var obj = loadObjectFromQuery(qry);  
+
+		/* return item */
+		return local.obj;
+	}
+	
+	public Query function getAssetInspectionByAssetId(string assetId) {
+		/* Auto-generated method
+		   Retrieve a single record and return it as a query or array 
+           Add authorization or any logical checks for secure access to your data */
+        var qry = variables.instance.AssetInspectionDao.readByAssetId(arguments.assetId);
+
+
+		/* return item */
+		return qry;
+	}
+	
+	/* Update ASSET_INSPECTION */
+	public AssetInspection function updateAssetInspection(AssetInspection item) {
+		/* Auto-generated method
+		   Update an existing record in the database 
+           Add authorization or any logical checks for secure access to your data */
+
+		/* update ASSET_INSPECTION */
+		variables.instance.AssetInspectionDao.update(arguments.item); 
+
+		/* return success */
+		return arguments.item;
+	}	
+	
+	/* Count ASSET_INSPECTION */
+	public numeric function count() {
+	    /* Auto-generated method
+		   Return the number of items in your table 
+           Add authorization or any logical checks for secure access to your data  */
+
+		return variables.instance.AssetInspectionDao.count(); 
+	}
+
+    private AssetInspection function loadObjectFromQuery (required Query resultSet) {
+        var obj = '';
+
+        //load query result into AssetInspection object
+        local.obj = new AssetInspection();
+        local.obj.setHistId(arguments.resultSet.HIST_ID[1]);
+        local.obj.setAssetId(arguments.resultSet.ASSET_ID[1]);
+        local.obj.setInsBy(arguments.resultSet.INS_BY[1]);
+        local.obj.setInsDate(arguments.resultSet.INS_DATE[1]);
+        local.obj.setValid(arguments.resultSet.VALID[1]);
+        local.obj.setWucCd(arguments.resultSet.WUC_CD[1]);
+        local.obj.setJstId(arguments.resultSet.JST_ID[1]);
+        local.obj.setRepairId(arguments.resultSet.REPAIR_ID[1]);
+        local.obj.setCompleteDate(arguments.resultSet.COMPLETE_DATE[1]);
+        local.obj.setNextDueDate(arguments.resultSet.NEXT_DUE_DATE[1]);
+        local.obj.setJobNo(arguments.resultSet.JOB_NO[1]);
+        local.obj.setCompletedBy(arguments.resultSet.COMPLETED_BY[1]);
+        local.obj.setChgBy(arguments.resultSet.CHG_BY[1]);
+        local.obj.setChgDate(arguments.resultSet.CHG_DATE[1]);
+        local.obj.setPmiType(arguments.resultSet.PMI_TYPE[1]);
+        local.obj.setCompletedEtm(arguments.resultSet.COMPLETED_ETM[1]);
+        local.obj.setNextDueEtm(arguments.resultSet.NEXT_DUE_ETM[1]);
+        
+
+        return local.obj;
+    }
+
+    private Array function loadObjectsFromQuery (required Query resultSet) {
+        var objectArray = [];
+        var obj = '';
+
+        //load query results into an array of AssetInspection
+        for (var row = 1; row lte resultSet.recordCount; row += 1) {
+	        local.obj = new AssetInspection();
+	        local.obj.setHistId(arguments.resultSet.HIST_ID[local.row]);
+	        local.obj.setAssetId(arguments.resultSet.ASSET_ID[local.row]);
+	        local.obj.setInsBy(arguments.resultSet.INS_BY[local.row]);
+	        local.obj.setInsDate(arguments.resultSet.INS_DATE[local.row]);
+	        local.obj.setValid(arguments.resultSet.VALID[local.row]);
+	        local.obj.setWucCd(arguments.resultSet.WUC_CD[local.row]);
+	        local.obj.setJstId(arguments.resultSet.JST_ID[local.row]);
+	        local.obj.setRepairId(arguments.resultSet.REPAIR_ID[local.row]);
+	        local.obj.setCompleteDate(arguments.resultSet.COMPLETE_DATE[local.row]);
+	        local.obj.setNextDueDate(arguments.resultSet.NEXT_DUE_DATE[local.row]);
+	        local.obj.setJobNo(arguments.resultSet.JOB_NO[local.row]);
+	        local.obj.setCompletedBy(arguments.resultSet.COMPLETED_BY[local.row]);
+	        local.obj.setChgBy(arguments.resultSet.CHG_BY[local.row]);
+	        local.obj.setChgDate(arguments.resultSet.CHG_DATE[local.row]);
+	        local.obj.setPmiType(arguments.resultSet.PMI_TYPE[local.row]);
+	        local.obj.setCompletedEtm(arguments.resultSet.COMPLETED_ETM[local.row]);
+	        local.obj.setNextDueEtm(arguments.resultSet.NEXT_DUE_ETM[local.row]);
+	        
+            ArrayAppend(local.objectArray, local.obj);
+        }
+
+        return local.objectArray;
+    }
+}

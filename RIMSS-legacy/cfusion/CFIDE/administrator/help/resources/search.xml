@@ -1,0 +1,33 @@
+﻿<?xml version='1.0' encoding='utf-8' ?>
+<!-- saved from url=(0014)about:internet -->
+<searchvars>
+	<element name="gsNoTopics" value="No Topics Found." />
+	<element name="gsLoadXmlFailed" value="Error: Failed to load xml file." />
+	<element name="gsInitDatabaseFailed" value="Error: Failed to initialize database." />
+	<element name="gsNotAllDatabaseInited" value="Warning: Not all databases have been loaded. Some topics will not be found." />
+	<element name="gsInvalidExpression_1" value="The words you typed is not a valid expression." />
+	<element name="gsInvalidExpression_2" value="Click" />
+	<element name="gsInvalidExpression_3" value="Help" />
+	<element name="gsInvalidExpression_4" value="to learn how to use query expression.(To be finished)" />
+	<element name="gsSearching" value="Searching..." />
+	<element name="gsTitle" value="Title" />
+	<element name="gsRank" value="Rank" />
+	<element name="gsCancel" value="Cancel" />
+	<element name="gsCanceled" value="Canceled" />
+
+	<element name="gsSubstrSrch" value="1" />
+
+	<element name="g_RunesVowels" value="97,101,105,111,117,121"  />
+	<element name="g_RunesWordBreaks" value="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,34,92,32,46,44,33,64,35,36,37,94,38,42,40,41,126,39,96,58,59,60,62,63,47,123,125,91,93,124,43,45,61,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,161,169,171,174,183,187,191,160"  />
+	<element name="g_RunesWhiteSpaces" value="32,9,13,10,160"  />
+	<element name="g_RunesQuote" value="34"  />
+	<element name="g_RunesHelSuffixes" value="ed,0"  />
+<element name="g_RunesHelSuffixes" value="ingly,0"  />
+<element name="g_RunesHelSuffixes" value="ings,0"  />
+<element name="g_RunesHelSuffixes" value="ing,0"  />
+<element name="g_RunesHelSuffixes" value="ly,1"  />
+<element name="g_RunesHelSuffixes" value="s,1"  />
+<element name="g_RunesHelSuffixes" value="e,1"  />
+
+</searchvars>
+

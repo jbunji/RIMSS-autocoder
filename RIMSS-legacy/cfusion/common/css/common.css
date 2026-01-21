@@ -1,0 +1,544 @@
+/*
+ * Icons reference
+ * http://www.icons-land.com
+ * http://www.pixel-mixer.com/
+ */
+
+
+/* apply a natural box layout model to all elements */
+* { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+*,
+:before,
+:after {
+box-sizing: border-box;
+}
+.rightArrow{
+	    
+	background-image:url('../images/arrowright.png'); 
+	background-repeat:no-repeat; 
+	background-position:right center;
+
+}
+
+input.search{
+	background-image:url('../images/mag_glass.png'); 
+    background-repeat:no-repeat; 
+    background-position:center center;
+    height: 20px;
+	width:20px;
+	background-color:transparent;
+	border:none;
+	cursor:pointer;
+	border: 0px solid black;
+}
+
+#tblMappings input[readonly="readonly"]
+{
+    background:none;
+	border:none;
+}
+
+#tblFailureResults input[readonly="readonly"]
+{
+    background:none;
+	border:none;
+}
+
+body#error .wrapper{
+ 
+}
+
+/*icon class*/
+.iconClass{
+	width:20px;
+	height:20px;
+	text-align:center;
+}
+
+span.addIcon {
+    background-position:center;
+    background-repeat:no-repeat;
+    width:20px;
+    height:20px;
+	display:inline-block;
+	line-height:3em;
+	border:none;
+	cursor:pointer;
+	
+}
+
+/*LOOKUP TABLE CSS*/
+
+table.lookupDialog .filter{
+	text-align:right;
+}
+
+table.lookupDialog {
+	border-collapse:collapse;
+  	border:1px solid black;
+  	width:100% !important;
+}
+
+
+table.lookupDialog thead tr {
+	background-color:#000;
+    color:white;
+}
+
+
+table.lookupDialog thead th {
+	border:1px solid black;
+	padding:2px;
+	white-space:nowrap;
+}
+
+table.lookupDialog tbody tr{
+    /*color:black;*/
+}
+
+table.lookupDialog tbody tr.even{
+    background-color:#e6e6e6;
+}
+
+table.lookupDialog tbody tr.odd{
+    background-color:white;
+}
+
+
+table.lookupDialog tbody td{
+    border:1px solid black;
+    padding:2px;
+}
+
+
+
+
+/*GLOBAL TABLE CSS*/
+
+table.globalTable{
+  border-collapse:collapse;
+  border:1px solid black;
+  width:100%;
+
+}
+
+table.globalTable thead tr{
+    background-color:#027FD1;
+    color:white;
+}
+
+table.globalTable thead th{
+    border:1px solid black;
+    padding:2px;
+	color:white;
+	white-space:nowrap;
+	
+}
+
+table.globalTable thead th.sorting, 
+table.globalTable thead th.sorting_asc, 
+table.globalTable thead th.sorting_desc{
+    cursor:pointer;
+    
+}
+
+table.globalTable tbody tr{
+    color:black;
+}
+
+table.globalTable tbody tr.even{
+    background-color:#e6e6e6;
+}
+
+table.globalTable tbody tr.odd{
+    background-color:white;
+}
+
+table.globalTable tbody td{
+    border:1px solid black;
+    padding:2px;
+	
+
+}
+
+table.globalTable tbody th{
+    color:white;
+    
+
+}
+
+table.globalTable tbody tr.hilight{
+    background-color:#5C85D6 !important;
+    color:white !important;
+    cursor:pointer;
+}
+
+
+table.globalTable tbody tr td.addIcon {
+    background-image: url('../images/icons/add.png');
+    background-position:center;
+    background-repeat:no-repeat;
+    width:20px;
+    height:20px;
+}
+
+table.globalTable tbody tr td.addIcon a{
+    width:20px;
+    height:20px;
+    display:block;
+}
+
+a.addIcon {
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
+}
+
+a.addIcon img {
+    outline: none;
+    border: 0;
+    margin: 0 2.5px 0 1px;
+    padding: 0;
+}
+
+table.globalTable tbody tr td.editIcon{
+
+background-image: url('../images/icons/edit.png');
+	background-position:center;
+	background-repeat:no-repeat;
+	width:20px;
+	height:20px;
+
+}
+
+
+table.globalTable .attachIcon{
+
+	background-image: url('../images/icons/attach.png');
+	background-position:center;
+	background-repeat:no-repeat;
+	width:20px;
+	height:20px;
+
+}
+
+table.globalTable tbody tr td.editIcon a{
+	width:20px;
+	height:20px;
+	display:block;
+}
+
+table.globalTable tbody tr td.deleteIcon {
+    background-image: url('../images/icons/delete.png');
+    background-position:center;
+    background-repeat:no-repeat;
+	cursor:pointer;
+    width:20px;
+    height:20px;
+}
+
+table.globalTable tbody tr td.deleteIcon a{
+    width:20px;
+    height:20px;
+    display:block;
+}
+
+table.globalTable tbody td.showSub{
+   font-weight:bold;
+   color:#027FD1    
+}
+
+
+
+
+/* globalSubTable */
+table.globalSubTable{
+  border-collapse:collapse;
+  border:1px solid black;
+  width:100%;
+
+}
+
+table.globalSubTable thead tr{
+    background-color:#666;
+    color:white;
+}
+
+table.globalSubTable thead th{
+    border:1px solid black;
+    padding:2px;
+    color:white;
+    white-space:nowrap;
+    
+}
+
+table.globalSubTable thead th.sorting, 
+table.globalSubTable thead th.sorting_asc, 
+table.globalSubTable thead th.sorting_desc{
+    cursor:pointer;
+    
+}
+
+table.globalSubTable tbody tr{
+    color:black;
+}
+
+table.globalSubTable tbody tr.even{
+    background-color:#e6e6e6;
+}
+
+table.globalSubTable tbody tr.odd{
+    background-color:white;
+}
+
+table.globalSubTable tbody td{
+    border:1px solid black;
+    padding:2px;
+    
+
+}
+
+table.globalSubTable tbody th{
+    color:white;
+    
+
+}
+
+table.globalSubTable tbody tr.hilight{
+    background-color:#5C85D6 !important;
+    color:white !important;
+    cursor:pointer;
+}
+
+table.globalSubTable tbody tr td.editIcon {
+    background-image: url('../images/icons/edit.png');
+    background-position:center;
+    background-repeat:no-repeat;
+    width:20px;
+    height:20px;
+}
+
+table.globalSubTable tbody tr td.editIcon a{
+    width:20px;
+    height:20px;
+    display:block;
+}
+
+table.globalSubTable tbody tr td.deleteIcon {
+    background-image: url('../images/icons/delete.png');
+    background-position:center;
+    background-repeat:no-repeat;
+    cursor:pointer;
+    width:20px;
+    height:20px;
+}
+button, input, select, textarea {
+	line-height: normal !important;
+}
+
+table.globalSubTable tbody tr td.deleteIcon a{
+    width:20px;
+    height:20px;
+    display:block;
+}
+
+/*DASHBOARD TABLE CSS*/
+
+table.dashboardTable{
+  border-collapse:collapse;
+  color:#5C85D6;
+  width:100%;  
+
+
+}
+
+table.dashboardTable th, table.dashboardTable td {
+  width:5%;  
+  text-align: center;
+}
+
+
+table.dashboardTable thead tr{
+    
+}
+
+table.dashboardTable thead th, table.dashboardTable caption {
+   
+    padding:2px;
+    font-weight:bold;
+    white-space:nowrap;
+	color:#000;
+    
+}
+
+
+table.dashboardTable td.inbound{
+    color:red;
+    
+}
+
+table.dashboardTable td.outbound{
+    color:#5C85D6;
+    
+}
+
+table.dashboardTable tbody td{
+	border:none;
+    padding:2px;
+	font-weight:bold;
+    
+
+}
+
+/*datatables extra css*/
+table.globalTable thead th.sorting:after{
+	content:"\0000a0";
+	
+}
+
+table.globalTable thead th.sorting_asc:after {
+	content:" \25B2";
+}
+
+table.globalTable thead th.sorting_desc:after {
+	content:" \25BC";
+	
+}
+
+table.globalTable thead th.sorting_desc, table.globalTable thead th.sorting_asc{
+	background-color:#67B2E3;
+	white-space:nowrap;
+}
+
+
+table.dashboardTable thead th.dashboardToggle{
+	background-color:#EEE;
+	cursor:pointer;
+}
+
+
+table.globalTable tbody td.open:after{
+   content:"\25BC";
+  
+}
+
+table.globalTable tbody td.close:after{
+   content:"\25B6";
+}
+
+table.globalTable thead th.filter{
+    background-color:#000;
+    text-align:right;
+    
+}
+
+table.globalTable .nowrap{
+	white-space:nowrap;
+}
+
+#softwareContainer {
+	font-size:11px !important;
+	width:50% !important;
+}
+
+table.currentSoftware {
+
+	border:3px solid black;
+}
+
+.button_container {
+    margin: 0px auto;		
+}
+
+.button_container input[type='submit'], .button_container input[type='button'], .button_container input[type='reset']{
+    cursor: pointer !important;
+    border: 1px solid #027fd1;
+	margin: auto 10px;
+	padding:2px;
+    /*
+margin: 0px 10px;
+    padding: 0px;
+*/
+    color: #027fd1;
+    background-color: #242424;
+    width: 100px;
+}
+
+.hidden {
+	position:absolute;
+    left:-10000px;
+    top:auto;
+    width:0px;height:0px
+}
+
+/* Used in Utility pages */
+.dataOutput{
+        height:500px; 
+        margin:5px auto; 
+        padding:5px; 
+        width:95%; 
+        border:1px solid black; 
+        background-color:white;
+        overflow: auto; 
+        font-size:12px;
+        white-space:pre;
+
+    }
+
+.menuButtons{
+	padding:5px;
+	border-bottom:2px 
+	solid white;
+}
+
+.menuButtons input#UIICodes{
+    width:75%
+}
+
+
+
+.excerpt{
+	width: 90%;
+	max-height: 5em;
+	max-width: 500px;
+	overflow: hidden;
+	
+	/* Will not work on IE :( */
+	display: -webkit-box;
+	-webkit-line-clamp: 4;
+	-webkit-box-orient: vertical;  
+	text-overflow: ellipsis;
+}
+
+.highlight-row:target, .highlight-row-jq {
+	
+	animation: highlight 1s ease-out;
+	-webkit-animation: highlight 4s ease-in;
+
+}
+/*
+.highlight-row:target a:link {
+	margin-top:-40px;
+	padding-top:40px;
+	color: #00f !important;
+}
+*/
+
+@-webkit-keyframes highlight {
+  from {
+	color:#000;
+    background-color: #ff6;
+  }
+  to {
+  }
+}
+
+
+@keyframes highlight {
+  from {
+	color:#000;
+    background-color: #ff6;
+  }
+  to {
+  }
+}

@@ -1,0 +1,93 @@
+{
+	"graphset" : [
+		{
+			"type" : "bubble",
+			"title" : {
+				"font-size" : 18,
+				"color" : "#333333",
+				"bold" : true,
+				"font-family" : "Helvetica",
+				"background-color" : "white",
+				"border-color" : "#cccccc",
+				"border-width" : 1
+			},
+			"tooltip" : {
+				"font-color" : "#FFFFFF",
+				"font-family" : "Helvetica",
+				"font-size" : 11,
+				"bold" : true,
+				"padding":5
+				},
+			"background-color" : "white",
+			"border-color" : "#cccccc",
+			"border-width" : 1,
+			"plotarea" : 
+				{"margin-top" : 40,"margin-right" : 30,"margin-left" : 70}
+			,
+			"scale-x" : {
+				"font-size" : 16,
+				"color" : "#333333",
+				"bold" : true,
+				"font-family" : "Helvetica",
+				"guide" : {
+					"line-width":0
+					},
+				"line-color" : "#cccccc",
+				"line-width" : 2,
+				"item":{
+					"font-size" : 11,
+					"color" : "#333333",
+					"font-family" : "Helvetica"
+					},
+				"tick":{
+					"size" : 10,
+					"line-color" : "#cccccc",
+					"line-width" : 1,
+					"line-gap-size" : 0
+					},
+				"label":{
+					"color":"#333333"
+					}
+			},
+			"scale-y" : {
+				"format" : "%v",
+				"font-size" : 16,
+				"color" : "#333333",
+				"bold" : true,
+				"font-family" : "Helvetica",
+				"line-color" : "#cccccc",
+				"line-width" : 2,
+				"item":{
+					"font-size" : 11,
+					"color" : "#333333",
+					"font-family" : "Helvetica"
+					},
+				"tick":{
+					"size" : 10,
+					"line-color" : "#cccccc",
+					"line-width" : 1,
+					"line-gap-size" : 0
+					},
+				"label":{
+					"color":"#333333"
+					}
+			},
+			"legend" : {
+				"margin-top" : 40,
+				"background-color" : "#FFFFFF",
+				"alpha" : 1,
+				"border-color" : "#CCCCCC",
+				"shadow" : false
+			},
+      			"plot":{
+       				"preview": true,
+        			"tooltip-text":"%v",
+				"value-box" : {
+					"font-family" : "Helvetica",
+					"font-size" : 11,
+					"color":"#333333"
+				}
+    			 }
+		}
+	]
+}

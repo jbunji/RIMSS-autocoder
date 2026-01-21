@@ -1,0 +1,742 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Extensions section</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf364104-7ff3.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf364104-7ff3.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd4.html" title="Server Monitoring section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fce.html" title="Event Gateways section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Extensions section</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd2"><span class="topictitle1">Java Applets page</span>
+</a></p></li><li><p><a href="#WSe61e35da8d3185186af6f5a8134d15e08cf-8000"><span class="topictitle1">Add/Edit Applet page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd1"><span class="topictitle1">CFX Tags page</span>
+</a></p></li><li><p><a href="#WSe61e35da8d318518-56aba549134d143a5c3-8000"><span class="topictitle1">Add/Edit CFX Java Tag page</span>
+</a></p></li><li><p><a href="#WSe61e35da8d318518-56aba549134d143a5c3-7fff"><span class="topictitle1">Add/Edit CFX C++ Tag page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd0"><span class="topictitle1">Custom Tag Paths page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fcf"><span class="topictitle1">CORBA Connectors page</span>
+</a></p></li></ul></div></div></div></div><div><p>Use the Extensions
+section of the Administrator to configure ColdFusion to work with
+other technologies, such as Java and CORBA. </p>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd2" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd2"><!-- --></a><h2 class="topictitle2">Java Applets page</h2><div><p>The Java
+Applets page of the Administrator lets you register applets and
+edit and delete applet registrations. Before you can use Java applets
+in your ColdFusion applications, register them in the Java Applets
+page.</p>
+<p>When your applet is registered with ColdFusion, using the <samp class="codeph">cfapplet</samp> tag
+in your CFML code is simple, because all parameters are predefined:
+Enter the applet source and the form variable name to use.</p>
+<div class="note"><span class="notetitle">Note:  </span>Parameters set with the <samp class="codeph">cfapplet</samp> tag
+override parameters defined on the Java Applets page. </div>
+<div class="para">This page has the following areas:<ul><li><p><strong>Register New Applet:</strong> Registers
+a Java applet to include in your ColdFusion applications.</p>
+</li>
+<li><p><strong>Actions: </strong>Click the Edit icon to edit registration
+fields of a Java applet. Click the Delete icon to remove the registration
+of a Java applet.</p>
+</li>
+<li><p><strong>Applet:</strong> Click the name of a Java applet to view or
+edit the registration fields for that applet. </p>
+</li>
+<li><p><strong>Code:</strong>Identifies the name of the file that contains
+the applet subclass.</p>
+</li>
+<li><p><strong>Method:</strong> If applicable, this column identifies the
+method name used in the name attribute of the cfapplet tag.</p>
+</li>
+<li><p><strong>Code Base: </strong>This area identifies the directory that
+contains the applet components.</p>
+</li>
+</ul>
+</div>
+</div></div>
+<div id="WSe61e35da8d3185186af6f5a8134d15e08cf-8000" class="nochunk"><a name="WSe61e35da8d3185186af6f5a8134d15e08cf-8000"><!-- --></a><h2 class="topictitle2">Add/Edit Applet page</h2><div><p>To register or modify a Java applet in ColdFusion, use
+the Add/Edit Registered Java Applet page. Registering an applet
+lets you use the <samp class="codeph">cfapplet</samp> tag.</p>
+<div class="section"><h4 class="sectiontitle">Register a Java applet or modify the registration</h4><div class="para"><ol><li><p>If you are registering a new Java applet, install the Java
+class files and any other files required for the class. Make a note
+of the installation path, because you must specify the code base
+arguments when you register the applet.</p>
+</li>
+<li><p>To access the Add/Edit Registered Java Applet page:</p>
+<div class="para"><ul><li><p>For new registration, select Extensions &gt; Java Applets,
+and click Register New Applet. The Add/Edit Registered Java Appletpage
+appears.</p>
+</li>
+<li><p>For existing registration, in the Registered Java Applets
+table, click the name of the Java applet registration that you want
+to view or modify.</p>
+</li>
+</ul>
+</div>
+</li>
+<li><p>On the Add/Edit Registered Java Applet page, specify or modify
+the following information:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e5117"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5120"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Applet Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Provide a name for the Java applet.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Code</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Identify the name of the file that contains
+the applet subclass. This filename is relative to the code base
+URL. The *.class file extension is not required.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Code Base</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Provide the URL of the code base; the directory
+that contains the applet components. The applet class files must
+be located within the web browser root directory; for example, http://&lt;servername&gt;/classes.Note
+that this field is not required if the Java applet components are
+contained in a JAR file. For more information, see the Archive option.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Archive</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>(Optional) If the Java applet components
+are stored in a jar file, enter the <samp class="codeph">jar</samp> filename
+in the Archive text box.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Method</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>(Optional) Specify the method name in the
+applet that returns a string value. This method name is used in
+the name attribute of the <samp class="codeph">cfapplet</samp> tag to populate
+a form variable with the method's value. If the applet has no method,
+leave this field blank.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Height</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Enter a measurement in pixels for the vertical
+space for the applet.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Width</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Enter a measurement in pixels for the horizontal
+space for the applet.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Vspace</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Enter a measurement in pixels for the space
+above and below the applet.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Hspace</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Enter a measurement in pixels on each side
+of the applet.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Align</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Select an alignment option.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Not supported message</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Specify a message that will be displayed
+by browsers that do not support Java applets. You can override this
+message with a different message <samp class="codeph">notsupported</samp> attribute
+in the <samp class="codeph">cfapplet</samp> tag.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Parameter name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Enter a name for each required applet parameter.
+Your Java applet typically provides the parameter name needed to
+use the applet. Enter each parameter in a separate parameter field.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5117 "><p>Value</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5120 "><p>Enter a default value for every parameter
+name specified. Click Add to add the values for the parameters.
+Your applet documentation provides guidelines on valid entries.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</li>
+<li><p>To save and apply the registration information, click Submit.</p>
+</li>
+</ol>
+</div>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd1" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd1"><!-- --></a><h2 class="topictitle2">CFX Tags page</h2><div><p>Before you can
+use a CFX tag in ColdFusion applications, register it. Use the CFX Tags
+page to register and manage ColdFusion custom tags built with C++
+and Java. </p>
+<p>You can build CFX tags in the following two ways:</p>
+<ul><li><p>Using C++ as a dynamic link library (DLL) on Windows
+or as shared objects (.so or .sl extension) on Solaris and Linux</p>
+</li>
+<li><p>Using Java interfaces defined in the cfx.jar file</p>
+</li>
+</ul>
+<p>The page has the following areas: </p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e5257"><p>Area</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5260"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e5257 "><p>Register Java CFX</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5260 "><p>Click this button to register a CFX Java
+tag that you want to include in your ColdFusion applications.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5257 "><p>Register C++ CFX</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5260 "><p>Click this button to register a CFX C++
+tag that you want to include in your ColdFusion applications.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5257 "><p>Actions</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5260 "><p>Click the Edit icon to edit the registration
+fields of a CFX tag. Click the Delete icon to remove the registration
+of a CFX tag.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5257 "><p>Tag Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5260 "><p>Click the name of a CFX tag to view or edit
+the tag's registration fields.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5257 "><p>Type</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5260 "><p>Identifies the type of language used to
+build the CFX tag (C++ or Java).</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5257 "><p>Description</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5260 "><p>Identifies the use of the CFX tag.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div>
+<div id="WSe61e35da8d318518-56aba549134d143a5c3-8000" class="nochunk"><a name="WSe61e35da8d318518-56aba549134d143a5c3-8000"><!-- --></a><h2 class="topictitle2">Add/Edit CFX Java Tag page</h2><div><div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e5319"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5322"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e5319 "><p>Tag Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5322 "><p>Enter the tag name (after the cfx_prefix).
+Provide a name for the CFX tag that you are registering.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5319 "><p>Class Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5322 "><p>Enter the class name (without the .class
+extension) that implements the interface. The class file should
+be accessible from the Class Path setting on the <a href="WSc3ff6d0ea77859461172e0811cbf3638e6-7feb.html">Java and JVM page</a>. You typically package the .class file in a
+.jar file and save it in the cf_root/lib (server configuration)
+or <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_webapp_root</i>/WEB-INF/cfusion/lib (J2EE configuration)
+directory.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5319 "><p>Description</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5322 "><p>Provide a message that identifies the use
+of this CFX tag.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div>
+<div id="WSe61e35da8d318518-56aba549134d143a5c3-7fff" class="nochunk"><a name="WSe61e35da8d318518-56aba549134d143a5c3-7fff"><!-- --></a><h2 class="topictitle2">Add/Edit CFX C++ Tag page</h2><div>
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e5365"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5368"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e5365 "><p>Tag Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5368 "><p>Provide a name for the CFX tag that you
+are registering. Tag names must be prefixed with cfx_.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5365 "><p>Server Library (.dll)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5368 "><p>Enter the path to the library, or click
+Browse Server to locate the library that you want to use.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5365 "><p>Procedure</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5368 "><p>Enter the procedure that implements the
+CFX tag. The procedure name must correspond with the procedure associated
+with the DLL or shared object you have specified. Notice that procedure
+names are case sensitive.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5365 "><p>Keep Library Loaded</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5368 "><p>Select this option to retain the library
+in RAM.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5365 "><p>Description</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5368 "><p>In this text box, provide a message that
+identifies the use of this CFX tag.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd0" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd0"><!-- --></a><h2 class="topictitle2">Custom Tag Paths page</h2><div><p>Use the Custom Tag Paths page of the
+Administrator to add, edit, and delete custom tag directory paths. </p>
+<p>By default, all custom tags are stored under the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/
+CustomTags (server configuration) or <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_webapp_root</i>/WEBINF/cfusion/CustomTags
+(J2EE configuration) directory. However, you can specify additional
+paths to your custom tag locations by using this page.The following
+table describes the areas on the page:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e5430"><p>Area</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5433"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e5430 "><p>New Path</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5433 "><p>Specify the path of your custom tags.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5430 "><p>Browse Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5433 "><p>Click to browse your system fro the location
+of your custom tags.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5430 "><p>Add Path</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5433 "><p>Click to add the path specified in the path
+text box.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5430 "><p>Actions</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5433 "><p>Click Exit to edit or Delete to remove a
+selected path.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5430 "><p>Path</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5433 "><p>Identifies the custom tag paths registered
+in ColdFusion.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fcf" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fcf"><!-- --></a><h2 class="topictitle2">CORBA Connectors page</h2><div><p>Use the CORBA Connectors page to register,
+edit, and delete CORBA connectors. Register CORBA connectors before
+you use them in ColdFusion applications and restart the server when
+you finish configuring the CORBA connector.</p>
+<p>ColdFusion loads object request broker (ORB) libraries dynamically
+by using a connector, which does not restrict ColdFusion developers
+to a specific ORB vendor. The connectors depend on the ORB runtime
+libraries provided by the vendor. A connector for Borland Visibroker
+is embedded within ColdFusion. Make sure that the ORB runtime libraries
+are in <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/runtime/lib (server configuration) or <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_webapp_root</i>/WEB-INF/cfusion/lib
+(multiserver and J2EE configurations).</p>
+<p>The following table contains information about the libraries
+and connectors: </p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e5499"><p>Operating System</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5502"><p>Vendor</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5505"><p>ORB</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5508"><p>ColdFusion connector</p>
+</th>
+<th valign="top" width="NaN%" id="d16e5511"><p>ORB library</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e5499 "><p>Windows NT and later</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5502 "><p>Borland</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5505 "><p>VisiBroker 4.5</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5508 "><p>coldfusion.runtime.corba.VisibrokerConnector
+(embedded)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5511 "><p>vbjorb.jar</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e5499 "><p>Solaris</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5502 "><p>Borland</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5505 "><p>VisiBroker 4.5</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5508 "><p>coldfusion.runtime.corba.VisibrokerConnector
+(embedded)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e5511 "><p>vbjorb.jar</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Example of a CORBA connector configuration for VisiBroker:</p>
+<pre>ORB Name                            visibroker 
+ORB Class Name                            coldfusion.runtime.corba.VisibrokerConnector 
+ORB Property File                            c:\ColdFusion9\runtime\cfusion\lib\vbjorb.properties 
+Classpath                            [blank]</pre>
+<p>ColdFusion includes the vbjorb.properties file, which contains
+the following properties that configure the ORB:</p>
+<pre>org.omg.CORBA.ORBClass=com.inprise.vbroker.orb.ORB 
+org.omg.CORBA.ORBSingletonClass=com.inprise.vbroker.orb.ORB 
+SVCnameroot=namingroot</pre>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd4.html" title="Server Monitoring section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fce.html" title="Event Gateways section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

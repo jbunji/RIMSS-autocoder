@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<toc version="1.0">
+   <properties/>
+   <item name="Home" link="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"/>
+   <item name="Introduction" link="WSc3ff6d0ea77859461172e0811cbf3637ad-7ffd.html">
+      <item name="About ColdFusion documentation"
+            link="WSc3ff6d0ea77859461172e0811cbf3637ad-7fff.html"/>
+   </item>
+   <item name="Administering ColdFusion"
+         link="WSc3ff6d0ea77859461172e0811cbf36383a-8000.html"/>
+   <item name="Using the ColdFusion Administrator"
+         link="WSc3ff6d0ea77859461172e0811cbf364104-8000.html">
+      <item name="Initial administration tasks"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffe.html"/>
+      <item name="Accessing user assistance"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffd.html"/>
+      <item name="Server Settings section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffc.html"/>
+      <item name="Data &amp; Services section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html"/>
+      <item name="Debugging &amp; Logging section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe0.html"/>
+      <item name="Server Monitoring section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd4.html"/>
+      <item name="Extensions section" link="WSc3ff6d0ea77859461172e0811cbf364104-7ff3.html"/>
+      <item name="Event Gateways section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7fce.html"/>
+      <item name="Security section" link="WSc3ff6d0ea77859461172e0811cbf364104-7ff4.html"/>
+      <item name="Packaging and Deployment section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc5.html"/>
+      <item name="Enterprise Manager section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc2.html"/>
+      <item name="Server Update section"
+            link="WSe61e35da8d318518-33adffe0134c60cd31c-8000.html">
+         <item name="Updates page" link="WSe61e35da8d318518-33adffe0134c60cd31c-7fff.html"/>
+         <item name="Download hot fix for later installation"
+               link="WSe61e35da8d318518-33adffe0134c60cd31c-7ffe.html"/>
+      </item>
+      <item name="Custom Extensions section"
+            link="WSc3ff6d0ea77859461172e0811cbf3638e6-7fbf.html"/>
+      <item name="Administrator API" link="WSc3ff6d0ea77859461172e0811cbf364104-7fcf.html"/>
+   </item>
+   <item name="Data Source Management"
+         link="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html">
+      <item name="About JDBC" link="WSc3ff6d0ea77859461172e0811cbf3639b1-7ffd.html"/>
+      <item name="Adding data sources"
+            link="WSc3ff6d0ea77859461172e0811cbf3639b1-7ffc.html"/>
+      <item name="Connecting to Apache Derby Client"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fdb.html"/>
+      <item name="Connecting to Apache Derby Embedded"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fda.html"/>
+      <item name="Connecting to DB2 Universal Database"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fdd.html"/>
+      <item name="Connecting to Informix"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe8.html"/>
+      <item name="Connecting to Microsoft Access"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe7.html"/>
+      <item name="Connecting to Microsoft Access with Unicode"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe6.html"/>
+      <item name="Connecting to Microsoft SQL Server"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe5.html"/>
+      <item name="Connecting to MySQL"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe4.html"/>
+      <item name="DataDirect Connect JDBC Support"
+            link="WSfd7453be0f56bba4bcf6a8f122a6749eaf-8000.html">
+         <item name="DataDirect driver features"
+               link="WSfd7453be0f56bba4bcf6a8f122a6749eaf-7fff.html"/>
+         <item name="Creating a data source in MySQL"
+               link="WSfd7453be0f56bba4bcf6a8f122a6749eaf-7ffe.html"/>
+         <item name="New querytimeout connection option"
+               link="WSfd7453be0f56bba4bcf6a8f122a6749eaf-7ffd.html"/>
+         <item name="Enabling SSL Connection"
+               link="WS70f0d54f063b9b08238ab6dc122b1a20785-8000.html"/>
+      </item>
+      <item name="Connecting to ODBC Socket"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe3.html"/>
+      <item name="Connecting to Oracle"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe2.html"/>
+      <item name="Connecting to other data sources"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe9.html"/>
+      <item name="Connecting to PostgreSQL"
+            link="WSc3ff6d0ea77859461172e0811cbf3639b1-7fff.html"/>
+      <item name="Connecting to Sybase"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fe0.html"/>
+      <item name="Connecting to JNDI data sources"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fdf.html"/>
+      <item name="Connecting to an external JDBC Type 4 data source"
+            link="WSc3ff6d0ea77859461172e0811cbf3639b1-7fe6.html"/>
+   </item>
+   <item name="Web Server Management"
+         link="WSc3ff6d0ea77859461172e0811cbf364104-7ffd.html">
+      <item name="About web servers in ColdFusion"
+            link="WSc3ff6d0ea77859461172e0811cbf363a5d-7ff7.html"/>
+      <item name="Using the built-in web server"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fd8.html"/>
+      <item name="Using an external web server"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fd7.html"/>
+      <item name="Web server configuration"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fd6.html">
+         <item name="Using GUI mode" link="WSc3ff6d0ea77859461172e0811cbf363a5d-7ffc.html"/>
+         <item name="Using the command-line interface"
+               link="WSc3ff6d0ea77859461172e0811cbf364104-7fd9.html"/>
+         <item name="Configuration files"
+               link="WSc3ff6d0ea77859461172e0811cbf363a5d-7ffb.html"/>
+      </item>
+      <item name="Multihoming" link="WSc3ff6d0ea77859461172e0811cbf364104-7fc3.html">
+         <item name="IIS" link="WSc3ff6d0ea77859461172e0811cbf363a5d-7fef.html"/>
+         <item name="Apache" link="WSc3ff6d0ea77859461172e0811cbf364104-7fd5.html"/>
+         <item name="Sun ONE Web Server, iPlanet, and Netscape"
+               link="WSc3ff6d0ea77859461172e0811cbf363a5d-7fed.html"/>
+      </item>
+   </item>
+   <item name="Deploying ColdFusion Applications"
+         link="WSc3ff6d0ea77859461172e0811cbf363af9-7ff6.html">
+      <item name="Archive and deployment options"
+            link="WSc3ff6d0ea77859461172e0811cbf363af9-8000.html"/>
+      <item name="Packaging applications in CAR files"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fd3.html"/>
+      <item name="Packaging applications in J2EE archive files"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fd1.html"/>
+      <item name="Using the cfcompile utility"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fd0.html"/>
+   </item>
+   <item name="Administering Security"
+         link="WSc3ff6d0ea77859461172e0811cbf364104-7ff2.html">
+      <item name="About ColdFusion security"
+            link="WSc3ff6d0ea77859461172e0811cbf363b95-7ff6.html"/>
+      <item name="Using password protection"
+            link="WSc3ff6d0ea77859461172e0811cbf363b95-7ffb.html"/>
+      <item name="Exposing services to users"
+            link="WSA25F4E98-110A-4092-9F3F-A5D6A8B0BCFA.html"/>
+      <item name="Configure IP address to access exposed services"
+            link="WS8193FF16-0341-45c4-AF9C-047EB392A0A7.html"/>
+      <item name="Restricting access to ColdFusion Administrator"
+            link="WSe61e35da8d318518-32a693a2134f111bf34-8000.html"/>
+      <item name="Using sandbox security"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fc8.html"/>
+   </item>
+   <item name="Using Multiple Server Instances"
+         link="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html">
+      <item name="About multiple server instances"
+            link="WSc3ff6d0ea77859461172e0811cbf363c31-7ff5.html"/>
+      <item name="Defining additional server instances"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fd4.html">
+         <item name="Define a server instance"
+               link="WSAB4367BA-6D91-4c69-8DBA-E2839394658A.html"/>
+      </item>
+      <item name="Enabling application isolation"
+            link="WSc3ff6d0ea77859461172e0811cbf364104-7fc0.html">
+         <item name="Use multiple server instances for application isolation"
+               link="WSf01dbd23413dda0e-25e72d5d120574d8991-8000.html"/>
+         <item name="Web server configuration for application isolation"
+               link="WSc3ff6d0ea77859461172e0811cbf364104-7fc4.html"/>
+      </item>
+      <item name="Enabling clustering for load balancing and failover"
+            link="WSc3ff6d0ea77859461172e0811cbf363c31-7ffa.html"/>
+      <item name="Define remote server instances to the ColdFusion Administrator"
+            link="WSc3ff6d0ea77859461172e0811cbf363c31-7ff2.html"/>
+   </item>
+   <item name="Using the ColdFusion Server Monitor"
+         link="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff7.html">
+      <item name="Gathering information about ColdFusion servers"
+            link="WSc3ff6d0ea77859461172e0811cbf363cdd-7fce.html"/>
+      <item name="Starting the ColdFusion Server Monitor"
+            link="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff1.html"/>
+      <item name="Viewing Server Monitor Reports"
+            link="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff3.html">
+         <item name="Overview" link="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff5.html"/>
+         <item name="Statistics" link="WSc3ff6d0ea77859461172e0811cbf364104-7fba.html"/>
+         <item name="Alerts" link="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffb.html"/>
+         <item name="Snapshots" link="WSc3ff6d0ea77859461172e0811cbf363cdd-7fd2.html"/>
+      </item>
+      <item name="Specifying Server Monitor Settings"
+            link="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffa.html"/>
+      <item name="ColdFusion Server Monitor API"
+            link="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff4.html"/>
+      <item name="Using the Server Monitor to improve server performance"
+            link="WSc3ff6d0ea77859461172e0811cbf363cdd-7fe2.html"/>
+      <item name="Setting up Server Manager client"
+            link="WS3AB107E1-16CB-48bb-BA20-C653175A831B.html"/>
+      <item name="Configuring the Server monitoring settings"
+            link="WSbfbbf049491c37b01e63e3d129fe2500fd-7fff.html">
+         <item name="Using the ColdFusion Administrator"
+               link="WSbfbbf049491c37b01e63e3d129fe2500fd-7ffe.html"/>
+         <item name="Using Admin APIs" link="WSbfbbf049491c37b01e63e3d129fe2500fd-7ffc.html"/>
+         <item name="Troubleshooting scenarios"
+               link="WSbfbbf049491c37b01e63e3d129fe2500fd-7ffb.html"/>
+      </item>
+   </item>
+   <item name="Working with Server Manager"
+         link="WSfd7453be0f56bba4-2a6b48f122a6582c7f-8000.html">
+      <item name="Launch Server Manager"
+            link="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7fff.html"/>
+      <item name="Register servers" link="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffe.html"/>
+      <item name="Create Groups" link="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff7.html"/>
+      <item name="Manage multiple servers"
+            link="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff6.html"/>
+      <item name="Monitor multiple servers"
+            link="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff1.html"/>
+   </item>
+   <item name="Basic Troubleshooting and FAQs"
+         link="WS6029a80579ffffcd1f6883df134d05bd229-8000.html">
+      <item name="Basic troubleshooting overview"
+            link="WSe61e35da8d318518-69b2bf03134d0730d5e-8000.html">
+         <item name="Verify that the web server is running"
+               link="WSe61e35da8d318518-69b2bf03134d0730d5e-7fff.html"/>
+         <item name="Verify that ColdFusion is running"
+               link="WSe61e35da8d318518-69b2bf03134d0730d5e-7ffe.html"/>
+         <item name="Change ColdFusion user account"
+               link="WSe61e35da8d318518-69b2bf03134d0730d5e-7ffd.html"/>
+         <item name="Analyze server activity in log files"
+               link="WSe61e35da8d318518-69b2bf03134d0730d5e-7ffc.html"/>
+      </item>
+      <item name="Frequently asked questions"
+            link="WSe61e35da8d31851842debae5134d0ab42ed-8000.html">
+         <item name="How will I uninstall ColdFusion?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7fff.html"/>
+         <item name="How will I change password?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ffe.html"/>
+         <item name="How will I change ColdFusion Administrator password?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ffd.html"/>
+         <item name="How will I start and stop ColdFusion?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ffc.html"/>
+         <item name="How do I configure performance monitor?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ffb.html"/>
+         <item name="How will I use Multiserver Monitor?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ffa.html"/>
+         <item name="How to set per application settings"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ff9.html"/>
+         <item name="How will I manage undevliered mails?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ff8.html"/>
+         <item name="How will I view and search log content?"
+               link="WSe61e35da8d31851842debae5134d0ab42ed-7ff7.html"/>
+         <item name="How do I deploy an archive?"
+               link="WSe61e35da8d318518-2d7f111b134e73f05d7-8000.html"/>
+      </item>
+   </item>
+</toc>

@@ -1,0 +1,107 @@
+<cfprocessingdirective suppresswhitespace="yes" pageencoding="ISO-8859-1">
+<cfsilent>
+<!--
+L10N Resource File
+Section: Updates
+Locale: English (en)
+Find the requested resource by id
+-->
+</cfsilent>
+<cfswitch expression="#ATTRIBUTES.id#">
+
+<cfcase value="l10n_status_start">Starting Download</cfcase>
+<cfcase value="l10n_status_downloading">Downloading</cfcase>
+<cfcase value="l10n_status_installing">Installing</cfcase>
+<cfcase value="l10n_signnature_check_failed">Failed Signature verification.</cfcase>
+<cfcase value="l10n_err_message1_exists">Update File already exists at</cfcase>
+<cfcase value="l10n_update_message1">Update file has been successfully downloaded </cfcase>
+<cfcase value="l10n_dwninfo_ok">OK</cfcase>
+<cfcase value="l10n_update_err1">Error occurred while installing the update:</cfcase>
+<cfcase value="l10n_update_err2">Error occurred while downloading the update:</cfcase>
+<cfcase value="l10n_err_message1_success">Update File Successfully Downloaded at</cfcase>
+<cfcase value="l10n_errinfo_ok">OK</cfcase>
+<cfcase value="update_pageheader">
+Server Update &gt; Updates</cfcase>
+<cfcase value="l10n_avail_update_label"><cfoutput>Available Updates#CALLER.count#</cfoutput></cfcase>
+<cfcase value="l10n_install_update_label">Installed Updates</cfcase>
+<cfcase value="l10n_settings_updates_label">Settings</cfcase>
+<cfcase value="l10n_window_title1">Installer Configuration</cfcase>
+<cfcase value="l10n_window_title2">Continue installation</cfcase>
+<cfcase value="info_dialog">Progress Information</cfcase>
+<cfcase value="err_dialog">Error</cfcase>
+<cfcase value="confirm_dialog">Confirm overwrite</cfcase>
+<cfcase value="uninstall_dialog">Uninstall Confirmation</cfcase>
+<cfcase value="l10n_update_message2">ColdFusion server will be stopped and restarted during installation.</cfcase>
+<cfcase value="l10n_update_message3">Re-Login to ColdFusion Administrator to check the status.</cfcase>
+<cfcase value="l10n_update_message5">Starting installation...this might take a few minutes</cfcase>
+<cfcase value="l10n_info_ok">OK</cfcase>
+<cfcase value="l10n_installer_message2">ColdFusion server will be stopped and restarted during installation.</cfcase>
+<cfcase value="l10n_installer_message1">Provide following details</cfcase>
+<cfcase value="l10n_select_instances">Select ColdFusion Instances to install update on:</cfcase>
+<cfcase value="l10n_select_instances_all">Select All</cfcase>
+<cfcase value="l10n_installer_restart_message">Note: Stop all selected instances before you continue</cfcase>
+<cfcase value="l10n_installer_message4">Continue</cfcase>
+<cfcase value="l10n_installer_message5">Cancel</cfcase>
+<cfcase value="l10n_overwrite_message3">Update file already exists.</cfcase>
+<cfcase value="l10n_overwrite_message2">Do you want to overwrite existing file?</cfcase>
+<cfcase value="l10n_overwrite_ok">OK</cfcase>
+<cfcase value="l10n_overwrite_cancel">Cancel</cfcase>
+<cfcase value="l10n_overwrite_continue">Yes</cfcase>
+<cfcase value="l10n_overwrite_dont">No</cfcase>
+<cfcase value="l10n_notification_subject">New Update Available For ColdFusion Server</cfcase>
+<cfcase value="l10n_notification_msg1">updates available For ColdFusion Server</cfcase>
+<cfcase value="l10n_notification_msg1_login">Login to ColdFusion Administrator to get more details and install updates.</cfcase>
+<cfcase value="l10n_uninstall_message3">Do you want to uninstall update?</cfcase>
+<cfcase value="l10n_uninstall_message2">ColdFusion server will be stopped and restarted during uninstall process.</cfcase>
+<cfcase value="l10n_uninstall_ok">OK</cfcase>
+<cfcase value="l10n_uninstall_cancel">Cancel</cfcase>
+<cfcase value="l10n_mailalert">To get email notifications, configure the mail server (Server Settings > Mail)</cfcase>
+<cfcase value="l10n_mailalert1">Following email IDs are not in valid format: </cfcase>
+<cfcase value="l10n_mailalert2">Specify an email address to which notification will be sent.</cfcase>
+<cfcase value="url_wrong_format">URL is specified in wrong format.</cfcase>
+<cfcase value="_settings_statmess">Server has been updated successfully</cfcase>
+<cfcase value="l10n_add_new_dsn_autocheck">Auto-Check</cfcase>
+<cfcase value="l10n_settings_autocheck_lbl">Automatically Check for Updates</cfcase>
+<cfcase value="l10n_settings_autocheck_desc">Select to automatically check for updates at every login.</cfcase>
+<cfcase value="l10n_add_new_dsn_noti">Notification</cfcase>
+<cfcase value="l10n_checkinterval">Check for updates every</cfcase>
+<cfcase value="l10n_checkinterval1">days</cfcase>
+<cfcase value="l10n_emailnotification">If updates are available, send email notification to</cfcase>
+<cfcase value="l10n_emailnotification_ex">(ex. user1@company.com,user2@company.com)</cfcase>
+<cfcase value="l10n_add_updatesite">Update Site</cfcase>
+<cfcase value="l10n_siteurl">Site URL</cfcase>
+<cfcase value="l10n_siteurldesc">If you have set up a local update site, specify URL of that site to get updates.</cfcase>
+<cfcase value="l10n_settings_submit">Submit Changes</cfcase>
+<cfcase value="l10n_update_unistall_block_msg1">You cannot uninstall updates from ColdFusion Administrator for J2EE deployment. Stop the server and run uninstaller manually from command prompt.</cfcase>
+<cfcase value="l10n_secdsource">Available Updates</cfcase>
+<cfcase value="l10n_cftags">Installed Updates</cfcase>
+<cfcase value="l10n_cffunctions">Settings</cfcase>
+<cfcase value="l10n_update_level">Update Level:</cfcase>
+<cfcase value="l10n_update_type">Update Type:</cfcase>
+<cfcase value="l10n_update_ins_date">Install Date:</cfcase>
+<cfcase value="l10n_update_desc">Update Description:</cfcase>
+<cfcase value="l10n_update_read_more">Read More...</cfcase>
+<cfcase value="l10n_update_bckdir">Backup Directory:</cfcase>
+<cfcase value="l10n_update_log">Install Log:</cfcase>
+<cfcase value="l10n_uninstall_bttn">Uninstall</cfcase>
+<cfcase value="l10n_no_updates_installed">There are no installed updates</cfcase>
+<cfcase value="l10n_no_updates_err">Error Occurred while reading update information - </cfcase>
+<cfcase value="l10n_check_updates">Check for Updates</cfcase>
+<cfcase value="l10n_update_success">Update file has been successfully downloaded</cfcase>
+<cfcase value="l10n_update_errmsg">Error occurred while downloading the update:</cfcase>
+<cfcase value="l10n_updates_download">Download</cfcase>
+<cfcase value="l10n_updates_redownload">Re-download</cfcase>
+<cfcase value="l10n_updates_download_and_install">Download and Install</cfcase>
+<cfcase value="l10n_updates_only_install">Install</cfcase>
+<cfcase value="l10n_updates_install_errmsg">
+You cannot install updates from ColdFusion Administrator for J2EE deployment. Download the update, stop the server and run installer manually from command prompt.
+</cfcase>
+<cfcase value="l10n_no_updates1">No updates were found</cfcase>
+<cfcase value="l10n_no_updates2">Click the button on right to check for updates</cfcase>
+<cfcase value="l10n_status_error">Error</cfcase>
+<cfcase value="l10n_connect_error">Not able to connect to download service</cfcase>
+
+<cfdefaultcase><cfset bSuccess="false"/></cfdefaultcase>
+</cfswitch>
+</cfprocessingdirective>
+

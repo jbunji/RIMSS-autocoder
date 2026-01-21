@@ -1,0 +1,9 @@
+; DIRECTORYLIST.def : Declares the module parameters for the DLL.
+
+LIBRARY      "DIRECTORYLIST"
+DESCRIPTION  'DIRECTORYLIST Windows Dynamic Link Library'
+
+EXPORTS
+    ; All tag request procedures should be listed below
+	
+	ProcessTagRequest	@1

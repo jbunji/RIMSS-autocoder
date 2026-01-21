@@ -872,9 +872,9 @@ export default function UsersPage() {
                     {/* Location Assignments */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Location Assignments
+                        Location Assignments <span className="text-red-500">*</span>
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">Select one or more locations (optional)</p>
+                      <p className="text-xs text-gray-500 mt-1">Select one or more locations</p>
                       <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
                         {locations.length > 0 ? (
                           locations.map((location) => (
@@ -901,6 +901,9 @@ export default function UsersPage() {
                           <p className="text-sm text-gray-500 p-2">No locations available</p>
                         )}
                       </div>
+                      {errors.location_ids && (
+                        <p className="mt-1 text-sm text-red-600">{errors.location_ids.message}</p>
+                      )}
                     </div>
 
                     {/* Password */}
@@ -1214,7 +1217,7 @@ export default function UsersPage() {
                     {/* Location Assignments */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Location Assignments
+                        Location Assignments <span className="text-red-500">*</span>
                       </label>
                       <p className="text-xs text-gray-500 mt-1">Select one or more locations, then set the default location (optional)</p>
                       <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
@@ -1263,6 +1266,9 @@ export default function UsersPage() {
                           <p className="text-sm text-gray-500 p-2">No locations available</p>
                         )}
                       </div>
+                      {errorsEdit.location_ids && (
+                        <p className="mt-1 text-sm text-red-600">{errorsEdit.location_ids.message}</p>
+                      )}
                     </div>
 
                     {/* Password (optional for edit) */}

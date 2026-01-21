@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<setupconfig>
+    <runsetupwizard>true</runsetupwizard>
+    <runmigrationwizard>false</runmigrationwizard>
+    <runmxmigrationwizard>false</runmxmigrationwizard>
+    <migratecf8>false</migratecf8>
+    <migratecf9>false</migratecf9>
+    <setupoptions>
+        <sampleapps>true</sampleapps>
+        <odbc>true</odbc>
+        <enablerds>false</enablerds>
+    </setupoptions>
+</setupconfig>

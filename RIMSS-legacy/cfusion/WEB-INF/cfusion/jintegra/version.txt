@@ -1,0 +1,14 @@
+J-Integra v2.10  (c) Intrinsyc Software International, Inc. http://j-integra.intrinsyc.com/
+Checking jar file jintegra.jar...
+Checking jar file jintegra_reduced_logging.jar...
+
+Installed products:
+____________________________________________
+Product         :  J-Integra for COM
+License Version :  2.11
+Runtime Version :  2.11
+Licensed to     :  Adobe Systems Inc [hkhandel@adobe.com]
+Serial #        :
+License Type    :  Server
+Date of Issue   :  september 16, 2011
+____________________________________________

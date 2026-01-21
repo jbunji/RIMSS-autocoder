@@ -1,0 +1,144 @@
+{
+	"colors" : [
+			{
+				"color" : "#699EBF",
+				"color-2" : "#F0F1F2"
+			},
+			{
+				"color" : "#143F59",
+				"color-2" : "#699EBF"
+			},
+			{
+				"color" : "#735328",
+				"color-2" : "#FFCF8C"
+			},
+			{
+				"color" : "#9D9C5D",
+				"color-2" : "#FEFFD1"
+			},
+			{
+				"color" : "#672B2C",
+				"color-2" : "#FF8487"
+			},
+			{
+				"color" : "#3F204C",
+				"color-2" : "#B56CD6"
+			},
+			{
+				"color" : "#204F3A",
+				"color-2" : "#6BE5AE"
+			},
+			{
+				"color" : "#2B204C",
+				"color-2" : "#896FD7"
+			},
+			{
+				"color" : "#4C482F",
+				"color-2" : "#E5E0BA"
+			},
+			{
+				"color" : "#317678",
+				"color-2" : "#6EEFF2"
+			}
+		],
+	"style" : {
+			"area" : {
+			},
+			"bar" : {
+					"shadow-color":"#cccccc",
+					"shadow":true,
+					"shadow-distance":2,
+					"shadow-alpha":1,
+					"shadow-blur-x":2,
+					"shadow-blur-y":1
+			},
+			"bubble" : {
+					"hover-marker" : {
+						"alpha" : 1,
+						"border-width" : 2,
+						"border-color" : "#fff"
+					}
+			},
+			"gauge" : {
+			},
+			"hbar" : {
+					"shadow-color":"#cccccc",
+					"shadow":true,
+					"shadow-distance":2,
+					"shadow-alpha":1,
+					"shadow-blur-x":2,
+					"shadow-blur-y":1
+			},
+			"hbullet" : {
+					"shadow-color":"#cccccc",
+					"shadow":true,
+					"shadow-distance":2,
+					"shadow-alpha":1,
+					"shadow-blur-x":2,
+					"shadow-blur-y":1,
+					"goal" : {
+						"shadow-color":"#cccccc",
+						"shadow":true,
+						"shadow-distance":1,
+						"shadow-alpha":1,
+						"shadow-blur-x":1,
+						"shadow-blur-y":1
+					}
+			},
+			"hfunnel" : {
+					"shadow-color":"#cccccc",
+					"shadow":true,
+					"shadow-distance":2,
+					"shadow-alpha":1,
+					"shadow-blur-x":2,
+					"shadow-blur-y":1
+			},
+			"line" : {
+					"line-width" : 3
+			},
+			"nestedpie" : {
+			},
+			"piano" : {
+						"shadow-color":"#cccccc",
+						"shadow":true,
+						"shadow-distance":2,
+						"shadow-alpha":1,
+						"shadow-blur-x":2,
+						"shadow-blur-y":1
+			},
+			"pie" : {
+			},
+			"radar" : {
+			},
+			"scatter" : {
+			},
+			"stock" : {
+			},
+			"vbullet" : {
+					"shadow-color":"#cccccc",
+					"shadow":true,
+					"shadow-distance":2,
+					"shadow-alpha":1,
+					"shadow-blur-x":2,
+					"shadow-blur-y":1,
+					"goal" : {
+						"shadow-color":"#cccccc",
+						"shadow":true,
+						"shadow-distance":1,
+						"shadow-alpha":1,
+						"shadow-blur-x":1,
+						"shadow-blur-y":1
+					}
+			},
+			"venn" : {
+			},
+			"vfunnel" : {
+					"shadow-color":"#cccccc",
+					"shadow":true,
+					"shadow-distance":2,
+					"shadow-alpha":1,
+					"shadow-blur-x":2,
+					"shadow-blur-y":1
+			}
+		}
+}

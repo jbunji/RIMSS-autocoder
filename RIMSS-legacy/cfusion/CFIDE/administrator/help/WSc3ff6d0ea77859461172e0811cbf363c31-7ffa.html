@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Enabling clustering for load balancing and failover</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf363c31-7ffa.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf363c31-7ffa.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf364104-7fc4.html" title="Web server configuration for application isolation"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff2.html" title="Define remote server instances to the ColdFusion Administrator"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html"><b>Using Multiple Server Instances</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Enabling clustering for load balancing and failover</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WS3F7BDE13-53A4-49ae-8ECC-40687C34E9D5"><span class="topictitle1">Configure a cluster of server instances for load balancing and failover</span>
+</a></p><ul><li><p><a href="#WS932f2e4c7c04df8f-676a020513514deda38-8000"><span class="topictitle2">Adding a remote instance to a cluster</span>
+</a></p></li></ul></li></ul></div></div></div></div><div><p><i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Load balancing</i> is
+an enterprise-level feature in which the application server automatically
+alternates requests among the server instances in a cluster. Clustering
+also enables application servers to route requests to a running
+server instance when the original server instance goes down.</p>
+<div class="note"><span class="notetitle">Note:  </span>These
+instructions apply only when you are running ColdFusion in the multiserver
+configuration. If you are running Tomcat, you can also create clusters
+in the JMC.</div>
+<p>You
+can get load balancing and failover by deploying identical ColdFusion
+applications and configurations to multiple server instances and
+adding the instances to a cluster. Each instance must have the same
+applications deployed and the same resources configured (such as
+data sources, Solr collections, and mappings). The web server connector
+optimizes performance and stability by automatically balancing load
+and by switching requests to another server instance when a server
+instance stops running.</p>
+<div class="note"><span class="notetitle">Note:  </span>Because clustering uses Jini
+Network Technology, you must be connected to a network for clustering
+to work. </div>
+<p>For
+maximum failover protection, use multiple computers in a cluster.
+However, purchase a separate ColdFusion Enterprise Edition license
+for each computer.</p>
+<p>To
+implement session failover for the server instances in a cluster,
+enable session replication for each server instance. Session replication
+coordinates session information in real time among the server instances
+in a cluster. Enabling session replication lets Tomcat automatically
+route a request to a running server if the current server is unavailable.</p>
+<div class="note"><span class="notetitle">Note:  </span>When a cluster uses session
+replication, session data is copied to other servers in the cluster
+each time it is modified. This can degrade performance if you store
+a significant amount of information in session scope. If you plan
+to store a significant amount of information in session scope, consider
+storing this information in client variables saved in a database.</div>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WS3F7BDE13-53A4-49ae-8ECC-40687C34E9D5" class="nochunk"><a name="WS3F7BDE13-53A4-49ae-8ECC-40687C34E9D5"><!-- --></a><h2 class="topictitle2">Configure a cluster of server instances for load balancing and failover</h2><div><p>Manage clusters using the ColdFusion Administrator.</p>
+<ol><li><p>In the ColdFusion Administrator, click Enterprise Manager
+&gt; Cluster Manager.</p>
+</li>
+<li><p>Enter a cluster name and then click Add.</p>
+</li>
+<li><p>Click the cluster name and move the servers to the cluster
+based on the requirement.</p>
+</li>
+<li><p>(If required) Edit the multicast port.</p>
+<p>Multicast port
+is used to group the cluster members together. Default value of multicast
+port is 45564. After you create a cluster, the port is added in
+the <samp class="codeph"><i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cfroot</i>\cfusion\config\cluster.xml</samp> file. </p>
+<p>For
+more information on multicast port, see <a href="http://tomcat.apache.org/tomcat-6.0-doc/config/cluster-membership.html" target="_self">http://tomcat.apache.org/tomcat-6.0-doc/config/cluster-membership.html</a>.</p>
+</li>
+<li><p>Specify if you need sticky session.</p>
+<p>Sticky session
+ensures that after a session is established on an instance, all future
+requests from the client are mapped to that instance. </p>
+</li>
+<li><p>Click Submit.</p>
+</li>
+</ol>
+</div><div id="WS932f2e4c7c04df8f-676a020513514deda38-8000" class="nochunk"><a name="WS932f2e4c7c04df8f-676a020513514deda38-8000"><!-- --></a><h3 class="topictitle3">Adding a remote instance to a cluster</h3><div><div class="para">To add a remote instance to a cluster, add the cluster
+block to the remote instance’s <samp class="codeph">server.xml</samp>. Then,
+register the remote instance and add the instance to the cluster.
+For more information on configuring clusters on Tomcat, see <a href="http://tomcat.apache.org/tomcat-5.5-doc/cluster-howto.html" target="_self">http://tomcat.apache.org/tomcat-5.5-doc/cluster-howto.html</a>.<ol><li><p>Register the remote instance to the local machine.</p>
+</li>
+<li><p>Create a cluster in the local machine.</p>
+</li>
+<li><p>Open the <samp class="codeph">cfroot\<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">instance-name\</i>runtime\conf\server.xml</samp> file of
+the remote instance.</p>
+</li>
+<li><p>Add the following block between the entries <samp class="codeph">&lt;/host&gt; </samp>and <samp class="codeph">&lt;/engine&gt;</samp>:</p>
+<div class="para"><pre> 
+&lt;Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"         channelSendOptions="8"&gt; 
+    &lt;Manager notifyListenersOnReplication="true" expireSessionsOnShutdown="false" className="org.apache.catalina.ha.session.DeltaManager"&gt; 
+    &lt;/Manager&gt; 
+    &lt;Channel className="org.apache.catalina.tribes.group.GroupChannel"&gt; 
+        &lt;Membership port="<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">45565</i>" dropTime="3000" address="228.0.0.4"     className="org.apache.catalina.tribes.membership.McastService" frequency="500"&gt; 
+        &lt;/Membership&gt; 
+        &lt;Receiver port="4003" autoBind="100" address="auto" selectorTimeout="5000"     maxThreads="6" className="org.apache.catalina.tribes.transport.nio.NioReceiver"&gt; 
+        &lt;/Receiver&gt; 
+        &lt;Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter"&gt; 
+            &lt;Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender"&gt; 
+            &lt;/Transport&gt; 
+        &lt;/Sender&gt; 
+        &lt;Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpFailureDetector"&gt; 
+        &lt;/Interceptor&gt; 
+        &lt;Interceptor     className="org.apache.catalina.tribes.group.interceptors.MessageDispatch15Interceptor"&gt; 
+        &lt;/Interceptor&gt; 
+    &lt;/Channel&gt; 
+    &lt;Valve className="org.apache.catalina.ha.tcp.ReplicationValve" filter=""&gt; 
+    &lt;/Valve&gt; 
+    &lt;Valve className="org.apache.catalina.ha.session.JvmRouteBinderValve"&gt; 
+    &lt;/Valve&gt; 
+ 
+    &lt;ClusterListener     className="org.apache.catalina.ha.session.JvmRouteSessionIDBinderListener"&gt; 
+    &lt;/ClusterListener&gt; 
+    &lt;ClusterListener className="org.apache.catalina.ha.session.ClusterSessionListener"&gt; 
+    &lt;/ClusterListener&gt; 
+ 
+&lt;/Cluster&gt; </pre>
+</div>
+</li>
+<li><p>In the entry, update the membership port with the multicast
+port of the cluster.</p>
+</li>
+<li><div class="para">Using the ColdFusion Administrator of the local host, add
+the local instance and the remote instance to the cluster.<div class="note"><span class="notetitle">Note:  </span>If
+you enable sticky session, the JVM route of the remote instance
+and local instance must not be the same.</div>
+</div>
+</li>
+<li><p>Restart all the instances.</p>
+</li>
+</ol>
+</div>
+</div></div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf364104-7fc4.html" title="Web server configuration for application isolation"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff2.html" title="Define remote server instances to the ColdFusion Administrator"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html"><b>Using Multiple Server Instances</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

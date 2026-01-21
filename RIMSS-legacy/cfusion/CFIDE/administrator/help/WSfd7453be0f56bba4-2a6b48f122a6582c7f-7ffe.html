@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Register servers</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffe.html";
+    document.cookie = "topicId=" + "WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffe.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7fff.html" title="Launch Server Manager"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff7.html" title="Create Groups"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-8000.html"><b>Working with Server Manager</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Register servers</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffd"><span class="topictitle1">Start and stop ColdFusion server instance</span>
+</a></p><ul><li><p><a href="#WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffc"><span class="topictitle2">Tomcat parameters</span>
+</a></p><ul><li><p><a href="#WS932f2e4c7c04df8f-1038fe6d1351474e8fc-8000"><span class="topictitle3">Setting up remote start and stop functionality using HTTP in Server Manager</span>
+</a></p></li></ul></li><li><p><a href="#WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffb"><span class="topictitle2">WebLogic Server-specific parameters</span>
+</a></p></li><li><p><a href="#WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffa"><span class="topictitle2">WebSphere-specific parameters</span>
+</a></p></li><li><p><a href="#WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff9"><span class="topictitle2">JBoss specific parameters</span>
+</a></p></li></ul></li><li><p><a href="#WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff8"><span class="topictitle1">View diff of two server settings</span>
+</a></p></li></ul></div></div></div></div><div><p>Register each ColdFusion server instance to manage it from
+the Server Manager. </p>
+<div class="note"><span class="notetitle">Note:  </span>The Server Manager AIR application supports only ColdFusion
+instances.</div>
+<p>To register a ColdFusion server:</p>
+<ol><li><p>Click the (+) sign in the right-pane of the Server Manager.</p>
+</li>
+<li><p>Enter the server details including the server name, host
+name/IP address, port number, context root (for J2EE servers), and
+its user name and password.</p>
+<p>You can configure the host by
+specifying any either the hostname or the IP address. It is recommended
+that you register a particular server either using hostname or IP
+address only once from Server Manager AIR application. If you register
+the same server more than once, you might experience the following exception:</p>
+<pre>[BlazeDS]Unhandled error when processing a message: flex.messaging.LocalizedException: 
+The FlexSession is invalid. 
+message =  There was an unhandled failure on the server. The FlexSession is invalid. 
+Exception: flex.messaging.LocalizedException: The FlexSession is invalid.</pre>
+</li>
+<li><p>Click Apply. After the server is registered, it appears in
+the All Servers list of the Server Manager. If the server details
+and authentication details are correct then the server status is
+displayed as 'Logged In' otherwise 'Login Failed' or 'Unreachable'
+status is displayed.</p>
+</li>
+<li><p>Select the icon adjacent to the Server drop-down list in
+the left-pane to fetch details of the registered ColdFusion server
+instance.</p>
+<p>To get the latest information about a server instance,
+fetch these details from the main ColdFusion server.</p>
+</li>
+</ol>
+<div class="note"><span class="notetitle">Note:  </span>For server clusters, register each instance in the cluster
+with the Server Manager.</div>
+<p>By default, the registered servers appear in Quick View in the
+right-pane of the All Servers tab. If you have associated the server
+instance or cluster to a group, then it appears under the group
+tab also.</p>
+<p>After you register a server instance, you can apply a hot fix
+or clear the server template cache. You can perform these tasks
+for an individual server instance or for multiple servers. For details
+on performing these tasks, see <a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff3.html">Apply hot fix</a> and <a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff4.html">Clear template cache</a>. </p>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffd" class="nochunk"><a name="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffd"><!-- --></a><h2 class="topictitle2">Start and stop ColdFusion server instance</h2><div><p>While reconfiguring some settings in ColdFusion, you may
+need to restart the server. With Server Manager, you can restart
+the server without logging into host.</p>
+<p>You can configure the start and stop functionality for any of
+the following server types that has a ColdFusion instance deployed:</p>
+<ul><li><p>Tomcat (Standalone)</p>
+</li>
+<li><p>WebLogic</p>
+</li>
+<li><p>WebSphere</p>
+</li>
+<li><p>JBoss</p>
+</li>
+</ul>
+<p>For more information on deploying ColdFusion on an application
+server, see <a href="http://help.adobe.com/en_US/ColdFusion/10.0/Installing/WSc3ff6d0ea77859461172e0811cdec18c28-7fde.html" target="_self">ColdFusion J2EE deployment and configuration</a> in
+the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Installing ColdFusion</i>.</p>
+<p>The general approach to implement the start and stop operation
+for a server is as follows:</p>
+<ol><li><p>For starting/stopping server, deploy the WAR file specific
+to the application server on the application server to run start
+and stop operations. </p>
+</li>
+<li><p>The deployed WAR instance should be in running state in the
+application server to be able to start or stop a ColdFusion server
+instance from the Server Manager.</p>
+</li>
+</ol>
+<p>For details on the WAR files corresponding to each application
+server and the parameters required to run start/stop operations,
+see:</p>
+<ul><li><p><a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffc.html">Tomcat parameters</a></p>
+</li>
+<li><p><a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffb.html">WebLogic Server-specific parameters</a></p>
+</li>
+<li><p><a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffa.html">WebSphere-specific parameters</a></p>
+</li>
+<li><p><a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff9.html">JBoss specific parameters</a></p>
+</li>
+</ul>
+<div class="note"><span class="notetitle">Note:  </span>Options such as start, stop, or restart would be enabled only
+after you provide the required details under Start/Stop Details
+tab. </div>
+</div><div id="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffc" class="nochunk"><a name="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffc"><!-- --></a><h3 class="topictitle3">Tomcat parameters</h3><div><p>You can set up start and stop remote instance functionality
+using HTTPS in Server Manager. To enable this feature, install Remote
+Instance Administrator while installing ColdFusion.</p>
+<ol><li><p>Do the following in the remote host.</p>
+<ol type="a"><li><p>In
+the remote host, generate a private key in a keystore file. Provide
+the details at prompt.</p>
+<pre><i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">&lt;CF_installation&gt;</i>\jre\bin\keytool -genkeypair -alias certificatekey -keyalg RSA -validity 7 -keystore <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">keystore.jks</i></pre>
+</li>
+<li><p>Export the certificate. You should have a self-signed certificate
+or a certificate from a Certificate Authority.</p>
+<pre><i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">&lt;CF_installation&gt;</i>\jre\bin\keytool -export -alias certificatekey -keystore <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">keystore.jks</i> -rfc -file <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">selfsignedcert.cer</i></pre>
+</li>
+<li><p>Copy the <samp class="codeph">.jks</samp> file created in the remote
+host to the <samp class="codeph">jetty\etc</samp> directory.</p>
+</li>
+<li><p>Open the <samp class="codeph">jetty\etc\jetty.xml</samp> file.</p>
+</li>
+<li><p>Search for the string, <samp class="codeph">To add a HTTPS SSL Listener</samp> and
+then add the following entry:</p>
+<pre> &lt;Call name="addConnector"&gt; 
+    &lt;Arg&gt; 
+    &lt;New class="org.mortbay.jetty.security.SslSocketConnector"&gt; 
+        &lt;Set name="Port"&gt;8443&lt;/Set&gt; 
+        &lt;Set name="maxIdleTime"&gt;30000&lt;/Set&gt; 
+        &lt;Set name="keystore"&gt;&lt;SystemProperty name="jetty.home" default="." /&gt;/etc/server.jks&lt;/Set&gt; 
+        &lt;Set name="password"&gt;changeit&lt;/Set&gt; 
+        &lt;Set name="keyPassword"&gt;changeit&lt;/Set&gt; 
+        &lt;Set name="truststore"&gt;&lt;SystemProperty name="jetty.home" default="." /&gt;/etc/server.jks&lt;/Set&gt; 
+        &lt;Set name="trustPassword"&gt;changeit&lt;/Set&gt; 
+    &lt;/New&gt; 
+    &lt;/Arg&gt; 
+&lt;/Call&gt;</pre>
+</li>
+<li><p>Update the keystore name, password, key password, and jks
+file in the entry.</p>
+</li>
+<li><p>Search for the string, <samp class="codeph">org.mortbay.jetty.bio.SocketConnector</samp>.</p>
+</li>
+<li><p>Update the host with the port number of the remote host.</p>
+</li>
+<li><p>Restart the jetty server.</p>
+<div class="note"><span class="notetitle">Note:  </span>If the remote server is
+running on Windows Vista, Windows 7, or Windows Server 2008, start
+the jetty sever with admin privileges.</div>
+</li>
+</ol>
+</li>
+<li><p>Do the following in the local host from where you add remote
+instance:</p>
+<ol type="a"><li><p>Copy the <samp class="codeph">.cer</samp> file created
+in the remote host to any of the locations.</p>
+</li>
+<li><p>Import the certificate.</p>
+<pre><i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">&lt;CF_installation&gt;</i>\jre\bin\keytool.exe -importcert -keystore "<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">&lt;CF_installation&gt;</i>\jre\lib\security\cacerts" -file <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">selfsignedcert.cer</i> -storepass <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">password</i></pre>
+</li>
+</ol>
+</li>
+<li><p>Open <samp class="codeph">wwwroot\CFIDE\ServerManager\ServerManager.air</samp> on the
+local host.</p>
+</li>
+<li><p>Specify the connection details.</p>
+</li>
+<li><p>Click Start/Stop Details.</p>
+</li>
+<li><p>Select HTTPS.</p>
+</li>
+<li><p>Provide the following information:</p>
+<ul><li><p><strong>App Server Username:</strong> User
+name for the admin component that you specified while installing
+ColdFusion. Default value is admin.</p>
+</li>
+<li><p><strong>App Server Password:</strong> Password for the admin component.</p>
+</li>
+<li><p><strong>Port:</strong> ColdFusion remote instance’s HTTPS port.</p>
+</li>
+<li><p><strong>Server:</strong> ColdFusion remote instance name.</p>
+</li>
+<li><p><strong>ColdFusion Version: </strong>For ColdFusion Zeus, 10.</p>
+</li>
+<li><p><strong>Admin Server Port:</strong> Default https port is 8443. Port
+of the Jetty server.</p>
+</li>
+<li><p><strong>Context Root:</strong> Value is AdminServlet.</p>
+</li>
+</ul>
+</li>
+<li><p>Click Apply.</p>
+</li>
+</ol>
+</div><div id="WS932f2e4c7c04df8f-1038fe6d1351474e8fc-8000" class="nochunk"><a name="WS932f2e4c7c04df8f-1038fe6d1351474e8fc-8000"><!-- --></a><h4 class="topictitle4">Setting up remote start and stop functionality using HTTP in Server Manager</h4><div><p>You can set up start and stop remote instance functionality
+in Server Manager. To enable this feature, install Remote Instance
+Administrator while installing ColdFusion.</p>
+<ol><li><p>Do the following in the remote host:</p>
+<ol type="a"><li><p>In
+the remote host, open the <samp class="codeph">ColdFusion_installtion\cfusion\jetty\etc\jetty.xml</samp>.</p>
+</li>
+<li><p>Search for the string, <samp class="codeph">org.mortbay.jetty.bio.SocketConnector</samp>.</p>
+</li>
+<li><p>Update the host with the IP address of the remote host.</p>
+</li>
+<li><p>Start the jetty server. Go to the <samp class="codeph">ColdFusion_installation\cfusion\jetty</samp> directory
+and use <samp class="codeph">jetty.exe</samp>. You can also use the jetty services
+in the Windows services.</p>
+</li>
+</ol>
+</li>
+<li><p>Open <samp class="codeph">wwwroot\CFIDE\ServerManager\ServerManager.air</samp> on the
+local host.</p>
+</li>
+<li><p>Specify the connection details.</p>
+</li>
+<li><p>Click Start / Stop Details.</p>
+</li>
+<li><p>Select HTTP.</p>
+</li>
+<li><p>Provide the following information:</p>
+<ul><li><p><strong>App Server Username:</strong> User
+name for the admin component that you specified while installing
+ColdFusion. The default value is <samp class="codeph">admin</samp>.</p>
+</li>
+<li><p><strong>App Server Password:</strong> Password for the admin component.</p>
+</li>
+<li><p><strong>Port: </strong>ColdFusion remote instance’s HTTP port.</p>
+</li>
+<li><p><strong>Server:</strong> ColdFusion remote instance name.</p>
+</li>
+<li><p><strong>ColdFusion Version:</strong> For ColdFusion Zeus, 10.</p>
+</li>
+<li><p><strong>Admin Server Port:</strong> Default https port is 8985. Port
+of the Jetty server.</p>
+</li>
+<li><p><strong>Context Root:</strong> Value is <samp class="codeph">AdminServlet</samp>.</p>
+</li>
+</ul>
+</li>
+<li><p>Click Apply.</p>
+</li>
+</ol>
+</div></div></div><div id="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffb" class="nochunk"><a name="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffb"><!-- --></a><h3 class="topictitle3">WebLogic Server-specific parameters</h3><div><p>Deploy the <samp class="codeph">wlogicappstartup.war</samp> file on
+WebLogic server, either in admin or non-admin server but to the
+same domain where ColdFusion is deployed.</p>
+<p>The WebLogic parameters in the Start/Stop Details tab of Server
+Manager are:</p>
+<ul><li><p>User name (user name of the domain on which ColdFusion
+application is deployed on WebLogic Server)</p>
+</li>
+<li><p>Password (password corresponding to the user name)</p>
+</li>
+<li><p>Port (port number for accessing the admin console)</p>
+</li>
+<li><p>Context root (name of the WAR file when no context root is
+specified)</p>
+</li>
+<li><p>ColdFusion Application Name (name of ColdFusion application
+deployed on WebLogic Server.)</p>
+</li>
+<li><p>Admin Port (port number for accessing the deployed WAR file,
+which is typically the administrator server port)</p>
+</li>
+</ul>
+</div></div><div id="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffa" class="nochunk"><a name="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ffa"><!-- --></a><h3 class="topictitle3">WebSphere-specific parameters</h3><div><p>Deploy the <samp class="codeph">wsappstartup.war</samp> file on WebSphere
+in the same profile where the ColdFusion instance is deployed.</p>
+<p>The WebSphere parameters in the Start/Stop Details tab of Server
+Manager are:</p>
+<ul><li><p>User name (WebSphere Admin user name)</p>
+</li>
+<li><p>Password (WebSphere Admin password)</p>
+</li>
+<li><p>Context root (context root of the deployed WAR file)</p>
+</li>
+<li><p>ColdFusion Application Name (Name of ColdFusion application
+deployed on WebSphere.)</p>
+</li>
+<li><p>Admin Port (port number for accessing the deployed WAR file,
+which is typically the administrator server port)</p>
+</li>
+</ul>
+</div></div><div id="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff9" class="nochunk"><a name="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff9"><!-- --></a><h3 class="topictitle3">JBoss specific parameters</h3><div><p>For JBoss, deploy the <samp class="codeph">jbossappstartup.war</samp> file
+on JBoss server.</p>
+<p>The start/stop operations work only when secure access of JNDI
+over HTTP is enabled.</p>
+<p>To configure secure access of JNDI over HTTP:</p>
+<ol><li><p>In &lt;jboss-home&gt;/server/default/deploy/http-invoker.sar/invoker.war/WEB-INF/web.xml,
+uncomment the servlet mapping</p>
+<pre>&lt;servlet-mapping&gt; 
+        &lt;servlet-name&gt;JNDIFactory&lt;/servlet-name&gt; 
+        &lt;url-pattern&gt;/restricted/JNDIFactory/*&lt;/url-pattern&gt; 
+    &lt;/servlet-mapping&gt;</pre>
+</li>
+<li><p>In &lt;jboss-home&gt;/server/default/deploy/http-invoker.sar/invoker.war/WEB-INF/jboss-web.xml,
+uncomment the line:</p>
+<pre>&lt;security-domain&gt;java:/jaas/jmx-console&lt;/security-domain&gt;</pre>
+</li>
+<li><p> In &lt;jboss-home&gt;/server/default/conf/login-config.xml,
+add the following &lt;policy&gt; if it does not exist.</p>
+<pre>&lt;application-policy name = "jmx-console"&gt; 
+       &lt;authentication&gt; 
+          &lt;login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule" 
+             flag = "required"&gt; 
+             &lt;module-option name="usersProperties"&gt;props/jmx-console-users.properties&lt;/module-option&gt; 
+             &lt;module-option name="rolesProperties"&gt;props/jmx-console-roles.properties&lt;/module-option&gt; 
+          &lt;/login-module&gt; 
+       &lt;/authentication&gt; 
+    &lt;/application-policy&gt;</pre>
+</li>
+</ol>
+<p>The files <samp class="codeph">props/jmx-console-users.properties</samp> and<samp class="codeph"> props/jmx-console-roles.properties</samp> must
+contain the entries in the following format:</p>
+<pre>/jmx-console-users.properties:</pre>
+<p>Format: {username}={password}</p>
+<pre>/jmx-console-roles.properties</pre>
+<p>Format: {username}={comma-separated list of roles}</p>
+<p>For more information on enabling secure access of JNDI over HTTP,
+see <a href="https://www.virthero.com/docs/manuals/jboss/jboss-eap-4.2/doc/Server_Configuration_Guide/JNDI_over_HTTP-Securing_Access_to_JNDI_over_HTTP.html" target="_self">Securing Access to JNDI over HTTP</a>.</p>
+<p>The JBoss parameters in the Start/Stop Details tab of Server
+Manager are:</p>
+<ul><li><p>User name (user name mentioned in <samp class="codeph">jmx-console-users.properties</samp>)</p>
+</li>
+<li><p>Password (password of the corresponding user)</p>
+</li>
+<li><p>Port (port number for accessing the admin console)</p>
+</li>
+<li><p>Context root (name of the deployed WAR file)</p>
+</li>
+<li><p>Admin Port (port number from where the deployed WAR file
+can be accessed, which is usually the admin server port)</p>
+</li>
+</ul>
+</div></div></div>
+<div id="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff8" class="nochunk"><a name="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff8"><!-- --></a><h2 class="topictitle2">View diff of two server settings</h2><div><p>You can find out the differences in configuration of two
+server instances or clusters using the Diff With option available
+with Server Manager. This option allows you to check for differences
+in the configuration settings of two server instances. You can run
+Diff With on any two servers with the Logged In status.</p>
+<p>To run Diff With:</p>
+<ol><li><p>Right-click any one of the servers that you need to run
+Diff With on.</p>
+</li>
+<li><p>Click Diff With and select the other server to compare your
+selected server instance.</p>
+</li>
+<li><p>In the Diff of Setting between &lt;server A&gt; and &lt;server
+B&gt; dialog box, select the settings that you need to compare.</p>
+</li>
+<li><p>Click Next.</p>
+</li>
+<li><p>Expand the settings by clicking the (+) sign. Any settings
+that are different for the two server instances, are highlighted.</p>
+</li>
+</ol>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7fff.html" title="Launch Server Manager"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-7ff7.html" title="Create Groups"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSfd7453be0f56bba4-2a6b48f122a6582c7f-8000.html"><b>Working with Server Manager</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

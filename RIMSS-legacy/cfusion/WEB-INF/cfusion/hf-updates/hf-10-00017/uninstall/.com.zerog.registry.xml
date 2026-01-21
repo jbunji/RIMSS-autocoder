@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registry install_date="2015-09-17 13:41:59" version="1.1" last_modified="2015-09-17 13:42:05">
+	<products>
+		<product name="Adobe ColdFusion 10 Update 17" id="2efcaa0f-1f02-11b2-84ed-b3af4aa549ef" upgrade_id="2efcaa0f-1f02-11b2-84ed-b3af4aa549ef" version="1.0.0.0" copyright="2011" info_url="" support_url="" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion" last_modified="2015-09-17 13:42:00">
+		<![CDATA[]]>
+			<vendor name="Adobe Systems Inc." id="2efcaa0e-1f02-11b2-84ed-b3af4aa549ef" home_page="http://www.adobe.com" email=""/>
+			<feature short_name="J2EE" name="J2EE" last_modified="2015-09-17 13:42:00">
+			<![CDATA[<Enter Product Feature description here -- do not forget to assign this Feature to desired Install Sets>]]>
+				<component ref_id="2efcaa0e-1f02-11b2-8509-b3af4aa549ef" version="1.0.0.0" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017/uninstall/Uninstall Adobe ColdFusion 10 Update 17"/>
+				<component ref_id="2efcaa0f-1f02-11b2-850b-b3af4aa549ef" version="1.0.0.0" location=""/>
+			</feature>
+		</product>
+	</products>
+	<components>
+		<component id="2efcaa0f-1f02-11b2-850b-b3af4aa549ef" version="1.0.0.0" name="InstallAnywhere VM Component" location="" vendor="Adobe Systems Inc.">
+			<resource keyfile="false" name="update.xml" location="/tmp/596936.tmp/update.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="updates.xml" location="/tmp/596936.tmp/updates.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="dist" location="/tmp/596936.tmp/dist" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfusion" location="/tmp/596936.tmp/dist/cfusion" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="bin" location="/tmp/596936.tmp/dist/cfusion/bin" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cf-bootstrap.jar" location="/tmp/596936.tmp/dist/cfusion/bin/cf-bootstrap.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cf-init-run.sh" location="/tmp/596936.tmp/dist/cfusion/bin/cf-init-run.sh" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cf-startup.jar" location="/tmp/596936.tmp/dist/cfusion/bin/cf-startup.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfcompile.bat" location="/tmp/596936.tmp/dist/cfusion/bin/cfcompile.bat" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfcompile.sh" location="/tmp/596936.tmp/dist/cfusion/bin/cfcompile.sh" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfinfo" location="/tmp/596936.tmp/dist/cfusion/bin/cfinfo" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfinfo.bat" location="/tmp/596936.tmp/dist/cfusion/bin/cfinfo.bat" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfinfo.sh" location="/tmp/596936.tmp/dist/cfusion/bin/cfinfo.sh" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="coldfusion.exe" location="/tmp/596936.tmp/dist/cfusion/bin/coldfusion.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="coldfusionsvc.exe" location="/tmp/596936.tmp/dist/cfusion/bin/coldfusionsvc.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="msvcr100.dll" location="/tmp/596936.tmp/dist/cfusion/bin/msvcr100.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="db" location="/tmp/596936.tmp/dist/cfusion/db" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="slserver54" location="/tmp/596936.tmp/dist/cfusion/db/slserver54" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="admin" location="/tmp/596936.tmp/dist/cfusion/db/slserver54/admin" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="libeay32.dll" location="/tmp/596936.tmp/dist/cfusion/db/slserver54/admin/libeay32.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ssleay32.dll" location="/tmp/596936.tmp/dist/cfusion/db/slserver54/admin/ssleay32.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="bin" location="/tmp/596936.tmp/dist/cfusion/db/slserver54/bin" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="libeay32.dll" location="/tmp/596936.tmp/dist/cfusion/db/slserver54/bin/libeay32.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ssleay32.dll" location="/tmp/596936.tmp/dist/cfusion/db/slserver54/bin/ssleay32.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jetty" location="/tmp/596936.tmp/dist/cfusion/jetty" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfjetty" location="/tmp/596936.tmp/dist/cfusion/jetty/cfjetty" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="lib" location="/tmp/596936.tmp/dist/cfusion/lib" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="auth-ehcache.xml" location="/tmp/596936.tmp/dist/cfusion/lib/auth-ehcache.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="axis2" location="/tmp/596936.tmp/dist/cfusion/lib/axis2" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="httpcore-4.0.jar" location="/tmp/596936.tmp/dist/cfusion/lib/axis2/httpcore-4.0.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cf-logging.jar" location="/tmp/596936.tmp/dist/cfusion/lib/cf-logging.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="commons-codec-1.6.jar" location="/tmp/596936.tmp/dist/cfusion/lib/commons-codec-1.6.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="commons-logging-1.1.3.jar" location="/tmp/596936.tmp/dist/cfusion/lib/commons-logging-1.1.3.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="commons-logging-api-1.1.1.jar" location="/tmp/596936.tmp/dist/cfusion/lib/commons-logging-api-1.1.1.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ehcache-core-2.6.6.jar" location="/tmp/596936.tmp/dist/cfusion/lib/ehcache-core-2.6.6.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="flex-messaging-common.jar" location="/tmp/596936.tmp/dist/cfusion/lib/flex-messaging-common.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="flex-messaging-core.jar" location="/tmp/596936.tmp/dist/cfusion/lib/flex-messaging-core.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="flex-messaging-opt.jar" location="/tmp/596936.tmp/dist/cfusion/lib/flex-messaging-opt.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="flex-messaging-proxy.jar" location="/tmp/596936.tmp/dist/cfusion/lib/flex-messaging-proxy.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="flex-messaging-remoting.jar" location="/tmp/596936.tmp/dist/cfusion/lib/flex-messaging-remoting.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="fluent-hc-4.3.5.jar" location="/tmp/596936.tmp/dist/cfusion/lib/fluent-hc-4.3.5.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="httpclient-4.3.5.jar" location="/tmp/596936.tmp/dist/cfusion/lib/httpclient-4.3.5.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="httpclient-cache-4.3.5.jar" location="/tmp/596936.tmp/dist/cfusion/lib/httpclient-cache-4.3.5.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="httpcore-4.3.2.jar" location="/tmp/596936.tmp/dist/cfusion/lib/httpcore-4.3.2.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="httpmime-4.3.5.jar" location="/tmp/596936.tmp/dist/cfusion/lib/httpmime-4.3.5.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ib6core.jar" location="/tmp/596936.tmp/dist/cfusion/lib/ib6core.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ib6http.jar" location="/tmp/596936.tmp/dist/cfusion/lib/ib6http.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ib6swing.jar" location="/tmp/596936.tmp/dist/cfusion/lib/ib6swing.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ib6util.jar" location="/tmp/596936.tmp/dist/cfusion/lib/ib6util.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="log4j.properties" location="/tmp/596936.tmp/dist/cfusion/lib/log4j.properties" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="macromedia_drivers.jar" location="/tmp/596936.tmp/dist/cfusion/lib/macromedia_drivers.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="mail.jar" location="/tmp/596936.tmp/dist/cfusion/lib/mail.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="mysql-connector-java-commercial-5.1.17-bin.jar" location="/tmp/596936.tmp/dist/cfusion/lib/mysql-connector-java-commercial-5.1.17-bin.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="neo-drivers.xml" location="/tmp/596936.tmp/dist/cfusion/lib/neo-drivers.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="neo_updates.xml" location="/tmp/596936.tmp/dist/cfusion/lib/neo_updates.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="postgresql-9.3-1101.jdbc41.jar" location="/tmp/596936.tmp/dist/cfusion/lib/postgresql-9.3-1101.jdbc41.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="runtime" location="/tmp/596936.tmp/dist/cfusion/runtime" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="lib" location="/tmp/596936.tmp/dist/cfusion/runtime/lib" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="annotations-api.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/annotations-api.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ant-launcher.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/ant-launcher.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ant.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/ant.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="catalina-ant.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/catalina-ant.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="catalina-ha.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/catalina-ha.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="catalina-tribes.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/catalina-tribes.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="catalina.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/catalina.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ecj-P20140317-1600.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/ecj-P20140317-1600.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="el-api.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/el-api.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jasper-el.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/jasper-el.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jasper.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/jasper.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jsp-api.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/jsp-api.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jta.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/jta.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="servlet-api.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/servlet-api.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-api.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-api.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-coyote.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-coyote.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-dbcp.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-dbcp.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-i18n-es.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-i18n-es.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-i18n-fr.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-i18n-fr.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-i18n-ja.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-i18n-ja.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-jdbc.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-jdbc.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tomcat-util.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/tomcat-util.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="wsconfig.jar" location="/tmp/596936.tmp/dist/cfusion/runtime/lib/wsconfig.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="_win32" location="/tmp/596936.tmp/dist/cfusion/_win32" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="bin" location="/tmp/596936.tmp/dist/cfusion/_win32/bin" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="coldfusion.exe" location="/tmp/596936.tmp/dist/cfusion/_win32/bin/coldfusion.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="coldfusionsvc.exe" location="/tmp/596936.tmp/dist/cfusion/_win32/bin/coldfusionsvc.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="msvcr100.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/bin/msvcr100.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="lib" location="/tmp/596936.tmp/dist/cfusion/_win32/lib" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfperfmon_10.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/cfperfmon_10.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfregistry.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/cfregistry.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="CFWindowsLogin.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/CFWindowsLogin.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="CFXNeo.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/CFXNeo.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="DDJDBCAuth05.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/DDJDBCAuth05.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="NeoUUID.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/NeoUUID.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="PerfmonClient.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/PerfmonClient.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="TypeViewer.dll" location="/tmp/596936.tmp/dist/cfusion/_win32/lib/TypeViewer.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="_win64" location="/tmp/596936.tmp/dist/cfusion/_win64" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="bin" location="/tmp/596936.tmp/dist/cfusion/_win64/bin" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="mfc100.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/bin/mfc100.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jintegra" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="bin" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="CheckConfig.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/CheckConfig.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="com2java.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/com2java.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="com2java.xml" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/com2java.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="com2javacmd.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/com2javacmd.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="install_license.bat" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/install_license.bat" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="international" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="CheckConfigEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/CheckConfigEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="com2javaEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/com2javaEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ntvauthEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/ntvauthEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ntvinvEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/ntvinvEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regjvmcmdEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/regjvmcmdEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regjvmEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/regjvmEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regprogidEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/regprogidEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regtlbEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/regtlbEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="setdllhostEnglishResourceDll.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/international/setdllhostEnglishResourceDll.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="java2com.bat" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/java2com.bat" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jintmk.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/jintmk.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ntvauth.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/ntvauth.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ntvinv.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/ntvinv.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ntvocx.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/ntvocx.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regjvm.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/regjvm.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regjvmcmd.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/regjvmcmd.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regprogid.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/regprogid.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="regtlb.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/regtlb.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="setdllhost.exe" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/bin/setdllhost.exe" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jintegra_changelist.txt" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/jintegra_changelist.txt" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="version.txt" location="/tmp/596936.tmp/dist/cfusion/_win64/jintegra/version.txt" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="lib" location="/tmp/596936.tmp/dist/cfusion/_win64/lib" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="jintegra.jar" location="/tmp/596936.tmp/dist/cfusion/_win64/lib/jintegra.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="TypeViewer.dll" location="/tmp/596936.tmp/dist/cfusion/_win64/lib/TypeViewer.dll" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="updates" location="/tmp/596936.tmp/dist/updates" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="chf10000017.jar" location="/tmp/596936.tmp/dist/updates/chf10000017.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="wwwroot" location="/tmp/596936.tmp/dist/wwwroot" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="CFIDE" location="/tmp/596936.tmp/dist/wwwroot/CFIDE" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="adminapi" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/adminapi" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="administrator.cfc" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/adminapi/administrator.cfc" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="customtags" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/adminapi/customtags" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="l10n.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/adminapi/customtags/l10n.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="runtime.cfc" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/adminapi/runtime.cfc" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="security.cfc" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/adminapi/security.cfc" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="administrator" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="appinstaller" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/appinstaller" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="uninstall.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/appinstaller/uninstall.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="Application.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/Application.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archives" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="Application.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/Application.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="deploywizard.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/deploywizard.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="index.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/index.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="security.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/security.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="wizards" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="archivewizard_page_applets.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_applets.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_archivesummary.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_archivesummary.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_cfdirectorymappings.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_cfdirectorymappings.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_cfxtags.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_cfxtags.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_datasources.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_datasources.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_eventgateways.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_eventgateways.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_filelocations.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_filelocations.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_information.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_information.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_pdfservice.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_pdfservice.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_restservices.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_restservices.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_scheduledtasks.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_scheduledtasks.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_settings.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_settings.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_todolist.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_todolist.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_veritycollections.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_veritycollections.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="archivewizard_page_webservices.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/archivewizard_page_webservices.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="buildwizard_page_buildstatus.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/buildwizard_page_buildstatus.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="buildwizard_page_pickfile.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/buildwizard_page_pickfile.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="controludfs.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/controludfs.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="deploywizard_page_locations.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/deploywizard_page_locations.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="deploywizard_page_status.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/deploywizard_page_status.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="deploywizard_page_summary.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/archives/wizards/deploywizard_page_summary.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cftags" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/cftags" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="l10n.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/cftags/l10n.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="l10n_testing.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/cftags/l10n_testing.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="datasources" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="db2.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/db2.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="derbyClient.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/derbyClient.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="informix.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/informix.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="j2ee.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/j2ee.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="jdbcodbc.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/jdbcodbc.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="mysql5.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/mysql5.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="mysql_dd.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/mysql_dd.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="odbcsocket.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/odbcsocket.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="oracle.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/oracle.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="postgresql.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/postgresql.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="sqlserver.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/sqlserver.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="sybase.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/sybase.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="udflibrary.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/datasources/udflibrary.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="debugging" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/debugging" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="index.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/debugging/index.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="filedialog" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/filedialog" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="index.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/filedialog/index.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="include" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/include" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="udflibrary.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/include/udflibrary.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="j2eepackaging" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/j2eepackaging" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="editarchive.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/j2eepackaging/editarchive.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="index.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/j2eepackaging/index.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="login.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/login.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="logviewer" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/logviewer" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="_searchloglogic.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/logviewer/_searchloglogic.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="_searchloglogic_other.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/logviewer/_searchloglogic_other.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="reports" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/reports" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="_report.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/reports/_report.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="scheduler" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/scheduler" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="probes.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/scheduler/probes.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="scheduleedit.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/scheduler/scheduleedit.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="security" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/security" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfadminpassword.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/security/cfadminpassword.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="index.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/security/index.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="useredit.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/security/useredit.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="userpassword.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/security/userpassword.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="_fileoptions.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/security/_fileoptions.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="settings" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/settings" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="memoryvariables.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/settings/memoryvariables.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="version.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/settings/version.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="setup" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/setup" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="migrationcf8_import.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/setup/migrationcf8_import.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="migrationcf9_import.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/setup/migrationcf9_import.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="templates" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/templates" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="request_timeout_error.htm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/templates/request_timeout_error.htm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="updates" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="Application.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/Application.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="download.cfc" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/download.cfc" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="download_info.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/download_info.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="error.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/error.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="index.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/index.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="info.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/info.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="installer_input.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/installer_input.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="overwrite.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/overwrite.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="task" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/task" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="checkupdates.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/task/checkupdates.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="uninstall.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/uninstall.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="_settings.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/_settings.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="_sysinfo.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/_sysinfo.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="_updates.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/administrator/updates/_updates.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="classes" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/classes" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfapplets.jar" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/classes/cfapplets.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="componentutils" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/componentutils" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfcexplorer.cfc" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/componentutils/cfcexplorer.cfc" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="gettingstarted" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/gettingstarted" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="community" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/gettingstarted/community" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="webroot" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/gettingstarted/community/webroot" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="shared" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/gettingstarted/community/webroot/shared" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="error.cfm" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/gettingstarted/community/webroot/shared/error.cfm" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="scripts" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="ajax" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfajax.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/cfajax.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfcalendar.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/cfcalendar.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfgrid.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/cfgrid.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfwebsocketCore.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/cfwebsocketCore.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="ext" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/ext" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="map" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/ext/map" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="GMapPanel3.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/ext/map/GMapPanel3.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="mapiconmaker.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/ext/map/mapiconmaker.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="FCKeditor" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/FCKeditor" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="fckeditor.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/FCKeditor/fckeditor.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="package" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfajax.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package/cfajax.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfcalendar.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package/cfcalendar.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfgrid.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package/cfgrid.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cflayout.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package/cflayout.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfmap.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package/cfmap.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfwebsocketChannel.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package/cfwebsocketChannel.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="cfwebsocketCore.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/package/cfwebsocketCore.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="resources" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cf" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources/cf" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="map" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources/cf/map" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="marker.png" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources/cf/map/marker.png" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="skins" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources/cf/skins" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="smartphone-skin.xml" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources/cf/skins/smartphone-skin.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="tablet-skin.xml" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources/cf/skins/tablet-skin.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="uploadfile.css" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/resources/cf/uploadfile.css" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="smp" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/smp" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="StrobeMediaPlayer.js" location="/tmp/596936.tmp/dist/wwwroot/CFIDE/scripts/ajax/smp/StrobeMediaPlayer.js" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="WEB-INF" location="/tmp/596936.tmp/dist/wwwroot/WEB-INF" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cftags" location="/tmp/596936.tmp/dist/wwwroot/WEB-INF/cftags" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="META-INF" location="/tmp/596936.tmp/dist/wwwroot/WEB-INF/cftags/META-INF" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="taglib.cftld" location="/tmp/596936.tmp/dist/wwwroot/WEB-INF/cftags/META-INF/taglib.cftld" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="lib" location="/tmp/596936.tmp/dist/wwwroot/WEB-INF/lib" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="cfmx_bootstrap.jar" location="/tmp/596936.tmp/dist/wwwroot/WEB-INF/lib/cfmx_bootstrap.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="533d4580-1f02-11b2-a007-b3af4aa549ef" location="com.adobe.utils.Logger " type="customcode" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="533d4580-1f02-11b2-a007-b3af4aa549ef" location="com.adobe.ia.action.InstallData " type="customcode" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="533d4580-1f02-11b2-a007-b3af4aa549ef" location="com.adobe.utils.XMLUpdate " type="customcode" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="533d4580-1f02-11b2-a007-b3af4aa549ef" location="com.adobe.ia.action.UpdateConfigs " type="customcode" uninstall="true" rollbackEnabledCancel="true"/>
+		</component>
+		<component id="2efcaa0e-1f02-11b2-8509-b3af4aa549ef" version="1.0.0.0" name="InstallAnywhere Uninstall Component" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017/uninstall/Uninstall Adobe ColdFusion 10 Update 17" vendor="Adobe Systems Inc.">
+			<resource keyfile="false" name="Adobe_ColdFusion_10_Update_17_Install_09_17_2015_13_41_59.log" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017/Adobe_ColdFusion_10_Update_17_Install_09_17_2015_13_41_59.log" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name="uninstall" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017/uninstall" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="uninstall" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017/uninstall" type="directory" uninstall="true" rollbackEnabledCancel="true">
+			<![CDATA[false]]>
+			</resource>
+			<resource keyfile="false" name="uninstaller.jar" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017/uninstall/uninstaller.jar" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+			<resource keyfile="false" name=".com.zerog.registry.xml" location="/export/home/oracle/deployments/RIMSS/RIMSSv1.0.1_CF10/app/cfusion/WEB-INF/cfusion/hf-updates/hf-10-00017/uninstall/.com.zerog.registry.xml" type="file" uninstall="true" rollbackEnabledCancel="true"/>
+		</component>
+	</components>
+</registry>

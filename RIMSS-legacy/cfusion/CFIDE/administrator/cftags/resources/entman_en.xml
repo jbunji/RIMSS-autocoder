@@ -1,0 +1,214 @@
+<cfprocessingdirective suppresswhitespace="yes" pageencoding="ISO-8859-1">
+<cfsilent>
+<!--
+L10N Resource File
+Section: entman
+Locale: English (en)
+Find the requested resource by id
+-->
+</cfsilent>
+<cfswitch expression="#ATTRIBUTES.id#">
+
+<cfcase value="entman_pagename_editserver"><cfoutput>Enterprise Manager &gt;  Instance Manager &gt; Edit Server: #EncodeForHTML(URL.serverName)#</cfoutput></cfcase>
+<cfcase value="entman_pagename_addserver">Enterprise Manager &gt;  Instance Manager &gt; Add Server</cfcase>
+<cfcase value="entman_description">
+                ColdFusion Enterprise lets you create and manage multiple ColdFusion servers on the same computer
+        </cfcase>
+<cfcase value="_serverexists">The following server name is in use:</cfcase>
+<cfcase value="entman_addserver_description">
+ColdFusion Enterprise lets you add remote servers that can participate in clusters
+with servers located on the local machine.
+</cfcase>
+<cfcase value="entman_remoteserver_description">
+NOTE:To start/stop/restart Remote ColdFusion Instance ensure to start the Jetty Server on the remote machine (set the value of Host to ipaddress in jetty.xml)
+</cfcase>
+<cfcase value="inst_manager2"><cfoutput>Enterprise Manager &gt; Instance Manager &gt; #EncodeForHTML(URL.servername)#</cfoutput></cfcase>
+<cfcase value="entman_editremoteserverproperties">
+Edit Remote Server Properties
+</cfcase>
+<cfcase value="addremoteserver">Add Remote ColdFusion Instance</cfcase>
+<cfcase value="remote_server_name">ColdFusion Instance Name *</cfcase>
+<cfcase value="remote_server_name_label">Enter the server name of the Remote Instance</cfcase>
+<cfcase value="remote_server_ip">Remote Host (IP Address or DNS Name) *</cfcase>
+<cfcase value="remote_server_ip_label">Enter the IP Address or DNS Name for the Remote Instance</cfcase>
+<cfcase value="remote_server_port">Remote Port *</cfcase>
+<cfcase value="remote_server_port_label">Enter the Connector port value with protocol AJP from server.xml of the Remote Instance</cfcase>
+<cfcase value="remote_http_port">HTTP Port *</cfcase>
+<cfcase value="remote_http_port_label">Enter the HTTP Port through which the Administrator of the Remote Instance can be accessed</cfcase>
+<cfcase value="remote_jvm_route">JVM Route *</cfcase>
+<cfcase value="remote_jvm_route_label">Enter the jvmRoute attribute value of Engine from server.xml of the Remote Instance</cfcase>
+<cfcase value="remote_lbfactor">Load Balancing Factor *</cfcase>
+<cfcase value="remote_lbfactor_label">Enter the Load Balancing Factor for the Remote Instance</cfcase>
+<cfcase value="remote_admin_port">Admin Component Port</cfcase>
+<cfcase value="remote_admin_port_label">Enter the port on which Admin Component is running on Remote Instance</cfcase>
+<cfcase value="remote_admin_user_name">Admin Component UserName</cfcase>
+<cfcase value="remote_admin_user_name_label">Enter the UserName for the Admin Component running on Remote Instance</cfcase>
+<cfcase value="remote_admin_password">Admin Component Password</cfcase>
+<cfcase value="remote_admin_password_label">Enter the Password for the Admin Component running on Remote Instance</cfcase>
+<cfcase value="remote_https">Use https</cfcase>
+<cfcase value="admindetails">Admin Port,Admin UserName,Admin Password are required for Server Start/Stop</cfcase>
+<cfcase value="remotedetails">Please fill the required fields indicated by *</cfcase>
+<cfcase value="button_gatewaty_addz">Submit</cfcase>
+<cfcase value="button_gatewaty_addx">Cancel</cfcase>
+<cfcase value="cluster">Cluster Manager</cfcase>
+<cfcase value="badclustchar">Cluster names must contain letters or numbers; they cannot contain punctuation and they must not be zero length</cfcase>
+<cfcase value="badclustcharmsg"><cfoutput>Invalid cluster name: <strong>#EncodeForHTML(FORM.clustername)#</strong></cfoutput></cfcase>
+<cfcase value="newcluster_addedSuccessfully">
+new cluster added successfully.
+</cfcase>
+<cfcase value="clustermanager">
+Enterprise Manager &gt; Cluster Manager
+</cfcase>
+<cfcase value="addnewclust">Add New Cluster</cfcase>
+<cfcase value="clustname">Cluster Name</cfcase>
+<cfcase value="button_add"> Add </cfcase>
+<cfcase value="configdclust">Configured Clusters</cfcase>
+<cfcase value="actions">Actions</cfcase>
+<cfcase value="clustername">Cluster Name</cfcase>
+<cfcase value="serversincluster">Servers In Cluster</cfcase>
+<cfcase value="arch_noclustersDefined">No Clusters are defined.</cfcase>
+<cfcase value="button_edit">Edit</cfcase>
+<cfcase value="button_delete">Delete</cfcase>
+<cfcase value="delete_cluster_confirmation"><cfoutput>Are you sure you want to delete cluster #EncodeForHTML(CALLER.name)#?</cfoutput></cfcase>
+<cfcase value="bad_char1">
+Your remote server contains invalid characters. None of the form fields can be zero length and Server name cannot cannot be punctuation or other non-alphanumeric characters.
+</cfcase>
+<cfcase value="host_not_found">
+Hostname or IP address provided for the remote server is invalid.
+</cfcase>
+<cfcase value="entman_pagename_instanceManager">Instance Manager</cfcase>
+<cfcase value="server_updatedSuccessfully"><cfoutput>
+                        server #EncodeForHTML(FORM.servername)# updated successfully.For these changes to take effect,you must restart the server instance.
+                </cfoutput></cfcase>
+<cfcase value="instance_manager">Enterprise Manager &gt; Instance Manager</cfcase>
+<cfcase value="entman_welc">
+        ColdFusion Enterprise lets you create and manage new server instances. These can be created and run locally (on this machine)
+        or they can be remote servers that you can register with clusters.
+</cfcase>
+<cfcase value="slocal">Add New Instance</cfcase>
+<cfcase value="sremote">Register Remote Instance</cfcase>
+<cfcase value="badchar1"><cfoutput>
+                        The server name <i>#EncodeForHTML(FORM.servername)#</i> contains invalid characters. Server names must contain letters or numbers; they cannot contain punctuation or other non-alpha characters and they cannot be zero length
+                </cfoutput></cfcase>
+<cfcase value="doopname"><cfoutput>
+                        The server name <i>#EncodeForHTML(FORM.servername)#</i> has already been used. Please choose another name for your server.
+                </cfoutput></cfcase>
+<cfcase value="entman_pagename_enterpriseAdmin">Enterprise Administrator - Creating New CF Instance</cfcase>
+<cfcase value="s1">[step 1 of 2] Creating new CF Instance... </cfcase>
+<cfcase value="s2">[step 2 of 2] Creating the CF runtime, this may take a few minutes... </cfcase>
+<cfcase value="instancedone">Done</cfcase>
+<cfcase value="clickhere">Return to Enterprise Manager</cfcase>
+<cfcase value="doopname_1"><cfoutput>The Windows Service #EncodeForHTML(CALLER.regname)# is already registered</cfoutput></cfcase>
+<cfcase value="cluster_editserver"><cfoutput>Enterprise Manager &gt;  Cluster Manager &gt;  Edit Server: #EncodeForHTML(FORM.servername)#</cfoutput></cfcase>
+<cfcase value="pagenamemsg_updateserversettings">Updating Server Settings</cfcase>
+<cfcase value="headlinePleasewait">Please wait this may take a few minutes.</cfcase>
+<cfcase value="update">Server has been updated,You must restart the server for these changes to take effect.</cfcase>
+<cfcase value="weightwrong">Please enter a number between 0 and 100</cfcase>
+<cfcase value="entadmin_edit">Edit</cfcase>
+<cfcase value="entadmin_strtedit">Start server to edit</cfcase>
+<cfcase value="entadmin_view">Website</cfcase>
+<cfcase value="entadmin_admin">CF Admin</cfcase>
+<cfcase value="entadmin_run">running</cfcase>
+<cfcase value="entadmin_notrun">stopped</cfcase>
+<cfcase value="entadmin_stop">Stop</cfcase>
+<cfcase value="entadmin_start">Start</cfcase>
+<cfcase value="entadmin_refresh">Restart</cfcase>
+<cfcase value="entadmin_delete">Delete</cfcase>
+<cfcase value="delete_confirmation">Are you sure you want to delete this server? All resources will be deleted. They cannot be recovered.</cfcase>
+<cfcase value="remote_delete_confirmation">Are you sure you want to delete this remote server? It will be removed from any clusters defined on this machine.</cfcase>
+<cfcase value="delete_running">Running Servers cannot be deleted. Please stop the server then it can be deleted.</cfcase>
+<cfcase value="_admin">CF admin</cfcase>
+<cfcase value="entadmin_noclust">none</cfcase>
+<cfcase value="clustall">&lt;&lt;ALL&gt;&gt;</cfcase>
+<cfcase value="available_servers">Available Servers</cfcase>
+<cfcase value="cfservers_in_cluster"><cfoutput>Servers in Cluster:&nbsp;#EncodeForHTML(URL.cluster)# </cfoutput></cfcase>
+<cfcase value="filterByCluster">Filter by Cluster</cfcase>
+<cfcase value="ccname">Name</cfcase>
+<cfcase value="servdirt">Server Directory</cfcase>
+<cfcase value="http__port">HTTP Port</cfcase>
+<cfcase value="clusport">Remote Port</cfcase>
+<cfcase value="svr__hst">Host</cfcase>
+<cfcase value="svr__cluster">Cluster</cfcase>
+<cfcase value="cluster_editcluster"><cfoutput>Enterprise Manager &gt; Cluster Manager &gt; Edit Cluster #EncodeForHTML(URL.cluster)#</cfoutput></cfcase>
+<cfcase value="no_clustx_rep"><cfoutput>Cannot add remote server <strong>#EncodeForHTML(CALLER.adds[x])#</strong> to cluster. It doesn't appear to be running.
+Please start the server before attempting to add it to a cluster.</cfoutput></cfcase>
+<cfcase value="no_clustx_msg"><cfoutput>Server #EncodeForHTML(CALLER.adds[x])# not running</cfoutput></cfcase>
+<cfcase value="cluster_updatedSuccessfully"><cfoutput>
+                        <cfif retval neq "">
+                        #CALLER.retval# <br>
+                        </cfif>
+You must restart all the server instances and any configured webservers for these changes to take effect.
+</cfoutput></cfcase>
+<cfcase value="clust_manager1"><cfoutput>Enterprise Manager &gt; Cluster Manager &gt; #EncodeForHTML(URL.cluster)#</cfoutput></cfcase>
+<cfcase value="modifyServersInCluster"><cfoutput>Modify Servers in Cluster:&nbsp; #EncodeForHTML(URL.cluster)#</cfoutput></cfcase>
+<cfcase value="notclust">Servers Not Clustered</cfcase>
+<cfcase value="clust">Servers in Cluster</cfcase>
+<cfcase value="mcastport">Multicast Port</cfcase>
+<cfcase value="cluststickon">Sticky Sessions*</cfcase>
+<cfcase value="can">Cancel</cfcase>
+<cfcase value="button_submit"> Submit </cfcase>
+<cfcase value="j2eesession_note">*Note: Use of J2EE Sessions is required for session replication or sticky sessions. All instances participating in the cluster must use J2EE sessions.
+Therefore, you will need to go to Server Settings ---&gt; Memory Variables and check  "Use J2EE session variables" for each cluster member.
+</cfcase>
+<cfcase value="ntrun">A member of this cluster is not running. To change cluster settings, all servers in the cluster must be running. 
+Start the server, then resubmit your changes</cfcase>
+<cfcase value="svrn"><cfoutput>Please start the following server: <strong>#CALLER.svrObj.getName()#</strong></cfoutput></cfcase>
+<cfcase value="addserver">Add New ColdFusion Server</cfcase>
+<cfcase value="local_server_name">Server Name</cfcase>
+<cfcase value="local_server_directory">Server Directory</cfcase>
+<cfcase value="create_service">Create Windows Service</cfcase>
+<cfcase value="sub">Submit</cfcase>
+<cfcase value="editserver"><cfoutput>Edit ColdFusion Server: #EncodeForHTML(URL.servername)#</cfoutput></cfcase>
+<cfcase value="httpport">Internal Web Server Port</cfcase>
+<cfcase value="enable_jws">Enable JWS (Internal Web Server)</cfcase>
+<cfcase value="enable_dirbrowse">Load Balancing Factor</cfcase>
+<cfcase value="port_error">
+Port values must be numeric and greater than zero.
+</cfcase>
+<cfcase value="lb_error">
+Load Balancing Factor must be numeric and greater than zero.
+</cfcase>
+<cfcase value="archive_error"><cfoutput>
+There was a problem<br />
+<cfoutput>
+<b>Message</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+<b>Detail</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+</cfoutput>
+</cfoutput></cfcase>
+<cfcase value="entman_error"><cfoutput>
+        There was a problem<br />
+        <cfoutput>
+                <b>Message</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+        <b>Detail</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+        </cfoutput>
+</cfoutput></cfcase>
+<cfcase value="remotesvrerror"><cfoutput>The following remote servers in cluster <strong>#URL.cluster#</strong> could not be contacted either
+because they cannot be reached via the network or they may not be running. Therefore the changes you made to the cluster did not propagate to all cluster
+members. All remote servers in the cluster must be reachable for these settings to take effect. Please check your network/server status and resubmit your settings.
+</cfoutput></cfcase>
+<cfcase value="Zentman_error"><cfoutput>
+There was a problem<br />
+<cfoutput>
+<b>Message</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+<b>Detail</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+</cfoutput>
+</cfoutput></cfcase>
+<cfcase value="mc_error_portnum">Multicast Port number must be numeric and greater than zero.</cfcase>
+<cfcase value="cluster_error">
+Cluster cannot have zero members
+</cfcase>
+<cfcase value="entman_error_new"><cfoutput>
+There was a problem<br />
+<cfoutput>
+<b>Message</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.message)#<br />
+<b>Detail</b>: #CALLER.encodeForHTMLSmart(CALLER.exceptions.detail)#
+</cfoutput>
+</cfoutput></cfcase>
+<cfcase value="lb_error1">
+Value must be numeric and greater than zero.
+</cfcase>
+
+<cfdefaultcase><cfset bSuccess="false"/></cfdefaultcase>
+</cfswitch>
+</cfprocessingdirective>
+

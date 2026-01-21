@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Web server configuration for application isolation</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf364104-7fc4.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf364104-7fc4.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSf01dbd23413dda0e-25e72d5d120574d8991-8000.html" title="Use multiple server instances for application isolation"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363c31-7ffa.html" title="Enabling clustering for load balancing and failover"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html"><b>Using Multiple Server Instances</b></a> 
+      / <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fc0.html"><b>Enabling application isolation</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Web server configuration for application isolation</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WS87CEAA72-10C2-4c6a-8FC7-4FF10832DAA4"><span class="topictitle1">Configuring application isolation in IIS</span>
+</a></p></li><li><p><a href="#WSDDCE196B-8BEB-412f-97D3-091D008B053D"><span class="topictitle1">Configure multiple server instances for application isolation when using IIS</span>
+</a></p></li><li><p><a href="#WS8B02AF56-F45A-4ee0-A61F-9062FAA099F0"><span class="topictitle1">Configuring application isolation in Apache</span>
+</a></p></li><li><p><a href="#WS166820C3-9934-4838-83BA-F8B2B801A083"><span class="topictitle1">Configure multiple server instances for application isolation when using Apache</span>
+</a></p></li><li><p><a href="#WS3B8A1BD1-69DC-4a50-BC15-69789A099C1C"><span class="topictitle1">Configuring application isolation in Sun ONE Web Server</span>
+</a></p></li><li><p><a href="#WS4DE09255-189B-49ca-A914-5C3EF59EDA8B"><span class="topictitle1">Configure multiple server instances for application isolation when using Sun ONE Web Server</span>
+</a></p></li></ul></div></div></div></div><div><p>When
+you use multiple server instances for application isolation, the
+steps you perform to configure communication between the website
+and the server instance differ for each web server. </p>
+<div class="tip"><img src="images/tip_help.png" />To enhance performance when using an external
+web server with multiple server instances, place all static content
+(HTML files and images, for example) under the web server root directory
+or one of its subdirectories. Minimize the amount of static content
+served from ColdFusion web application root directory. </div></div>
+<div id="WS87CEAA72-10C2-4c6a-8FC7-4FF10832DAA4" class="nochunk"><a name="WS87CEAA72-10C2-4c6a-8FC7-4FF10832DAA4"><!-- --></a><h2 class="topictitle2">Configuring application isolation in IIS</h2><div><p>When
+you use multiple virtual websites with multiple server instances
+under IIS, you define separate filters and mappings for each virtual
+website and server instance combination.</p>
+<p>It is assumed that you already created server instances and virtual
+websites, as described in <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fc0.html">Enabling application isolation</a>.</p>
+</div></div>
+<div id="WSDDCE196B-8BEB-412f-97D3-091D008B053D" class="nochunk"><a name="WSDDCE196B-8BEB-412f-97D3-091D008B053D"><!-- --></a><h2 class="topictitle2">Configure multiple server instances for application isolation when using IIS</h2><div><p>Run the Web Server Configuration Tool multiple times, once
+for each virtual website, and specify a different site and server
+instance each time. Ensure that you select the Configure Web Server
+for ColdFusion MX Applications option (GUI) or use the ‑<samp class="codeph">coldfusion</samp> option
+(command line). For more information on running the Web Server Configuration
+Tool, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fd7.html">Using an external web server</a>.</p>
+</div></div>
+<div id="WS8B02AF56-F45A-4ee0-A61F-9062FAA099F0" class="nochunk"><a name="WS8B02AF56-F45A-4ee0-A61F-9062FAA099F0"><!-- --></a><h2 class="topictitle2">Configuring application isolation in Apache</h2><div><p>When you use multiple virtual
+hosts with multiple server instances under Apache, you edit the
+httpd.conf file manually.</p>
+<p>It is assumed that you already created server instances and virtual
+websites, as described in <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fc0.html">Enabling application isolation</a>.</p>
+</div></div>
+<div id="WS166820C3-9934-4838-83BA-F8B2B801A083" class="nochunk"><a name="WS166820C3-9934-4838-83BA-F8B2B801A083"><!-- --></a><h2 class="topictitle2">Configure multiple server instances for application isolation when using Apache</h2><div><ol><li><p>Run the Web Server Configuration Tool once, specifying
+the location of the Apache httpd.conf file and any other required
+information. Ensure that you select the Configure Web Server for
+ColdFusion MX Applications option (GUI) or use the ‑<samp class="codeph">coldfusion</samp> option
+(command line).</p>
+</li>
+<li><p>The
+Web Server Configuration Tool creates a sequentially numbered subdirectory
+under <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">CF_install</i>/config/wsconfig. You can use the subdirectory created
+by the Web Server Configuration Tool for one of your virtual hosts,
+but you must create additional subdirectories for all other virtual
+hosts. For example, the first time you run the Web Server Configuration
+Tool, it creates <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">CF_install</i>/config/wsconfig/1; if you have
+two other virtual hosts, manually create two other directories (<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">CF_install</i>/config/wsconfig/mystore
+and <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">CF_install</i>/config/wsconfig/myemp in this example). These
+directories can be empty.</p>
+</li>
+<li><p>Restart each of the modified Tomcat servers.</p>
+</li>
+<li><p>Open the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">apache_root</i>/conf/httpd.conf file in a text
+editor and find the <samp class="codeph">VirtualHost</samp> directives. The
+settings added by the Web Server Configuration Tool are after the
+last <samp class="codeph">&lt;/IfModule&gt;</samp> directive.</p>
+</li>
+<li><p>Open <samp class="codeph">CFInstallation\cfusion\runtime\conf\server.xml</samp>.</p>
+</li>
+<li><p>Under host block, search for the string, “<samp class="codeph">To add virtual directory</samp>.”</p>
+</li>
+<li><p>Uncomment the entry <samp class="codeph">context path</samp> below.</p>
+</li>
+<li><p>To add a virtual directory, add the <samp class="codeph">aliases</samp> attribute
+as shown below:</p>
+<pre>&lt;Context path="/" docBase="&lt;absolute_path_to_CF_install_directory&gt;\wwwroot" WorkDir="&lt;cf_home&gt;\runtime\conf\Catalina\localhost\tmp" aliases="/path1=&lt;absolute_path_to_directory1&gt;,/path2=&lt;absolute_path_to_directory2&gt;"&gt;&lt;/Context&gt;</pre>
+<div class="note"><span class="notetitle">Note:  </span>Alias
+path must include a leading ‘/’.</div>
+</li>
+<li><p>In the original <samp class="codeph">IfModule</samp> directive, remove
+or comment out the <samp class="codeph">Serverstore</samp> and <samp class="codeph">Bootstrap</samp> lines
+(comments start with #). </p>
+</li>
+<li><p>Restart Apache.</p>
+</li>
+<li><p>(Optional) Store the ColdFusion files of your application
+in the external web server root directory.</p>
+</li>
+<li><p>Test the applications under each virtual host.</p>
+</li>
+</ol>
+<div class="note"><span class="notetitle">Note:  </span>Remember that the web server connector doesn’t
+serve static content, such as HTML and images. Place these files
+under the web root or create a web server mapping to the ColdFusion
+web application root.</div>
+</div></div>
+<div id="WS3B8A1BD1-69DC-4a50-BC15-69789A099C1C" class="nochunk"><a name="WS3B8A1BD1-69DC-4a50-BC15-69789A099C1C"><!-- --></a><h2 class="topictitle2">Configuring application isolation in Sun ONE Web Server</h2><div><p>Under
+Sun ONE Web Server, each ColdFusion server instance is mapped to
+a Sub ONE Web Server instance, when you use multiple virtual hosts
+with multiple server instances.</p>
+<p>It is assumed that you already created server instances, as described
+in <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fc0.html">Enabling application isolation</a>.</p>
+</div></div>
+<div id="WS4DE09255-189B-49ca-A914-5C3EF59EDA8B" class="nochunk"><a name="WS4DE09255-189B-49ca-A914-5C3EF59EDA8B"><!-- --></a><h2 class="topictitle2">Configure multiple server instances for application isolation when using Sun ONE Web Server</h2><div><p>Run the Web Server Configuration Tool for each Sun ONE
+Web Server instance. Specify a different configuration directory
+and ColdFusion server instance each time. Ensure that you select
+the Configure Web Server for ColdFusion MX Applications option (GUI)
+or use the ‑<samp class="codeph">coldfusion</samp> option (command line).</p>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSf01dbd23413dda0e-25e72d5d120574d8991-8000.html" title="Use multiple server instances for application isolation"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363c31-7ffa.html" title="Enabling clustering for load balancing and failover"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html"><b>Using Multiple Server Instances</b></a> 
+      / <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fc0.html"><b>Enabling application isolation</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

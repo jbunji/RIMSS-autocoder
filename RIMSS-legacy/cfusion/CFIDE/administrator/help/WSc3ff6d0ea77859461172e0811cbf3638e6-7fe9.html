@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Data &amp; Services section</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffc.html" title="Server Settings section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe0.html" title="Debugging &amp; Logging section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Data &amp; Services section</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fe8"><span class="topictitle1">Data Sources page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7fef"><span class="topictitle1">ColdFusion Collections page</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d318518-1a175391134d09e8e48-8000"><span class="topictitle2">Populate a Solr collection</span>
+</a></p></li></ul></li><li><p><a href="#WS5A6C4658-104D-41b8-99C7-68CEC320A35B"><span class="topictitle1">Solr Server page</span>
+</a></p><ul><li><p><a href="#WSB597D099-DF84-4026-B92C-91D41E708D0B"><span class="topictitle2">Solr collections</span>
+</a></p></li><li><p><a href="#WS580FB6DE-E6AE-4dba-8940-A4AF0BF280FC"><span class="topictitle2">Solr server</span>
+</a></p></li></ul></li><li><p><a href="#WSe61e35da8d318518-cfc6153134d13aef47-8000"><span class="topictitle1">Web Services</span>
+</a></p></li><li><p><a href="#WSe61e35da8d318518-cfc6153134d13aef47-7fff"><span class="topictitle1">Web Services overview</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7fee"><span class="topictitle1">Web Services page</span>
+</a></p></li><li><p><a href="#WSe61e35da8d318518-17fae27134c7aed33a-8000"><span class="topictitle1">REST Services page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7fed"><span class="topictitle1">Flex Integration page</span>
+</a></p><ul><li><p><a href="#WS7F9E1EC8-AD77-46f1-96FA-ED6231B9276F"><span class="topictitle2">Enable SSL</span>
+</a></p></li><li><p><a href="#WS13F77A98-EB49-423b-9A02-439493C2173D"><span class="topictitle2">Create the keystore</span>
+</a></p></li><li><p><a href="#WS9062D407-6FD4-4bb7-8EF1-28D2EC13654D"><span class="topictitle2">Configure Flex</span>
+</a></p></li><li><p><a href="#WS5A4BEE63-DBAB-458a-B2E2-956A0D7FEEA3"><span class="topictitle2">Enable SSL in the ColdFusion Administrator</span>
+</a></p></li></ul></li></ul></div></div></div></div><div><p>The Data &amp; Services
+section of the Administrator is the interface for ColdFusion, data
+sources, and search and indexing features. The following table describes some
+common tasks that you can perform in the Data &amp; Services section
+of the Administrator:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e3216"><p>Task</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3219"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e3216 "><p>Create and manage JDBC data sources</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3219 "><p>The Data Sources page lets you establish,
+edit, and delete JDBC data source connections for ColdFusion. For
+more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html">Data Source Management</a>.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3216 "><p>Create and maintain ColdFusion collections</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3219 "><p>The ColdFusion Collections page lets you
+create and delete Solr collections and perform maintenance operations
+on collections that you create. For more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fef.html">ColdFusion Collections page</a>.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3216 "><p>Define mappings for web services </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3219 "><p>The Web Services page lets you produce and
+consume remote application functionality over the Internet. For
+more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fee.html">Web Services page</a>. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3216 "><p>Specify settings to integrate with Adobe® Flex™ applications</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3219 "><p>The Flex Integration page lets you specify
+which Flex integration features to enable and which IP addresses
+can perform data service operations. For more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fed.html">Flex Integration page</a>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe8" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe8"><!-- --></a><h2 class="topictitle2">Data Sources page</h2><div><p>ColdFusion
+lets you quickly deliver dynamic database content to the web. A
+data source is the entry point for database operations.</p>
+<p>The Data Sources page lets you create, edit, and delete JDBC
+data sources. Before you can use a database in a ColdFusion application,
+you register the data source in the ColdFusion Administrator. For
+more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html">Data Source Management</a>. </p>
+<div class="para">Before you can access a database with a ColdFusion application,
+you must do the following:<ol><li><p>Understand and determine the
+database driver required to interact with the data source. ColdFusion
+uses JDBC database drivers to communicate with data sources.</p>
+</li>
+<li><p>Configure the database as a ColdFusion data source by specifying
+a driver, adding data source information, and connecting to a database.</p>
+</li>
+<li><p>Verify the data source.</p>
+</li>
+</ol>
+</div>
+<p>For more information on adding data sources, see <a href="WSc3ff6d0ea77859461172e0811cbf3639b1-7ffc.html">Adding data sources</a>.</p>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7fef" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7fef"><!-- --></a><h2 class="topictitle2">ColdFusion Collections page</h2><div><p>Use this page to create and manage your Solr collections. </p>
+<p>ColdFusion
+lets you manage your collections from the Administrator. You can index,
+optimize, purge, or delete Solr collections that are connected to ColdFusion.
+You use the icons in the Actions column to perform the following actions:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e3316"><p>Action</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3319"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e3316 "><p>Index</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3319 "><p>Analyzes the files in a collection and assembles
+metadata and pointers to the files.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3316 "><p>Optimize</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3319 "><p>Reclaims space left by deleted and changed
+files by consolidating collection indexes for faster searching.
+You should optimize collections regularly.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3316 "><p>Purge</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3319 "><p>Deletes all documents in a collection, but
+not the collection itself. Leaves the collection directory structure
+intact.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3316 "><p>Delete</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3319 "><p>Deletes a collection.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>ColdFusion
+includes Solr, which provides indexing and searching technology. This
+enables creating, populating, and managing collections of indexed
+data that are optimized for fast and efficient site searches.</p>
+<p>A <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">collection</i> is
+a logical group of documents and metadata about the documents. The <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">metadata</i> includes
+word indexes, an internal documents table of document field information,
+and logical pointers to the document files.</p>
+<p>For more information about building search interfaces, see Building
+a Search Interface and Solr search support in the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Developing ColdFusion Applications</i>.</p>
+<p>If the ColdFusion Collections page is unable to retrieve collections,
+ensure that Solr Search Server is running.</p>
+</div><div id="WSe61e35da8d318518-1a175391134d09e8e48-8000" class="nochunk"><a name="WSe61e35da8d318518-1a175391134d09e8e48-8000"><!-- --></a><h3 class="topictitle3">Populate a Solr collection</h3><div><div class="para">After you create a collection, use the Solr Collections
+section to populate (or index) it, with data from text and binary
+files, in a directory that you specify. A collection comprises metadata
+that describes indexed documents. Data from a ColdFusion query can
+be indexed only by using the ColdFusion <samp class="codeph">cfindex</samp> tag.To populate
+(index) a collection,<ol><li><p>In the list of Solr Collections,
+click the name of the collection or its Index Collection button.
+The Index Solr Collections page appears.</p>
+</li>
+<li><p>Review the extensions in the File Extensions field. You can
+add, edit, or remove extensions for files in the collection.</p>
+</li>
+<li><p>In the Directory Path field, enter the path to a directory
+to index. To locate and enter a path, click Browse Server.</p>
+</li>
+<li><p>To include subdirectories of the specified directory, select
+the Recursively Index Sub Directories option.</p>
+</li>
+<li><p>(Optional) In the Return URL field, enter the URL prefix
+used to display documents found in the search in a browser. </p>
+<p>For
+example, if you index the ColdFusion documentation directory, the directory
+you index could be <samp class="codeph">C:\ColdFusion9\wwwroot\cfdocs</samp>. </p>
+<p>You
+would enter the return URL as <samp class="codeph">http://localhost:8500/cfdocs/. </samp>This
+assumes that you are using the built-in web server on port 8500.</p>
+</li>
+<li><p>Click Submit. ColdFusion populates the collection with data
+from the specified directory. Then the ColdFusion Collections page
+appears.</p>
+</li>
+</ol>
+</div>
+<p>To close the page without saving changes, click Cancel.</p>
+<div class="section"><h4 class="sectiontitle">Rename or create an alias for a Solr collection</h4><div class="para"><ol><li><p>Click the ColdFusion collection that you need to rename from
+the ColdFusion Collections page. The Manage Collection page is displayed.</p>
+</li>
+<li><p>In the Rename Collection section, enter a new name in the
+New Name for Collection field and click Submit.</p>
+</li>
+<li><p>To specify an alias for the collection, enter the alias in
+the Collection Alias field and click Submit.</p>
+</li>
+</ol>
+</div>
+</div>
+</div></div></div>
+<div id="WS5A6C4658-104D-41b8-99C7-68CEC320A35B" class="nochunk"><a name="WS5A6C4658-104D-41b8-99C7-68CEC320A35B"><!-- --></a><h2 class="topictitle2">Solr Server page</h2><div><p>The Solr server instance runs as a separate server, which
+you can start or stop as a service. You can configure your Solr
+collection for indexing and search capabilities using ColdFusion
+Administrator.</p>
+</div><div id="WSB597D099-DF84-4026-B92C-91D41E708D0B" class="nochunk"><a name="WSB597D099-DF84-4026-B92C-91D41E708D0B"><!-- --></a><h3 class="topictitle3">Solr collections</h3><div><p>You can create Solr collections using ColdFusion Administrator
+or by using <samp class="codeph">&lt;cfcollection&gt;</samp> tag. </p>
+<p>The ColdFusion Administrator implements Solr support using the
+following panels in the Data &amp; Services area:</p>
+<dl><dt class="dlterm">ColdFusion Collections</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Select the Solr collection option when creating a collection.
+Once a Solr collection is created, use the Index, Optimize, Purge,
+or Delete Actions under the Solr Collection area at the bottom of
+the panel. <p>You can also rename and alias a Solr collection
+in ColdFusion Administrator. To do this,</p>
+<div class="para"><ol><li><p>Click
+the ColdFusion collection that you need to rename from the ColdFusion Collections
+page. The Manage Collection page is displayed.</p>
+</li>
+<li><p>In the Rename Collection section, enter a new name in the
+New Name for Collection field and click Submit.</p>
+</li>
+<li><p> To specify an alias for the collection, enter the alias
+in the Collection Alias field and click Submit.</p>
+</li>
+</ol>
+</div>
+</dd><p class="dlseparator"></p><dt class="dlterm">Solr Server</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Configure the Solr server host name, home directory, and
+other advance settings using the Solr Server page.</dd><p class="dlseparator"></p></dl>
+</div></div><div id="WS580FB6DE-E6AE-4dba-8940-A4AF0BF280FC" class="nochunk"><a name="WS580FB6DE-E6AE-4dba-8940-A4AF0BF280FC"><!-- --></a><h3 class="topictitle3">Solr server</h3><div><p>You can install and configure the Solr search service on
+a local or remote host. For a remote server, you can configure the
+host that ColdFusion uses when performing search operations. </p>
+<p>Use the Solr Server page to specify the Solr server host name
+and home directory. You can also configure advance settings including
+the admin port, web application name, and buffer limit.</p>
+</div></div></div>
+<div id="WSe61e35da8d318518-cfc6153134d13aef47-8000" class="nochunk"><a name="WSe61e35da8d318518-cfc6153134d13aef47-8000"><!-- --></a><h2 class="topictitle2">Web Services</h2><div><ul class="navlinklist"></ul>
+</div></div>
+<div id="WSe61e35da8d318518-cfc6153134d13aef47-7fff" class="nochunk"><a name="WSe61e35da8d318518-cfc6153134d13aef47-7fff"><!-- --></a><h2 class="topictitle2">Web Services overview</h2><div><p>Web services let you publish and consume remote application
+functionality over the Internet. With a web service, you can make
+a request to the remote application to perform an action. You can
+use the ColdFusion Administrator to register web services so that
+clients do not have to specify the entire WSDL URL when they reference
+the web service. For more information on publishing and consuming
+web services through ColdFusion, see ColdFusion Developer's Guide.</p>
+<div class="section"><h4 class="sectiontitle">Add a web service</h4><ol><li><p>In the Web Service
+Name box, enter the name of the web service.</p>
+</li>
+<li><p>In the WSDL URL box, enter the URL for the Web Services Description Language
+(WSDL).</p>
+</li>
+<li><p>Enter a user name and password.</p>
+</li>
+<li><p>(If applicable) Specify the proxy server details and credentials.</p>
+</li>
+<li><p>(Optional) Specify the timeout value for the web-service
+request in seconds.</p>
+</li>
+<li><p>Click Add Web Service. Your Web Service Name appears in the
+list of Active ColdFusion Web Services.</p>
+</li>
+</ol>
+</div>
+<div class="section"><h4 class="sectiontitle">Edit a web service</h4><ol><li><p>In the Active
+ColdFusion Web Services area, click the web service name.</p>
+<p>The
+ColdFusion Administrator displays the web service in the top portion
+of the window.</p>
+</li>
+<li><p>Modify settings.</p>
+</li>
+<li><p>Click Update Web Service.</p>
+</li>
+</ol>
+</div>
+<div class="section"><h4 class="sectiontitle">View WSDL for a web service</h4><p><img src="images/dingbat.png" />&#160;In
+the Active ColdFusion Web Services area, click the WSDL URL.<p>The
+ColdFusion Administrator opens the WSDL in a new browser window.</p>
+</p>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7fee" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7fee"><!-- --></a><h2 class="topictitle2">Web Services page</h2><div><p>You can
+use web services to produce and consume remote application functionality
+over the Internet. The ColdFusion Administrator lets you register
+web services so that you do not have to specify the entire Web Services
+Description Language (WSDL) URL when you reference the web service.
+The first time you reference a web service, ColdFusion automatically
+registers it in the Administrator.</p>
+<p>When you register a web service, you can shorten your code and
+change a web service URL without editing your code. For more information,
+see Using Web Services in the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Developing ColdFusion Applications</i>.</p>
+</div></div>
+<div id="WSe61e35da8d318518-17fae27134c7aed33a-8000" class="nochunk"><a name="WSe61e35da8d318518-17fae27134c7aed33a-8000"><!-- --></a><h2 class="topictitle2">REST Services page</h2><div><p>After you create the CFC you want to REST-enable, specify
+the folder for registering as web service in the ColdFusion Administrator.</p>
+<div class="note"><span class="notetitle">Note:  </span>Nested REST applications cannot be registered.</div>
+<p>When you specify a folder, all CFCs in that folder or subfolders
+for which you have specified <samp class="codeph">rest</samp> or <samp class="codeph">restPath</samp> are
+registered.</p>
+<div class="para"><ol><li><p>Browse and select the application path or root folder
+where ColdFusion would search for CFCs.</p>
+</li>
+<li><p>(Optional) In the Service Mapping section, specify virtual
+mapping in place of application name.</p>
+<p>If the folder has an
+Application.cfc and an application name, then the service is identified
+with the application name. You can override this by specifying the service
+mapping. In this case, the service is identified with the service mapping
+that is provided. If there is no Applicaiton.cfc in the folder,
+then it is mandatory to specify the Service mapping. </p>
+</li>
+<li><p>(Optional) Specify an application as default REST service.
+Only one application can be set as default for a server instance.
+You can change the default application at any time. Check Set the
+default application and then click Add Service. To remove the service
+as default, uncheck it.</p>
+</li>
+<li><p>After you specify the details, click Add Service to register.</p>
+<p>The
+Active ColdFusion REST Services section specifies the details of
+all registered web services.</p>
+</li>
+</ol>
+</div>
+<p>After you register, all CFCs are published as RESTful services.
+On subsequent startups, the registered services automatically get
+published.</p>
+<div class="para"><div class="note"><span class="notetitle">Note:  </span>Refresh the application whenever there is a change in REST-related
+component in the application.</div>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7fed" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7fed"><!-- --></a><h2 class="topictitle2">Flex Integration page</h2><div><p>Use this page to specify which Flex integration features
+to enable and which IP addresses can perform data-service operations.
+If you enable Adobe LiveCycle Data Services ES support, but do not
+specify any IP addresses, only processes on the local computer can
+connect to the LiveCycle Data Services ES server in ColdFusion. </p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e3607"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3610"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e3607 "><p>Enable Flash Remoting Support</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3610 "><p>Specifies whether to enable Flash clients
+to connect to this ColdFusion server and invoke methods in ColdFusion components
+(CFCs).</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3607 "><p>Enable Remote LiveCycle Data Management
+Access</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3610 "><p>Specifies whether to enable a LiveCycle
+Data Services ES server to connect to this ColdFusion server and
+invoke methods in CFCs to fill, sync, get, or count records in a
+result set used in a Flex application. Enable this option only if
+you are running LiveCycle Data Services ES remotely.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3607 "><p>Server Identity</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3610 "><p>Specifies the ColdFusion server on which
+you want to enable Flex Data Management Support.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3607 "><p>Enable RMI Over SSL For Data Management</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3610 "><p>To encrypt communication between ColdFusion
+and Flex, enable Secure Sockets Layer (SSL). </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3607 "><p>Select IP Addresses Where LiveCycle Data
+Services Are Running</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3610 "><p>Specifies which LiveCycle Data Services
+ES servers can connect to the LiveCycle Data Services ES support
+in ColdFusion. If you do not specify a list of allowed IP addresses,
+only processes on the local computer can connect to the LiveCycle
+Data Services ES support in ColdFusion</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>To use SSL, create a keystore file. The keystore is a self-signed
+certificate. (You do not need a certificate signed by a Certificate
+Authority, although if you do use one, you do not need to configure
+Flex as indicated in the following steps.) The information in the
+keystore is encrypted and can be accessed only with the password
+that you specify. To create the keystore, use the Java keytool utility, which
+is included in the Java Runtime Environment (JRE). </p>
+</div><div id="WS7F9E1EC8-AD77-46f1-96FA-ED6231B9276F" class="nochunk"><a name="WS7F9E1EC8-AD77-46f1-96FA-ED6231B9276F"><!-- --></a><h3 class="topictitle3">Enable SSL</h3><div><ol><li><p>Create the keystore.</p>
+</li>
+<li><p>Configure Flex.</p>
+</li>
+<li><p>Enable SSL in the ColdFusion Administrator.</p>
+</li>
+</ol>
+</div></div><div id="WS13F77A98-EB49-423b-9A02-439493C2173D" class="nochunk"><a name="WS13F77A98-EB49-423b-9A02-439493C2173D"><!-- --></a><h3 class="topictitle3">Create the keystore</h3><div><div class="para"><img src="images/dingbat.png" />&#160;To generate the SSL server (ColdFusion) keystore
+file, use the keytool utility, with a command similar to the following:<pre>keytool -genkey -v -alias FlexAssembler -dname "cn=FlexAssembler" -keystore cf.keystore -keypass mypassword -storepass mypassword</pre>
+<p>The
+following table describes the parameters of the keytool utility:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e3686"><p>Parameter</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3689"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-alias</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>The name of the keystore entry. You can
+use any name for this, as long as you are consistent when referring
+to it.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-dname</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>The Distinguished Name, which contains the
+Common Name (cn) of the server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-keystore</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>The location of the keystore file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-keypass</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>The password for your private key.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-storepass</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>The password for the keystore. The encrypted
+storepass is stored in ColdFusion configuration files.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-rfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>Generates the certificate in the printable
+encoding format.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-file</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>The name of the keystore file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3686 "><p>-v</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3689 "><p>Generates detailed certificate information</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Place the certificate you created in the
+file that the JVM uses to determine what certificates to trust.
+The file in which you place the certificate (usually named cacerts),
+is located in the JRE, in the lib/security folder. </p>
+</div>
+</div></div><div id="WS9062D407-6FD4-4bb7-8EF1-28D2EC13654D" class="nochunk"><a name="WS9062D407-6FD4-4bb7-8EF1-28D2EC13654D"><!-- --></a><h3 class="topictitle3">Configure Flex</h3><div><ol><li><p>To export the keystore to a certificate, use the
+keytool utility, with a command similar to the following: </p>
+<pre>keytool -export -v -alias FlexAssembler -keystore cf.keystore -rfc -file cf.cer</pre>
+</li>
+<li><p>To import the certificate into the JRE cacerts file for your
+server, use the keytool utility, with a command similar to the following:</p>
+<pre>keytool -import -v -alias FlexAssembler -file cf.cer -keystore C:\fds2\UninstallerData\jre\lib\security\cacerts</pre>
+</li>
+</ol>
+</div></div><div id="WS5A4BEE63-DBAB-458a-B2E2-956A0D7FEEA3" class="nochunk"><a name="WS5A4BEE63-DBAB-458a-B2E2-956A0D7FEEA3"><!-- --></a><h3 class="topictitle3">Enable SSL in the ColdFusion Administrator</h3><div><ol><li><p>Select Data &amp; Services &gt; Flex Integration,
+and specify the keystore file in the Full Path To Keystore box.</p>
+</li>
+<li><p>Specify the keystore password in the Keystore Password box.</p>
+</li>
+<li><p>Select Enable RMI Over SSL For Data Management, and then
+click Submit Changes.</p>
+</li>
+</ol>
+<p>If you specify an invalid keystore file or password, ColdFusion
+does not enable SSL, and disables LiveCycle Data Management Support.</p>
+</div></div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffc.html" title="Server Settings section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe0.html" title="Debugging &amp; Logging section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

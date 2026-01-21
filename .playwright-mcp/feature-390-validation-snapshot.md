@@ -1,0 +1,1621 @@
+### Page state
+- Page URL: http://localhost:5173/admin/users
+- Page Title: RIMSS - RAMPOD Inventory & Maintenance System Software
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e268]:
+    - link "Skip to main content" [ref=e269] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e270]: CUI - Controlled Unclassified Information
+    - navigation [ref=e272]:
+      - generic [ref=e274]:
+        - generic [ref=e275]:
+          - button "Toggle sidebar" [ref=e276] [cursor=pointer]:
+            - img [ref=e277]
+          - generic [ref=e279]:
+            - generic [ref=e280]: RIMSS
+            - generic [ref=e281]: RAMPOD Inventory & Maintenance System Software
+        - generic [ref=e282]:
+          - link "View notifications" [ref=e283] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e284]
+            - generic [ref=e286]: "4"
+          - 'button "Location: 24892/1160/1426" [ref=e288] [cursor=pointer]':
+            - img [ref=e289]
+            - generic [ref=e292]: "Location:"
+            - generic [ref=e293]: 24892/1160/1426
+            - img [ref=e294]
+          - 'button "Program: CRIIS" [ref=e297] [cursor=pointer]':
+            - generic [ref=e298]: "Program:"
+            - generic [ref=e299]: CRIIS
+            - img [ref=e300]
+          - button "John Admin" [ref=e303] [cursor=pointer]:
+            - img [ref=e304]
+            - generic [ref=e306]: John Admin
+            - img [ref=e307]
+    - generic [ref=e311]:
+      - navigation [ref=e312]:
+        - generic [ref=e313]:
+          - link "Dashboard" [ref=e314] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e315]
+            - text: Dashboard
+          - link "Assets" [ref=e317] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e318]
+            - text: Assets
+          - link "Configurations" [ref=e320] [cursor=pointer]:
+            - /url: /configurations
+            - img [ref=e321]
+            - text: Configurations
+          - link "Maintenance" [ref=e324] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e325]
+            - text: Maintenance
+          - link "Sorties" [ref=e327] [cursor=pointer]:
+            - /url: /sorties
+            - img [ref=e328]
+            - text: Sorties
+          - link "Spares" [ref=e330] [cursor=pointer]:
+            - /url: /spares
+            - img [ref=e331]
+            - text: Spares
+          - link "Parts Ordered" [ref=e333] [cursor=pointer]:
+            - /url: /parts-ordered
+            - img [ref=e334]
+            - text: Parts Ordered
+          - link "Software" [ref=e336] [cursor=pointer]:
+            - /url: /software
+            - img [ref=e337]
+            - text: Software
+          - link "Notifications" [ref=e339] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e340]
+            - text: Notifications
+          - link "Reports" [ref=e342] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e343]
+            - text: Reports
+        - generic [ref=e345]:
+          - paragraph [ref=e346]: Administration
+          - link "Admin" [ref=e347] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e348]
+            - text: Admin
+          - link "Users" [ref=e350] [cursor=pointer]:
+            - /url: /admin/users
+            - img [ref=e351]
+            - text: Users
+      - paragraph [ref=e354]: RIMSS v0.1.0
+    - main [ref=e356]:
+      - generic [ref=e358]:
+        - generic [ref=e359]:
+          - generic [ref=e360]:
+            - heading "User Management" [level=1] [ref=e361]
+            - paragraph [ref=e362]: Manage user accounts, roles, and program assignments
+          - button "Add User" [ref=e364] [cursor=pointer]:
+            - img [ref=e365]
+            - text: Add User
+        - table [ref=e368]:
+          - rowgroup [ref=e369]:
+            - row "User Username Role Programs Status Actions" [ref=e370]:
+              - columnheader "User" [ref=e371]
+              - columnheader "Username" [ref=e372]
+              - columnheader "Role" [ref=e373]
+              - columnheader "Programs" [ref=e374]
+              - columnheader "Status" [ref=e375]
+              - columnheader "Actions" [ref=e376]:
+                - generic [ref=e377]: Actions
+          - rowgroup [ref=e378]:
+            - row "JA John Admin admin@example.mil admin Administrator CRIIS ★ ACTS ARDS 236 Active Edit user Delete user" [ref=e2341]:
+              - cell "JA John Admin admin@example.mil" [ref=e2342]:
+                - generic [ref=e2343]:
+                  - generic [ref=e2346]: JA
+                  - generic [ref=e2347]:
+                    - generic [ref=e2348]: John Admin
+                    - generic [ref=e2349]: admin@example.mil
+              - cell "admin" [ref=e2350]:
+                - generic [ref=e2351]: admin
+              - cell "Administrator" [ref=e2352]:
+                - generic [ref=e2353]: Administrator
+              - cell "CRIIS ★ ACTS ARDS 236" [ref=e2354]:
+                - generic [ref=e2355]:
+                  - generic "Default program" [ref=e2356]: CRIIS ★
+                  - generic [ref=e2357]: ACTS
+                  - generic [ref=e2358]: ARDS
+                  - generic [ref=e2359]: "236"
+              - cell "Active" [ref=e2360]:
+                - generic [ref=e2361]: Active
+              - cell "Edit user Delete user" [ref=e2362]:
+                - button "Edit user" [ref=e2363] [cursor=pointer]:
+                  - img [ref=e2364]
+                - button "Delete user" [ref=e2366] [cursor=pointer]:
+                  - img [ref=e2367]
+            - row "JD Jane Depot depot@example.mil depot_mgr Depot Manager CRIIS ★ Active Edit user Delete user" [ref=e2369]:
+              - cell "JD Jane Depot depot@example.mil" [ref=e2370]:
+                - generic [ref=e2371]:
+                  - generic [ref=e2374]: JD
+                  - generic [ref=e2375]:
+                    - generic [ref=e2376]: Jane Depot
+                    - generic [ref=e2377]: depot@example.mil
+              - cell "depot_mgr" [ref=e2378]:
+                - generic [ref=e2379]: depot_mgr
+              - cell "Depot Manager" [ref=e2380]:
+                - generic [ref=e2381]: Depot Manager
+              - cell "CRIIS ★" [ref=e2382]:
+                - generic "Default program" [ref=e2384]: CRIIS ★
+              - cell "Active" [ref=e2385]:
+                - generic [ref=e2386]: Active
+              - cell "Edit user Delete user" [ref=e2387]:
+                - button "Edit user" [ref=e2388] [cursor=pointer]:
+                  - img [ref=e2389]
+                - button "Delete user" [ref=e2391] [cursor=pointer]:
+                  - img [ref=e2392]
+            - row "BF Bob Field field@example.mil field_tech Field Technician CRIIS ★ Active Edit user Delete user" [ref=e2394]:
+              - cell "BF Bob Field field@example.mil" [ref=e2395]:
+                - generic [ref=e2396]:
+                  - generic [ref=e2399]: BF
+                  - generic [ref=e2400]:
+                    - generic [ref=e2401]: Bob Field
+                    - generic [ref=e2402]: field@example.mil
+              - cell "field_tech" [ref=e2403]:
+                - generic [ref=e2404]: field_tech
+              - cell "Field Technician" [ref=e2405]:
+                - generic [ref=e2406]: Field Technician
+              - cell "CRIIS ★" [ref=e2407]:
+                - generic "Default program" [ref=e2409]: CRIIS ★
+              - cell "Active" [ref=e2410]:
+                - generic [ref=e2411]: Active
+              - cell "Edit user Delete user" [ref=e2412]:
+                - button "Edit user" [ref=e2413] [cursor=pointer]:
+                  - img [ref=e2414]
+                - button "Delete user" [ref=e2416] [cursor=pointer]:
+                  - img [ref=e2417]
+            - row "SV Sam Viewer viewer@example.mil viewer Viewer CRIIS ★ Active Edit user Delete user" [ref=e2419]:
+              - cell "SV Sam Viewer viewer@example.mil" [ref=e2420]:
+                - generic [ref=e2421]:
+                  - generic [ref=e2424]: SV
+                  - generic [ref=e2425]:
+                    - generic [ref=e2426]: Sam Viewer
+                    - generic [ref=e2427]: viewer@example.mil
+              - cell "viewer" [ref=e2428]:
+                - generic [ref=e2429]: viewer
+              - cell "Viewer" [ref=e2430]:
+                - generic [ref=e2431]: Viewer
+              - cell "CRIIS ★" [ref=e2432]:
+                - generic "Default program" [ref=e2434]: CRIIS ★
+              - cell "Active" [ref=e2435]:
+                - generic [ref=e2436]: Active
+              - cell "Edit user Delete user" [ref=e2437]:
+                - button "Edit user" [ref=e2438] [cursor=pointer]:
+                  - img [ref=e2439]
+                - button "Delete user" [ref=e2441] [cursor=pointer]:
+                  - img [ref=e2442]
+            - row "AA Alice ACTS acts@example.mil acts_user Field Technician ACTS ★ Active Edit user Delete user" [ref=e2444]:
+              - cell "AA Alice ACTS acts@example.mil" [ref=e2445]:
+                - generic [ref=e2446]:
+                  - generic [ref=e2449]: AA
+                  - generic [ref=e2450]:
+                    - generic [ref=e2451]: Alice ACTS
+                    - generic [ref=e2452]: acts@example.mil
+              - cell "acts_user" [ref=e2453]:
+                - generic [ref=e2454]: acts_user
+              - cell "Field Technician" [ref=e2455]:
+                - generic [ref=e2456]: Field Technician
+              - cell "ACTS ★" [ref=e2457]:
+                - generic "Default program" [ref=e2459]: ACTS ★
+              - cell "Active" [ref=e2460]:
+                - generic [ref=e2461]: Active
+              - cell "Edit user Delete user" [ref=e2462]:
+                - button "Edit user" [ref=e2463] [cursor=pointer]:
+                  - img [ref=e2464]
+                - button "Delete user" [ref=e2466] [cursor=pointer]:
+                  - img [ref=e2467]
+            - row "TA Test Admin389 test_admin_389@example.mil test_admin_389 Administrator CRIIS ★ Active Edit user Delete user" [ref=e2469]:
+              - cell "TA Test Admin389 test_admin_389@example.mil" [ref=e2470]:
+                - generic [ref=e2471]:
+                  - generic [ref=e2474]: TA
+                  - generic [ref=e2475]:
+                    - generic [ref=e2476]: Test Admin389
+                    - generic [ref=e2477]: test_admin_389@example.mil
+              - cell "test_admin_389" [ref=e2478]:
+                - generic [ref=e2479]: test_admin_389
+              - cell "Administrator" [ref=e2480]:
+                - generic [ref=e2481]: Administrator
+              - cell "CRIIS ★" [ref=e2482]:
+                - generic "Default program" [ref=e2484]: CRIIS ★
+              - cell "Active" [ref=e2485]:
+                - generic [ref=e2486]: Active
+              - cell "Edit user Delete user" [ref=e2487]:
+                - button "Edit user" [ref=e2488] [cursor=pointer]:
+                  - img [ref=e2489]
+                - button "Delete user" [ref=e2491] [cursor=pointer]:
+                  - img [ref=e2492]
+    - contentinfo [ref=e532]: CUI - Controlled Unclassified Information
+  - generic:
+    - generic:
+      - generic:
+        - 'dialog "Edit User: field_tech"':
+          - generic [ref=e536]:
+            - 'heading "Edit User: field_tech" [level=3] [ref=e537]':
+              - img [ref=e538]
+              - text: "Edit User: field_tech"
+            - button "Close" [ref=e540] [cursor=pointer]:
+              - img [ref=e541]
+            - generic [ref=e543]:
+              - generic [ref=e544]:
+                - generic [ref=e545]: Username *
+                - textbox "Username *" [ref=e546]:
+                  - /placeholder: john_doe
+                  - text: field_tech
+              - generic [ref=e547]:
+                - generic [ref=e548]: Email *
+                - textbox "Email *" [ref=e549]:
+                  - /placeholder: john.doe@example.mil
+                  - text: field@example.mil
+              - generic [ref=e550]:
+                - generic [ref=e551]:
+                  - generic [ref=e552]: First Name *
+                  - textbox "First Name *" [ref=e553]:
+                    - /placeholder: John
+                    - text: Bob
+                - generic [ref=e554]:
+                  - generic [ref=e555]: Last Name *
+                  - textbox "Last Name *" [ref=e556]:
+                    - /placeholder: Doe
+                    - text: Field
+              - generic [ref=e557]:
+                - generic [ref=e558]: Role *
+                - combobox "Role *" [ref=e559]:
+                  - option "Select a role..."
+                  - option "Administrator"
+                  - option "Depot Manager"
+                  - option "Field Technician" [selected]
+                  - option "Viewer"
+              - generic [ref=e560]:
+                - generic [ref=e561]: Program Assignments *
+                - paragraph [ref=e562]: Select one or more programs, then set the default program
+                - generic [ref=e563]:
+                  - generic [ref=e564]:
+                    - generic [ref=e565] [cursor=pointer]:
+                      - checkbox "CRIIS- Common Remotely Operated Integrated Reconnaissance System" [checked] [ref=e566]
+                      - generic [ref=e567]:
+                        - text: CRIIS
+                        - generic [ref=e568]: "- Common Remotely Operated Integrated Reconnaissance System"
+                    - generic [ref=e569]:
+                      - radio [checked] [ref=e570]
+                      - generic [ref=e571]: Default
+                  - generic [ref=e573] [cursor=pointer]:
+                    - checkbox "ACTS- Advanced Targeting Capability System" [ref=e574]
+                    - generic [ref=e575]:
+                      - text: ACTS
+                      - generic [ref=e576]: "- Advanced Targeting Capability System"
+                  - generic [ref=e578] [cursor=pointer]:
+                    - checkbox "ARDS- Airborne Reconnaissance Data System" [ref=e579]
+                    - generic [ref=e580]:
+                      - text: ARDS
+                      - generic [ref=e581]: "- Airborne Reconnaissance Data System"
+                  - generic [ref=e583] [cursor=pointer]:
+                    - checkbox "236- Program 236" [ref=e584]
+                    - generic [ref=e585]:
+                      - text: "236"
+                      - generic [ref=e586]: "- Program 236"
+              - generic [ref=e587]:
+                - generic [ref=e588]: Location Assignments
+                - paragraph [ref=e589]: Select one or more locations, then set the default location (optional)
+                - generic [ref=e590]:
+                  - generic [ref=e592] [cursor=pointer]:
+                    - checkbox "24892/1160/1426" [ref=e593]
+                    - generic [ref=e594]: 24892/1160/1426
+                  - generic [ref=e596] [cursor=pointer]:
+                    - checkbox "24892/1160/1426" [ref=e597]
+                    - generic [ref=e598]: 24892/1160/1426
+                  - generic [ref=e600] [cursor=pointer]:
+                    - checkbox "24892/1360/24893" [ref=e601]
+                    - generic [ref=e602]: 24892/1360/24893
+                  - generic [ref=e604] [cursor=pointer]:
+                    - checkbox "24892/526/527" [ref=e605]
+                    - generic [ref=e606]: 24892/526/527
+                  - generic [ref=e611] [cursor=pointer]:
+                    - checkbox "24892/526/527" [ref=e612]
+                    - generic [ref=e613]: 24892/526/527
+                  - generic [ref=e615] [cursor=pointer]:
+                    - checkbox "29306/29031/29030" [ref=e616]
+                    - generic [ref=e617]: 29306/29031/29030
+                  - generic [ref=e619] [cursor=pointer]:
+                    - checkbox "29307/29032/29033" [ref=e620]
+                    - generic [ref=e621]: 29307/29032/29033
+                  - generic [ref=e623] [cursor=pointer]:
+                    - checkbox "38591/38592/38593" [ref=e624]
+                    - generic [ref=e625]: 38591/38592/38593
+                  - generic [ref=e627] [cursor=pointer]:
+                    - checkbox "38598/29185/29186" [ref=e628]
+                    - generic [ref=e629]: 38598/29185/29186
+                  - generic [ref=e631] [cursor=pointer]:
+                    - checkbox "743/1143/1518" [ref=e632]
+                    - generic [ref=e633]: 743/1143/1518
+                  - generic [ref=e635] [cursor=pointer]:
+                    - checkbox "743/1160/1426" [ref=e636]
+                    - generic [ref=e637]: 743/1160/1426
+                  - generic [ref=e639] [cursor=pointer]:
+                    - checkbox "743/1160/1426" [ref=e640]
+                    - generic [ref=e641]: 743/1160/1426
+                  - generic [ref=e643] [cursor=pointer]:
+                    - checkbox "743/1160/46646" [ref=e644]
+                    - generic [ref=e645]: 743/1160/46646
+                  - generic [ref=e647] [cursor=pointer]:
+                    - checkbox "743/1163/1507" [ref=e648]
+                    - generic [ref=e649]: 743/1163/1507
+                  - generic [ref=e651] [cursor=pointer]:
+                    - checkbox "743/1174/1430" [ref=e652]
+                    - generic [ref=e653]: 743/1174/1430
+                  - generic [ref=e655] [cursor=pointer]:
+                    - checkbox "743/1184/1542" [ref=e656]
+                    - generic [ref=e657]: 743/1184/1542
+                  - generic [ref=e659] [cursor=pointer]:
+                    - checkbox "743/1188/1454" [ref=e660]
+                    - generic [ref=e661]: 743/1188/1454
+                  - generic [ref=e663] [cursor=pointer]:
+                    - checkbox "743/1188/1454" [ref=e664]
+                    - generic [ref=e665]: 743/1188/1454
+                  - generic [ref=e667] [cursor=pointer]:
+                    - checkbox "743/1188/1454" [ref=e668]
+                    - generic [ref=e669]: 743/1188/1454
+                  - generic [ref=e671] [cursor=pointer]:
+                    - checkbox "743/1188/1454" [ref=e672]
+                    - generic [ref=e673]: 743/1188/1454
+                  - generic [ref=e675] [cursor=pointer]:
+                    - checkbox "743/1188/1454" [ref=e676]
+                    - generic [ref=e677]: 743/1188/1454
+                  - generic [ref=e679] [cursor=pointer]:
+                    - checkbox "743/1197/10317" [ref=e680]
+                    - generic [ref=e681]: 743/1197/10317
+                  - generic [ref=e683] [cursor=pointer]:
+                    - checkbox "743/1197/10317" [ref=e684]
+                    - generic [ref=e685]: 743/1197/10317
+                  - generic [ref=e687] [cursor=pointer]:
+                    - checkbox "743/1197/1402" [ref=e688]
+                    - generic [ref=e689]: 743/1197/1402
+                  - generic [ref=e691] [cursor=pointer]:
+                    - checkbox "743/1197/1404" [ref=e692]
+                    - generic [ref=e693]: 743/1197/1404
+                  - generic [ref=e695] [cursor=pointer]:
+                    - checkbox "743/1197/1455" [ref=e696]
+                    - generic [ref=e697]: 743/1197/1455
+                  - generic [ref=e699] [cursor=pointer]:
+                    - checkbox "743/1197/1455" [ref=e700]
+                    - generic [ref=e701]: 743/1197/1455
+                  - generic [ref=e703] [cursor=pointer]:
+                    - checkbox "743/1197/1455" [ref=e704]
+                    - generic [ref=e705]: 743/1197/1455
+                  - generic [ref=e707] [cursor=pointer]:
+                    - checkbox "743/1206/1569" [ref=e708]
+                    - generic [ref=e709]: 743/1206/1569
+                  - generic [ref=e711] [cursor=pointer]:
+                    - checkbox "743/1227/1463" [ref=e712]
+                    - generic [ref=e713]: 743/1227/1463
+                  - generic [ref=e715] [cursor=pointer]:
+                    - checkbox "743/1227/1463" [ref=e716]
+                    - generic [ref=e717]: 743/1227/1463
+                  - generic [ref=e719] [cursor=pointer]:
+                    - checkbox "743/1227/1463" [ref=e720]
+                    - generic [ref=e721]: 743/1227/1463
+                  - generic [ref=e723] [cursor=pointer]:
+                    - checkbox "743/1227/1463" [ref=e724]
+                    - generic [ref=e725]: 743/1227/1463
+                  - generic [ref=e727] [cursor=pointer]:
+                    - checkbox "743/1227/1464" [ref=e728]
+                    - generic [ref=e729]: 743/1227/1464
+                  - generic [ref=e731] [cursor=pointer]:
+                    - checkbox "743/1227/1572" [ref=e732]
+                    - generic [ref=e733]: 743/1227/1572
+                  - generic [ref=e735] [cursor=pointer]:
+                    - checkbox "743/1229/1482" [ref=e736]
+                    - generic [ref=e737]: 743/1229/1482
+                  - generic [ref=e739] [cursor=pointer]:
+                    - checkbox "743/1258/1369" [ref=e740]
+                    - generic [ref=e741]: 743/1258/1369
+                  - generic [ref=e743] [cursor=pointer]:
+                    - checkbox "743/1258/1573" [ref=e744]
+                    - generic [ref=e745]: 743/1258/1573
+                  - generic [ref=e747] [cursor=pointer]:
+                    - checkbox "743/1279/1483" [ref=e748]
+                    - generic [ref=e749]: 743/1279/1483
+                  - generic [ref=e751] [cursor=pointer]:
+                    - checkbox "743/1282/1428" [ref=e752]
+                    - generic [ref=e753]: 743/1282/1428
+                  - generic [ref=e755] [cursor=pointer]:
+                    - checkbox "743/1282/1429" [ref=e756]
+                    - generic [ref=e757]: 743/1282/1429
+                  - generic [ref=e759] [cursor=pointer]:
+                    - checkbox "743/1282/1429" [ref=e760]
+                    - generic [ref=e761]: 743/1282/1429
+                  - generic [ref=e763] [cursor=pointer]:
+                    - checkbox "743/1282/1429" [ref=e764]
+                    - generic [ref=e765]: 743/1282/1429
+                  - generic [ref=e767] [cursor=pointer]:
+                    - checkbox "743/1283/1457" [ref=e768]
+                    - generic [ref=e769]: 743/1283/1457
+                  - generic [ref=e771] [cursor=pointer]:
+                    - checkbox "743/1283/1457" [ref=e772]
+                    - generic [ref=e773]: 743/1283/1457
+                  - generic [ref=e775] [cursor=pointer]:
+                    - checkbox "743/1283/1457" [ref=e776]
+                    - generic [ref=e777]: 743/1283/1457
+                  - generic [ref=e779] [cursor=pointer]:
+                    - checkbox "743/1283/1457" [ref=e780]
+                    - generic [ref=e781]: 743/1283/1457
+                  - generic [ref=e783] [cursor=pointer]:
+                    - checkbox "743/1283/47070" [ref=e784]
+                    - generic [ref=e785]: 743/1283/47070
+                  - generic [ref=e787] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e788]
+                    - generic [ref=e789]: 743/1290/1495
+                  - generic [ref=e791] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e792]
+                    - generic [ref=e793]: 743/1290/1495
+                  - generic [ref=e795] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e796]
+                    - generic [ref=e797]: 743/1290/1495
+                  - generic [ref=e799] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e800]
+                    - generic [ref=e801]: 743/1290/1495
+                  - generic [ref=e803] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e804]
+                    - generic [ref=e805]: 743/1290/1495
+                  - generic [ref=e807] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e808]
+                    - generic [ref=e809]: 743/1290/1495
+                  - generic [ref=e811] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e812]
+                    - generic [ref=e813]: 743/1290/1495
+                  - generic [ref=e815] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e816]
+                    - generic [ref=e817]: 743/1290/1495
+                  - generic [ref=e819] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e820]
+                    - generic [ref=e821]: 743/1290/1495
+                  - generic [ref=e823] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e824]
+                    - generic [ref=e825]: 743/1290/1495
+                  - generic [ref=e827] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e828]
+                    - generic [ref=e829]: 743/1290/1495
+                  - generic [ref=e831] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e832]
+                    - generic [ref=e833]: 743/1290/1495
+                  - generic [ref=e835] [cursor=pointer]:
+                    - checkbox "743/1290/1495" [ref=e836]
+                    - generic [ref=e837]: 743/1290/1495
+                  - generic [ref=e839] [cursor=pointer]:
+                    - checkbox "743/1290/1498" [ref=e840]
+                    - generic [ref=e841]: 743/1290/1498
+                  - generic [ref=e843] [cursor=pointer]:
+                    - checkbox "743/1290/1568" [ref=e844]
+                    - generic [ref=e845]: 743/1290/1568
+                  - generic [ref=e847] [cursor=pointer]:
+                    - checkbox "743/1290/1635" [ref=e848]
+                    - generic [ref=e849]: 743/1290/1635
+                  - generic [ref=e851] [cursor=pointer]:
+                    - checkbox "743/1297/1492" [ref=e852]
+                    - generic [ref=e853]: 743/1297/1492
+                  - generic [ref=e855] [cursor=pointer]:
+                    - checkbox "743/1323/1540" [ref=e856]
+                    - generic [ref=e857]: 743/1323/1540
+                  - generic [ref=e859] [cursor=pointer]:
+                    - checkbox "743/1328/1465" [ref=e860]
+                    - generic [ref=e861]: 743/1328/1465
+                  - generic [ref=e863] [cursor=pointer]:
+                    - checkbox "743/1328/1465" [ref=e864]
+                    - generic [ref=e865]: 743/1328/1465
+                  - generic [ref=e867] [cursor=pointer]:
+                    - checkbox "743/1328/1465" [ref=e868]
+                    - generic [ref=e869]: 743/1328/1465
+                  - generic [ref=e871] [cursor=pointer]:
+                    - checkbox "743/1328/1465" [ref=e872]
+                    - generic [ref=e873]: 743/1328/1465
+                  - generic [ref=e875] [cursor=pointer]:
+                    - checkbox "743/1328/1465" [ref=e876]
+                    - generic [ref=e877]: 743/1328/1465
+                  - generic [ref=e879] [cursor=pointer]:
+                    - checkbox "743/1328/1465" [ref=e880]
+                    - generic [ref=e881]: 743/1328/1465
+                  - generic [ref=e883] [cursor=pointer]:
+                    - checkbox "743/1328/1465" [ref=e884]
+                    - generic [ref=e885]: 743/1328/1465
+                  - generic [ref=e887] [cursor=pointer]:
+                    - checkbox "743/1328/1646" [ref=e888]
+                    - generic [ref=e889]: 743/1328/1646
+                  - generic [ref=e891] [cursor=pointer]:
+                    - checkbox "743/1329/1427" [ref=e892]
+                    - generic [ref=e893]: 743/1329/1427
+                  - generic [ref=e895] [cursor=pointer]:
+                    - checkbox "743/1329/1427" [ref=e896]
+                    - generic [ref=e897]: 743/1329/1427
+                  - generic [ref=e899] [cursor=pointer]:
+                    - checkbox "743/1329/1427" [ref=e900]
+                    - generic [ref=e901]: 743/1329/1427
+                  - generic [ref=e903] [cursor=pointer]:
+                    - checkbox "743/1329/1427" [ref=e904]
+                    - generic [ref=e905]: 743/1329/1427
+                  - generic [ref=e907] [cursor=pointer]:
+                    - checkbox "743/1329/1427" [ref=e908]
+                    - generic [ref=e909]: 743/1329/1427
+                  - generic [ref=e911] [cursor=pointer]:
+                    - checkbox "743/1329/1644" [ref=e912]
+                    - generic [ref=e913]: 743/1329/1644
+                  - generic [ref=e915] [cursor=pointer]:
+                    - checkbox "743/1342/38794" [ref=e916]
+                    - generic [ref=e917]: 743/1342/38794
+                  - generic [ref=e919] [cursor=pointer]:
+                    - checkbox "743/1349/1441" [ref=e920]
+                    - generic [ref=e921]: 743/1349/1441
+                  - generic [ref=e923] [cursor=pointer]:
+                    - checkbox "743/1349/1491" [ref=e924]
+                    - generic [ref=e925]: 743/1349/1491
+                  - generic [ref=e927] [cursor=pointer]:
+                    - checkbox "743/1349/38208" [ref=e928]
+                    - generic [ref=e929]: 743/1349/38208
+                  - generic [ref=e931] [cursor=pointer]:
+                    - checkbox "743/29034/46452" [ref=e932]
+                    - generic [ref=e933]: 743/29034/46452
+                  - generic [ref=e935] [cursor=pointer]:
+                    - checkbox "743/33662/33663" [ref=e936]
+                    - generic [ref=e937]: 743/33662/33663
+                  - generic [ref=e939] [cursor=pointer]:
+                    - checkbox "743/46453/46452" [ref=e940]
+                    - generic [ref=e941]: 743/46453/46452
+                  - generic [ref=e943] [cursor=pointer]:
+                    - checkbox "743/525/528" [ref=e944]
+                    - generic [ref=e945]: 743/525/528
+                  - generic [ref=e947] [cursor=pointer]:
+                    - checkbox "743/525/528" [ref=e948]
+                    - generic [ref=e949]: 743/525/528
+                  - generic [ref=e951] [cursor=pointer]:
+                    - checkbox "744/10267/10268" [ref=e952]
+                    - generic [ref=e953]: 744/10267/10268
+                  - generic [ref=e955] [cursor=pointer]:
+                    - checkbox "744/10305/10306" [ref=e956]
+                    - generic [ref=e957]: 744/10305/10306
+                  - generic [ref=e959] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e960]
+                    - generic [ref=e961]: 744/1197/1442
+                  - generic [ref=e963] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e964]
+                    - generic [ref=e965]: 744/1197/1442
+                  - generic [ref=e967] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e968]
+                    - generic [ref=e969]: 744/1197/1442
+                  - generic [ref=e971] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e972]
+                    - generic [ref=e973]: 744/1197/1442
+                  - generic [ref=e975] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e976]
+                    - generic [ref=e977]: 744/1197/1442
+                  - generic [ref=e979] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e980]
+                    - generic [ref=e981]: 744/1197/1442
+                  - generic [ref=e983] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e984]
+                    - generic [ref=e985]: 744/1197/1442
+                  - generic [ref=e987] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e988]
+                    - generic [ref=e989]: 744/1197/1442
+                  - generic [ref=e991] [cursor=pointer]:
+                    - checkbox "744/1197/1442" [ref=e992]
+                    - generic [ref=e993]: 744/1197/1442
+                  - generic [ref=e995] [cursor=pointer]:
+                    - checkbox "744/1229/34135" [ref=e996]
+                    - generic [ref=e997]: 744/1229/34135
+                  - generic [ref=e999] [cursor=pointer]:
+                    - checkbox "744/1229/34135" [ref=e1000]
+                    - generic [ref=e1001]: 744/1229/34135
+                  - generic [ref=e1003] [cursor=pointer]:
+                    - checkbox "744/1229/34135" [ref=e1004]
+                    - generic [ref=e1005]: 744/1229/34135
+                  - generic [ref=e1007] [cursor=pointer]:
+                    - checkbox "744/1229/34135" [ref=e1008]
+                    - generic [ref=e1009]: 744/1229/34135
+                  - generic [ref=e1011] [cursor=pointer]:
+                    - checkbox "744/1251/26841" [ref=e1012]
+                    - generic [ref=e1013]: 744/1251/26841
+                  - generic [ref=e1015] [cursor=pointer]:
+                    - checkbox "744/1265/1493" [ref=e1016]
+                    - generic [ref=e1017]: 744/1265/1493
+                  - generic [ref=e1019] [cursor=pointer]:
+                    - checkbox "744/1265/1493" [ref=e1020]
+                    - generic [ref=e1021]: 744/1265/1493
+                  - generic [ref=e1023] [cursor=pointer]:
+                    - checkbox "744/1265/1493" [ref=e1024]
+                    - generic [ref=e1025]: 744/1265/1493
+                  - generic [ref=e1027] [cursor=pointer]:
+                    - checkbox "744/1314/10292" [ref=e1028]
+                    - generic [ref=e1029]: 744/1314/10292
+                  - generic [ref=e1031] [cursor=pointer]:
+                    - checkbox "744/1330/1505" [ref=e1032]
+                    - generic [ref=e1033]: 744/1330/1505
+                  - generic [ref=e1035] [cursor=pointer]:
+                    - checkbox "744/1336/1532" [ref=e1036]
+                    - generic [ref=e1037]: 744/1336/1532
+                  - generic [ref=e1039] [cursor=pointer]:
+                    - checkbox "744/6906/23400" [ref=e1040]
+                    - generic [ref=e1041]: 744/6906/23400
+                  - generic [ref=e1043] [cursor=pointer]:
+                    - checkbox "746/1179/44953" [ref=e1044]
+                    - generic [ref=e1045]: 746/1179/44953
+                  - generic [ref=e1047] [cursor=pointer]:
+                    - checkbox "746/1179/44955" [ref=e1048]
+                    - generic [ref=e1049]: 746/1179/44955
+                  - generic [ref=e1051] [cursor=pointer]:
+                    - checkbox "746/1185/44952" [ref=e1052]
+                    - generic [ref=e1053]: 746/1185/44952
+                  - generic [ref=e1055] [cursor=pointer]:
+                    - checkbox "746/1185/44986" [ref=e1056]
+                    - generic [ref=e1057]: 746/1185/44986
+                  - generic [ref=e1059] [cursor=pointer]:
+                    - checkbox "746/1188/42433" [ref=e1060]
+                    - generic [ref=e1061]: 746/1188/42433
+                  - generic [ref=e1063] [cursor=pointer]:
+                    - checkbox "746/1196/10253" [ref=e1064]
+                    - generic [ref=e1065]: 746/1196/10253
+                  - generic [ref=e1067] [cursor=pointer]:
+                    - checkbox "746/1196/1469" [ref=e1068]
+                    - generic [ref=e1069]: 746/1196/1469
+                  - generic [ref=e1071] [cursor=pointer]:
+                    - checkbox "746/1196/1469" [ref=e1072]
+                    - generic [ref=e1073]: 746/1196/1469
+                  - generic [ref=e1075] [cursor=pointer]:
+                    - checkbox "746/1196/1469" [ref=e1076]
+                    - generic [ref=e1077]: 746/1196/1469
+                  - generic [ref=e1079] [cursor=pointer]:
+                    - checkbox "746/1196/1469" [ref=e1080]
+                    - generic [ref=e1081]: 746/1196/1469
+                  - generic [ref=e1083] [cursor=pointer]:
+                    - checkbox "746/1196/1469" [ref=e1084]
+                    - generic [ref=e1085]: 746/1196/1469
+                  - generic [ref=e1087] [cursor=pointer]:
+                    - checkbox "746/1196/44838" [ref=e1088]
+                    - generic [ref=e1089]: 746/1196/44838
+                  - generic [ref=e1091] [cursor=pointer]:
+                    - checkbox "746/1197/10254" [ref=e1092]
+                    - generic [ref=e1093]: 746/1197/10254
+                  - generic [ref=e1095] [cursor=pointer]:
+                    - checkbox "746/1197/1479" [ref=e1096]
+                    - generic [ref=e1097]: 746/1197/1479
+                  - generic [ref=e1099] [cursor=pointer]:
+                    - checkbox "746/1197/1479" [ref=e1100]
+                    - generic [ref=e1101]: 746/1197/1479
+                  - generic [ref=e1103] [cursor=pointer]:
+                    - checkbox "746/1197/1479" [ref=e1104]
+                    - generic [ref=e1105]: 746/1197/1479
+                  - generic [ref=e1107] [cursor=pointer]:
+                    - checkbox "746/1197/1479" [ref=e1108]
+                    - generic [ref=e1109]: 746/1197/1479
+                  - generic [ref=e1111] [cursor=pointer]:
+                    - checkbox "746/1197/1479" [ref=e1112]
+                    - generic [ref=e1113]: 746/1197/1479
+                  - generic [ref=e1115] [cursor=pointer]:
+                    - checkbox "746/1197/1514" [ref=e1116]
+                    - generic [ref=e1117]: 746/1197/1514
+                  - generic [ref=e1119] [cursor=pointer]:
+                    - checkbox "746/1197/1515" [ref=e1120]
+                    - generic [ref=e1121]: 746/1197/1515
+                  - generic [ref=e1123] [cursor=pointer]:
+                    - checkbox "746/1197/1516" [ref=e1124]
+                    - generic [ref=e1125]: 746/1197/1516
+                  - generic [ref=e1127] [cursor=pointer]:
+                    - checkbox "746/1197/29290" [ref=e1128]
+                    - generic [ref=e1129]: 746/1197/29290
+                  - generic [ref=e1131] [cursor=pointer]:
+                    - checkbox "746/1197/30336" [ref=e1132]
+                    - generic [ref=e1133]: 746/1197/30336
+                  - generic [ref=e1135] [cursor=pointer]:
+                    - checkbox "746/1197/30336" [ref=e1136]
+                    - generic [ref=e1137]: 746/1197/30336
+                  - generic [ref=e1139] [cursor=pointer]:
+                    - checkbox "746/1197/30336" [ref=e1140]
+                    - generic [ref=e1141]: 746/1197/30336
+                  - generic [ref=e1143] [cursor=pointer]:
+                    - checkbox "746/1197/30336" [ref=e1144]
+                    - generic [ref=e1145]: 746/1197/30336
+                  - generic [ref=e1147] [cursor=pointer]:
+                    - checkbox "746/1197/30336" [ref=e1148]
+                    - generic [ref=e1149]: 746/1197/30336
+                  - generic [ref=e1151] [cursor=pointer]:
+                    - checkbox "746/1197/30336" [ref=e1152]
+                    - generic [ref=e1153]: 746/1197/30336
+                  - generic [ref=e1155] [cursor=pointer]:
+                    - checkbox "746/1197/30336" [ref=e1156]
+                    - generic [ref=e1157]: 746/1197/30336
+                  - generic [ref=e1159] [cursor=pointer]:
+                    - checkbox "746/1197/30376" [ref=e1160]
+                    - generic [ref=e1161]: 746/1197/30376
+                  - generic [ref=e1163] [cursor=pointer]:
+                    - checkbox "746/1197/32346" [ref=e1164]
+                    - generic [ref=e1165]: 746/1197/32346
+                  - generic [ref=e1167] [cursor=pointer]:
+                    - checkbox "746/1197/46552" [ref=e1168]
+                    - generic [ref=e1169]: 746/1197/46552
+                  - generic [ref=e1171] [cursor=pointer]:
+                    - checkbox "746/1197/47074" [ref=e1172]
+                    - generic [ref=e1173]: 746/1197/47074
+                  - generic [ref=e1175] [cursor=pointer]:
+                    - checkbox "746/1211/1611" [ref=e1176]
+                    - generic [ref=e1177]: 746/1211/1611
+                  - generic [ref=e1179] [cursor=pointer]:
+                    - checkbox "746/1213/1613" [ref=e1180]
+                    - generic [ref=e1181]: 746/1213/1613
+                  - generic [ref=e1183] [cursor=pointer]:
+                    - checkbox "746/1214/1631" [ref=e1184]
+                    - generic [ref=e1185]: 746/1214/1631
+                  - generic [ref=e1187] [cursor=pointer]:
+                    - checkbox "746/1227/10263" [ref=e1188]
+                    - generic [ref=e1189]: 746/1227/10263
+                  - generic [ref=e1191] [cursor=pointer]:
+                    - checkbox "746/1227/1486" [ref=e1192]
+                    - generic [ref=e1193]: 746/1227/1486
+                  - generic [ref=e1195] [cursor=pointer]:
+                    - checkbox "746/1227/1623" [ref=e1196]
+                    - generic [ref=e1197]: 746/1227/1623
+                  - generic [ref=e1199] [cursor=pointer]:
+                    - checkbox "746/1227/22488" [ref=e1200]
+                    - generic [ref=e1201]: 746/1227/22488
+                  - generic [ref=e1203] [cursor=pointer]:
+                    - checkbox "746/1227/32723" [ref=e1204]
+                    - generic [ref=e1205]: 746/1227/32723
+                  - generic [ref=e1207] [cursor=pointer]:
+                    - checkbox "746/1227/38242" [ref=e1208]
+                    - generic [ref=e1209]: 746/1227/38242
+                  - generic [ref=e1211] [cursor=pointer]:
+                    - checkbox "746/1227/5832" [ref=e1212]
+                    - generic [ref=e1213]: 746/1227/5832
+                  - generic [ref=e1215] [cursor=pointer]:
+                    - checkbox "746/1227/5843" [ref=e1216]
+                    - generic [ref=e1217]: 746/1227/5843
+                  - generic [ref=e1219] [cursor=pointer]:
+                    - checkbox "746/1229/38470" [ref=e1220]
+                    - generic [ref=e1221]: 746/1229/38470
+                  - generic [ref=e1223] [cursor=pointer]:
+                    - checkbox "746/1242/6973" [ref=e1224]
+                    - generic [ref=e1225]: 746/1242/6973
+                  - generic [ref=e1227] [cursor=pointer]:
+                    - checkbox "746/1244/1587" [ref=e1228]
+                    - generic [ref=e1229]: 746/1244/1587
+                  - generic [ref=e1231] [cursor=pointer]:
+                    - checkbox "746/1246/1607" [ref=e1232]
+                    - generic [ref=e1233]: 746/1246/1607
+                  - generic [ref=e1235] [cursor=pointer]:
+                    - checkbox "746/1246/1643" [ref=e1236]
+                    - generic [ref=e1237]: 746/1246/1643
+                  - generic [ref=e1239] [cursor=pointer]:
+                    - checkbox "746/1256/1593" [ref=e1240]
+                    - generic [ref=e1241]: 746/1256/1593
+                  - generic [ref=e1243] [cursor=pointer]:
+                    - checkbox "746/1323/10319" [ref=e1244]
+                    - generic [ref=e1245]: 746/1323/10319
+                  - generic [ref=e1247] [cursor=pointer]:
+                    - checkbox "746/1323/1558" [ref=e1248]
+                    - generic [ref=e1249]: 746/1323/1558
+                  - generic [ref=e1251] [cursor=pointer]:
+                    - checkbox "746/1323/1566" [ref=e1252]
+                    - generic [ref=e1253]: 746/1323/1566
+                  - generic [ref=e1255] [cursor=pointer]:
+                    - checkbox "746/1323/1594" [ref=e1256]
+                    - generic [ref=e1257]: 746/1323/1594
+                  - generic [ref=e1259] [cursor=pointer]:
+                    - checkbox "746/1323/1660" [ref=e1260]
+                    - generic [ref=e1261]: 746/1323/1660
+                  - generic [ref=e1263] [cursor=pointer]:
+                    - checkbox "746/1323/29462" [ref=e1264]
+                    - generic [ref=e1265]: 746/1323/29462
+                  - generic [ref=e1267] [cursor=pointer]:
+                    - checkbox "746/1323/32721" [ref=e1268]
+                    - generic [ref=e1269]: 746/1323/32721
+                  - generic [ref=e1271] [cursor=pointer]:
+                    - checkbox "746/1323/32721" [ref=e1272]
+                    - generic [ref=e1273]: 746/1323/32721
+                  - generic [ref=e1275] [cursor=pointer]:
+                    - checkbox "746/1323/33963" [ref=e1276]
+                    - generic [ref=e1277]: 746/1323/33963
+                  - generic [ref=e1279] [cursor=pointer]:
+                    - checkbox "746/1323/36020" [ref=e1280]
+                    - generic [ref=e1281]: 746/1323/36020
+                  - generic [ref=e1283] [cursor=pointer]:
+                    - checkbox "746/1323/36021" [ref=e1284]
+                    - generic [ref=e1285]: 746/1323/36021
+                  - generic [ref=e1287] [cursor=pointer]:
+                    - checkbox "746/1323/38803" [ref=e1288]
+                    - generic [ref=e1289]: 746/1323/38803
+                  - generic [ref=e1291] [cursor=pointer]:
+                    - checkbox "746/1323/43750" [ref=e1292]
+                    - generic [ref=e1293]: 746/1323/43750
+                  - generic [ref=e1295] [cursor=pointer]:
+                    - checkbox "746/1323/47185" [ref=e1296]
+                    - generic [ref=e1297]: 746/1323/47185
+                  - generic [ref=e1299] [cursor=pointer]:
+                    - checkbox "746/1342/1529" [ref=e1300]
+                    - generic [ref=e1301]: 746/1342/1529
+                  - generic [ref=e1303] [cursor=pointer]:
+                    - checkbox "746/1342/1532" [ref=e1304]
+                    - generic [ref=e1305]: 746/1342/1532
+                  - generic [ref=e1307] [cursor=pointer]:
+                    - checkbox "746/1342/26108" [ref=e1308]
+                    - generic [ref=e1309]: 746/1342/26108
+                  - generic [ref=e1311] [cursor=pointer]:
+                    - checkbox "746/1364/38610" [ref=e1312]
+                    - generic [ref=e1313]: 746/1364/38610
+                  - generic [ref=e1315] [cursor=pointer]:
+                    - checkbox "746/22491/22492" [ref=e1316]
+                    - generic [ref=e1317]: 746/22491/22492
+                  - generic [ref=e1319] [cursor=pointer]:
+                    - checkbox "746/32722/32721" [ref=e1320]
+                    - generic [ref=e1321]: 746/32722/32721
+                  - generic [ref=e1323] [cursor=pointer]:
+                    - checkbox "746/38611/38612" [ref=e1324]
+                    - generic [ref=e1325]: 746/38611/38612
+                  - generic [ref=e1327] [cursor=pointer]:
+                    - checkbox "746/38723/44954" [ref=e1328]
+                    - generic [ref=e1329]: 746/38723/44954
+                  - generic [ref=e1331] [cursor=pointer]:
+                    - checkbox "746/38723/44985" [ref=e1332]
+                    - generic [ref=e1333]: 746/38723/44985
+                  - generic [ref=e1335] [cursor=pointer]:
+                    - checkbox "746/44978/44951" [ref=e1336]
+                    - generic [ref=e1337]: 746/44978/44951
+                  - generic [ref=e1339] [cursor=pointer]:
+                    - checkbox "746/44978/44983" [ref=e1340]
+                    - generic [ref=e1341]: 746/44978/44983
+                  - generic [ref=e1343] [cursor=pointer]:
+                    - checkbox "746/45158/45161" [ref=e1344]
+                    - generic [ref=e1345]: 746/45158/45161
+                  - generic [ref=e1347] [cursor=pointer]:
+                    - checkbox "747/1251/1522" [ref=e1348]
+                    - generic [ref=e1349]: 747/1251/1522
+                  - generic [ref=e1351] [cursor=pointer]:
+                    - checkbox "747/1290/1618" [ref=e1352]
+                    - generic [ref=e1353]: 747/1290/1618
+                  - generic [ref=e1355] [cursor=pointer]:
+                    - checkbox "748/10251/10252" [ref=e1356]
+                    - generic [ref=e1357]: 748/10251/10252
+                  - generic [ref=e1359] [cursor=pointer]:
+                    - checkbox "748/10259/10260" [ref=e1360]
+                    - generic [ref=e1361]: 748/10259/10260
+                  - generic [ref=e1363] [cursor=pointer]:
+                    - checkbox "748/10269/38249" [ref=e1364]
+                    - generic [ref=e1365]: 748/10269/38249
+                  - generic [ref=e1367] [cursor=pointer]:
+                    - checkbox "748/10286/10287" [ref=e1368]
+                    - generic [ref=e1369]: 748/10286/10287
+                  - generic [ref=e1371] [cursor=pointer]:
+                    - checkbox "748/10288/10289" [ref=e1372]
+                    - generic [ref=e1373]: 748/10288/10289
+                  - generic [ref=e1375] [cursor=pointer]:
+                    - checkbox "748/10290/10291" [ref=e1376]
+                    - generic [ref=e1377]: 748/10290/10291
+                  - generic [ref=e1379] [cursor=pointer]:
+                    - checkbox "748/1153/46691" [ref=e1380]
+                    - generic [ref=e1381]: 748/1153/46691
+                  - generic [ref=e1383] [cursor=pointer]:
+                    - checkbox "748/1160/14075" [ref=e1384]
+                    - generic [ref=e1385]: 748/1160/14075
+                  - generic [ref=e1387] [cursor=pointer]:
+                    - checkbox "748/1160/14075" [ref=e1388]
+                    - generic [ref=e1389]: 748/1160/14075
+                  - generic [ref=e1391] [cursor=pointer]:
+                    - checkbox "748/1160/23035" [ref=e1392]
+                    - generic [ref=e1393]: 748/1160/23035
+                  - generic [ref=e1395] [cursor=pointer]:
+                    - checkbox "748/1160/46640" [ref=e1396]
+                    - generic [ref=e1397]: 748/1160/46640
+                  - generic [ref=e1399] [cursor=pointer]:
+                    - checkbox "748/1160/46640" [ref=e1400]
+                    - generic [ref=e1401]: 748/1160/46640
+                  - generic [ref=e1403] [cursor=pointer]:
+                    - checkbox "748/1163/46685" [ref=e1404]
+                    - generic [ref=e1405]: 748/1163/46685
+                  - generic [ref=e1407] [cursor=pointer]:
+                    - checkbox "748/1176/1436" [ref=e1408]
+                    - generic [ref=e1409]: 748/1176/1436
+                  - generic [ref=e1411] [cursor=pointer]:
+                    - checkbox "748/1176/1436" [ref=e1412]
+                    - generic [ref=e1413]: 748/1176/1436
+                  - generic [ref=e1415] [cursor=pointer]:
+                    - checkbox "748/1176/1436" [ref=e1416]
+                    - generic [ref=e1417]: 748/1176/1436
+                  - generic [ref=e1419] [cursor=pointer]:
+                    - checkbox "748/1188/33939" [ref=e1420]
+                    - generic [ref=e1421]: 748/1188/33939
+                  - generic [ref=e1423] [cursor=pointer]:
+                    - checkbox "748/1221/46617" [ref=e1424]
+                    - generic [ref=e1425]: 748/1221/46617
+                  - generic [ref=e1427] [cursor=pointer]:
+                    - checkbox "748/1230/1481" [ref=e1428]
+                    - generic [ref=e1429]: 748/1230/1481
+                  - generic [ref=e1431] [cursor=pointer]:
+                    - checkbox "748/1230/1481" [ref=e1432]
+                    - generic [ref=e1433]: 748/1230/1481
+                  - generic [ref=e1435] [cursor=pointer]:
+                    - checkbox "748/1230/1481" [ref=e1436]
+                    - generic [ref=e1437]: 748/1230/1481
+                  - generic [ref=e1439] [cursor=pointer]:
+                    - checkbox "748/1245/10264" [ref=e1440]
+                    - generic [ref=e1441]: 748/1245/10264
+                  - generic [ref=e1443] [cursor=pointer]:
+                    - checkbox "748/1270/10274" [ref=e1444]
+                    - generic [ref=e1445]: 748/1270/10274
+                  - generic [ref=e1447] [cursor=pointer]:
+                    - checkbox "748/1306/10260" [ref=e1448]
+                    - generic [ref=e1449]: 748/1306/10260
+                  - generic [ref=e1451] [cursor=pointer]:
+                    - checkbox "748/1360/1476" [ref=e1452]
+                    - generic [ref=e1453]: 748/1360/1476
+                  - generic [ref=e1455] [cursor=pointer]:
+                    - checkbox "748/1360/1476" [ref=e1456]
+                    - generic [ref=e1457]: 748/1360/1476
+                  - generic [ref=e1459] [cursor=pointer]:
+                    - checkbox "748/1360/1476" [ref=e1460]
+                    - generic [ref=e1461]: 748/1360/1476
+                  - generic [ref=e1463] [cursor=pointer]:
+                    - checkbox "748/1360/1476" [ref=e1464]
+                    - generic [ref=e1465]: 748/1360/1476
+                  - generic [ref=e1467] [cursor=pointer]:
+                    - checkbox "748/1361/10309" [ref=e1468]
+                    - generic [ref=e1469]: 748/1361/10309
+                  - generic [ref=e1471] [cursor=pointer]:
+                    - checkbox "748/23357/23358" [ref=e1472]
+                    - generic [ref=e1473]: 748/23357/23358
+                  - generic [ref=e1475] [cursor=pointer]:
+                    - checkbox "748/46702/46703" [ref=e1476]
+                    - generic [ref=e1477]: 748/46702/46703
+                  - generic [ref=e1479] [cursor=pointer]:
+                    - checkbox "749/1193/1511" [ref=e1480]
+                    - generic [ref=e1481]: 749/1193/1511
+                  - generic [ref=e1483] [cursor=pointer]:
+                    - checkbox "749/1235/1401" [ref=e1484]
+                    - generic [ref=e1485]: 749/1235/1401
+                  - generic [ref=e1487] [cursor=pointer]:
+                    - checkbox "750/46753/46752" [ref=e1488]
+                    - generic [ref=e1489]: 750/46753/46752
+                  - generic [ref=e1491] [cursor=pointer]:
+                    - checkbox "751/10242/10243" [ref=e1492]
+                    - generic [ref=e1493]: 751/10242/10243
+                  - generic [ref=e1495] [cursor=pointer]:
+                    - checkbox "751/10245/10246" [ref=e1496]
+                    - generic [ref=e1497]: 751/10245/10246
+                  - generic [ref=e1499] [cursor=pointer]:
+                    - checkbox "751/10247/10248" [ref=e1500]
+                    - generic [ref=e1501]: 751/10247/10248
+                  - generic [ref=e1503] [cursor=pointer]:
+                    - checkbox "751/10255/29452" [ref=e1504]
+                    - generic [ref=e1505]: 751/10255/29452
+                  - generic [ref=e1507] [cursor=pointer]:
+                    - checkbox "751/10257/10258" [ref=e1508]
+                    - generic [ref=e1509]: 751/10257/10258
+                  - generic [ref=e1511] [cursor=pointer]:
+                    - checkbox "751/10259/46602" [ref=e1512]
+                    - generic [ref=e1513]: 751/10259/46602
+                  - generic [ref=e1515] [cursor=pointer]:
+                    - checkbox "751/10261/10262" [ref=e1516]
+                    - generic [ref=e1517]: 751/10261/10262
+                  - generic [ref=e1519] [cursor=pointer]:
+                    - checkbox "751/10265/10266" [ref=e1520]
+                    - generic [ref=e1521]: 751/10265/10266
+                  - generic [ref=e1523] [cursor=pointer]:
+                    - checkbox "751/10269/10270" [ref=e1524]
+                    - generic [ref=e1525]: 751/10269/10270
+                  - generic [ref=e1527] [cursor=pointer]:
+                    - checkbox "751/10271/10272" [ref=e1528]
+                    - generic [ref=e1529]: 751/10271/10272
+                  - generic [ref=e1531] [cursor=pointer]:
+                    - checkbox "751/10275/10276" [ref=e1532]
+                    - generic [ref=e1533]: 751/10275/10276
+                  - generic [ref=e1535] [cursor=pointer]:
+                    - checkbox "751/10277/10278" [ref=e1536]
+                    - generic [ref=e1537]: 751/10277/10278
+                  - generic [ref=e1539] [cursor=pointer]:
+                    - checkbox "751/10280/10281" [ref=e1540]
+                    - generic [ref=e1541]: 751/10280/10281
+                  - generic [ref=e1543] [cursor=pointer]:
+                    - checkbox "751/10282/10283" [ref=e1544]
+                    - generic [ref=e1545]: 751/10282/10283
+                  - generic [ref=e1547] [cursor=pointer]:
+                    - checkbox "751/10284/10285" [ref=e1548]
+                    - generic [ref=e1549]: 751/10284/10285
+                  - generic [ref=e1551] [cursor=pointer]:
+                    - checkbox "751/10293/10294" [ref=e1552]
+                    - generic [ref=e1553]: 751/10293/10294
+                  - generic [ref=e1555] [cursor=pointer]:
+                    - checkbox "751/10295/10296" [ref=e1556]
+                    - generic [ref=e1557]: 751/10295/10296
+                  - generic [ref=e1559] [cursor=pointer]:
+                    - checkbox "751/10297/10298" [ref=e1560]
+                    - generic [ref=e1561]: 751/10297/10298
+                  - generic [ref=e1563] [cursor=pointer]:
+                    - checkbox "751/10299/10300" [ref=e1564]
+                    - generic [ref=e1565]: 751/10299/10300
+                  - generic [ref=e1567] [cursor=pointer]:
+                    - checkbox "751/10301/10302" [ref=e1568]
+                    - generic [ref=e1569]: 751/10301/10302
+                  - generic [ref=e1571] [cursor=pointer]:
+                    - checkbox "751/10303/10304" [ref=e1572]
+                    - generic [ref=e1573]: 751/10303/10304
+                  - generic [ref=e1575] [cursor=pointer]:
+                    - checkbox "751/10307/10308" [ref=e1576]
+                    - generic [ref=e1577]: 751/10307/10308
+                  - generic [ref=e1579] [cursor=pointer]:
+                    - checkbox "751/10310/10311" [ref=e1580]
+                    - generic [ref=e1581]: 751/10310/10311
+                  - generic [ref=e1583] [cursor=pointer]:
+                    - checkbox "751/1150/1552" [ref=e1584]
+                    - generic [ref=e1585]: 751/1150/1552
+                  - generic [ref=e1587] [cursor=pointer]:
+                    - checkbox "751/1153/1375" [ref=e1588]
+                    - generic [ref=e1589]: 751/1153/1375
+                  - generic [ref=e1591] [cursor=pointer]:
+                    - checkbox "751/1154/1411" [ref=e1592]
+                    - generic [ref=e1593]: 751/1154/1411
+                  - generic [ref=e1595] [cursor=pointer]:
+                    - checkbox "751/1159/1410" [ref=e1596]
+                    - generic [ref=e1597]: 751/1159/1410
+                  - generic [ref=e1599] [cursor=pointer]:
+                    - checkbox "751/1159/46721" [ref=e1600]
+                    - generic [ref=e1601]: 751/1159/46721
+                  - generic [ref=e1603] [cursor=pointer]:
+                    - checkbox "751/1161/1372" [ref=e1604]
+                    - generic [ref=e1605]: 751/1161/1372
+                  - generic [ref=e1607] [cursor=pointer]:
+                    - checkbox "751/1162/1373" [ref=e1608]
+                    - generic [ref=e1609]: 751/1162/1373
+                  - generic [ref=e1611] [cursor=pointer]:
+                    - checkbox "751/1169/46684" [ref=e1612]
+                    - generic [ref=e1613]: 751/1169/46684
+                  - generic [ref=e1615] [cursor=pointer]:
+                    - checkbox "751/1171/1371" [ref=e1616]
+                    - generic [ref=e1617]: 751/1171/1371
+                  - generic [ref=e1619] [cursor=pointer]:
+                    - checkbox "751/1172/1391" [ref=e1620]
+                    - generic [ref=e1621]: 751/1172/1391
+                  - generic [ref=e1623] [cursor=pointer]:
+                    - checkbox "751/1172/1391" [ref=e1624]
+                    - generic [ref=e1625]: 751/1172/1391
+                  - generic [ref=e1627] [cursor=pointer]:
+                    - checkbox "751/1172/1391" [ref=e1628]
+                    - generic [ref=e1629]: 751/1172/1391
+                  - generic [ref=e1631] [cursor=pointer]:
+                    - checkbox "751/1173/1399" [ref=e1632]
+                    - generic [ref=e1633]: 751/1173/1399
+                  - generic [ref=e1635] [cursor=pointer]:
+                    - checkbox "751/1175/1418" [ref=e1636]
+                    - generic [ref=e1637]: 751/1175/1418
+                  - generic [ref=e1639] [cursor=pointer]:
+                    - checkbox "751/1176/30379" [ref=e1640]
+                    - generic [ref=e1641]: 751/1176/30379
+                  - generic [ref=e1643] [cursor=pointer]:
+                    - checkbox "751/1187/1421" [ref=e1644]
+                    - generic [ref=e1645]: 751/1187/1421
+                  - generic [ref=e1647] [cursor=pointer]:
+                    - checkbox "751/1191/1388" [ref=e1648]
+                    - generic [ref=e1649]: 751/1191/1388
+                  - generic [ref=e1651] [cursor=pointer]:
+                    - checkbox "751/1195/1395" [ref=e1652]
+                    - generic [ref=e1653]: 751/1195/1395
+                  - generic [ref=e1655] [cursor=pointer]:
+                    - checkbox "751/1195/1395" [ref=e1656]
+                    - generic [ref=e1657]: 751/1195/1395
+                  - generic [ref=e1659] [cursor=pointer]:
+                    - checkbox "751/1198/46676" [ref=e1660]
+                    - generic [ref=e1661]: 751/1198/46676
+                  - generic [ref=e1663] [cursor=pointer]:
+                    - checkbox "751/1200/1394" [ref=e1664]
+                    - generic [ref=e1665]: 751/1200/1394
+                  - generic [ref=e1667] [cursor=pointer]:
+                    - checkbox "751/1204/1393" [ref=e1668]
+                    - generic [ref=e1669]: 751/1204/1393
+                  - generic [ref=e1671] [cursor=pointer]:
+                    - checkbox "751/1207/1422" [ref=e1672]
+                    - generic [ref=e1673]: 751/1207/1422
+                  - generic [ref=e1675] [cursor=pointer]:
+                    - checkbox "751/1208/1383" [ref=e1676]
+                    - generic [ref=e1677]: 751/1208/1383
+                  - generic [ref=e1679] [cursor=pointer]:
+                    - checkbox "751/1216/1384" [ref=e1680]
+                    - generic [ref=e1681]: 751/1216/1384
+                  - generic [ref=e1683] [cursor=pointer]:
+                    - checkbox "751/1218/1382" [ref=e1684]
+                    - generic [ref=e1685]: 751/1218/1382
+                  - generic [ref=e1687] [cursor=pointer]:
+                    - checkbox "751/1222/1553" [ref=e1688]
+                    - generic [ref=e1689]: 751/1222/1553
+                  - generic [ref=e1691] [cursor=pointer]:
+                    - checkbox "751/1224/1409" [ref=e1692]
+                    - generic [ref=e1693]: 751/1224/1409
+                  - generic [ref=e1695] [cursor=pointer]:
+                    - checkbox "751/1225/1381" [ref=e1696]
+                    - generic [ref=e1697]: 751/1225/1381
+                  - generic [ref=e1699] [cursor=pointer]:
+                    - checkbox "751/1226/1398" [ref=e1700]
+                    - generic [ref=e1701]: 751/1226/1398
+                  - generic [ref=e1703] [cursor=pointer]:
+                    - checkbox "751/1226/22490" [ref=e1704]
+                    - generic [ref=e1705]: 751/1226/22490
+                  - generic [ref=e1707] [cursor=pointer]:
+                    - checkbox "751/1231/1581" [ref=e1708]
+                    - generic [ref=e1709]: 751/1231/1581
+                  - generic [ref=e1711] [cursor=pointer]:
+                    - checkbox "751/1233/1416" [ref=e1712]
+                    - generic [ref=e1713]: 751/1233/1416
+                  - generic [ref=e1715] [cursor=pointer]:
+                    - checkbox "751/1239/1385" [ref=e1716]
+                    - generic [ref=e1717]: 751/1239/1385
+                  - generic [ref=e1719] [cursor=pointer]:
+                    - checkbox "751/1240/1377" [ref=e1720]
+                    - generic [ref=e1721]: 751/1240/1377
+                  - generic [ref=e1723] [cursor=pointer]:
+                    - checkbox "751/1251/1397" [ref=e1724]
+                    - generic [ref=e1725]: 751/1251/1397
+                  - generic [ref=e1727] [cursor=pointer]:
+                    - checkbox "751/1252/1408" [ref=e1728]
+                    - generic [ref=e1729]: 751/1252/1408
+                  - generic [ref=e1731] [cursor=pointer]:
+                    - checkbox "751/1257/1396" [ref=e1732]
+                    - generic [ref=e1733]: 751/1257/1396
+                  - generic [ref=e1735] [cursor=pointer]:
+                    - checkbox "751/1261/46688" [ref=e1736]
+                    - generic [ref=e1737]: 751/1261/46688
+                  - generic [ref=e1739] [cursor=pointer]:
+                    - checkbox "751/1274/1406" [ref=e1740]
+                    - generic [ref=e1741]: 751/1274/1406
+                  - generic [ref=e1743] [cursor=pointer]:
+                    - checkbox "751/1274/1406" [ref=e1744]
+                    - generic [ref=e1745]: 751/1274/1406
+                  - generic [ref=e1747] [cursor=pointer]:
+                    - checkbox "751/1275/10279" [ref=e1748]
+                    - generic [ref=e1749]: 751/1275/10279
+                  - generic [ref=e1751] [cursor=pointer]:
+                    - checkbox "751/1278/1389" [ref=e1752]
+                    - generic [ref=e1753]: 751/1278/1389
+                  - generic [ref=e1755] [cursor=pointer]:
+                    - checkbox "751/1292/1400" [ref=e1756]
+                    - generic [ref=e1757]: 751/1292/1400
+                  - generic [ref=e1759] [cursor=pointer]:
+                    - checkbox "751/1301/1370" [ref=e1760]
+                    - generic [ref=e1761]: 751/1301/1370
+                  - generic [ref=e1763] [cursor=pointer]:
+                    - checkbox "751/1305/1417" [ref=e1764]
+                    - generic [ref=e1765]: 751/1305/1417
+                  - generic [ref=e1767] [cursor=pointer]:
+                    - checkbox "751/1307/1392" [ref=e1768]
+                    - generic [ref=e1769]: 751/1307/1392
+                  - generic [ref=e1771] [cursor=pointer]:
+                    - checkbox "751/1321/1423" [ref=e1772]
+                    - generic [ref=e1773]: 751/1321/1423
+                  - generic [ref=e1775] [cursor=pointer]:
+                    - checkbox "751/1323/1380" [ref=e1776]
+                    - generic [ref=e1777]: 751/1323/1380
+                  - generic [ref=e1779] [cursor=pointer]:
+                    - checkbox "751/1326/1554" [ref=e1780]
+                    - generic [ref=e1781]: 751/1326/1554
+                  - generic [ref=e1783] [cursor=pointer]:
+                    - checkbox "751/1327/1386" [ref=e1784]
+                    - generic [ref=e1785]: 751/1327/1386
+                  - generic [ref=e1787] [cursor=pointer]:
+                    - checkbox "751/1327/46689" [ref=e1788]
+                    - generic [ref=e1789]: 751/1327/46689
+                  - generic [ref=e1791] [cursor=pointer]:
+                    - checkbox "751/1332/1419" [ref=e1792]
+                    - generic [ref=e1793]: 751/1332/1419
+                  - generic [ref=e1795] [cursor=pointer]:
+                    - checkbox "751/1332/46690" [ref=e1796]
+                    - generic [ref=e1797]: 751/1332/46690
+                  - generic [ref=e1799] [cursor=pointer]:
+                    - checkbox "751/1335/1412" [ref=e1800]
+                    - generic [ref=e1801]: 751/1335/1412
+                  - generic [ref=e1803] [cursor=pointer]:
+                    - checkbox "751/1336/1387" [ref=e1804]
+                    - generic [ref=e1805]: 751/1336/1387
+                  - generic [ref=e1807] [cursor=pointer]:
+                    - checkbox "751/1343/1415" [ref=e1808]
+                    - generic [ref=e1809]: 751/1343/1415
+                  - generic [ref=e1811] [cursor=pointer]:
+                    - checkbox "751/1345/1378" [ref=e1812]
+                    - generic [ref=e1813]: 751/1345/1378
+                  - generic [ref=e1815] [cursor=pointer]:
+                    - checkbox "751/1347/1405" [ref=e1816]
+                    - generic [ref=e1817]: 751/1347/1405
+                  - generic [ref=e1819] [cursor=pointer]:
+                    - checkbox "751/1347/1405" [ref=e1820]
+                    - generic [ref=e1821]: 751/1347/1405
+                  - generic [ref=e1823] [cursor=pointer]:
+                    - checkbox "751/1347/1405" [ref=e1824]
+                    - generic [ref=e1825]: 751/1347/1405
+                  - generic [ref=e1827] [cursor=pointer]:
+                    - checkbox "751/1347/1405" [ref=e1828]
+                    - generic [ref=e1829]: 751/1347/1405
+                  - generic [ref=e1831] [cursor=pointer]:
+                    - checkbox "751/1347/1405" [ref=e1832]
+                    - generic [ref=e1833]: 751/1347/1405
+                  - generic [ref=e1835] [cursor=pointer]:
+                    - checkbox "751/1347/1405" [ref=e1836]
+                    - generic [ref=e1837]: 751/1347/1405
+                  - generic [ref=e1839] [cursor=pointer]:
+                    - checkbox "751/1348/1390" [ref=e1840]
+                    - generic [ref=e1841]: 751/1348/1390
+                  - generic [ref=e1843] [cursor=pointer]:
+                    - checkbox "751/1358/1555" [ref=e1844]
+                    - generic [ref=e1845]: 751/1358/1555
+                  - generic [ref=e1847] [cursor=pointer]:
+                    - checkbox "751/1361/1374" [ref=e1848]
+                    - generic [ref=e1849]: 751/1361/1374
+                  - generic [ref=e1851] [cursor=pointer]:
+                    - checkbox "751/22493/22494" [ref=e1852]
+                    - generic [ref=e1853]: 751/22493/22494
+                  - generic [ref=e1855] [cursor=pointer]:
+                    - checkbox "751/46607/46606" [ref=e1856]
+                    - generic [ref=e1857]: 751/46607/46606
+                  - generic [ref=e1859] [cursor=pointer]:
+                    - checkbox "751/46683/46686" [ref=e1860]
+                    - generic [ref=e1861]: 751/46683/46686
+                  - generic [ref=e1863] [cursor=pointer]:
+                    - checkbox "751/46687/46170" [ref=e1864]
+                    - generic [ref=e1865]: 751/46687/46170
+                  - generic [ref=e1867] [cursor=pointer]:
+                    - checkbox "751/46702/46932" [ref=e1868]
+                    - generic [ref=e1869]: 751/46702/46932
+                  - generic [ref=e1871] [cursor=pointer]:
+                    - checkbox "752/1153/1578" [ref=e1872]
+                    - generic [ref=e1873]: 752/1153/1578
+                  - generic [ref=e1875] [cursor=pointer]:
+                    - checkbox "753/1205/1565" [ref=e1876]
+                    - generic [ref=e1877]: 753/1205/1565
+                  - generic [ref=e1879] [cursor=pointer]:
+                    - checkbox "753/1365/1661" [ref=e1880]
+                    - generic [ref=e1881]: 753/1365/1661
+                  - generic [ref=e1883] [cursor=pointer]:
+                    - checkbox "753/1366/1662" [ref=e1884]
+                    - generic [ref=e1885]: 753/1366/1662
+                  - generic [ref=e1887] [cursor=pointer]:
+                    - checkbox "753/6751/6752" [ref=e1888]
+                    - generic [ref=e1889]: 753/6751/6752
+                  - generic [ref=e1891] [cursor=pointer]:
+                    - checkbox "754/1148/1460" [ref=e1892]
+                    - generic [ref=e1893]: 754/1148/1460
+                  - generic [ref=e1895] [cursor=pointer]:
+                    - checkbox "754/1148/6743" [ref=e1896]
+                    - generic [ref=e1897]: 754/1148/6743
+                  - generic [ref=e1899] [cursor=pointer]:
+                    - checkbox "754/1157/1478" [ref=e1900]
+                    - generic [ref=e1901]: 754/1157/1478
+                  - generic [ref=e1903] [cursor=pointer]:
+                    - checkbox "754/1157/1478" [ref=e1904]
+                    - generic [ref=e1905]: 754/1157/1478
+                  - generic [ref=e1907] [cursor=pointer]:
+                    - checkbox "754/1157/1478" [ref=e1908]
+                    - generic [ref=e1909]: 754/1157/1478
+                  - generic [ref=e1911] [cursor=pointer]:
+                    - checkbox "754/1243/1534" [ref=e1912]
+                    - generic [ref=e1913]: 754/1243/1534
+                  - generic [ref=e1915] [cursor=pointer]:
+                    - checkbox "754/1243/5844" [ref=e1916]
+                    - generic [ref=e1917]: 754/1243/5844
+                  - generic [ref=e1919] [cursor=pointer]:
+                    - checkbox "754/29185/35997" [ref=e1920]
+                    - generic [ref=e1921]: 754/29185/35997
+                  - generic [ref=e1923] [cursor=pointer]:
+                    - checkbox "754/29185/35997" [ref=e1924]
+                    - generic [ref=e1925]: 754/29185/35997
+                  - generic [ref=e1927] [cursor=pointer]:
+                    - checkbox "754/29185/35997" [ref=e1928]
+                    - generic [ref=e1929]: 754/29185/35997
+                  - generic [ref=e1931] [cursor=pointer]:
+                    - checkbox "754/35996/41981" [ref=e1932]
+                    - generic [ref=e1933]: 754/35996/41981
+                  - generic [ref=e1935] [cursor=pointer]:
+                    - checkbox "754/38378/38486" [ref=e1936]
+                    - generic [ref=e1937]: 754/38378/38486
+                  - generic [ref=e1939] [cursor=pointer]:
+                    - checkbox "754/38378/38486" [ref=e1940]
+                    - generic [ref=e1941]: 754/38378/38486
+                  - generic [ref=e1943] [cursor=pointer]:
+                    - checkbox "754/38378/41706" [ref=e1944]
+                    - generic [ref=e1945]: 754/38378/41706
+                  - generic [ref=e1947] [cursor=pointer]:
+                    - checkbox "754/38481/27701" [ref=e1948]
+                    - generic [ref=e1949]: 754/38481/27701
+                  - generic [ref=e1951] [cursor=pointer]:
+                    - checkbox "754/38481/27701" [ref=e1952]
+                    - generic [ref=e1953]: 754/38481/27701
+                  - generic [ref=e1955] [cursor=pointer]:
+                    - checkbox "754/38481/27701" [ref=e1956]
+                    - generic [ref=e1957]: 754/38481/27701
+                  - generic [ref=e1959] [cursor=pointer]:
+                    - checkbox "754/38482/1474" [ref=e1960]
+                    - generic [ref=e1961]: 754/38482/1474
+                  - generic [ref=e1963] [cursor=pointer]:
+                    - checkbox "754/46456/46455" [ref=e1964]
+                    - generic [ref=e1965]: 754/46456/46455
+                  - generic [ref=e1967] [cursor=pointer]:
+                    - checkbox "755/1170/1533" [ref=e1968]
+                    - generic [ref=e1969]: 755/1170/1533
+                  - generic [ref=e1971] [cursor=pointer]:
+                    - checkbox "755/1237/1585" [ref=e1972]
+                    - generic [ref=e1973]: 755/1237/1585
+                  - generic [ref=e1975] [cursor=pointer]:
+                    - checkbox "755/1260/1596" [ref=e1976]
+                    - generic [ref=e1977]: 755/1260/1596
+                  - generic [ref=e1979] [cursor=pointer]:
+                    - checkbox "755/1262/1601" [ref=e1980]
+                    - generic [ref=e1981]: 755/1262/1601
+                  - generic [ref=e1983] [cursor=pointer]:
+                    - checkbox "755/1263/1599" [ref=e1984]
+                    - generic [ref=e1985]: 755/1263/1599
+                  - generic [ref=e1987] [cursor=pointer]:
+                    - checkbox "755/1263/1599" [ref=e1988]
+                    - generic [ref=e1989]: 755/1263/1599
+                  - generic [ref=e1991] [cursor=pointer]:
+                    - checkbox "755/1264/1598" [ref=e1992]
+                    - generic [ref=e1993]: 755/1264/1598
+                  - generic [ref=e1995] [cursor=pointer]:
+                    - checkbox "755/1295/1615" [ref=e1996]
+                    - generic [ref=e1997]: 755/1295/1615
+                  - generic [ref=e1999] [cursor=pointer]:
+                    - checkbox "755/1295/1616" [ref=e2000]
+                    - generic [ref=e2001]: 755/1295/1616
+                  - generic [ref=e2003] [cursor=pointer]:
+                    - checkbox "755/1295/1617" [ref=e2004]
+                    - generic [ref=e2005]: 755/1295/1617
+                  - generic [ref=e2007] [cursor=pointer]:
+                    - checkbox "755/1316/1636" [ref=e2008]
+                    - generic [ref=e2009]: 755/1316/1636
+                  - generic [ref=e2011] [cursor=pointer]:
+                    - checkbox "755/1316/1637" [ref=e2012]
+                    - generic [ref=e2013]: 755/1316/1637
+                  - generic [ref=e2015] [cursor=pointer]:
+                    - checkbox "755/1316/1638" [ref=e2016]
+                    - generic [ref=e2017]: 755/1316/1638
+                  - generic [ref=e2019] [cursor=pointer]:
+                    - checkbox "755/34188/34189" [ref=e2020]
+                    - generic [ref=e2021]: 755/34188/34189
+                  - generic [ref=e2023] [cursor=pointer]:
+                    - checkbox "755/38460/1521" [ref=e2024]
+                    - generic [ref=e2025]: 755/38460/1521
+                  - generic [ref=e2027] [cursor=pointer]:
+                    - checkbox "755/38460/1523" [ref=e2028]
+                    - generic [ref=e2029]: 755/38460/1523
+                  - generic [ref=e2031] [cursor=pointer]:
+                    - checkbox "755/6753/6754" [ref=e2032]
+                    - generic [ref=e2033]: 755/6753/6754
+                  - generic [ref=e2035] [cursor=pointer]:
+                    - checkbox "757/1184/1541" [ref=e2036]
+                    - generic [ref=e2037]: 757/1184/1541
+                  - generic [ref=e2039] [cursor=pointer]:
+                    - checkbox "758/1179/1488" [ref=e2040]
+                    - generic [ref=e2041]: 758/1179/1488
+                  - generic [ref=e2043] [cursor=pointer]:
+                    - checkbox "758/1179/46464" [ref=e2044]
+                    - generic [ref=e2045]: 758/1179/46464
+                  - generic [ref=e2047] [cursor=pointer]:
+                    - checkbox "758/1184/1549" [ref=e2048]
+                    - generic [ref=e2049]: 758/1184/1549
+                  - generic [ref=e2051] [cursor=pointer]:
+                    - checkbox "758/1199/1560" [ref=e2052]
+                    - generic [ref=e2053]: 758/1199/1560
+                  - generic [ref=e2055] [cursor=pointer]:
+                    - checkbox "758/1202/1563" [ref=e2056]
+                    - generic [ref=e2057]: 758/1202/1563
+                  - generic [ref=e2059] [cursor=pointer]:
+                    - checkbox "758/1249/1591" [ref=e2060]
+                    - generic [ref=e2061]: 758/1249/1591
+                  - generic [ref=e2063] [cursor=pointer]:
+                    - checkbox "758/1259/1595" [ref=e2064]
+                    - generic [ref=e2065]: 758/1259/1595
+                  - generic [ref=e2067] [cursor=pointer]:
+                    - checkbox "758/1304/1627" [ref=e2068]
+                    - generic [ref=e2069]: 758/1304/1627
+                  - generic [ref=e2071] [cursor=pointer]:
+                    - checkbox "758/1304/44614" [ref=e2072]
+                    - generic [ref=e2073]: 758/1304/44614
+                  - generic [ref=e2075] [cursor=pointer]:
+                    - checkbox "758/1308/1489" [ref=e2076]
+                    - generic [ref=e2077]: 758/1308/1489
+                  - generic [ref=e2079] [cursor=pointer]:
+                    - checkbox "758/1367/1663" [ref=e2080]
+                    - generic [ref=e2081]: 758/1367/1663
+                  - generic [ref=e2083] [cursor=pointer]:
+                    - checkbox "758/23038/23039" [ref=e2084]
+                    - generic [ref=e2085]: 758/23038/23039
+                  - generic [ref=e2087] [cursor=pointer]:
+                    - checkbox "758/23044/23045" [ref=e2088]
+                    - generic [ref=e2089]: 758/23044/23045
+                  - generic [ref=e2091] [cursor=pointer]:
+                    - checkbox "758/23046/23047" [ref=e2092]
+                    - generic [ref=e2093]: 758/23046/23047
+                  - generic [ref=e2095] [cursor=pointer]:
+                    - checkbox "758/27676/27677" [ref=e2096]
+                    - generic [ref=e2097]: 758/27676/27677
+                  - generic [ref=e2099] [cursor=pointer]:
+                    - checkbox "758/38648/38649" [ref=e2100]
+                    - generic [ref=e2101]: 758/38648/38649
+                  - generic [ref=e2103] [cursor=pointer]:
+                    - checkbox "759/10312/10313" [ref=e2104]
+                    - generic [ref=e2105]: 759/10312/10313
+                  - generic [ref=e2107] [cursor=pointer]:
+                    - checkbox "759/1184/1550" [ref=e2108]
+                    - generic [ref=e2109]: 759/1184/1550
+                  - generic [ref=e2111] [cursor=pointer]:
+                    - checkbox "759/1198/1453" [ref=e2112]
+                    - generic [ref=e2113]: 759/1198/1453
+                  - generic [ref=e2115] [cursor=pointer]:
+                    - checkbox "759/1198/1453" [ref=e2116]
+                    - generic [ref=e2117]: 759/1198/1453
+                  - generic [ref=e2119] [cursor=pointer]:
+                    - checkbox "759/1198/1453" [ref=e2120]
+                    - generic [ref=e2121]: 759/1198/1453
+                  - generic [ref=e2123] [cursor=pointer]:
+                    - checkbox "759/1198/1453" [ref=e2124]
+                    - generic [ref=e2125]: 759/1198/1453
+                  - generic [ref=e2127] [cursor=pointer]:
+                    - checkbox "759/1198/1453" [ref=e2128]
+                    - generic [ref=e2129]: 759/1198/1453
+                  - generic [ref=e2131] [cursor=pointer]:
+                    - checkbox "759/1198/1635" [ref=e2132]
+                    - generic [ref=e2133]: 759/1198/1635
+                  - generic [ref=e2135] [cursor=pointer]:
+                    - checkbox "759/1201/1435" [ref=e2136]
+                    - generic [ref=e2137]: 759/1201/1435
+                  - generic [ref=e2139] [cursor=pointer]:
+                    - checkbox "759/1226/1398" [ref=e2140]
+                    - generic [ref=e2141]: 759/1226/1398
+                  - generic [ref=e2143] [cursor=pointer]:
+                    - checkbox "759/1242/1413" [ref=e2144]
+                    - generic [ref=e2145]: 759/1242/1413
+                  - generic [ref=e2147] [cursor=pointer]:
+                    - checkbox "759/1242/1413" [ref=e2148]
+                    - generic [ref=e2149]: 759/1242/1413
+                  - generic [ref=e2151] [cursor=pointer]:
+                    - checkbox "759/1242/1413" [ref=e2152]
+                    - generic [ref=e2153]: 759/1242/1413
+                  - generic [ref=e2155] [cursor=pointer]:
+                    - checkbox "759/1254/1503" [ref=e2156]
+                    - generic [ref=e2157]: 759/1254/1503
+                  - generic [ref=e2159] [cursor=pointer]:
+                    - checkbox "759/1254/1503" [ref=e2160]
+                    - generic [ref=e2161]: 759/1254/1503
+                  - generic [ref=e2163] [cursor=pointer]:
+                    - checkbox "759/1254/1503" [ref=e2164]
+                    - generic [ref=e2165]: 759/1254/1503
+                  - generic [ref=e2167] [cursor=pointer]:
+                    - checkbox "759/1254/1503" [ref=e2168]
+                    - generic [ref=e2169]: 759/1254/1503
+                  - generic [ref=e2171] [cursor=pointer]:
+                    - checkbox "759/1281/1450" [ref=e2172]
+                    - generic [ref=e2173]: 759/1281/1450
+                  - generic [ref=e2175] [cursor=pointer]:
+                    - checkbox "759/1281/1450" [ref=e2176]
+                    - generic [ref=e2177]: 759/1281/1450
+                  - generic [ref=e2179] [cursor=pointer]:
+                    - checkbox "759/1281/1450" [ref=e2180]
+                    - generic [ref=e2181]: 759/1281/1450
+                  - generic [ref=e2183] [cursor=pointer]:
+                    - checkbox "759/1281/1450" [ref=e2184]
+                    - generic [ref=e2185]: 759/1281/1450
+                  - generic [ref=e2187] [cursor=pointer]:
+                    - checkbox "759/1281/1450" [ref=e2188]
+                    - generic [ref=e2189]: 759/1281/1450
+                  - generic [ref=e2191] [cursor=pointer]:
+                    - checkbox "759/1300/1485" [ref=e2192]
+                    - generic [ref=e2193]: 759/1300/1485
+                  - generic [ref=e2195] [cursor=pointer]:
+                    - checkbox "759/1300/1485" [ref=e2196]
+                    - generic [ref=e2197]: 759/1300/1485
+                  - generic [ref=e2199] [cursor=pointer]:
+                    - checkbox "759/1300/1485" [ref=e2200]
+                    - generic [ref=e2201]: 759/1300/1485
+                  - generic [ref=e2203] [cursor=pointer]:
+                    - checkbox "759/1300/1485" [ref=e2204]
+                    - generic [ref=e2205]: 759/1300/1485
+                  - generic [ref=e2207] [cursor=pointer]:
+                    - checkbox "759/1331/1645" [ref=e2208]
+                    - generic [ref=e2209]: 759/1331/1645
+                  - generic [ref=e2211] [cursor=pointer]:
+                    - checkbox "759/24083/32340" [ref=e2212]
+                    - generic [ref=e2213]: 759/24083/32340
+                  - generic [ref=e2215] [cursor=pointer]:
+                    - checkbox "759/6875/1456" [ref=e2216]
+                    - generic [ref=e2217]: 759/6875/1456
+                  - generic [ref=e2219] [cursor=pointer]:
+                    - checkbox "760/1142/1517" [ref=e2220]
+                    - generic [ref=e2221]: 760/1142/1517
+                  - generic [ref=e2223] [cursor=pointer]:
+                    - checkbox "760/1196/1490" [ref=e2224]
+                    - generic [ref=e2225]: 760/1196/1490
+                  - generic [ref=e2227] [cursor=pointer]:
+                    - checkbox "760/1212/1612" [ref=e2228]
+                    - generic [ref=e2229]: 760/1212/1612
+                  - generic [ref=e2231] [cursor=pointer]:
+                    - checkbox "760/1239/1532" [ref=e2232]
+                    - generic [ref=e2233]: 760/1239/1532
+                  - generic [ref=e2235] [cursor=pointer]:
+                    - checkbox "760/1290/44839" [ref=e2236]
+                    - generic [ref=e2237]: 760/1290/44839
+                  - generic [ref=e2239] [cursor=pointer]:
+                    - checkbox "760/1352/1653" [ref=e2240]
+                    - generic [ref=e2241]: 760/1352/1653
+                  - generic [ref=e2243] [cursor=pointer]:
+                    - checkbox "760/1356/1648" [ref=e2244]
+                    - generic [ref=e2245]: 760/1356/1648
+                  - generic [ref=e2247] [cursor=pointer]:
+                    - checkbox "760/29029/29030" [ref=e2248]
+                    - generic [ref=e2249]: 760/29029/29030
+                  - generic [ref=e2251] [cursor=pointer]:
+                    - checkbox "760/29034/29033" [ref=e2252]
+                    - generic [ref=e2253]: 760/29034/29033
+                  - generic [ref=e2255] [cursor=pointer]:
+                    - checkbox "760/46100/46101" [ref=e2256]
+                    - generic [ref=e2257]: 760/46100/46101
+                  - generic [ref=e2259] [cursor=pointer]:
+                    - checkbox "762/1155/1438" [ref=e2260]
+                    - generic [ref=e2261]: 762/1155/1438
+                  - generic [ref=e2263] [cursor=pointer]:
+                    - checkbox "762/1155/1438" [ref=e2264]
+                    - generic [ref=e2265]: 762/1155/1438
+                  - generic [ref=e2267] [cursor=pointer]:
+                    - checkbox "762/1155/1438" [ref=e2268]
+                    - generic [ref=e2269]: 762/1155/1438
+                  - generic [ref=e2271] [cursor=pointer]:
+                    - checkbox "762/1155/1438" [ref=e2272]
+                    - generic [ref=e2273]: 762/1155/1438
+                  - generic [ref=e2275] [cursor=pointer]:
+                    - checkbox "762/1184/1551" [ref=e2276]
+                    - generic [ref=e2277]: 762/1184/1551
+                  - generic [ref=e2279] [cursor=pointer]:
+                    - checkbox "762/1310/1480" [ref=e2280]
+                    - generic [ref=e2281]: 762/1310/1480
+                  - generic [ref=e2283] [cursor=pointer]:
+                    - checkbox "762/1310/1480" [ref=e2284]
+                    - generic [ref=e2285]: 762/1310/1480
+                  - generic [ref=e2287] [cursor=pointer]:
+                    - checkbox "762/1310/1480" [ref=e2288]
+                    - generic [ref=e2289]: 762/1310/1480
+                  - generic [ref=e2291] [cursor=pointer]:
+                    - checkbox "762/1310/1480" [ref=e2292]
+                    - generic [ref=e2293]: 762/1310/1480
+                  - generic [ref=e2295] [cursor=pointer]:
+                    - checkbox "762/1310/1480" [ref=e2296]
+                    - generic [ref=e2297]: 762/1310/1480
+                  - generic [ref=e2299] [cursor=pointer]:
+                    - checkbox "762/1310/1480" [ref=e2300]
+                    - generic [ref=e2301]: 762/1310/1480
+                  - generic [ref=e2303] [cursor=pointer]:
+                    - checkbox "762/1312/1580" [ref=e2304]
+                    - generic [ref=e2305]: 762/1312/1580
+                  - generic [ref=e2307] [cursor=pointer]:
+                    - checkbox "762/1333/1487" [ref=e2308]
+                    - generic [ref=e2309]: 762/1333/1487
+                  - generic [ref=e2311] [cursor=pointer]:
+                    - checkbox "762/1333/1487" [ref=e2312]
+                    - generic [ref=e2313]: 762/1333/1487
+                  - generic [ref=e2315] [cursor=pointer]:
+                    - checkbox "762/1333/1487" [ref=e2316]
+                    - generic [ref=e2317]: 762/1333/1487
+                  - generic [ref=e2319] [cursor=pointer]:
+                    - checkbox "762/1333/1487" [ref=e2320]
+                    - generic [ref=e2321]: 762/1333/1487
+                  - generic [ref=e2323] [cursor=pointer]:
+                    - checkbox "762/38159/38160" [ref=e2324]
+                    - generic [ref=e2325]: 762/38159/38160
+                  - generic [ref=e2327] [cursor=pointer]:
+                    - checkbox "762/46641/46642" [ref=e2328]
+                    - generic [ref=e2329]: 762/46641/46642
+                  - generic [ref=e2331] [cursor=pointer]:
+                    - checkbox "Main Warehouse" [ref=e2332]
+                    - generic [ref=e2333]: Main Warehouse
+              - generic [ref=e2334]:
+                - generic [ref=e2335]: Password (leave blank to keep current)
+                - textbox "Password (leave blank to keep current)" [ref=e2336]:
+                  - /placeholder: Enter new password (optional)
+                - paragraph [ref=e2337]: "If changing password: min 12 characters, must include uppercase, lowercase, number, and special character"
+              - generic [ref=e2338]:
+                - button "Cancel" [ref=e2339] [cursor=pointer]
+                - button "Save Changes" [ref=e2340] [cursor=pointer]
+```

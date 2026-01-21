@@ -1,0 +1,2071 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Server Settings section</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf3638e6-7ffc.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf3638e6-7ffc.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffd.html" title="Accessing user assistance"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html" title="Data &amp; Services section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Server Settings section</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7ffb"><span class="topictitle1">Settings page</span>
+</a></p></li><li><p><a href="#WSe61e35da8d31851846486a35134e639f369-8000"><span class="topictitle1">Request tuning</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d31851846486a35134e639f369-7fff"><span class="topictitle2">Simultaneous request tuning overview</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7ffa"><span class="topictitle2">Request Tuning page</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7ff9"><span class="topictitle1">Caching page</span>
+</a></p></li><li><p><a href="#WSE012D66A-E6D8-4dab-BAEC-35856D8EB780"><span class="topictitle1">Client Variables page</span>
+</a></p><ul><li><p><a href="#WSAA4E629D-51C9-4158-B7E6-BC8D52E383BB"><span class="topictitle2">Migrating client variable data</span>
+</a></p></li><li><p><a href="#WSACCE08E8-DBE4-4bad-BF06-5DB0B50F80D0"><span class="topictitle2">Creating client variable tables</span>
+</a></p></li><li><p><a href="#WS17024CCB-F81E-44ff-BB72-CB9F94FFBB4B"><span class="topictitle2">Sample table creation page</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7ff4"><span class="topictitle1">Memory Variables page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7ff9"><span class="topictitle1">Mappings page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7ff7"><span class="topictitle1">Mail page</span>
+</a></p><ul><li><p><a href="#WS10A61F2E-A4C4-4f55-A468-EAF3CDCCF294"><span class="topictitle2">Mail Server Settings area</span>
+</a></p></li><li><p><a href="#WSC47C646B-7ECD-4acd-9F23-31892A258A82"><span class="topictitle2">Mail Spool Settings area</span>
+</a></p></li><li><p><a href="#WS635B7577-9C32-4ef7-8381-2026E4EF7D19"><span class="topictitle2">Mail Logging Settings area</span>
+</a></p></li><li><p><a href="#WSE9CB2E1A-9819-4547-89E5-376B2DDB828E"><span class="topictitle2">Mail Character Set Settings area</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd8"><span class="topictitle1">Scheduled Tasks</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d31851828f427c7134d088f996-8000"><span class="topictitle2">Scheduled Task page</span>
+</a></p></li><li><p><a href="#WSe61e35da8d31851828f427c7134d088f996-7fff"><span class="topictitle2">Add/Edit Scheduled Task page</span>
+</a></p></li></ul></li><li><p><a href="#WSe61e35da8d3185186dac731f134c2e64c97-8000"><span class="topictitle1">WebSocket page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fed"><span class="topictitle1">Charting page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fec"><span class="topictitle1">Font Management page</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d318518156c4be7134ccf066c8-8000"><span class="topictitle2">About Font Management</span>
+</a></p></li></ul></li><li><p><a href="#WSA5D55EAA-F5B0-46bc-86B1-ADB51B638AB8"><span class="topictitle1">Document page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7feb"><span class="topictitle1">Java and JVM page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fea"><span class="topictitle1">Settings Summary page</span>
+</a></p></li></ul></div></div></div></div><div><p>The Server Settings section lets you manage client and
+memory variables, mappings, charting, and archiving. It also allows
+you to configure e-mail and Java settings.</p>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffb" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffb"><!-- --></a><h2 class="topictitle2">Settings page</h2><div><p>The Settings page of the
+ColdFusion Administrator contains configuration options that you
+can set or enable to manage ColdFusion. These options can significantly
+affect server performance. The following table describes the options:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e1190"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1193"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Timeout Requests After (Seconds)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Prevents unusually lengthy requests from
+using up server resources. Enter a limit to the time that ColdFusion
+waits before terminating a request. Requests that take longer than
+the time-out period are terminated.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Enable Per App Settings</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Lets developers programmatically define
+ColdFusion settings such as mappings and debugging per application.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Use UUID For cftoken</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify whether to use a universally unique
+identifier (UUID), rather than a random number, for a cftoken.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Enable HTTP Status Codes</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Configures ColdFusion to set a status code
+of 500 Internal Server Error for an unhandled error. Disable this
+option to configure ColdFusion to set a status code of 200 OK for
+everything, including unhandled errors.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Enable Whitespace Management</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Compresses repeating sequences of spaces,
+tabs, and carriage returns and linefeeds. Compressing whitespace
+can significantly compact the output of a ColdFusion page.</p>
+<p>This
+option is enabled, by default.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Disable CFC Type Check</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Turns off verifying the CFC type when calling
+methods with CFCs as arguments. This option also disables verifying
+an object that implements the right interface. </p>
+<p>Enabling this
+option can improve the performance of your application. However
+enable it only on a production server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Disable Access To Internal ColdFusion Java
+Components </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Prevents CFML code from accessing and creating
+Java objects that are part of the internal ColdFusion implementation.
+This prevents a non-authenticated CFML template from reading or
+modifying administration and configuration information for this
+server. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Prefix serialized JSON with</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Protects web services, which return JSON
+data from cross-site scripting attacks by prefixing serialized JSON
+strings with a custom prefix.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Enable In-Memory File System</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Enables the in-memory virtual file system
+support. By default, this is enabled.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Memory Limit for In-Memory Virtual File
+System</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Lets you specify the memory limit in Megabytes
+(MB) for in-memory virtual file system.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Watch Configuration Files For Changes (Check
+Every <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">n</i> Seconds) </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Sets ColdFusion to monitor its configuration
+files and automatically reload them if they change. This action
+is required if you deploy ColdFusion in a WebSphere ND vertical
+cluster, because multiple instances of ColdFusion share the same
+configuration files. It is recommended that you do not enable this
+feature for most installations. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Enable Global Script Protection </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Protects Form, URL, CGI, and Cookie scope
+variables from cross-site scripting attacks. Select this option
+if your application does not contain this type of protection logic.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Allow Extra Attributes in AttributeCollection</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify whether ColdFusion tags can pass
+non-standard attributes in the attributecollection structure.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Clear temporary files created during CFaaS
+after </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify the time in minutes after which
+the temporary files created during CF as a Service(CFaaS) operation
+must be deleted. The default value is 30 minutes.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>ORM Search Index Directory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify the index directory (the one in
+which all persistent entities, of an application's indexable data, are
+saved) either at the server-level or application-level.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Default ScriptSrc Directory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify the default path (relative to the
+web root) to the directory that contains the cfform.js file. Developers
+reference this file in the ScriptSrc attribute of the <samp class="codeph">cfform</samp> tag.</p>
+<p>In
+a hosted environment, you might need to move the cfform.js file
+to a directory other than CFIDE.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Google Map API Key</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify the Google Map API license key that
+you require to access Google Maps.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Component with onServerStart() method</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify the absolute path to a CFC having
+onServerStart() method or specify a dot delimited CFC path under
+web root, like "a.b.server". By default, ColdFusion looks for server.cfc
+under web root.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Application.cfc/Application.cfm lookup order</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Select the order in which ColdFusion searches
+for Application.cfm or Application.cfc if it is not found in the
+current project folder. You can set ColdFusion to search as follows:</p>
+<div class="para"><ul><li><p>default search order: ColdFusion looks for an Application.cfc/Application.cfm
+file from the current folder until the system root directory. On
+Windows, this could be C:\ and on UNIX, /opt.</p>
+</li>
+<li><p>till web root: ColdFusion looks for an Application.cfc/Application.cfm
+file from the current folder till web root.</p>
+</li>
+<li><p>in web root: ColdFusion looks for an Application.cfc/Application.cfm
+file in the current folder or web root.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Missing Template Handler</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify a page to execute when ColdFusion
+cannot find a requested page. This specification is relative to
+the web root.</p>
+<p>Note: If the user is running Microsoft Internet
+Explorer with "Show Friendly HTTP error messages" enabled, Internet
+Explorer displays this page only if it contains more than 512 bytes.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Site-Wide Error Handler</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Specify a page to execute when ColdFusion
+encounters an error while processing a request. This specification
+is relative to the web root. When you define a site-wide error handler
+or missing template handler, ColdFusion does not log page-not-found
+errors and exceptions.</p>
+<p>Note: If the user is running Internet
+Explorer with Show Friendly HTTP Error Messages enabled, Internet
+Explorer only displays this page if it contains more than 512 bytes.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Maximum Size Of Post Data</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Limits the amount of data that can be posted
+to the server in a single request. ColdFusion rejects single requests
+larger than the specified limit.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>RequeSt Throttle Threshold</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Requests smaller than the specified limit
+are not queued or counted as part of the total memory. Requests
+larger than the specified limit are counted as part of total memory
+and are queued if the request throttle-memory size is exceeded.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1190 "><p>Request Throttle Memory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1193 "><p>Limits total memory size for the throttle.
+If sufficient total memory is not available, ColdFusion queues requests
+until enough memory is free.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+<div id="WSe61e35da8d31851846486a35134e639f369-8000" class="nochunk"><a name="WSe61e35da8d31851846486a35134e639f369-8000"><!-- --></a><h2 class="topictitle2">Request tuning</h2><div><ul class="navlinklist"></ul>
+</div><div id="WSe61e35da8d31851846486a35134e639f369-7fff" class="nochunk"><a name="WSe61e35da8d31851846486a35134e639f369-7fff"><!-- --></a><h3 class="topictitle3">Simultaneous request tuning overview</h3><div><p>You can specify the number of simultaneous requests that
+can be processed for each of the following types of requests:</p>
+<div class="para"><ul><li><p>CFM page requests</p>
+</li>
+<li><p>CFC method invocations (via an HTTP GET)</p>
+</li>
+<li><p>Flash Remoting requests</p>
+</li>
+<li><p>Web Service requests</p>
+</li>
+</ul>
+</div>
+<p>The settings are contained completely within ColdFusion code
+and work across all J2EE application servers. You do not have to
+restart the ColdFusion server for changes to the configuration to
+take effect. JSP processing is not affected by these changes.</p>
+<div class="para"><div class="note"><span class="notetitle">Note:  </span>Note: The Flash Remoting request control setting applies
+to remoting that uses ActionScript 2.0 and ActionScript 3.0, with
+each type treated independently. For example, a setting of 5 means
+that up to 5 ActionScript 2.0 Flash Remoting and 5 ActionScript
+3.0. Flash Remoting requests are allowed simultaneously.</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Capabilities by edition</h4><div class="para"><ul><li><p>You
+can create multiple instances and clusters, provided you have an
+Enterprise or Developer license.</p>
+</li>
+</ul>
+</div>
+</div>
+</div></div><div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffa" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffa"><!-- --></a><h3 class="topictitle3">Request Tuning page</h3><div><p>The Request Tuning page of the Administrator contains configuration
+options that you use to specify the number of different types of
+requests and threads that ColdFusion can handle simultaneously.</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e1450"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1453"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Maximum Number Of Simultaneous Template
+Requests </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>The number of CFML page requests that can
+be processed concurrently. Use this setting to increase overall
+system performance for heavy-load applications. Requests beyond
+the specified limit are queued. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Maximum Number Of Simultaneous Flash Remoting
+Requests </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>The number of Adobe Flash® Remoting
+requests that can be processed concurrently. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Maximum Number Of Simultaneous Web Service
+Requests </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>The number of Web Service requests that
+can be processed concurrently. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Maximum Number Of Simultaneous CFC Function
+Requests </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>The number of ColdFusion Component methods
+that can be processed concurrently through HTTP. This does not affect
+starting CFC methods from CFML, only methods requested through an
+HTTP request. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Maximum Number Of Simultaneous Report Threads </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>The maximum number of ColdFusion reports
+that can be processed concurrently. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Maximum Number Of Threads Available For
+CFTHREAD </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>CFTHREAD that runs concurrently. Threads
+that CFTHREAD creates in excess of the specified limit are queued. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Timeout Requests Waiting In Queue After <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">n </i>Seconds </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>If a request has waited in queue beyond
+the specified limit, time out the request. This value must be at
+least as long as the Request Timeout setting (currently 60 seconds). </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1450 "><p>Request Queue Timeout Page </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1453 "><p>Specify a relative path to an HTML page
+to send to clients when a template requests time out before getting
+a chance to run. For example "/CFIDE/timeout.html.” This page cannot
+contain CFML. If a page is not specified, clients receive a 500
+Request Timeout error when their request does not get a chance to
+run.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7ff9" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7ff9"><!-- --></a><h2 class="topictitle2">Caching page</h2><div><p>The Caching page of the Administrator
+contains configuration options that you can set or enable to cache
+templates, queries, and data sources. These options can significantly
+affect server performance. The following table describes the settings:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e1533"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1536"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Maximum Number Of Cached Templates</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Enter a value that specifies the number
+of templates that ColdFusion caches. For best application performance,
+set this option to a value that is large enough to contain the commonly
+ accessed ColdFusion pages, yet small enough to avoid excessive
+reloading. You can experiment with a range of values on your development
+server; a suitable starting point is one page per MB of Java Virtual
+Machine (JVM) size.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Trusted Cache</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Use cached templates without checking whether
+they changed. For sites that are not updated frequently, using this
+option minimizes file system overhead.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Cache Template in Request</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>When checked, any requested files are inspected
+only once for potential updates within a request. If unchecked,
+requested file are inspected for changes each and every time when
+it is accessed within the same request. For application where templates/components
+are not expected to reflect updates within the same request, this
+minimizes file system overhead. This setting does not require restarting the
+server. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Component cache</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>When checked, component path resolution
+is cached and not resolved again. This setting does not require
+restarting the server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Save Class Files</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Saves to disk the class files that the ColdFusion
+bytecode compiler generates. During the development phase, it is
+typically faster if you disable this option.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Cache Web Server Paths</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Caches ColdFusion page paths for a single
+server. Clear this option if ColdFusion connects to a web server
+with multiple websites or multiple virtual websites.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Maximum Number Of Cached Queries</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Enter a value to limit the maximum number
+of cached queries that the server maintains. Cached queries allow
+retrieval of result sets from memory rather than through a database
+transaction. Because queries reside in memory, and query result
+set sizes differ, provide a limit for the number of cached queries.
+You enable cached queries with the <samp class="codeph">cachedwithin</samp> or <samp class="codeph">cachedafter</samp> attributes
+of the <samp class="codeph">cfquery</samp> tag. When the maximum number of
+cached queries is reached, the oldest query is dropped from the
+cache and replaced with the specified query. If you set the maximum
+number of cached queries to 0, query caching is unlimited.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Use Internal Cache to Store Queries </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>When you select this option, at server level,
+internal cache is used to store cached queries. By default, cached
+queries are stored in QUERY region supported by Ehcache.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Clear Template Cache Now</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Empties the template cache. ColdFusion reloads
+templates into memory the next time they are requested and recompiles
+them if they have been modified.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Clear Template Cache of Specific Folder</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>In the previous releases, you have the option
+only to clear the trusted cache, which clears the entire system
+cache. Now you can limit the clearing to folder level using this
+option.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Clear Component Cache Now</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Empties the component cache. ColdFusion
+ignores the resolved path for components and try resolution again.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1533 "><p>Clear Query Cache Now</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1536 "><p>Removes the query cache in the server.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+<div id="WSE012D66A-E6D8-4dab-BAEC-35856D8EB780" class="nochunk"><a name="WSE012D66A-E6D8-4dab-BAEC-35856D8EB780"><!-- --></a><h2 class="topictitle2">Client Variables page</h2><div><p>Client variables let you store user information and preferences
+between sessions. Using information from client variables, you can
+customize page content for individual users.</p>
+<p>You enable
+client variable default settings in ColdFusion on the Client Variables page
+of the Administrator. ColdFusion lets you store client variables
+in the following ways:</p>
+<ul><li><p>In database tables</p>
+<div class="note"><span class="notetitle">Note:  </span>If your data
+source uses one of the JDBC drivers bundled with ColdFusion 10, ColdFusion
+can automatically create the necessary tables. If your data source
+uses the ODBC Socket or a third-party JDBC driver, you manually
+create the necessary CDATA and CGLOBAL database tables.</div>
+</li>
+<li><p>As cookies in the web browsers</p>
+</li>
+<li><p>In the operating system registry</p>
+<div class="important"><span class="importanttitle">Important:  </span>Adobe
+recommends that you do not store client variables in the registry
+because it can critically degrade performance of the server. If
+you use the registry to store client variables, you allocate sufficient
+memory and disk space.</div>
+</li>
+</ul>
+<p>To override settings specified in the Client Variables page,
+use the Application.cfc file or the <samp class="codeph">cfapplication</samp> tag.
+For more information, see the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Developing ColdFusion Applications</i>.</p>
+<div class="section"><h4 class="sectiontitle">Store client variables in a data source</h4><ol><li><p>On the Client Variables page, in the Select Data Source to
+Add as Client Store table, select a data source from the drop-down.</p>
+</li>
+<li><p>Click Add. The Add/Edit Client Store page for the data source
+appears.</p>
+</li>
+<li><p>Select options for the data source, as described in the following
+table. (To exit from the page without saving changes, click the
+left-arrow icon.)</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e1686"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1689"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e1686 "><p>Description</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1689 "><p>A description of the client data store and
+its settings. Not displayed for Registry.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1686 "><p>Create Client database tables</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1689 "><p>If ColdFusion can determine that the database
+you use supports SQL creation of database tables, this option appears,
+and you do not need to create the client variable tables before
+they are used. In this case, the Create Client Database Tables option appears
+on the Add/Edit Client Store page; if you select this option, ColdFusion
+creates the necessary tables in the database.</p>
+<p>If the database
+does not support SQL table creation, if the database already has
+the required tables, or if you are using the Registry, this option
+does not appear.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1686 "><p>Purge data for clients that remain unvisited
+for [n] days</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1689 "><p>Typically, client data is saved for a limited
+time. To delete (purge) client data that has not been accessed in
+a specified number of days, select this option and enter a value for
+the number of days. </p>
+<p>If a cluster of ColdFusion servers uses
+this data source, ensure that only one server is configured to purge
+client data.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1686 "><p>Disable global client variable updates</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1689 "><p>By default, ColdFusion updates client variables
+for every page request. To prevent ColdFusion from updating variables,
+select this option.</p>
+<p>If updates are disabled, ColdFusion updates
+global client variables only when they are first created and when
+they are updated. This helps improve application performance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</li>
+<li><p>C lick Submit Changes. The Client Variables page appears,
+with your data source in the list.</p>
+</li>
+<li><p>In the Select Default Storage Mechanism for Client Sessions
+table, select the data source.</p>
+</li>
+<li><p>Click Apply.</p>
+</li>
+</ol>
+</div>
+<div class="section"><h4 class="sectiontitle">Store client variables in a cookie or in the system registry</h4><ol><li><p>In the Client Variables page, select
+Cookie or Registry.</p>
+</li>
+<li><p>Click Apply.</p>
+</li>
+</ol>
+</div>
+<div class="section"><h4 class="sectiontitle">Client variable storage options</h4>
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e1756"><p>Storage type</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1759"><p>Advantages</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1762"><p>Disadvantages</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e1756 "><p>Data source</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1759 "><div class="para"><ul><li><p>Can use existing data source</p>
+</li>
+<li><p>Portable: not tied to the host system or operating system</p>
+</li>
+</ul>
+</div>
+</td>
+<td valign="top" width="NaN%" headers="d16e1762 "><div class="para"><ul><li><p>Requires database transaction
+to read/write variables</p>
+</li>
+<li><p>More complex to implement</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1756 "><p>Browser cookies</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1759 "><div class="para"><ul><li><p>Simple implementation</p>
+</li>
+<li><p>Good performance</p>
+</li>
+<li><p>Can be set to expire automatically</p>
+</li>
+<li><p>Client-side control</p>
+</li>
+</ul>
+</div>
+</td>
+<td valign="top" width="NaN%" headers="d16e1762 "><div class="para"><ul><li><p>Users can configure browsers
+to disallow cookies</p>
+</li>
+<li><p>Cookie data is limited to 4-KB</p>
+</li>
+<li><p>Netscape Navigator allows only 20 cookies from one host; ColdFusion
+uses three cookies to store read-only data, leaving only 17 cookies
+available</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1756 "><p>System registry</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1759 "><div class="para"><ul><li><p>Simple implementation</p>
+</li>
+<li><p>Good performance</p>
+</li>
+<li><p>Registry can be exported easily to other systems</p>
+</li>
+<li><p>Server-side control</p>
+</li>
+</ul>
+</div>
+</td>
+<td valign="top" width="NaN%" headers="d16e1762 "><div class="para"><ul><li><p>Possible restriction of the registry’s
+maximum size limit in Windows in the Control Panel</p>
+</li>
+<li><p>Integrated with the host system: not practical for clustered
+servers </p>
+</li>
+<li><p>Not available for UNIX</p>
+</li>
+<li><p>Applicable only for Windows</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div><div id="WSAA4E629D-51C9-4158-B7E6-BC8D52E383BB" class="nochunk"><a name="WSAA4E629D-51C9-4158-B7E6-BC8D52E383BB"><!-- --></a><h3 class="topictitle3">Migrating client variable data</h3><div><p>To migrate your client variable
+data to another data source, determine the structure of the database
+tables that store this information. Client variables stored externally
+use two simple database tables, as shown in the following tables:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th colspan="2" valign="top" id="d16e1867"><p>CDATA Table</p>
+</th>
+</tr>
+<tr><th valign="top" width="NaN%" id="d16e1871"><p>Column</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1874"><p>Data type</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e1867 d16e1871 "><p>cfid</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1867 d16e1874 "><p>CHAR(64), TEXT, VARCHAR, or equivalent</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1867 d16e1871 "><p>app</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1867 d16e1874 "><p>CHAR(64), TEXT, VARCHAR, or equivalent</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1867 d16e1871 "><p>data</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1867 d16e1874 "><p>MEMO, LONGTEXT, LONG VARCHAR, or equivalent</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th colspan="2" valign="top" id="d16e1905"><p>CGLOBAL Table</p>
+</th>
+</tr>
+<tr><th valign="top" width="NaN%" id="d16e1909"><p>Column</p>
+</th>
+<th valign="top" width="NaN%" id="d16e1912"><p>Data type</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e1905 d16e1909 "><p>cfid</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1905 d16e1912 "><p>CHAR(64), TEXT, VARCHAR, or equivalent</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1905 d16e1909 "><p>data</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1905 d16e1912 "><p>MEMO, LONGTEXT, LONG VARCHAR, or equivalent</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e1905 d16e1909 "><p>lvisit</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e1905 d16e1912 "><p>TIMESTAMP, DATETIME, DATE, or equivalent</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div><div id="WSACCE08E8-DBE4-4bad-BF06-5DB0B50F80D0" class="nochunk"><a name="WSACCE08E8-DBE4-4bad-BF06-5DB0B50F80D0"><!-- --></a><h3 class="topictitle3">Creating client variable tables</h3><div><p>Use
+the following sample ColdFusion page as a model for creating client
+variable database tables in your own database. However, keep in
+mind that not all databases support the same column data type names.
+For the proper data type, see your database documentation. </p>
+<div class="note"><span class="notetitle">Note:  </span>The ColdFusion Administrator can create client
+variable tables for data sources that use one of the bundled JDBC
+drivers. For more information, see the Online Help.</div>
+</div></div><div id="WS17024CCB-F81E-44ff-BB72-CB9F94FFBB4B" class="nochunk"><a name="WS17024CCB-F81E-44ff-BB72-CB9F94FFBB4B"><!-- --></a><h3 class="topictitle3">Sample table creation page</h3><div><pre>&lt;!---- Create the Client variable storage tables in a datasource.  
+This example applies to Microsoft Access databases. ---&gt; 
+ 
+&lt;cfquery name="data1" datasource="#DSN#"&gt; 
+CREATE TABLE CDATA 
+( 
+cfid char(20), 
+app char(64), 
+data memo 
+) 
+&lt;/cfquery&gt; 
+ 
+&lt;cfquery name="data2" datasource="#DSN#"&gt;  
+    CREATE UNIQUE INDEX id1  
+    ON CDATA (cfid,app) 
+&lt;/cfquery&gt; 
+     
+&lt;cfquery name="global1" datasource="#DSN#"&gt; 
+CREATE TABLE CGLOBAL 
+( 
+cfid char(20), 
+data memo, 
+    lvisit date 
+) 
+&lt;/cfquery&gt; 
+ 
+&lt;cfquery name="global2" datasource="#DSN#"&gt;  
+    CREATE INDEX id2  
+    ON CGLOBAL (cfid) 
+&lt;/cfquery&gt; 
+ 
+&lt;cfquery name="global2" datasource="#DSN#"&gt;  
+    CREATE INDEX id3  
+    ON CGLOBAL (lvisit) 
+&lt;/cfquery&gt;</pre>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7ff4" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7ff4"><!-- --></a><h2 class="topictitle2">Memory Variables page</h2><div><p>Use the Memory Variables
+page of the ColdFusion Administrator to enable application and session
+variables server-wide. By default, application and session variables
+are enabled when you install ColdFusion. If you disable either type
+of variable in the Memory Variables page, you cannot use them in
+a ColdFusion application. </p>
+<p>You can specify maximum and default time-out values for session
+and application variables. Unless you define a time-out value in
+an Application.cfc or Application.cfm file, application variables
+expire in two days. Session variables expire when user sessions
+end. To change these behaviors, enter new default and maximum time-out
+values on the Memory Variables page of the Administrator. </p>
+<div class="note"><span class="notetitle">Note:  </span>Time-out values that you specify for application
+variables override the time-out values set in the Application.cfc
+or Application.cfm file.</div>
+<p>You can also specify whether to use J2EE session variables. When
+you enable the J2EE session variables, ColdFusion creates an identifier
+for each session and does not use the CFToken or CFID cookie value.
+For more information, see the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Developing ColdFusion Applications</i>.</p>
+<div class="note"><span class="notetitle">Note:  </span>When using J2EE sessions, ensure that the session
+time out, specified in the WEB‑INF/web.xml <samp class="codeph">session-timeout</samp> element,
+is longer than the session time out specified in the ColdFusion
+Administrator, and longer than any <samp class="codeph">sessiontimeout</samp> attribute
+specified in a <samp class="codeph">cfapplication</samp> tag.</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7ff9" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7ff9"><!-- --></a><h2 class="topictitle2">Mappings page</h2><div><p>Use the Mappings
+page of the ColdFusion Administrator to add, update, and delete
+logical aliases for paths to directories on your server. ColdFusion mappings
+apply only to pages that ColdFusion processes with the <samp class="codeph">cfinclude</samp> and <samp class="codeph">cfmodule</samp> tags.
+If you save CFML pages outside the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">web_root</i> directory (or whatever
+directory is mapped to "/"), you add a mapping to the location of
+those files on your server. </p>
+<p>Assume that the "/" mapping on your server points to C:\coldfusion9\wwwroot, but
+that all of your ColdFusion header pages reside in C:\2002\newpages\headers.
+Add a mapping in the ColdFusion Administrator that points to C:\2002\newpages\headers,
+for ColdFusion to find the header pages. For example, add a mapping
+for /headers that points to C:\2002\newpages\headers. In the ColdFusion
+pages located in C:\coldfusion9\wwwroot, you reference these header
+pages using /headers in your <samp class="codeph">cfinclude</samp> and <samp class="codeph">cfmodule</samp> tags. </p>
+<div class="note"><span class="notetitle">Note:  </span>ColdFusion mappings are different from web server
+virtual directories. For information on creating a virtual directory
+to access a given directory using a URL in your web browser, consult
+your web server documentation.</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7ff7" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7ff7"><!-- --></a><h2 class="topictitle2">Mail page</h2><div><p>Use the Mail
+page of the ColdFusion Administrator to specify a mail server to send
+automated e-mail messages. ColdFusion supports the Simple Mail Transfer Protocol
+(SMTP) for sending e-mail messages and the Post Office Protocol
+(POP) for retrieving e-mail messages from your mail server. To use
+e-mail messaging in your ColdFusion applications, you must have
+access to an SMTP server and a POP account. </p>
+<p>The ColdFusion Enterprise Edition supports mail-server failover,
+as well as additional mail delivery options.</p>
+<p>The ColdFusion implementation of SMTP mail uses a spooled architecture.
+This means that when a <samp class="codeph">cfmail</samp> tag is processed
+in an application page, the messages generated might not be sent
+immediately. If ColdFusion has a large queue, delivery could occur
+after some delay.</p>
+<div class="note"><span class="notetitle">Note:  </span>For more information about the <samp class="codeph">cfmail</samp> tag,
+see Sending SMTP e-mail with the cfmail tag in Sending and Receiving
+E-Mail in the Developing ColdFusion Applications.</div>
+</div><div id="WS10A61F2E-A4C4-4f55-A468-EAF3CDCCF294" class="nochunk"><a name="WS10A61F2E-A4C4-4f55-A468-EAF3CDCCF294"><!-- --></a><h3 class="topictitle3">Mail Server Settings area</h3><div><p>The following table describes basic mail server settings:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2044"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2047"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Mail Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enter a valid mail server for sending dynamic
+SMTP mail messages in the text box. You can enter an Internet address,
+such as mail.company.com, or the IP address of the mail server,
+such as 127.0.0.1.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Username</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enter the user name for the mail server,
+if necessary.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Password</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enter the password for the mail server,
+if necessary.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Sign</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Select this check box to configure ColdFusion
+to digitally sign your mails.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Keystore</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Location of the Keystore containing the
+private key and certificate. The supported type is JKS (java key store)
+and pkcs12. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Keystore Password</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Keystore password.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>KeyAlias</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Alias of the key with which the certificate
+and private key is stored in Keystore. If it is not specified then the
+first entry in the Keystore is be picked up. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>KeyPassword</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Password with which the private key is stored.
+If it is not specified, KeystorePassword is used as KeyPassword.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Verify Mail Server Connection</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Verifies that ColdFusion can connect to
+your specified mail server after you submit this form.</p>
+<p>Even
+if you do not use this option, send a test message to verify that
+your mail server connection works. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Server Port</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enter the number of the port on which the
+mail server is running. Contact your server administrator if you
+are unsure of the appropriate port number.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Backup Mail Servers (Enterprise Edition
+only)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enter zero or more backup servers for sending
+SMTP mail messages. You can enter an Internet address, such as mail.company.com,
+or the IP address of the mail server, such as 127.0.0.1. Separate
+multiple servers with a comma. </p>
+<p>If the mail server requires
+authentication, prepend the mail server with the user name and password,
+as follows: <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">username</i>:<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">password</i>@<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">mailserveraddress</i></p>
+<p>To
+use a port number other than the default (25), specify <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">mailserveraddress</i>:<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">portnumber</i></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Maintain Connection To Mail Server</p>
+<p>(Enterprise
+Edition only)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Keeps mail server connections open after
+sending a mail message. Enabling this option can enhance performance
+when delivering multiple messages.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Connection Timeout (seconds)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enter the number of seconds that ColdFusion
+should wait for a response from the mail server before timing out. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Enable SSL Socket Connections To Mail Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enables SSL encryption on the connections
+to the mail server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2044 "><p>Enable TLS Connection To Mail Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2047 "><p>Enables Transport Level Security (TLS) on
+the connection to the mail server.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div><div id="WSC47C646B-7ECD-4acd-9F23-31892A258A82" class="nochunk"><a name="WSC47C646B-7ECD-4acd-9F23-31892A258A82"><!-- --></a><h3 class="topictitle3">Mail Spool Settings area</h3><div><p>The following table describes mail server spool settings:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2192"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2195"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2192 "><p>Spool Interval (Seconds)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2195 "><p>Enter the interval, in seconds, at which
+you want the mail server to process spooled mail. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2192 "><p>Mail Delivery Threads</p>
+<p>(Enterprise
+Edition only)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2195 "><p>Enter the maximum number of simultaneous
+threads used to deliver spooled mail.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2192 "><p>Spool Mail Messages For Delivery To</p>
+<p>(Memory
+spooling available for Enterprise Edition only)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2195 "><p>Routes outgoing mail messages to the mail
+spooler. If you disable this option, ColdFusion delivers outgoing
+mail messages immediately. In ColdFusion Enterprise Edition, you
+can spool messages to disk (slower, but messages persist across
+shutdowns) or to memory (faster, but messages do not persist). </p>
+<p>You
+can override this setting in the <samp class="codeph">cfmail</samp> tag.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2192 "><p>Maximum Number Of Messages Spooled To Memory</p>
+<p>(Enterprise
+Edition only)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2195 "><p>Enter the maximum number of messages that
+spool to memory before switching to disk spooling.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2192 "><p>View Undelivered Mail</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2195 "><p>Click to view undelivered mails.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div><div id="WS635B7577-9C32-4ef7-8381-2026E4EF7D19" class="nochunk"><a name="WS635B7577-9C32-4ef7-8381-2026E4EF7D19"><!-- --></a><h3 class="topictitle3">Mail Logging Settings area</h3><div><p>Select preferences for handling mail logs, as described
+in the following table:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2259"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2262"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2259 "><p>Error Log Severity</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2262 "><p>From the drop-down list object, select the
+type of SMTP-related error message to write to a log file. The options
+are the following:</p>
+<div class="para"><ul><li><p>Debug (contains Information,
+Warning, and Error)</p>
+</li>
+<li><p>Information (contains Warning and Error)</p>
+</li>
+<li><p>Warning (contains Error)</p>
+</li>
+<li><p>Error</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2259 "><p>Log All Mail Messages Sent By ColdFusion</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2262 "><p>Saves to a log file the To, From, and Subject
+fields of all e-mail messages.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>ColdFusion
+writes sent-mail and mail-error logs to the following directories:</p>
+<ul><li><p>\coldfusion9\logs (Windows server configuration)</p>
+</li>
+<li><p>/opt/coldfusion9/log (Solaris and Linux server configuration)</p>
+</li>
+<li><p><i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_webapp_root</i>/WEB-INF/cfusion/logs (multiserver and
+J2EE configurations, all platforms)</p>
+</li>
+</ul>
+<p>The following table describes the e-mail log files:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2316"><p>Log</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2319"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2316 "><p>mailsent.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2319 "><p>Records sent e-mail messages.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2316 "><p>mail.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2319 "><p>Records general e-mail errors.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div><div id="WSE9CB2E1A-9819-4547-89E5-376B2DDB828E" class="nochunk"><a name="WSE9CB2E1A-9819-4547-89E5-376B2DDB828E"><!-- --></a><h3 class="topictitle3">Mail Character Set Settings area</h3><div><p>Select preferences for the default mail character set,
+as described in the following table:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2351"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2354"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2351 "><p>Default CFMail CharSet</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2354 "><p>From the drop-down list object, select the
+default character set that the <samp class="codeph">cfmail</samp> tag uses.
+The default value is UTF-8. If most of your e-mail clients use a
+specific character set, you can use this setting to switch to that
+locale-specific character set. For example, Japanese mail is typically
+sent using the ISO-2022-JP character set. </p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd8" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd8"><!-- --></a><h2 class="topictitle2">Scheduled Tasks</h2><div><p>The Scheduling facility in ColdFusion Administrator lest
+you schedule the execution of local and remote web pages, to generate
+static HTML pages, send mail with the <samp class="codeph">cfmail</samp> tag,
+update database tables, index collections, delete temporary files,
+and any other batch-style processing. The scheduling facility is useful
+for applications that do not require user interactions or customized output.
+ColdFusion developers use this facility to schedule daily sales
+reports, corporate directories, statistical reports, and so on. </p>
+<p>Information that is read more often than written is a good candidate
+for scheduled tasks. Instead of executing a query to a database
+every time the page is requested, ColdFusion renders the static
+page with information that the scheduled event generates. Response
+time is faster because no database transaction takes place. </p>
+<p>You can run scheduled tasks once; on a specified date; or at
+a specified time, daily, weekly, or monthly; daily; at a specified
+interval; or between specified dates. </p>
+<p>When a scheduled page executes, ColdFusion writes a message to
+a log file called schedule.log automatically. This file identifies
+the name of the scheduled action, the page to be executed, and whether
+the task scheduled executed successfully.You can pause and resume
+scheduled tasks. </p>
+</div><div id="WSe61e35da8d31851828f427c7134d088f996-8000" class="nochunk"><a name="WSe61e35da8d31851828f427c7134d088f996-8000"><!-- --></a><h3 class="topictitle3">Scheduled Task page</h3><div><p>The Scheduled Task page lets you create, edit, pause, resume,
+and delete scheduled tasks. This page has the following areas:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2400"><p>Area</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2403"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2400 "><p>Schedule New Tasks</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2403 "><p>Click to add new scheduled task.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2400 "><p>Actions</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2403 "><p>Click the icons to run, pause, edit or remove
+the schedule task.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2400 "><p>Task Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2403 "><p>Identifies the names of the existing tasks
+scheduled to run.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2400 "><p>Duration</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2403 "><p>Identifies the duration of the task to run.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2400 "><p>Interval</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2403 "><p>Identifies how often this task runs. The
+values for this column can be Once, Daily, or DailyEvery.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="para"><ul><li><p><strong>Application Level Scheduled Tasks:</strong> Provides
+a list of application-specific tasks that you have scheduled, with
+task details in tabular format.</p>
+<p>The table provides details
+such as actions, application name, group, task name, duration, interval,
+last run, next run, repeat count, and if cluster is enabled.</p>
+<div class="para"><div class="note"><span class="notetitle">Note:  </span>Application-specific
+tasks cannot be created using ColdFusion Administrator. But you
+can pause, resume, or delete the tasks.</div>
+</div>
+</li>
+<li><p><strong>Server Level Scheduled Tasks:</strong> Provides a list of server-specific
+tasks that you have scheduled, with task details in tabular format. </p>
+<p>The
+table provides new details such as group, next run, repeat count,
+if cluster is enabled, and the remaining task count.</p>
+</li>
+<li><p><strong>Enable Cluster Setup:</strong> Applies if you have at least
+one data source configured. Specify the following details: </p>
+<ul><li><p><strong>Select Data source:</strong> All the data sources you have
+connected to are listed. </p>
+</li>
+<li><p><strong>Create Tables for Cluster Setup: </strong>Check to create scheduler-specific
+tables for cluster. </p>
+<div class="note"><span class="notetitle">Note:  </span>Enable this option only for one node
+in the cluster. Otherwise, the tables are overridden. If you have
+created tables from one node, in other nodes you need to only select
+and choose the data source. All nodes will point to the same data
+source and therefore will be part of the cluster.</div>
+</li>
+<li><p>After you specify the details, click Submit.</p>
+</li>
+</ul>
+<p>To
+disable cluster, select the option Disable Cluster.</p>
+</li>
+</ul>
+</div>
+</div></div><div id="WSe61e35da8d31851828f427c7134d088f996-7fff" class="nochunk"><a name="WSe61e35da8d31851828f427c7134d088f996-7fff"><!-- --></a><h3 class="topictitle3">Add/Edit Scheduled Task page</h3><div><p>Add/Edit Scheduled Task page lets you add or edit task.
+Click Submit after you specify the following tasks. When the page
+loads for the first time, you are provided with only minimum options
+to create the task. Click Show Additional tasks to list all settings.</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2499"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2502"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Task Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Enter a name for the task in the Task Name
+text box. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Duration</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Enter the start and end dates for the task.
+The end date is optional. If you want this task to execute continuously,
+leave the End Date text box blank.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Frequency</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><div class="para">Select the schedule for running this task:<ul><li><p><strong>One-time</strong> Schedules the task to run once on the start
+date and scheduled time specified. Specify the date and time. The
+task must be set at least 15 minutes in the future in order for
+the task to execute successfully</p>
+</li>
+<li><p><strong>Recurring</strong> Schedules the task to run daily, weekly,
+or monthly at the specified time. </p>
+</li>
+<li><p><strong>Daily every</strong> Schedules the task to repeat during a
+day. Specify Start Time and End Time to designate when the task
+begins and ends. Specify Hours, Minutes, Seconds to set an interval
+after which the task repeats.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>URL</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Enter the URL for the ColdFusion page that
+you want to execute. You can execute a local page or a page on a
+remote ColdFusion Server, assuming that you have the proper access rights.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Username</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>(Optional) Specify a user name only if the
+page you want to execute is in a secure location.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Password</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>(Optional) Specify a password only if the
+page you want to execute is in a secure location.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Timeout</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>(Optional) Specify a timeout setting. This
+helps prevent requests from stalling due to an overloaded web server,
+a network problem, or a page that takes too long to execute.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Proxy Server: Port</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>(Optional) If this request must be routed
+through a proxy server, enter the URL and Port number of that proxy
+server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Publish; File</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>(Optional) To publish an output file of
+this task, select the Save Output to a File option and then, in
+the File text box, enter the full path and filename of the output
+file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Resolve URL</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>(Optional) Select the Resolve URL option
+to replace any relative URLs used in links returned in the result
+page to absolute URLs.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Group</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>The group to which the scheduled tasks belong.
+Ensure that the combination of task name and group are unique.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Crontime</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Specify task scheduling time in cron job
+syntax.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Overwrite</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>If not selected, creates new output files
+every time the task executes.</p>
+<p>Select to overwrite the existing
+output file, instead of creating a new one.</p>
+<p>Note
+that Publish file in schedule tasks can now only have TXT and .log
+extensions by default. You can add more extensions in cfusion\lib\neo-cron
+xml.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Eventhandler</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>A CFC file whose pre-defined methods are
+invoked for various events while running the task. </p>
+<p>The path
+you specify must be relative to webroot. For example, <samp class="codeph">schedulerdemo.eventhandler</samp>.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Exclude</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Comma-separated list of dates or date range
+for exclusion in the schedule period.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>On Misfire</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Specify what the server has to do if a scheduled
+task misfires.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>On Exception</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Specify what to do if a task results in
+error.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>On Complete</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>The action to be performed after the completion
+of current task. Specify the details in the following format:</p>
+<p><samp class="codeph">Task1:Group1,Task3:Group3</samp></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Priority</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>An integer that indicates the priority of
+the task.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Retry Count</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>The number of reattempts if the task results
+in an error.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2499 "><p>Cluster</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2502 "><p>Enable to execute tasks in cluster setup.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div></div>
+<div id="WSe61e35da8d3185186dac731f134c2e64c97-8000" class="nochunk"><a name="WSe61e35da8d3185186dac731f134c2e64c97-8000"><!-- --></a><h2 class="topictitle2">WebSocket page</h2><div><p>Use the ColdFusion Administrator (Server Settings &gt;
+WebSocket) to specify the following WebSocket-related details:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2697"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2700"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2697 "><p>Port</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2700 "><p>Port that the WebSocket server listens to.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2697 "><p>Socket Timeout</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2700 "><p>Socket timeout</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2697 "><p>Max Data Size</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2700 "><p>Data size of packets sent/received.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2697 "><p>Start Flash Policy Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2700 "><p>Start Flash cross-domain Policy Server on
+port 843. This is required for Flash fallback if there is no native WebSocket
+support at the client side.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fed" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fed"><!-- --></a><h2 class="topictitle2">Charting page</h2><div><p>The ColdFusion charting
+and graphing server lets you produce highly customizable business
+graphics, in various formats, using the <samp class="codeph">cfquery</samp> tag.
+Use the Charting page in the Administrator to control characteristics
+of the server. </p>
+<p>The following table describes the caching and thread settings
+for the ColdFusion charting and graphing server:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2751"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2754"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2751 "><p>Cache Type</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2754 "><p>Set the cache type. Charts can be cached
+either in memory or to disk. Memory caching is faster, but more memory
+intensive.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2751 "><p>Maximum Number Of Cached Images</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2754 "><p>Specify the maximum number of charts to
+store in the cache. After the cache is full, if you generate a new chart,
+ColdFusion discards the oldest chart in the cache.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2751 "><p>Max Number Of Charting Threads </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2754 "><p>Specify the maximum number of chart requests
+that can be processed concurrently. The minimum number is 1 and
+the maximum is 5. (Higher numbers are more memory-intensive.)</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2751 "><p>Disk Cache Location</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2754 "><p>When caching to disk, specify the directory
+in which to store the generated charts. </p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fec" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fec"><!-- --></a><h2 class="topictitle2">Font Management page</h2><div><p>The Font Management page lets you review and define fonts
+for use with Adobe® FlashPaper™ and
+Acrobat® PDF output formats. ColdFusion
+generates FlashPaper and PDF output through the <samp class="codeph">cfdocument</samp> tag
+and through the <samp class="codeph">cfreport</samp> tag, when used to call
+a report created with the ColdFusion Report Builder.</p>
+<p>ColdFusion automatically registers Acrobat built-in fonts and
+fonts located in typical font locations (such as the Windows\fonts
+directory). However, if your server has additional fonts installed
+in nonstandard locations, you register them with the ColdFusion
+Administrator so that the <samp class="codeph">cfdocument</samp> and <samp class="codeph">cfreport</samp> tags
+can locate and render PDF and FlashPaper reports.</p>
+<p>This page contains the following topics:</p>
+<dl><dt class="dlterm">Register New Font with ColdFusion</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Lets you browse to a directory that contains fonts, or select
+a specific font.</dd><p class="dlseparator"></p><dt class="dlterm">User Defined Fonts</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Displays the fonts that have been registered explicitly.</dd><p class="dlseparator"></p><dt class="dlterm">Current System Fonts</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Displays fonts stored in platform-specific system font directories. <p>The
+following table describes the fields on the Font Management page:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2844"><p>Area </p>
+</th>
+<th valign="top" width="NaN%" id="d16e2847"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2844 "><p>New Font/Font Directory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2847 "><div class="para">Specifies a fully qualified path to a directory
+that contains font files or to a specific font file. The ColdFusion
+Administrator lets you register the following types of font formats:<ul><li><p>TTF: TrueType font.</p>
+</li>
+<li><p>TTC: Collection of TrueType or OpenType fonts.</p>
+</li>
+<li><p>OTF: OpenType font.</p>
+</li>
+<li><p>PFB: (Adobe printer fonts).</p>
+</li>
+<li><p>AFM: Adobe Font Metrics.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2844 "><p>Font Family</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2847 "><p>High-level font name (for example, Arial
+or Times New Roman).</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2844 "><p>Font Face</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2847 "><p>A specific font face (for example, Arial
+Italic or Times New Roman Bold).</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2844 "><p>PostScript Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2847 "><p>Specifies the PostScript name of the font.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2844 "><p>Font Type</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2847 "><p>Specifies the font type (for example, TrueType
+or Adobe Built-In)</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2844 "><p>Usable In</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2847 "><p>Specifies whether the font is usable in
+PDF, FlashPaper, or both formats. Note that Adobe built-in fonts
+are not usable in FlashPaper output format.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2844 "><p>Path</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2847 "><p>Fully qualified path to the font file.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The Font Management page also displays
+the built-in Acrobat fonts, which are available for PDF only.</p>
+<p>For
+more information on reporting in ColdFusion, see Creating Reports
+and Documents for Printing in the <i>Developing ColdFusion Applications</i>.</p>
+</dd><p class="dlseparator"></p></dl>
+</div><div id="WSe61e35da8d318518156c4be7134ccf066c8-8000" class="nochunk"><a name="WSe61e35da8d318518156c4be7134ccf066c8-8000"><!-- --></a><h3 class="topictitle3">About Font Management</h3><div><p>ColdFusion can create documents and reports in both PDF
+and FlashPaper format. Both of these formats require that the server
+computer have access to the fonts used in the HTML styles (cfdocument
+tag) or the report definition (ColdFusion Report Builder). ColdFusion
+requires access to these fonts to properly render text in PDF and
+FlashPaper documents and, when specified, to embed fonts into a
+PDF file.</p>
+<div class="section"><h4 class="sectiontitle">Types of fonts and font extensions</h4><div class="para">The
+ColdFusion Administrator lets you register the following types of
+fonts:
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e2944"><p>Type</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2947"><p>File extension</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2950"><p>Description</p>
+</th>
+<th valign="top" width="NaN%" id="d16e2953"><p>Usable in</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e2944 "><p>True Type</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2947 "><p>TTF</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2950 "><p>Scaleable font format developed by Apple Computer
+and supported in all Macintosh and Windows operating systems.</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2953 "><p>PDF and FlashPaper</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2944 "><p>True Type Collection</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2947 "><p>TTC</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2950 "><p>A file that contains multiple TrueType or OpenType
+fonts</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2953 "><p>PDF and FlashPaper</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2944 "><p>Open Type</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2947 "><p>OTF</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2950 "><p>An extension of the TrueType font format. </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2953 "><p>PDF and FlashPaper</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2944 "><p>Adobe printer font</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2947 "><p>PFB</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2950 "><p>Adobe printer font</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2953 "><p>PDF only</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e2944 "><p>Adobe Font Metrics</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2947 "><p>AFM</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2950 "><p>A font format that contains general font information
+and font metrics information. Typically used on Unix only.</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e2953 "><p>PDF only</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+The Font Management page also displays the
+built-in Acrobat fonts, which are available for PDF only.ColdFusion
+does not use PFM or FFT fonts.</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Font locations</h4><p>The ColdFusion Administrator
+automatically displays the fonts discovered in platform-specific
+default locations, as follows:</p>
+<div class="para"><ul><li><p><strong>Windows</strong> -
+The Windows/Fonts directory (for example, WINDOWS/Fonts or WINNT/Fonts)</p>
+</li>
+<li><p><strong>Unix</strong> - The following directories:</p>
+<div class="para"><ul><li><p>/usr/X/lib/X11/fonts/TrueType</p>
+</li>
+<li><p>/usr/openwin/lib/X11/fonts/TrueType</p>
+</li>
+<li><p>/usr/share/fonts/default/TrueType</p>
+</li>
+<li><p>/usr/X11R6/lib/X11/fonts/ttf</p>
+</li>
+<li><p>/usr/X11R6/lib/X11/fonts/truetype</p>
+</li>
+<li><p>/usr/X11R6/lib/X11/fonts/TTF</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<p>Additionally,
+you can define fonts stored in other locations on the server. These are
+called user-defined fonts. For example, you may want to register
+the Lucida family of TrueType fonts, which the Sun JDK ships in
+the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">jdk_root</i>/jre/lib/fonts directory.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Embedding fonts in PDF output</h4><p>Report developers
+can optionally specify that ColdFusion embed fonts in the PDF file
+(FlashPaper always embeds fonts). When using the cfdocument tag,
+fonts are embedded if fontEmbed is set to yes or selective. When
+using reports defined in the Report Builder, fonts are embedded
+if specified in the report definition file.</p>
+<p>Embedding fonts
+increases file size, but ensures that reports display appropriately
+regardless of whether or not client computers have the fonts installed.</p>
+<div class="para"><div class="note"><span class="notetitle">Note:  </span>Some
+font licenses prohibit embedding. ColdFusion does not embed fonts marked
+as not-for-embedding.</div>
+</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Client requirements</h4><p>If fonts are not embedded
+in the PDF file, fonts must be installed on the client computer
+to ensure that reports display appropriately.</p>
+<p>Most Windows
+computers ship with Internet Explorer, which includes the Microsoft
+Core Fonts, a set of TrueType fonts. </p>
+</div>
+<div class="section"><h4 class="sectiontitle">UNIX considerations</h4><p>If you install ColdFusion
+on a UNIX computer you must ensure that the appropriate fonts are
+installed, even if the computer provides console access only.For more
+information on TrueType fonts for UNIX, see <a href="http://corefonts.sourceforge.net/" target="_self">http://corefonts.sourceforge.net/</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">ColdFusion Report Builder considerations</h4><p>The
+ColdFusion Report Builder has no automatic knowledge of fonts available
+on the server so the developer building the report definition must
+consult the ColdFusion MX Administrator to determine which fonts
+are available on the server and, if necessary, register fonts in
+the Administrator or install fonts on the computer that runs Report
+Builder.</p>
+</div>
+</div></div></div>
+<div id="WSA5D55EAA-F5B0-46bc-86B1-ADB51B638AB8" class="nochunk"><a name="WSA5D55EAA-F5B0-46bc-86B1-ADB51B638AB8"><!-- --></a><h2 class="topictitle2">Document page</h2><div><p>The Document page allows you to configure OpenOffice application.
+If you did not configure during installation, provide the directory
+path to configure OpenOffice.</p>
+<p>Depending on whether your ColdFusion server is installed on a
+local or remote server, you can configure OpenOffice with your ColdFusion
+server instance. </p>
+<p>For more information about configuring OpenOffice with ColdFusion,
+see <a href="http://help.adobe.com/en_US/ColdFusion/10.0/Installing/WS899EE911-747B-45cf-8550-DC9123823364.html" target="_self">Configuring
+OpenOffice</a> in <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Installing ColdFusion</i>. </p>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7feb" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7feb"><!-- --></a><h2 class="topictitle2">Java and JVM page</h2><div><div class="para"><div class="note"><span class="notetitle">Note:  </span>This
+page does not apply when deploying ColdFusion on a J2EE server.</div>
+</div>
+<p>The Java and JVM page lets you specify the following settings,
+which enable ColdFusion to work with Java:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e3130"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3133"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e3130 "><p>Java Virtual Machine Path</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3133 "><p>The absolute file path to the location of
+the Java Virtual Machine (JVM) root directory. The default is <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/runtime/jre.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3130 "><p>Minimum JVM Heap Size</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3133 "><p>The JVM initial heap size.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3130 "><p>Maximum JVM Heap Size </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3133 "><p>The JVM maximum heap size. The default value
+is 512 MB.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3130 "><p>ColdFusion Class Path</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3133 "><p>The file paths to the directories that contain
+the JAR files that ColdFusion uses. Specify either the fully qualified
+name of a directory that contains your JAR files or a fully qualified
+JAR filename. Use a comma to separate multiple entries.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3130 "><p>JVM Arguments</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3133 "><p>The arguments to the JVM. Use a space to
+separate multiple entries (for example, -Xint -Xincgc).</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="para"><div class="note"><span class="notetitle">Note:  </span>You must restart ColdFusion after making changes.</div>
+</div>
+<p>When you update the Java and JVM Settings page, ColdFusion writes
+the changes to jvm.config, which is located in <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root\runtime\bin</i>.
+Before ColdFusion saves your changes, it saves a copy of the current
+jvm.config file as jvm.bak. If your changes prevent ColdFusion from
+restarting, use jvm.bak to restore your system. For example, rename
+jvm.config to jvm.config_BAD, and then rename jvm.bak to jvm.config.</p>
+<p>ColdFusion filters out default settings for the jvm.args attribute
+from the jvm.config file, including the following:</p>
+<div class="para"><pre>aArgs[i] contains '-Xmx' 
+aArgs[i] contains '-Xms' 
+aArgs[i] contains "-Djava.security.manager" 
+aArgs[i] contains "-Djava.security.policy" 
+aArgs[i] contains "-Djava.security.auth.policy" 
+aArgs[i] contains '-Djava.awt.graphicsenv' 
+aArgs[i] contains '-Djava.awt.headless' 
+aArgs[i] contains '-Dcoldfusion.classPath' 
+aArgs[i] contains '-Dcoldfusion.rootDir' 
+aArgs[i] contains '-Dcoldfusion.libPath' 
+aArgs[i] contains '{application.home}/lib/webchartsJava2D.jar'</pre>
+</div>
+<p>To use Server Monitor or Multiserver Monitor on a J2EE deployment
+of ColdFusion on Oracle 10g, in JVM Arguments set <samp class="codeph">-Doc4j.jmx.security.proxy.off=true</samp></p>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fea" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fea"><!-- --></a><h2 class="topictitle2">Settings Summary page</h2><div><p>The Settings Summary page shows all
+ColdFusion configuration settings. Click a group name to open the
+Administrator section of that group, where you can edit settings.
+This page is not enabled in the Standard Edition.</p>
+<p>In ColdFusion, you can export the server settings to PDF by clicking
+the Save As PDF button on this page.</p>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ffd.html" title="Accessing user assistance"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html" title="Data &amp; Services section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

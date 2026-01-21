@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * About JDBC</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf3639b1-7ffd.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf3639b1-7ffd.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html" title="Data Source Management"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3639b1-7ffc.html" title="Adding data sources"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html"><b>Data Source Management</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>About JDBC</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3639b1-7ff8"><span class="topictitle1">Supplied drivers</span>
+</a></p></li></ul></div></div></div></div><div><p>JDBC is a Java
+Application Programming Interface (API) that you use to execute SQL
+statements. JDBC enables an application, such as ColdFusion, to
+interact with various database management systems (DBMSs), without
+using interfaces that are database- and platform-specific.</p>
+<p>The following
+table describes the four types of JDBC drivers:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e7486"><p>Type</p>
+</th>
+<th valign="top" width="NaN%" id="d16e7489"><p>Name</p>
+</th>
+<th valign="top" width="NaN%" id="d16e7492"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e7486 "><p>1</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7489 "><p>JDBC-ODBC bridge</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7492 "><p>Translates JDBC calls to ODBC calls, and
+sends them to the ODBC driver. </p>
+<p>Advantages: Allows access
+to many different databases.</p>
+<p>Disadvantages: The ODBC driver,
+and possibly the client database libraries, must reside on the ColdFusion
+server computer. Performance is slower than other JDBC driver types.</p>
+<p>Adobe
+does not recommend this driver type unless your application requires
+DBMS-specific features.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7486 "><p>2</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7489 "><p>Native-API/partly Java driver </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7492 "><p>Converts JDBC calls to database-specific
+calls.</p>
+<p>Advantages: Better performance than Type 1 driver.</p>
+<p>Disadvantages:
+The client database libraries of the vendor must reside on the same
+computer as ColdFusion.</p>
+<p>ColdFusion includes a Type 2 driver
+for use with Microsoft Access Unicode databases.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7486 "><p>3</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7489 "><p>JDBC-Net pure Java driver </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7492 "><p>Translates JDBC calls to the middle-tier
+server, which then translates the request to the database-specific
+native-connectivity interface.</p>
+<p>Advantages: The database libraries
+of vendors are not required client computer. Can be tailored for small
+size (faster loading).</p>
+<p>Disadvantages: Database-specific code
+must be executed in the middle tier.</p>
+<p>ColdFusion includes an
+ODBC socket Type 3 driver for use with Microsoft Access databases
+and ODBC data sources.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7486 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7489 "><p>Native-protocol/all-Java driver </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7492 "><p>Converts JDBC calls to the network protocol
+used directly by the database.</p>
+<p>Advantages: Fast performance.
+No special software needed on the computer on which you run ColdFusion.</p>
+<p>Disadvantages:
+Many of these protocols are proprietary, requiring a different driver
+for each database.</p>
+<p>ColdFusion includes Type 4 drivers for
+many DBMSs; however, not all DBMSs are supported in ColdFusion Standard
+Edition.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>JDBC drivers are stored in JAR files.
+For example, the JDBC drivers that are supplied with ColdFusion
+are in the _drivers.jar file. If you are using another JDBC driver,
+you must store it in the ColdFusion classpath. For example, <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/cfusion/lib
+(server configuration) or <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_webapp_root</i>/WEB-INF/cfusion/lib
+(multiserver or J2EE configuration).</p>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3639b1-7ff8" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3639b1-7ff8"><!-- --></a><h2 class="topictitle2">Supplied drivers</h2><div><p>The following table lists the database drivers supplied
+with ColdFusion and where you can find more information about them:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e7584"><p>Driver</p>
+</th>
+<th valign="top" width="NaN%" id="d16e7587"><p>Type</p>
+</th>
+<th valign="top" width="NaN%" id="d16e7590"><p>For more information</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Apache Derby Client</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>&#160;</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fdb.html">Connecting to Apache Derby Client</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Apache Derby Embedded</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>&#160;</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fda.html">Connecting to Apache Derby Embedded</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>DB2 Universal Database</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fdd.html">Connecting to DB2 Universal Database</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>DB2 OS/390</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe9.html">Connecting to other data sources</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Informix</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe8.html">Connecting to Informix</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Microsoft Access</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>3</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe7.html">Connecting to Microsoft Access</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Microsoft Access with Unicode support</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>2</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe6.html">Connecting to Microsoft Access with Unicode</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Microsoft SQL Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe5.html">Connecting to Microsoft SQL Server</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>MySQL</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe4.html">Connecting to MySQL</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>ODBC Socket</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>3</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe3.html">Connecting to ODBC Socket</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Oracle</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe2.html">Connecting to Oracle</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Other</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>&#160;</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe9.html">Connecting to other data sources</a></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7584 "><p>Sybase</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7587 "><p>4</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7590 "><p><a href="WSc3ff6d0ea77859461172e0811cbf364104-7fe0.html">Connecting to Sybase</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>To see a list of database versions that ColdFusion supports,
+go to <a href="http://www.adobe.com/go/learn_cfu_cfsysreqs_en" target="_self">www.adobe.com/go/learn_cfu_cfsysreqs_en</a>.</p>
+<p>When running in the J2EE configuration, the ColdFusion Administrator
+also lets you configure a data source that connects to a JNDI data
+source. A Java Naming and Directory Interface (JNDI) data source
+is equivalent to a ColdFusion data source, except you define it
+by using your J2EE application server. After it’s defined, ColdFusion
+applications use it as they would any data source. For information
+on defining a JNDI data source, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fdf.html">Connecting to JNDI data sources</a>.</p>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html" title="Data Source Management"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3639b1-7ffc.html" title="Adding data sources"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html"><b>Data Source Management</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

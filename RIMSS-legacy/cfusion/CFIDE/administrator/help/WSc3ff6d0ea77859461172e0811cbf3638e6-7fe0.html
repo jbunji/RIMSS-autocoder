@@ -1,0 +1,1303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Debugging &amp; Logging section</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf3638e6-7fe0.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf3638e6-7fe0.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html" title="Data &amp; Services section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd4.html" title="Server Monitoring section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Debugging &amp; Logging section</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSe61e35da8d318518-462eebb0134d02ecc1d-8000"><span class="topictitle1">Debugging settings overview</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7ff8"><span class="topictitle1">Debugging Output Settings page</span>
+</a></p><ul><li><p><a href="#WS9F365555-357A-4a15-AC72-449EF611E342"><span class="topictitle2">Using the cfstat utility</span>
+</a></p></li><li><p><a href="#WS461F2C7B-9331-43eb-BB55-92BE901135C1"><span class="topictitle2">cfstat options</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fdc"><span class="topictitle1">Debugging IP Addresses page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fdb"><span class="topictitle1">Debugger Settings page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fda"><span class="topictitle1">Logging Settings page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd9"><span class="topictitle1">Log Files page</span>
+</a></p><ul><li><p><a href="#WSd160b5fdf5100e8f1a9fa44312a37dfaba0-8000"><span class="topictitle2">Enable/Disable logging</span>
+</a></p></li><li><p><a href="#WSe61e35da8d3185186bb90c52134e6e21f96-8000"><span class="topictitle2">Filter log content</span>
+</a></p></li><li><p><a href="#WSd160b5fdf5100e8f1a9fa44312a37dfaba0-7fff"><span class="topictitle2">Log files introduced in ColdFusion 9.0.1</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd7"><span class="topictitle1">System Probes</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d318518325dd97e134cd5912d9-8000"><span class="topictitle2">System Probes page</span>
+</a></p></li><li><p><a href="#WSe61e35da8d318518325dd97e134cd5912d9-7fff"><span class="topictitle2">Add/Edit System Probe page</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd6"><span class="topictitle1">Code Analyzer page</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fd5"><span class="topictitle1">License Scanner page</span>
+</a></p></li></ul></div></div></div></div><div><ul class="navlinklist"></ul>
+</div>
+<div id="WSe61e35da8d318518-462eebb0134d02ecc1d-8000" class="nochunk"><a name="WSe61e35da8d318518-462eebb0134d02ecc1d-8000"><!-- --></a><h2 class="topictitle2">Debugging settings overview</h2><div><p>Use the Debugging Settings and Debugging
+IPs pages to configure ColdFusion to provide debugging information
+for every application page that a browser request. Specify debugging
+preferences by using the pages as follows:</p>
+<ul><li><p>On the <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ff8.html">Debugging Output Settings page</a>, select debugging output options. If debugging
+is enabled, the output appears in block format after normal page output.</p>
+</li>
+<li><p>On the <a href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fdc.html">Debugging IP Addresses page</a>, restrict access to debugging output. If a
+debugging option is enabled, debugging output is visible to all
+users by default.</p>
+</li>
+<li><p>On the <a href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fda.html">Logging Settings page</a>, specify a directory for error log files that
+can contain useful debugging information.</p>
+</li>
+</ul>
+<div class="note"><span class="notetitle">Note:  </span>Enabling debugging affects performance. It is
+advised that you do not enable debugging on a production server.</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7ff8" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7ff8"><!-- --></a><h2 class="topictitle2">Debugging Output Settings page</h2><div><p>The Debug Output Settings page provides the following debugging
+options:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e3836"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3839"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Enable Robust Exception Information</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Displays detailed information in the exceptions
+page, including the physical path and URI of the template, the line
+number and snippet, the SQL statement used (if any), the data source name
+(if any), and the Java stack trace.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Enable Request Debugging Output</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Enables the ColdFusion debugging service. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Select Debugging Output Format</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Controls debugging format. Select either
+of the following formats: </p>
+<div class="para"><ul><li><p>classic.cfm The format
+available in ColdFusion 5 and earlier. It provides a basic view
+and few browser restrictions. </p>
+</li>
+<li><p>dockable.cfm A dockable tree-based debugging panel. For details
+about the panel and browser restrictions, see the online Help.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Report Execution Times</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Reports execution times that exceed a specified
+time limit.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>General Debug Information</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Show general information about the ColdFusion
+MX version, template, timestamp, user locale, user agent, user IP,
+and host name.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Database Activity </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Shows the database activity for the SQL
+Query events and Stored Procedure events in the debugging output. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Exception Information</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Shows all ColdFusion exceptions raised for
+the request in the debugging output. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Tracing Information</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Shows trace event information in the debugging
+output. Tracing lets you track program flow and efficiency using
+the <samp class="codeph">cftrace</samp> tag. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Timer Information</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Shows output from the <samp class="codeph">cftimer</samp> tag.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Flash Form Compile Errors And Messages </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>(Development use only) Displays ActionScript
+errors in the browser when Flash forms are compiling, and affects
+the display time of the page.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Variables</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Displays information about parameters, URL
+parameters, cookies, sessions, and CGI variables in the debugging
+output.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Enable Performance Monitoring</p>
+<p>(Server
+configuration only)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Enables the standard NT Performance Monitor
+application to display information about a running server.</p>
+<p>TIP:
+Restart ColdFusion after you change this setting.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3836 "><p>Enable CFSTAT</p>
+<p>(Server configuration
+only)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3839 "><p>Shows performance information on platforms
+that do not support the NT Performance Monitor. For more information,
+see <a href="WS9F365555-357A-4a15-AC72-449EF611E342.html">Using the cfstat utility</a>.</p>
+<p>TIP: Restart ColdFusion after you
+change this setting.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><div id="WS9F365555-357A-4a15-AC72-449EF611E342" class="nochunk"><a name="WS9F365555-357A-4a15-AC72-449EF611E342"><!-- --></a><h3 class="topictitle3">Using the cfstat utility</h3><div><p>The <samp class="codeph">cfstat</samp> command-line
+utility provides real-time performance metrics for ColdFusion. The <samp class="codeph">cfstat</samp> utility
+uses a socket connection to obtain metric data. You can use the
+cfstat utility to display information that ColdFusion writes to
+the System Monitor without using the System Monitor application.
+The following table lists the metrics that the <samp class="codeph">cfstat</samp> utility
+returns:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e3984"><p>Metric abbreviation</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3987"><p>Metric name</p>
+</th>
+<th valign="top" width="NaN%" id="d16e3990"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e3984 "><p>Pg/Sec</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Page hits per second</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>The number of ColdFusion pages processed
+per second. You can reduce this limit by moving static content to
+HTML pages.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>DB/Sec</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Database accesses per second</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>The number of database accesses per second
+that ColdFusion makes. Any difference in complexity and resource
+load between calls is ignored.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>Req Q'ed</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Number of queued requests</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>The number of requests that are currently
+waiting for ColdFusion to process them. Lower values, which you
+can achieve with efficient CFML, are better.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>Req Run'g</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Number of running requests</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>The number of requests that ColdFusion is
+currently actively processing.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>Req TO'ed</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Number of timed out requests</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>The total number of ColdFusion requests
+that have timed out. Lower values, which you can achieve by aggressive
+caching, removing unnecessary dynamic operations and third-party
+events, are better.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>AvgQ Time</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Average queue time</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>A running average of the time, in milliseconds,
+that requests wait for ColdFusion to process them. Lower values,
+which you can achieve with efficient CFML and enhanced caching,
+are better. Averages are displayed for the last two completed requests.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>AvgReq Time</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Average request time</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>A running average of the time, in milliseconds,
+that it takes ColdFusion to process a request (including queued
+time). Lower values, which you can achieve with efficient CFML,
+are better. Averages are displayed for the last two completed requests.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>AvgDB Time</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Average database transaction time</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>A running average of the time that ColdFusion
+spends on database-related processing of ColdFusion requests. Averages
+are displayed for the last two completed requests.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>Bytes In/Sec</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Bytes incoming per second</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>The number of bytes that ColdFusion read
+in the last second (not an average).</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e3984 "><p>Bytes Out/Sec</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3987 "><p>Bytes outgoing per second</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e3990 "><p>The number of bytes that ColdFusion wrote
+in the last second (not an average).</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Before you use the <samp class="codeph">cfstat</samp> utility, ensure that
+you selected the Enable Performance Monitoring option in the ColdFusion
+Administrator (on the Debugging &amp; Logging &gt; Debugging Settings
+page). If you select this option, restart ColdFusion for this change
+to take effect.</p>
+</div></div><div id="WS461F2C7B-9331-43eb-BB55-92BE901135C1" class="nochunk"><a name="WS461F2C7B-9331-43eb-BB55-92BE901135C1"><!-- --></a><h3 class="topictitle3">cfstat options</h3><div><p>The <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/bin directory contains the <samp class="codeph">cfstat</samp> utility.
+From that directory, type <strong>cfstat</strong> and use the following switches:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4123"><p>Switch</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4126"><p>Description</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4129"><p>Comment</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4123 "><p>-n</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4126 "><p>Suppress column headers.</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4129 "><p>Useful for saving output to a file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4123 "><p>-s</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4126 "><p>Display output in a single line.</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4129 "><p>Display a single line and delay display
+of the first line so the <samp class="codeph">cfstat</samp> utility can display
+meaningful values in the per-second counters.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4123 "><p>#</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4126 "><p>Where # is an integer, display output every
+# seconds.</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4129 "><p>If you do not specify an integer, the <samp class="codeph">cfstat</samp> utility
+returns one line. Specify this switch with or without the ‑s switch.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4123 "><p>-x</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4126 "><p>Display extended output breaking of different
+request threads.</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4129 "><p>Available in ColdFusion Enterprise. It is
+ignored in ColdFusion Standard.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4123 "><p>-port</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4126 "><p>Allows you to specify the port to which ColdFusion
+listens for <samp class="codeph">cfstat</samp> communications.</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4129 ">&#160;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This example runs the <samp class="codeph">cfstat</samp> utility and displays
+a new line every 20 seconds:</p>
+<pre>cfstat 20</pre>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fdc" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fdc"><!-- --></a><h2 class="topictitle2">Debugging IP Addresses page</h2><div><p>Use the Debugging IP Addresses
+page to restrict debugging output to one or more IP addresses. You
+can add and remove IP addresses. </p>
+<p>To add a debugging IP address, </p>
+<div class="para"><ol><li><p>In the Debugging IP Addresses page, enter an IP address
+that you want to receive debugging output. The default IP address
+is 127.0.0.1.</p>
+</li>
+<li><p>Click Add.</p>
+</li>
+<li><p>(Optional) To add the IP address of the computer you are
+using, click Add Current. The list below the IP Address field shows
+the IP addresses that you added. </p>
+</li>
+</ol>
+To remove a debugging
+IP address:<ol><li><p>Select an IP address from the list.</p>
+</li>
+<li><p>Click Remove Selected. The address no longer appears in the
+list.</p>
+</li>
+</ol>
+</div>
+<div class="note"><span class="notetitle">Note:  </span>If you do not specify IP addresses, and debugging
+options are active, ColdFusion displays debugging output for all
+users. </div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fdb" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fdb"><!-- --></a><h2 class="topictitle2">Debugger Settings page</h2><div><p>To use the ColdFusion Debugger that runs in Eclipse, select
+the Allow Line Debugging option.</p>
+<p>Specify the port and the maximum number of simultaneous debugging
+sessions. Specify the debugger port in the JVM settings of your
+application server, for example:</p>
+<pre>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=#portNum#</pre>
+<p>To stop a currently running debugging session, click Stop Debugging.</p>
+<p>For the changes that you specify on this page to take effect,
+restart the ColdFusion server.</p>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fda" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fda"><!-- --></a><h2 class="topictitle2">Logging Settings page</h2><div><p>Use the Logging Settings page of the Administrator to change
+ColdFusion logging options. The following table describes the settings:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4258"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4261"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4258 "><p>Log Directory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4261 "><p>Specifies the directory to which error log
+files are written.</p>
+<p>TIP: Restart ColdFusion after you change
+this setting.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4258 "><p>Maximum File Size (kb) </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4261 "><p>Sets the maximum file size for log files.
+When a file reaches this limit, it automatically is archived. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4258 "><p>Maximum Number Of Archives</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4261 "><p>Sets the maximum number of log archives
+to create. When they reach this limit, files are deleted in the
+order of oldest to newest. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4258 "><p>Log Slow Pages Taking Longer Than [n] Seconds </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4261 "><p>Logs the names of pages that take longer
+than the specified interval to process. Logging slow pages can help
+you diagnose potential problems or bottlenecks in your ColdFusion
+applications. Entries are written to the server.log file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4258 "><p>Log All CORBA Calls</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4261 "><p>Logs all CORBA calls.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4258 "><p>Enable Logging For Scheduled Tasks </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4261 "><p>Logs ColdFusion Executive task scheduling.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd9" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd9"><!-- --></a><h2 class="topictitle2">Log Files page</h2><div><p>The Log Files page lets you perform operations on log files,
+such as searching, viewing, downloading, archiving, and deleting. </p>
+<p>Click a Log File icon located in the Actions column of the Available
+Log Files table, to search, view, download, archive, or delete a
+log file.</p>
+<p>Use the Logging Settings page to enable or disable administrative
+logging options, as the following table describes:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4328"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4331"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4328 "><p>Log directory</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4331 "><p>Select this option to change the location
+where ColdFusion log files are written.</p>
+<p>The location that
+you specify in this field must have sufficient disk space and security
+privileges for the ColdFusion system service.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4328 "><p>Maximum file size (KB)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4331 "><p>Set the maximum file size for log files.
+When a file reaches this size, ColdFusion automatically archives
+it.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4328 "><p>Maximum number of archives</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4331 "><p>Set the maximum number of log archives to
+create. After reaching this limit, ColdFusion deletes files in order
+of oldest to newest.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4328 "><p>(UNIX only) Use operating system logging
+facilities</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4331 "><p>Select this option to log messages using
+the UNIX syslog logging facility. ColdFusion also writes log messages
+to the standard ColdFusion log files.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4328 "><p>Log slow pages taking longer than [n] seconds</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4331 "><p>Specify the number of seconds that ColdFusion
+waits before logging the names of pages that take longer than the
+specified interval to process. Logging slow pages can help you diagnose
+potential problems in your ColdFusion applications. ColdFusion writes
+entries to server.log.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4328 "><p>Log all CORBA calls</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4331 "><p>Select this option to log all CORBA calls.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4328 "><p>Enable logging for scheduled tasks</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4331 "><p>Select this option to log ColdFusion Executive
+task scheduling.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The
+following table describes the ColdFusion log files:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4394"><p>Log file</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4397"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4394 "><p>rdservice.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records errors that occur in the ColdFusion
+Remote Development Service (RDS). RDS provides remote HTTP-based
+access to files and databases.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>application.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records every ColdFusion error reported
+to a user. Application page errors, including ColdFusion syntax,
+ODBC, and SQL errors, are written to this log file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>exception.log </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records stack traces for exceptions that
+occur in ColdFusion.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>scheduler.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records scheduled events that have been
+submitted for execution. Indicates whether task submission was initiated
+and whether it succeeded. Provides the scheduled page URL, the date
+and time executed, and a task ID.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>eventgateway.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records events and errors related to event
+gateways.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>migration.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records errors related to upgrading from
+a previous version of ColdFusion.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>migrationException.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records errors related to running ColdFusion
+applications after upgrading from a previous version of ColdFusion.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>server.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records errors for ColdFusion.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>customtag.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records errors generated in custom tag processing.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>car.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records errors associated with site archive
+and restore operations.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>mail.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records errors generated by an SMTP mail
+server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>mailsent.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records messages that ColdFusion sends.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4394 "><p>flash.log</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4397 "><p>Records entries for Flash® Remoting.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div><div id="WSd160b5fdf5100e8f1a9fa44312a37dfaba0-8000" class="nochunk"><a name="WSd160b5fdf5100e8f1a9fa44312a37dfaba0-8000"><!-- --></a><h3 class="topictitle3">Enable/Disable logging</h3><div><p>Use the icon for start/stop in the Actions column of the
+Log Files page to stop/start logging for a particular log type.</p>
+</div></div><div id="WSe61e35da8d3185186bb90c52134e6e21f96-8000" class="nochunk"><a name="WSe61e35da8d3185186bb90c52134e6e21f96-8000"><!-- --></a><h3 class="topictitle3">Filter log content</h3><div><div class="para"><ol><li><p>To open the Log Filter, click Launch Filter
+on the Log Viewer page.</p>
+</li>
+<li><p>In the Log Filter dialog box, specify one or more of the
+following options:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4525"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4528"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4525 "><p>Show Serverity</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4528 "><p>Select one or more severity levels to filter.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4525 "><p>Keywords</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4528 "><p>Enter one or more words in the Keywords
+text box. Click the Find drop-down list box, and select one of these
+options: exact phrase, any words, or all words.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4525 "><p>Applications</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4528 "><p>If applicable, enter the application name
+to filter. If applicable, the application name appears as the fifth
+(entry) column in the log file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4525 "><p>Thread IDs </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4528 "><p>The thread identification numbers are used
+by Adobe Technical Support personnel to track and troubleshoot problems.
+The thread identification string appears as the fourth entry (column)
+in a log file. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4525 "><p>Most Recent</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4528 "><p>Specifies the relative age of included messages.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4525 "><p>Date Range</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4528 "><p>To display the log content for a specific
+date range, enter the start and end dates. Enter the dates in year-month-day
+format ( YYYY-MM-DD). For example, to specify April 21, 2002, enter:
+2002-04-21. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4525 "><p>Time Span</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4528 "><p>To show the log content for a specific time
+range, enter the start and end times. Enter the time span in hour-minute-second
+format ( HH:MM: SS). For example, to specify 2:00 P.M., enter 14:00:00.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</li>
+<li><p>To begin the filter process, click one of the following options:</p>
+<div class="para"><ul><li><p>Show Matches Displays results that match the filter criteria
+specified on the tab.</p>
+</li>
+<li><p>Hide Matches Displays results that exclude any information
+that matches the filter criteria specified on the tab.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div></div><div id="WSd160b5fdf5100e8f1a9fa44312a37dfaba0-7fff" class="nochunk"><a name="WSd160b5fdf5100e8f1a9fa44312a37dfaba0-7fff"><!-- --></a><h3 class="topictitle3">Log files introduced in ColdFusion 9.0.1</h3><div><p>You can generate log files for the following services in
+ColdFusion 9.0.1:</p>
+<div class="para"><ul><li><p>http</p>
+</li>
+<li><p>ftp</p>
+</li>
+<li><p>web service</p>
+</li>
+<li><p>Portlet</p>
+</li>
+<li><p>Derby</p>
+</li>
+<li><p>Feed</p>
+</li>
+</ul>
+</div>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd7" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd7"><!-- --></a><h2 class="topictitle2">System Probes</h2><div><div class="para"><div class="note"><span class="notetitle">Note:  </span>System probes are available in ColdFusion Enterprise
+Edition only.</div>
+</div>
+<p>System probes help you evaluate the status of your ColdFusion
+applications. Like scheduled tasks, they access a URL at a specified
+interval, but they can also check for the presence or absence of
+a string in the URL. If the URL contents are unexpected, or if an
+error occurred while accessing the URL, the probe can send an e-mail
+alert to the address specified on the System Probes page. The probe can
+also execute a script to perform a recovery action, such as restarting
+the server. All probe actions are logged in the logs/probes.log
+file. The System Probes page also displays the status of each probe.</p>
+<p>Use the buttons in the Actions column in the System Probes table
+to perform the following actions:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4639"><p>Action</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4642"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4639 "><p>Edit</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4642 "><p>Lets you edit the probe.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4639 "><p>Run</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4642 "><p>Runs the probe immediately, even if it was
+previously disabled.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4639 "><p>Enable/Disable</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4642 "><p>Starts and stops the probe from automatically
+executing at its specified interval.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4639 "><p>Delete</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4642 "><p>Deletes the probe.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Because probes run as scheduled ColdFusion tasks, they do not
+run if the server on which they are hosted crashes, or if the host
+web server crashes or otherwise does not respond.</p>
+</div><div id="WSe61e35da8d318518325dd97e134cd5912d9-8000" class="nochunk"><a name="WSe61e35da8d318518325dd97e134cd5912d9-8000"><!-- --></a><h3 class="topictitle3">System Probes page</h3><div><p>Use the System Probes page to manage the ColdFusion system
+probes that were created to monitor the availability of a resource
+in your website.</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4691"><p>Item</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4694"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Define New Probe </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Click this button to create a probe configuration.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Actions</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Click these buttons to run, edit, delete,
+or disable an existing probe configuration.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Probe Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Shows the names of the ColdFusion probes
+created.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Status</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Shows the current operating state of one
+or more configured probes per URL, as follows:</p>
+<div class="para"><ul><li><p>OK, if the probe is active</p>
+</li>
+<li><p>Failed, if a probe is unable to access the URL specified.</p>
+</li>
+<li><p>Disabled, if the probe is disabled.</p>
+</li>
+<li><p>Unknown</p>
+</li>
+</ul>
+, if the probe is inactive and has not
+run since the last server restart.</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Interval</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Shows the period between probes.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>URL</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Identifies the URL path that each probe
+is monitoring.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Notification</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Notification Email Recipients Specify the
+e-mail address of the recipient if a probe fails to connect to the
+specified URL.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Email</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p> Specify the e-mail address of sender. By
+default, this address is the address specified on the Mail Server
+page.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Probe.cfm URL</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>Specifies the probe.cfm page that is located
+in the CFIDE directory. ColdFusion requires this page to successfully
+execute probe configurations.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Probe.cfm Username</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>If the CFIDE directory is secured, the user
+name for that directory is required.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4691 "><p>Probe.cfm Password </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4694 "><p>If the CFIDE directory is secured, the password
+for that directory is required.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Suspend probe operation</h4><p>In the System
+Probes table, select the name of the probe to suspend, and click
+the Disable Probe icon.</p>
+</div>
+</div></div><div id="WSe61e35da8d318518325dd97e134cd5912d9-7fff" class="nochunk"><a name="WSe61e35da8d318518325dd97e134cd5912d9-7fff"><!-- --></a><h3 class="topictitle3">Add/Edit System Probe page</h3><div><div class="para"><ol><li><p> In the ColdFusion Administrator navigation
+pane, click System Probes. The System Probes page appears.</p>
+</li>
+<li><p>In the System Probes page, do one of the following:</p>
+<ul><li><p>Define a new probe. Click Define New Probe. The Add/Edit
+System Probe page appears.</p>
+</li>
+<li><p> Edit an existing probe configuration. Locate and click the
+probe name. The Add/Edit System Probe page appears.</p>
+</li>
+</ul>
+</li>
+<li><p> In the Add/Edit System Probe page, specify or edit the following
+settings:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e4826"><p>Option</p>
+</th>
+<th valign="top" width="NaN%" id="d16e4829"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Probe Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Provide a name for the probe configuration.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Frequency</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><div class="para">Select the schedule for running this probe:<ul><li><p>How often (hours, minutes, seconds) the probe verifies the
+availability of the URL resource.</p>
+</li>
+<li><p>The duration (start and end times) the probe runs to verify
+the URL resource.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>URL</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Identifies the URL path that each probe
+is monitoring.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>User Name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Name If the URL is a secured path, specify
+the user name.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Password</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>If the URL is a secured path, specify the
+password.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Timeout (sec)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p> Specify the time, in seconds, to indicate
+how long the probe should wait before registering a failure.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Proxy Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>If this request must be routed through a
+proxy server, enter the URL and port number of that proxy server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Port</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Port number of the proxy server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Probe Failure</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Select this option to identify the arguments
+used to test the URL resource.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Failure Actions</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Specify one or both of the following actions
+to occur when detecting a failure:</p>
+<div class="para"><ul><li><p>Send an e-mail
+notification Select to instruct ColdFusion to send an e-mail message
+when detecting a failure. ColdFusion uses the e-mail address specified
+onthe System Probe page.</p>
+</li>
+<li><p>Execute the program To run a program when the probe fails,
+specify the path and name of the program.</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Publish</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Select to write output results to a file.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>File</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>If the publish option is selected, specify
+the output filename.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e4826 "><p>Reolve URL</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e4829 "><p>Select to maintain links to internal URLs
+remain intact.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</li>
+<li><p>Click Submit to save and update the probe configurations
+listed on the System Probes page.</p>
+</li>
+</ol>
+</div>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd6" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd6"><!-- --></a><h2 class="topictitle2">Code Analyzer page</h2><div><p>The Code Analyzer page
+evaluates your ColdFusion pages for potential incompatibilities
+between ColdFusion 10 and previous versions of ColdFusion. It reviews
+the CFML pages that you specify and informs you of any potential compatibility
+issues. Additionally, the Code Compatibility Analyzer detects unsupported
+and deprecated CFML features, and outlines the required implementation
+changes that ensure a smooth migration.</p>
+<div class="para">Use the analyzer as follows:<ol><li><p>In the left navigation
+pane, select Debugging &amp; Logging &gt; Code Analyzer.</p>
+</li>
+<li><p>Enter or browse to a directory that contains the ColdFusion
+pages to analyze.</p>
+</li>
+<li><p>(Optional) Click Advanced Options to specify the following
+items:</p>
+<div class="para"><ul><li><p>Whether to analyze subdirectories.</p>
+</li>
+<li><p>The file types to analyze (separate multiple files with semicolons).</p>
+</li>
+<li><p>Whether to filter by severity. All reports error and info
+data, Error reports code that will not execute properly, and Info
+reports that you should consider editing, but will execute properly;
+for example, deprecated tags. </p>
+</li>
+<li><p>Whether to validate CFML. Reports invalid syntax in your
+CFML; for example, a comment that has an opening ColdFusion comment
+tag, and a closing HTML tag.</p>
+</li>
+<li><p>The product features to analyze.</p>
+</li>
+</ul>
+</div>
+</li>
+<li><p>Click Run Analyzer to display a report of the results.</p>
+</li>
+</ol>
+</div>
+<div class="para"><div class="note"><span class="notetitle">Note:  </span>When you run the Code Analyzer using the Basic Options,
+the default settings are as follows: Analyze subdirectories, Analyze
+file types of *.cfm, Filter by severity: errors, Validate CFML.</div>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd5" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd5"><!-- --></a><h2 class="topictitle2">License Scanner page</h2><div><p>The License Scanner page searches the local subnet to find
+other running instances of ColdFusion. You can use this information
+to determine whether the ColdFusion instances within the subnet
+are licensed appropriately.</p>
+<p>The ColdFusion Administrator uses universal datagram protocol
+(UDP) multicast to collect license and version information from
+all ColdFusion instances running within the subnet.</p>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fe9.html" title="Data &amp; Services section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd4.html" title="Server Monitoring section"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

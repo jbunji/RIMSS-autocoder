@@ -1,0 +1,60 @@
+/* 
+	History:
+	Last Updated: Carlos Miqueo on Nov 18, 2008
+	Last Updated: Carlos Miqueo on May 12, 2008
+*/
+
+
+.page dt,
+.page dd
+{
+	float: left;
+	margin-right: 1px;	
+}
+
+body#content_body { 
+	padding: 0; 
+	margin: 0; 
+}
+
+
+div#page_content_wrapper { 
+	padding-right: 15px;	
+	width:100%;
+}
+
+div#related {
+	width: 100%;
+	padding-right: 0 0 0 15px;
+	margin: 0;	
+}
+
+div#related h3 {
+	font-size: 100%;	
+}
+
+div#mnemonic h1 { 
+width: 105%;
+padding-right: 2.5%;
+height: 24px !important;
+}
+
+
+/* For CS4 */
+div#mnemonic,
+div#searchbar	 {	position:absolute !important; }
+  
+
+
+/* For CS4v2 */
+#searchscope{
+	top:20px !important; /* IE6 */
+}
+
+
+/* CS5 styles */
+
+#page_content_wrapper{
+	 margin-top:48px;
+ }
+

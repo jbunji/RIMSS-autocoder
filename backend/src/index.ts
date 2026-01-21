@@ -1487,10 +1487,48 @@ app.post('/api/users', async (req, res) => {
 })
 
 // Get locations (admin only - for user management)
+// Optional query param: program_ids (comma-separated) to filter locations by program
 app.get('/api/locations', async (req, res) => {
   if (!requireAdmin(req, res)) return
 
   try {
+    const programIdsParam = req.query.program_ids as string | undefined
+
+    // If program_ids provided, filter locations to only those with assets from those programs
+    if (programIdsParam) {
+      const programIds = programIdsParam.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+
+      if (programIds.length > 0) {
+        console.log(`[LOCATIONS] Filtering locations by programs: ${programIds.join(', ')}`)
+
+        // Query to get distinct locations that have assets from the specified programs
+        const locationsFromAssets = await prisma.$queryRaw<Array<{loc_id: number, display_name: string, majcom_cd: string | null, site_cd: string | null, unit_cd: string | null, description: string | null}>>`
+          SELECT DISTINCT
+            l.loc_id,
+            l.display_name,
+            l.majcom_cd,
+            l.site_cd,
+            l.unit_cd,
+            l.description
+          FROM location l
+          WHERE l.active = true
+          AND l.loc_id IN (
+            SELECT DISTINCT COALESCE(a.loc_ida, a.loc_idc) as loc_id
+            FROM asset a
+            JOIN part_list pl ON a.partno_id = pl.partno_id
+            WHERE a.active = true
+            AND pl.pgm_id IN (${programIds.join(',')})
+            AND COALESCE(a.loc_ida, a.loc_idc) IS NOT NULL
+          )
+          ORDER BY l.display_name ASC;
+        `
+
+        console.log(`[LOCATIONS] Found ${locationsFromAssets.length} locations for programs ${programIds.join(', ')}`)
+        return res.json({ locations: locationsFromAssets })
+      }
+    }
+
+    // Default: return all active locations (no program filter)
     const locations = await prisma.location.findMany({
       where: { active: true },
       select: {
@@ -1504,6 +1542,7 @@ app.get('/api/locations', async (req, res) => {
       orderBy: { display_name: 'asc' },
     })
 
+    console.log(`[LOCATIONS] Returning all ${locations.length} active locations (no program filter)`)
     res.json({ locations })
   } catch (error) {
     console.error('[LOCATIONS] Error fetching locations:', error)

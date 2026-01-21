@@ -1,0 +1,3379 @@
+﻿import cfc.utils.Datasource;
+
+component displayname="DBUtils" hint="A list of utility functions for query the database" {
+    variables.instance = {};
+    variables.instance.datasource = 0;
+
+	public function init(required Datasource datasource) displayname="Constructor" description="Method used to initialize component" {
+        variables.instance.datasource = arguments.datasource;
+        return this;
+	}
+    
+    public Query function getAllPrograms() {
+        var results = "";
+        var qry = new Query();
+        var DataLevelSecurityException = "";
+        var dataLevelSecurity = createobject("java", "mil.af.robins.rampod.security.dao.DataLevelSecurity").init();
+        var sql = "SELECT CODE_ID, CODE_VALUE " &
+                  "  FROM GLOBALEYE.CODE " &
+                  " WHERE CT_CODE_ID IN (" &
+                  "       SELECT DISTINCT(LCP.CODE_ID) " &
+                  "         FROM CORE_TABLES.LU_CODE_TYPE LCTP, " &
+                  "              CORE_TABLES.LU_CODE LCP " &
+                  "        WHERE LCTP.CODE_TYPE_ID = LCP.CODE_TYPE_ID " &
+                  "          AND LCTP.NAME = 'PROGRAM_ID' ";
+
+
+        sql = sql & ") " &
+                  " AND CODE_ID IN (SELECT CG.CODE_ID " &
+                  "                 FROM GLOBALEYE.CODE_GROUP CG, GLOBALEYE.CODE G " &
+                  "                 WHERE CG.GROUP_CD = G.CODE_ID " &
+                  "                 AND G.CODE_VALUE = 'ACTS_PROGRAM' )" &
+                  " ORDER BY 2 ";
+        qry.setName("programs");
+        qry.setDatasource(variables.instance.datasource.getDsName());
+        qry.setSql(sql);
+        results = qry.execute().getResult();
+        return results;
+    }
+    
+    public Query function getUserPrograms(required aUserModel) {
+        var results = "";
+        var qry = new Query();
+        var DataLevelSecurityException = "";
+        var dataLevelSecurity = createobject("java", "mil.af.robins.rampod.security.dao.DataLevelSecurity").init();
+        var sql = "SELECT CODE_ID, CODE_VALUE " &
+                  "  FROM GLOBALEYE.CODE " &
+                  " WHERE CT_CODE_ID IN (" &
+                  "       SELECT DISTINCT(LCP.CODE_ID) " &
+                  "         FROM CORE_TABLES.LU_CODE_TYPE LCTP, " &
+                  "              CORE_TABLES.LU_CODE LCP " &
+                  "        WHERE LCTP.CODE_TYPE_ID = LCP.CODE_TYPE_ID " &
+                  "          AND LCTP.NAME = 'PROGRAM_ID' ";
+
+        try {
+        	
+        	DataLevelSecurityException = createObject("java","mil.af.robins.rampod.security.dao.DataLevelSecurityException");
+        	
+            sql = sql & dataLevelSecurity.getProgramIdWhereClause(arguments.aUserModel,"LCP.CODE_VALUE","","beg");
+        } catch (DataLevelSecurityException dlse) {
+            writeLog(file="rimss", type="error", text="DBUtils.cfc: #dlse.type#: #dlse.message#");
+            writeLog(file="rimss", type="error", text="DBUtils.cfc: #dlse.detail#");
+        }
+
+        sql = sql & ") " &
+                  " AND CODE_ID IN (SELECT CG.CODE_ID " &
+                  "                 FROM GLOBALEYE.CODE_GROUP CG, GLOBALEYE.CODE G " &
+                  "                 WHERE CG.GROUP_CD = G.CODE_ID " &
+                  "                 AND G.CODE_VALUE = 'ACTS_PROGRAM' )" &
+                  " ORDER BY 2 ";
+        qry.setName("programs");
+        qry.setDatasource(variables.instance.datasource.getDsName());
+        qry.setSql(sql);
+        results = qry.execute().getResult();
+        return results;
+    }
+
+    public Query function getUserUnits(required any aUserModel) {
+        var results = "";
+        var qry = new Query();
+        var dataLevelSecurity = createobject("java", "mil.af.robins.rampod.security.dao.DataLevelSecurity");
+        var sql = "SELECT L.LOC_ID LOC_ID, C.CODE_VALUE UNIT, C1.CODE_VALUE || ' - ' || C.CODE_VALUE SITE " &
+                  "  FROM GLOBALEYE.LOCATION L, GLOBALEYE.CODE C, GLOBALEYE.CODE C1 " &
+                  " WHERE L.UNIT_CD = C.CODE_ID " &
+                  " AND L.SITE_CD = C1.CODE_ID " &
+                  " AND L.ACTIVE = 'Y' " &
+                  "   AND CT_LOC_ID IN (" &
+                  "       SELECT DISTINCT(LOC_ID) " &
+                  "         FROM CORE_TABLES.LU_LOCATIONS " &
+                  "        WHERE SQUAD IS NULL " &
+                  "          AND UNIT NOT LIKE '*%' ";
+
+        try {
+            sql = sql & dataLevelSecurity.getUnitWhereClause(arguments.aUserModel,"UNIT","","beg");
+        } catch (DataLevelSecurityException dlse) {
+            writeLog(file="rimss", type="error", text="DBUtils.cfc: #dlse.type#: #dlse.message#");
+            writeLog(file="rimss", type="error", text="DBUtils.cfc: #dlse.detail#");
+        }
+
+        sql = sql & ") ";
+        sql = sql & restrictToLocSet(); // Add predicate to query to restrict user locations if if GLOBALEYE.LOC_SET exists for PROGRAM || '_LOC' 
+        sql = sql & " ORDER BY 3 ";
+        qry.setName("units");
+        qry.setDatasource(variables.instance.datasource.getDsName());
+        qry.setSql(local.sql);
+        results = qry.execute().getResult();
+        return results;
+    }
+  
+    
+    private any function restrictToLocSet(){
+    	local.program = application.sessionManager.getProgramSetting();
+    	
+        var readFirstPermission = false;
+        var userModel = application.sessionManager.getUserModel();
+        programs = getUserPrograms(userModel);
+            
+    	local.results = "";
+        local.qry = new Query();
+        local.qryResult = "";
+        local.sql = "SELECT LOC_ID  " & 
+				" FROM GLOBALEYE.LOC_SET  " & 
+				" WHERE SET_NAME LIKE ? ";
+
+        local.qry.setName("locSet");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+        local.qry.addParam(value=ucase(trim(local.program)&'_LOC'),cfsqltype="CF_SQL_VARCHAR");
+        local.qry.setSql(local.sql);
+        local.qryResult = local.qry.execute().getResult();        
+       // local.columns = local.qryResult.getColumnList();
+        
+        if(local.qryResult.recordcount){  
+        	
+        	for(i=1; i LTE local.qryResult.recordcount; i=i+1){
+        		if (readFirstPermission){
+                     results = results & " OR LOC_ID = " & local.qryResult.loc_id[i];
+                }else{
+                     results = results &  " AND ( LOC_ID = " & local.qryResult.loc_id[i];                                   
+                  }
+	       		readFirstPermission = true;
+        	}
+        	 	       
+	       results = results & " ) ";
+        }
+    	
+    	return results;
+    	
+    }
+
+    public numeric function getCurrentMeterHistSequenceNumber(required string assetId) {
+        var results = 0;
+        var qry = new Query();
+        var qryResult = "";
+        var sql = "select nvl(seq_num, 1) seq_num  " & 
+                  "from globaleye.meter_hist " &
+                  "where (asset_id, chg_date) = (select asset_id, max(chg_date) " &
+                  "                              from globaleye.meter_hist " &
+                  "                              where asset_id = ? " &
+                  "                              group by asset_id)";
+
+        local.qry.setName("meterSeq");
+        qry.setDatasource(variables.instance.datasource.getDsName());
+        local.qry.addParam(value=ucase(trim(arguments.assetId)),cfsqltype="CF_SQL_VARCHAR");
+        local.qry.setSql(local.sql);
+        local.qryResult = qry.execute().getResult();
+
+        /* TODO write code to return a number instead, if there no rows returned or if seq_num is null */
+        if (local.qryResult.recordcount and !IsNull(local.qryResult["SEQ_NUM"])) {
+            results = local.qryResult["SEQ_NUM"][1];
+        }
+
+        return results;
+    }
+
+    public numeric function getCurrentCfgMetersSequenceNumber(required string assetId) {
+        var results = 0;
+        var qry = new Query();
+        var qryResult = "";
+        var sql = "select meter_seq " & 
+                  "from core_tables.cfg_meters " &
+                  "where (asset_id, chg_date) = (select asset_id, max(chg_date) " &
+                  "                              from core_tables.cfg_meters " &
+                  "                              where asset_id = ? " &
+                  "                              group by asset_id)";
+
+        local.qry.setName("meterSeq");
+        qry.setDatasource(variables.instance.datasource.getDsName());
+        local.qry.addParam(value=ucase(trim(arguments.assetId)),cfsqltype="CF_SQL_VARCHAR");
+        local.qry.setSql(local.sql);
+        local.qryResult = qry.execute().getResult();
+
+        /* TODO write code to return a number instead, if there no rows returned or if seq_num is null */
+        if (local.qryResult.recordcount and !IsNull(local.qryResult["METER_SEQ"])) {
+            results = local.qryResult["METER_SEQ"][1];
+        }
+
+        return results;
+    }
+    
+	
+    public numeric function countPartByAsset(Required String assetId,Required String noun){
+   	
+   		var results = 0;
+   		var qry = new Query();
+   		qry.setName("qNHAAsset");
+   		qry.setDatasource(variables.instance.datasource.getDsName());
+   		var qryResult = "";
+   		
+   		var sql = "SELECT count(p.partno_id) as partcount
+					FROM globaleye.asset a, globaleye.part_list p
+					WHERE a.partno_id = p.partno_id
+					AND a.nha_asset_id = ?
+					AND Upper(p.noun) = ?
+					AND a.active = 'Y'";
+					
+					
+		qry.setSQL(sql);
+		local.qry.addParam(value=ucase(trim(arguments.assetId)),cfsqltype="CF_SQL_VARCHAR");
+		local.qry.addParam(value=ucase(trim(arguments.noun)),cfsqltype="CF_SQL_VARCHAR");
+		results = qry.execute().getResult();
+		
+		return results.partcount; 			
+		
+   	   
+   }
+   
+   public numeric function countPartByAsset2(Required String assetId,Required String partnoId){
+   	
+   		var results = 0;
+   		var qry = new Query();
+   		qry.setName("qNHAAsset");
+   		qry.setDatasource(variables.instance.datasource.getDsName());
+   		var qryResult = "";
+   		
+   		var sql = "SELECT count(p.partno_id) as partcount
+					FROM globaleye.asset a
+					WHERE a.nha_asset_id = ?
+					AND a.partno_id = ?
+					AND a.active = 'Y'";
+					
+					
+		qry.setSQL(sql);
+		local.qry.addParam(value=ucase(trim(arguments.assetId)),cfsqltype="CF_SQL_VARCHAR");
+		local.qry.addParam(value=ucase(trim(arguments.partnoId)),cfsqltype="CF_SQL_VARCHAR");
+		results = qry.execute().getResult();
+		
+		return results.partcount; 			
+		
+   	   
+   }
+    
+    public query function readByNhaAssetId(Required String assetId){
+   	
+   		var results = 0;
+   		var qry = new Query();
+   		qry.setName("qNHAAsset");
+   		qry.setDatasource(variables.instance.datasource.getDsName());
+   		var qryResult = "";
+   		
+   		var sql = "SELECT p.noun,a.serno,p.partno,p.partno_id,p.nsn,a.asset_id,a.nha_asset_id nhaassetid
+					FROM globaleye.asset a, globaleye.part_list p
+					WHERE a.partno_id = p.partno_id
+					and a.nha_asset_id = ?
+					AND a.active = 'Y' 
+					ORDER BY p.noun";
+					
+					
+		qry.setSQL(sql);
+		local.qry.addParam(value=ucase(trim(arguments.assetId)),cfsqltype="CF_SQL_VARCHAR");
+		results = qry.execute().getResult();
+		
+		return results; 			
+		
+   	   
+   }
+
+   public query function readByAssetId(Required String assetId){
+   	
+   		var results = 0;
+   		var qry = new Query();
+   		qry.setName("qNHAAsset");
+   		qry.setDatasource(variables.instance.datasource.getDsName());
+   		var qryResult = "";
+   		
+   		var sql = "SELECT p.noun,a.serno,p.partno,p.partno_id,p.nsn,a.asset_id,a.nha_asset_id nhaassetid
+					FROM globaleye.asset a, globaleye.part_list p
+					WHERE a.partno_id = p.partno_id
+					and a.asset_id = ?
+					AND a.active = 'Y' 
+					ORDER BY p.noun";
+					
+					
+		qry.setSQL(sql);
+		local.qry.addParam(value=ucase(trim(arguments.assetId)),cfsqltype="CF_SQL_VARCHAR");
+		results = qry.execute().getResult();
+		
+		return results; 			
+		
+   	   
+   }
+
+    
+   public query function readLevelsByAssetId(required string assetId){
+        var local = {};
+        var qry = new Query();
+        local.qry.setName("qLevelAsset");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+
+        local.sql="SELECT p.NOUN,
+		  p.PARTNO ,
+		  p.cage,
+		  a.serno,
+		  a.uii,
+		  a.asset_id,
+		  a.in_transit,
+		  a.status_cd,
+		  gestat.code_value status,
+		  p.sys_type SYS_TYPE_CD,
+		  gesys.code_value SYS_TYPE,
+		  (SELECT asset_id
+		  FROM globaleye.asset
+		  WHERE nha_asset_id IS NULL
+		    START WITH asset_id = a.asset_id
+		    CONNECT BY prior nha_asset_id = asset_id
+		  ) nha_asset,
+		  pnha.noun NHA_NOUN,
+		  pnha.partno NHA_PARTNO,
+		  nha.serno NHA_SERNO,
+		  pnha.cage NHA_CAGE,
+		  nha.uii NHA_UII,
+		  nha.loc_ida,
+		  nha.loc_idc,
+		  nha.status_cd NHA_STATUS_CD,
+		  genhastat.code_value nha_status,
+		  pnha.sys_type NHA_SYS_TYPE_CD,
+		  genhasys.code_value nha_sys_TYPE,
+		  nha.in_transit NHA_IN_TRANSIT
+		FROM globaleye.asset a,
+		  globaleye.part_list p,
+		  globaleye.asset nha,
+		  globaleye.part_list pnha,
+		  globaleye.code gestat,
+		  globaleye.code genhastat,
+		  globaleye.code gesys,
+		  globaleye.code genhasys
+		WHERE a.partno_id = p.partno_id
+		AND a.status_cd = gestat.code_id
+		AND nha.status_cd = genhastat.code_id
+		AND p.sys_type = gesys.code_id
+		AND pnha.sys_type = genhasys.code_id
+		AND nha.partno_id = pnha.partno_id
+		AND (SELECT asset_id
+		  FROM globaleye.asset
+		  WHERE nha_asset_id IS NULL
+		    START WITH asset_id           = a.asset_id
+		    CONNECT BY prior nha_asset_id = asset_id ) = nha.asset_id
+		AND a.asset_id IN (?)
+		ORDER BY pnha.noun, pnha.partno, nha.serno, p.noun, p.partno,a.serno";
+   	   
+   	    local.qry.setSQL(sql);
+        local.qry.addParam(value=trim(arguments.assetId), list="yes",cfsqltype="CF_SQL_NUMERIC");
+        local.results = qry.execute().getResult();
+        
+   	    return local.results;
+   } 
+    
+    public array function getSortieColumns(){
+    	var local = {};
+        local.results = [];
+        local.qry = new Query();
+        local.qryResult = "";
+        local.sql = "select * " & 
+                  "from globaleye.sorties " &
+                  "where ROWNUM = 1";
+        local.olumns = [];
+
+        local.excludedColumns = 'SORTIE_ID,ASSET_ID,SOURCE_DATA,INS_BY,INS_DATE,CHG_BY,CHG_DATE,VALID,VAL_BY,VAL_DATE,PGM_ID';
+        
+        local.qry.setName("sortieColumns");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+        local.qry.setSql(local.sql);
+        local.qryResult = local.qry.execute().getResult();
+        local.columns = local.qryResult.getColumnList();
+        
+        for(local.c=1;local.c<=ArrayLen(local.columns);local.c++){
+            if(not listfindnocase(local.excludedColumns,local.columns[local.c])){
+                ArrayAppend(local.results,local.columns[local.c]);    	
+            }    	
+        }
+       
+       return local.results;  
+   }
+
+    public struct function addQueryParam(required string value, required string sqlType, boolean hasList, boolean hasNull) {
+        var local = {};
+        local.param = {};
+        local.param.value = arguments.value;
+        local.param.cfsqltype = arguments.sqlType;
+        local.param.list = (StructKeyExists(arguments, "hasList")) ? arguments.hasList : "no";
+        local.param.null = (StructKeyExists(arguments, "hasNull")) ? arguments.hasNull : "no";
+
+        return local.param;
+    }
+
+    public Query function executeQuery(required string sql, array params) {
+        var local = {};
+
+        local.qry = new Query();
+        
+
+        local.qry.setName("lookupQuery");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+
+        if (IsArray(arguments.params) and ArrayLen(arguments.params)) {
+            for (i = 1; i lte ArrayLen(arguments.params); i++) {
+                local.param = arguments.params[i];
+                local.qry.addParam(value=local.param.value,cfsqltype=local.param.cfsqltype,list=(StructKeyExists(local.param,"list")) ? local.param.list : "no",null=(StructKeyExists(local.param,"null")) ? local.param.null : "no");
+            }
+        }
+
+        local.qry.setSql(arguments.sql);
+
+        return local.qry.execute().getResult();
+    }
+    
+    
+    public numeric function getLocationIdBySiteUnitValue(required site, required unit){
+       var local = {};
+        local.qry = new Query();       
+        local.qry.setName("qGetLocIdValue");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+        local.result = "";
+ 
+        
+        local.sql = "SELECT l.loc_id " & 
+                  "FROM globaleye.location l, globaleye.code c,globaleye.code c2  " &
+                  "WHERE l.unit_cd  = c.code_id " &
+                  "AND l.site_cd  = c2.code_id " &
+                  "AND UPPER(TRIM(c.code_value)) = UPPER(TRIM(?))";
+                  "AND UPPER(TRIM(c2.code_value)) = UPPER(TRIM(?))";
+                  
+       local.qry.addParam(value=UCASE(TRIM(arguments.site)),cfsqltype="CF_SQL_VARCHAR");              
+       local.qry.addParam(value=UCASE(TRIM(arguments.unit)),cfsqltype="CF_SQL_VARCHAR");
+       local.qry.setSQL(local.sql);
+       
+       local.qryResult = local.qry.execute().getResult();
+        if(local.qryResult.recordcount){
+            local.result = local.qryResult['LOC_ID'];     
+        }
+        return local.result;    
+   }  
+   
+   public query function getAssetsById(required string assetId){
+        var local = {};
+        local.qry = new Query();       
+        local.qry.setName("qAssets");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+        local.qryResult = "";	
+        
+         local.sql="
+         select ga.serno,ga.asset_id,ga.loc_ida,ga.loc_idc,pa.noun,pa.partno partNo ,pnha.partno nha_partNo,nha.serno nha_serno, ga.status_cd, gcs.code_value status,pa.sys_type sys_type_cd, gcsys.code_value sys_type " &
+         "from globaleye.asset ga, globaleye.asset nha, globaleye.part_list pa,globaleye.part_list pnha, globaleye.code gcs , globaleye.code gcsys " &
+         "where ga.partno_id = pa.partno_id " &
+         "and ga.nha_asset_id = nha.asset_id(+) " &
+         "and nha.partno_id = pnha.partno_id(+) " &
+         "and ga.status_cd = gcs.code_id " &
+         "and pa.sys_type = gcsys.code_id " &
+         "and ga.asset_id IN(:assetId) " &
+         "order by pa.noun, pa.partno, ga.serno";
+             
+        local.qry.addParam(name="assetId", value=trim(arguments.assetId), list="true", cfsqltype="CF_SQL_NUMERIC");
+        
+        local.qry.setSQL(local.sql);
+        local.qryResult = local.qry.execute().getResult();
+        
+        return local.qryResult;   
+   	   
+   } 
+   public query function searchSortie(required string serno, string missionid, string sortieDate, required numeric programId,required numeric locId){
+        var local = {};
+        local.qry = new Query();       
+        local.qry.setName("qSortieSearch");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+        local.qryResult = "";	
+        
+        
+        local.sql="
+        select gs.*, gceff.code_value as SORTIE_EFFECT_VALUE, gcrange.code_value as RANGE_VALUE, gcunit.code_value as CURRENT_UNIT_VALUE, gaunit.code_value as ASSIGNED_UNIT_VALUE,gcactype.code_value as AIRCRAFT_TYPE " &
+		"from globaleye.asset ga, globaleye.part_list pl, globaleye.location gl," &
+		"     globaleye.code gcu, globaleye.code gaunit, globaleye.sorties gs, globaleye.code_by_code cbc," &
+		"     globaleye.code gcg, globaleye.code gccat, globaleye.code gcpgm, globaleye.code gceff," &
+		"     globaleye.code gcrange, globaleye.code gcunit, globaleye.code gcactype " &
+		"	where ga.partno_id = pl.partno_id " &
+		"	and gl.loc_id in (ga.loc_ida, ga.loc_idc) " &
+		"	and gl.unit_cd = gcu.code_id " &
+		"	and ga.serno = gs.serno " &
+		"	and gcg.code_id = cbc.group_cd " &
+		"	and cbc.code_a = gccat.code_id " &
+		"	and pl.pgm_id = gcpgm.code_id " &
+		"	and gs.sortie_effect = gceff.code_id " &
+		"	and gs.range = gcrange.code_id " &
+		"	and gs.current_unit = gcunit.code_id " &
+		"	and gs.assigned_unit = gaunit.code_id(+) " &
+		"	and gs.ac_type = gcactype.code_id(+) " &
+		"	and pl.sys_type = cbc.code_b " &
+		"	and gcg.code_type = 'GROUP' " &
+		"	and gcg.code_value = upper(trim(gcpgm.code_value)) || '_SYSTYPE_BY_CAT' " &
+		"	and gccat.code_value = :system " &
+		"   and gl.loc_id = :locId " &
+		"	and gl.squad_cd is null " &
+		"	and pl.pgm_id = :programId " &
+		"	and ga.serno = :serno ";
+
+		if(Structkeyexists(ARGUMENTS,"missionId") && len(trim(ARGUMENTS.missionId))){
+		  local.sql &="	and gs.mission_Id = :missionId ";
+		}
+		if(Structkeyexists(ARGUMENTS,"sortieDate") && len(trim(ARGUMENTS.sortieDate)) && isDate(arguments.sortieDate)){
+          local.sql &=" and trunc(gs.sortie_date) = trunc(to_date(:sortieDate, 'DD-MON-YYYY')) ";
+        }
+		local.sql &="	ORDER BY gs.mission_id,gs.sortie_date desc nulls last, gs.serno, gcu.code_value, gcrange.code_value, gcactype.code_value, gs.ac_tailno, gs.ac_station, gs.sortie_effect, gs.remarks, gs.reason  ";
+
+        
+   local.qry.addParam(name="locId", value=val(arguments.locId),cfsqltype="CF_SQL_NUMERIC");
+   local.qry.addParam(name="system", value="AIRBORNE",cfsqltype="CF_SQL_VARCHAR"); 
+   local.qry.addParam(name="programId", value=val(arguments.programId),cfsqltype="CF_SQL_NUMERIC");
+   local.qry.addParam(name="serno", value=UCASE(Trim(ARGUMENTS.serno)),cfsqltype="CF_SQL_VARCHAR");
+   local.qry.addParam(name="missionId", value=UCASE(Trim(ARGUMENTS.missionId)),cfsqltype="CF_SQL_VARCHAR"); 
+   local.qry.addParam(name="sortieDate", value=UCASE(Trim(ARGUMENTS.sortieDate)),cfsqltype="CF_SQL_VARCHAR");               
+   local.qry.setSQL(local.sql);
+   local.qryResult = local.qry.execute().getResult();
+
+   return local.qryResult;    	   
+   }
+   
+   public query function searchNonPoddedSortie(required string serno, string missionid, string sortieDate, required numeric programId,required numeric locId){
+        var local = {};
+        local.qry = new Query();       
+        local.qry.setName("qSortieSearch");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+        local.qryResult = "";	
+        
+        
+        local.sql="
+         SELECT S.*, EFFECT.CODE_VALUE SORTIE_EFFECT_VALUE, RANGE.CODE_VALUE RANGE_VALUE, UNIT_C.CODE_VALUE CURRENT_UNIT_VALUE, UNIT_A.CODE_VALUE ASSIGNED_UNIT_VALUE, AC.CODE_VALUE AIRCRAFT_TYPE
+		FROM GLOBALEYE.SORTIES S, GLOBALEYE.CODE RANGE, GLOBALEYE.CODE UNIT_C, GLOBALEYE.CODE UNIT_A, GLOBALEYE.CODE AC, GLOBALEYE.CODE EFFECT 
+		WHERE RANGE.CODE_ID = S.RANGE
+		AND UNIT_C.CODE_ID = S.CURRENT_UNIT
+		AND UNIT_A.CODE_ID = S.ASSIGNED_UNIT
+		AND AC.CODE_ID(+) = S.AC_TYPE
+		AND EFFECT.CODE_ID = S.SORTIE_EFFECT
+		AND IS_NON_PODDED = 'Y'
+		AND ASSIGNED_UNIT IN (SELECT UNIT_CD FROM GLOBALEYE.LOCATION WHERE LOC_ID = :locId) 	
+		AND S.PGM_ID = :programId  ";
+
+		if(Structkeyexists(ARGUMENTS,"missionId") && len(trim(ARGUMENTS.missionId))){
+		  local.sql &="	and s.mission_Id = :missionId ";
+		}
+		if(Structkeyexists(ARGUMENTS,"sortieDate") && len(trim(ARGUMENTS.sortieDate)) && isDate(arguments.sortieDate)){
+          local.sql &=" and trunc(s.sortie_date) = trunc(to_date(:sortieDate, 'DD-MON-YYYY')) ";
+        }
+		local.sql &="	ORDER BY s.mission_id,s.sortie_date desc nulls last, s.serno, range.code_value, ac.code_value, s.ac_tailno, s.ac_station, s.sortie_effect, s.remarks, s.reason  ";
+
+        
+   local.qry.addParam(name="locId", value=val(arguments.locId),cfsqltype="CF_SQL_NUMERIC");
+   local.qry.addParam(name="programId", value=val(arguments.programId),cfsqltype="CF_SQL_NUMERIC");
+   local.qry.addParam(name="missionId", value=UCASE(Trim(ARGUMENTS.missionId)),cfsqltype="CF_SQL_VARCHAR"); 
+   local.qry.addParam(name="sortieDate", value=UCASE(Trim(ARGUMENTS.sortieDate)),cfsqltype="CF_SQL_VARCHAR");               
+   local.qry.setSQL(local.sql);
+   local.qryResult = local.qry.execute().getResult();
+
+   return local.qryResult;    	   
+   }
+   
+   public query function searchSortieMenu(string sortieCriteria = "", string programId = "", string locId=""){
+         var local = {};
+         local.qry = new Query();       
+         local.qry.setName("qSortieSearch");
+         local.qry.setDatasource(variables.instance.datasource.getDsName());
+         local.qryResult = "";  
+         local.regExCriteria = " ";
+         local.regExCriteria = (ARGUMENTS.sortieCriteria neq "")?Replace(UCASE(ARGUMENTS.sortieCriteria)," ", "|", "All" ):"$|";
+         
+         local.sql="
+        select gs.*, gceff.code_value as SORTIE_EFFECT_VALUE, gcrange.code_value as RANGE_VALUE, gcunit.code_value as CURRENT_UNIT_VALUE, gaunit.code_value as ASSIGNED_UNIT_VALUE,gcactype.code_value as AIRCRAFT_TYPE " &
+		"from globaleye.asset ga, globaleye.part_list pl, globaleye.location gl," &
+		"     globaleye.code gcu, globaleye.code gaunit, globaleye.sorties gs, globaleye.code_by_code cbc," &
+		"     globaleye.code gcg, globaleye.code gccat, globaleye.code gcpgm, globaleye.code gceff," &
+		"     globaleye.code gcrange, globaleye.code gcunit, globaleye.code gcactype " &
+		"	where ga.partno_id = pl.partno_id " &
+		"	and gl.loc_id in (ga.loc_ida, ga.loc_idc) " &
+		"	and gl.unit_cd = gcu.code_id " &
+		"	and ga.serno = gs.serno " &
+		"	and gcg.code_id = cbc.group_cd " &
+		"	and cbc.code_a = gccat.code_id " &
+		"	and pl.pgm_id = gcpgm.code_id " &
+		"	and gs.sortie_effect = gceff.code_id " &
+		"	and gs.range = gcrange.code_id " &
+		"	and gs.current_unit = gcunit.code_id " &
+		"	and gs.assigned_unit = gaunit.code_id(+) " &
+		"	and gs.ac_type = gcactype.code_id(+) " &
+		"	and pl.sys_type = cbc.code_b " &
+		"	and gcg.code_type = 'GROUP' " &
+		"	and gcg.code_value = upper(trim(gcpgm.code_value)) || '_SYSTYPE_BY_CAT' " &
+		"	and gccat.code_value = :system " &
+        "   and gl.loc_id = :locId " &
+        "   and gl.squad_cd is null " &
+        "   and pl.pgm_id = :programId " & 
+        "   and ( " & 
+        		   " REGEXP_LIKE(UPPER(TRIM(gs.AC_STATION)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gs.SERNO)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gs.REMARKS)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gs.REASON)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gs.AC_TAILNO)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gs.MISSION_ID)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gceff.code_value)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gcrange.code_value)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gcunit.code_value)) , :regExCriteria , 'i') " &
+        		   " OR REGEXP_LIKE(UPPER(TRIM(gcactype.code_value)) , :regExCriteria , 'i') " &
+                   ") " ;
+					/*
+					 "UPPER(TRIM(gs.AC_STATION)) LIKE :criteria " & 
+                     "OR UPPER(TRIM(gs.SERNO)) LIKE :criteria " &
+                     "OR UPPER(TRIM(gs.REMARKS)) LIKE :criteria " & 
+                     "OR UPPER(TRIM(gs.REASON)) LIKE :criteria " &
+                     "OR UPPER(TRIM(gs.AC_TAILNO)) LIKE :criteria " &
+                     "OR UPPER(TRIM(gs.MISSION_ID)) LIKE :criteria " &
+                     "OR UPPER(TRIM(REGEXP_REPLACE(TRIM(gceff.code_value),'[^[:alnum:]]',''))) LIKE UPPER(TRIM(REGEXP_REPLACE(TRIM(:criteria),'[^[:alnum:]%]',''))) " & 
+                     "OR UPPER(TRIM(REGEXP_REPLACE(TRIM(gcrange.code_value),'[^[:alnum:]]',''))) LIKE UPPER(TRIM(REGEXP_REPLACE(TRIM(:criteria),'[^[:alnum:]%]',''))) " & 
+                     "OR UPPER(TRIM(REGEXP_REPLACE(TRIM(gcunit.code_value),'[^[:alnum:]]',''))) LIKE UPPER(TRIM(REGEXP_REPLACE(TRIM(:criteria),'[^[:alnum:]%]',''))) " & 
+                     "OR UPPER(TRIM(REGEXP_REPLACE(TRIM(gcactype.code_value),'[^[:alnum:]]',''))) LIKE UPPER(TRIM(REGEXP_REPLACE(TRIM(:criteria),'[^[:alnum:]%]',''))) " & 
+                     */
+	    local.qry.addParam(name="criteria", value="%" & UCASE(TRIM(arguments.sortieCriteria)) & "%",cfsqltype="CF_SQL_VARCHAR"); 
+	    local.qry.addParam(name="system", value="AIRBORNE",cfsqltype="CF_SQL_VARCHAR");              
+	    local.qry.addParam(name="programId", value=val(arguments.programId),cfsqltype="CF_SQL_NUMERIC");
+	    local.qry.addParam(name="locId", value=val(arguments.locId),cfsqltype="CF_SQL_NUMERIC");
+        local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+	    local.qry.setSQL(local.sql);
+	    local.qryResult = local.qry.execute().getResult();
+	
+	    return local.qryResult;        
+    }       
+   
+   public query function searchConfiguration(required string criteria,required numeric programId,required numeric locId,string system='AIRBORNE'){
+   	   
+   	   var local = {};
+   	   local.qry = new Query();
+   	   local.qry.setName("qConfigurationSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       local.regExCriteria = " ";
+       local.regExCriteria = (ARGUMENTS.criteria neq "")?Replace(UCASE(ARGUMENTS.criteria)," ", "|", "All" ):"$|";
+       
+       
+       local.sql = "SELECT a.asset_id sra_asset_id,
+				  a.partno_id sra_partno_id,
+				  a2.partno_id nha_partno_id,
+				  p.partno sra_partno,
+				  a.serno sra_serno,
+				  p.noun sra_noun,
+				  a2.serno nha_serno,
+				  p2.partno  nha_partno,
+				  p2.noun nha_noun,
+				  c2.code_value pgm,
+				  c.code_value sys_type,
+				  a2.asset_id nha_asset_id,
+				  a2.remarks nha_remarks,
+				  a.remarks
+				FROM globaleye.asset a,
+				  globaleye.part_list p,
+				  globaleye.part_list p2,
+				  globaleye.asset a2,
+				  globaleye.code c,
+				  globaleye.code c2
+				WHERE a.nha_asset_id = a2.asset_id
+				AND a.active         = 'Y'
+				AND a2.active        = 'Y'
+				AND a.partno_id      = p.partno_id
+				AND a2.partno_id     = p2.partno_id
+				AND p2.sys_type = c.code_id
+				AND p2.pgm_id = :programId 
+				AND p2.pgm_id = c2.code_id
+				AND c.code_id in(
+
+					select gc3.code_id
+					from globaleye.code gc1, globaleye.code gc2,
+					     globaleye.code gc3, globaleye.code_by_code cbc
+					where gc1.code_id = cbc.group_cd
+					and cbc.code_a = gc2.code_id
+					and cbc.code_b = gc3.code_id
+					and gc1.code_value = c2.code_value || '_SYSTYPE_BY_CAT'
+					and UPPER(TRIM(gc2.code_value)) = :system
+					
+				
+					
+				)
+				AND (
+				REGEXP_LIKE(UPPER(TRIM(p.partno)) , :regExCriteria , 'i')
+				OR REGEXP_LIKE(UPPER(TRIM(p2.partno)) , :regExCriteria , 'i')  
+				OR REGEXP_LIKE(UPPER(TRIM(a.serno)) , :regExCriteria , 'i')  
+				OR REGEXP_LIKE(UPPER(TRIM(a2.serno)) , :regExCriteria , 'i')  
+				OR REGEXP_LIKE(UPPER(TRIM(p.noun)) , :regExCriteria , 'i')  
+				OR REGEXP_LIKE(UPPER(TRIM(p2.noun)) , :regExCriteria , 'i')  
+				)";
+				
+				
+				/*AND :locid in (a2.loc_ida,a2.loc_idc)*/
+		local.qry.addParam(name="criteria", value="%" & UCASE(TRIM(arguments.criteria)) & "%",cfsqltype="CF_SQL_VARCHAR");              
+	   	local.qry.addParam(name="programId", value=val(arguments.programId),cfsqltype="CF_SQL_NUMERIC");
+	   /*	local.qry.addParam(name="locId", value=val(arguments.locId),cfsqltype="CF_SQL_NUMERIC");*/
+	   	local.qry.addParam(name="system", value=UCASE(TRIM(arguments.system)),cfsqltype="CF_SQL_VARCHAR");
+	   	local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+		
+		local.qry.setSQL(local.sql);
+	   	local.qryResult = local.qry.execute().getResult();
+	   	
+	   	return local.qryResult;
+	
+   }
+   
+   public query function getAssetsByProgram(required string programId, required string unit, string assetId, string system, string criteria="")
+   {   	   
+   	   try{	  
+   	   var local = {};
+   	   local.qry = new Query();
+   	   local.qry.setName("qAsset");
+   	   local.qry.setDatasource(variables.instance.datasource.getDsName());
+   	   local.qryResult = "";
+   	   local.regExCriteria = " ";
+       local.regExCriteria = (ARGUMENTS.criteria neq "")?Replace(UCASE(ARGUMENTS.criteria)," ", "|", "All" ):"$|";
+
+
+
+
+   	   local.sql = "
+				SELECT   a.asset_id,ai.NEXT_DUE_DATE, ia.serno, ia.asset_id ct_asset_id, SYS.code_value SYSTEM, s.partno, p.noun,
+                     SYS.code_id system_id, status.code_value status, curr.base curr, curr.loc_id curr_id,
+                     assign.base assign, assign.loc_id assign_id, DECODE (value_out, '', value_in, value_out) etm,
+                     umbil.code_value umbil, umbil.code_id umbil_id, in_transit, status_cd, meter_type, is_meter_chg, 
+                     meter_seq, loc_ida, loc_idc, a.shipper, a.tcn, site_a.site_cd site_a_cd, site_c.site_cd site_c_cd, a.remarks, site_a.unit unit_a, site_c.unit unit_c,
+                     (CUM.DELTA-NVL(BENCH.BENCH,0)) FLIGHT, NVL(BENCH.BENCH,0) BENCH, CUM.DELTA  
+                FROM globaleye.asset a,
+                	(SELECT MIN (E.START_JOB) AS NEXT_DUE_DATE, E.asset_id
+			              FROM GLOBALEYE.ASSET_INSPECTION AI2, GLOBALEYE.EVENT E, GLOBALEYE.REPAIR R
+			             WHERE next_due_date IS  NULL AND COMPLETE_DATE IS  NULL
+			             AND E.ASSET_ID = AI2.ASSET_ID
+			             AND R.REPAIR_ID = AI2.REPAIR_ID
+			             AND R.EVENT_ID = E.EVENT_ID   
+			             AND E.STOP_JOB IS NULL          
+			          GROUP BY E.ASSET_ID) ai,
+                     globaleye.location_view site_a,
+                     globaleye.location_view site_c,
+                     globaleye.part_list p,
+                     (SELECT DISTINCT (partno_id), code_id
+                                 FROM globaleye.partno_code) pc,
+                     core_tables.inv_assets ia,
+                     core_tables.inv_systems s,
+                     core_tables.lu_code SYS,
+                     core_tables.lu_code status,
+                     core_tables.lu_locations curr,
+                     core_tables.lu_locations assign,
+                     core_tables.cfg_acts ca,
+                     core_tables.lu_code umbil,
+                     (SELECT cm.*
+                        FROM core_tables.inv_assets ia, core_tables.cfg_meters cm
+                       WHERE ia.asset_id = cm.asset_id
+                         AND cm.EFF_DATE = (SELECT MAX (EFF_DATE)
+                                              FROM core_tables.cfg_meters
+                                             WHERE asset_id = ia.asset_id)
+                         AND cm.chg_date = (select max(chg_date)
+                                            from core_tables.cfg_meters
+                                            where asset_id = ia.asset_id
+                                            and eff_date = cm.eff_date)) mh,
+                     (SELECT CT_ASSET_ID, GE_ASSET_ID, SUM(DELTA) DELTA
+                        FROM (  
+                            SELECT CM.ASSET_ID CT_ASSET_ID, 
+                                   A.ASSET_ID GE_ASSET_ID,
+                                   METER_SEQ,        
+                                   MIN(VALUE_OUT) MIN_ETM,
+                                   MAX(NVL(VALUE_OUT, VALUE_IN)) MAX_ETM,
+                                   (MAX(NVL(VALUE_OUT, VALUE_IN)) - MIN(VALUE_IN)) DELTA
+                            FROM CORE_TABLES.CFG_METERS CM,
+                                 GLOBALEYE.ASSET_VIEW A,
+                                  globaleye.part_list pl,
+                                        globaleye.code gc
+                            WHERE A.CT_ASSET_ID = CM.ASSET_ID 
+                                   and gc.code_id like :programid
+                                   and gc.code_type = 'PROGRAM_ID'
+                            and a.partno_id = pl.partno_id 
+                           -- AND A.PARTNO IN ('02501000-1', '02501010-1', '09061000-1', '95170080-')
+                            GROUP BY CM.ASSET_ID, METER_SEQ, A.ASSET_ID
+                            ORDER BY METER_SEQ DESC
+                        )
+                        GROUP BY CT_ASSET_ID, GE_ASSET_ID) CUM,
+                    (SELECT CT_ASSET_ID, GE_ASSET_ID, SUM(DELTA) BENCH
+                        FROM (                         
+                            SELECT CM.ASSET_ID CT_ASSET_ID, 
+                                   A.ASSET_ID GE_ASSET_ID,
+                                   EVENT_ID,        
+                                   MIN(VALUE_IN) MIN_ETM,
+                                   MAX(VALUE_OUT) MAX_ETM,
+                                   (MAX(VALUE_OUT) - MIN(VALUE_IN)) DELTA
+                            FROM CORE_TABLES.CFG_METERS CM,
+                                 GLOBALEYE.ASSET_VIEW A,
+                                  globaleye.part_list pl,
+                                        globaleye.code gc
+                            WHERE A.CT_ASSET_ID = CM.ASSET_ID 
+                                   and gc.code_id like :programid
+                                   and gc.code_type = 'PROGRAM_ID'
+                            and a.partno_id = pl.partno_id 
+                         --   AND A.PARTNO IN ('02501000-1', '02501010-1', '09061000-1', '95170080-')
+                            AND EVENT_ID IS NOT NULL
+                            AND IS_METER_CHG = 'N'
+                            GROUP BY CM.ASSET_ID, EVENT_ID, A.ASSET_ID
+                            ORDER BY EVENT_ID DESC  
+                        )
+                        GROUP BY CT_ASSET_ID, GE_ASSET_ID  )  BENCH
+               WHERE a.partno_id = p.partno_id
+                 AND BENCH.CT_ASSET_ID(+) = A.CT_ASSET_ID
+                 AND AI.ASSET_ID(+) = a.ASSET_ID
+                 AND CUM.CT_ASSET_ID(+) = A.CT_ASSET_ID
+                 AND a.loc_ida = site_a.loc_id
+                 AND a.loc_idc = site_c.loc_id                                                           
+                 AND p.partno_id = pc.partno_id
+                 AND a.ct_asset_id = ia.asset_id
+                 AND ia.sys_id = s.sys_id
+                 AND s.sys_type = SYS.code_id
+                 AND ia.status = status.code_id
+                 AND ia.current_loc_id = curr.loc_id
+                 AND ia.assigned_loc_id = assign.loc_id                           
+                 AND mh.asset_id(+) = ia.asset_id
+                 AND ia.asset_id = ca.asset_id(+)
+                 AND ca.umbil_code = umbil.code_id(+)
+                 AND a.nha_asset_id IS NULL
+                 AND pc.code_id = :programid
+                 AND a.active = 'Y'    
+                 AND a.loc_ida = :unit
+                 	                                                                                                      
+
+                 
+
+
+   	   ";
+   	   
+   	 /*            
+--RWR bug 664 changed to be by 
+			     AND (a.loc_ida IN (SELECT LOC_ID
+                                    FROM GLOBALEYE.LOCATION_VIEW
+                                    WHERE SITE_CD = ( select SITE_CD
+                                                      from GLOBALEYE.LOCATION_VIEW
+                                                      where loc_id = :unit)) OR a.loc_idc IN (SELECT LOC_ID
+			                                                                                    FROM GLOBALEYE.LOCATION_VIEW
+			                                                                                    WHERE SITE_CD = ( select SITE_CD
+			                                                                                                      from GLOBALEYE.LOCATION_VIEW
+			                                                                                                      where loc_id = :unit)))
+				*/		
+   	   
+   	   
+   	    if(Structkeyexists(ARGUMENTS,"system") && len(trim(ARGUMENTS.system))){
+		  	local.sql &="	and SYS.CODE_VALUE = :sys ";  
+       		local.qry.addParam(name="sys", value="#ARGUMENTS.system#",cfsqltype="CF_SQL_VARCHAR");   
+		}
+		
+		if(Structkeyexists(ARGUMENTS,"assetId") && len(trim(ARGUMENTS.assetId))){
+		  	local.sql &="	and a.asset_id = :assetId ";  
+       		local.qry.addParam(name="assetId", value="#val(trim(arguments.assetId))#",cfsqltype="CF_SQL_NUMERIC");   
+		}
+		
+   	   local.sql &= "ORDER BY ia.serno";
+   	    
+   	   local.qry.addParam(name="programId", value="#val(trim(arguments.programId))#",cfsqltype="CF_SQL_NUMERIC");              
+       local.qry.addParam(name="unit", value="#val(trim(arguments.unit))#",cfsqltype="CF_SQL_NUMERIC");         
+       local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       
+       
+       
+     /*
+     try
+        {        	         	
+        	// WriteOutput("#local.sql#");     	 
+			dumpLocation = expandPath("sql_getAssetsByProgram.html");
+			WriteDump(var="#local.sql#", format='html', output=dumpLocation);
+        }
+        catch(Any e)
+        {
+        	writeoutput("#e#");
+        	dumpLocation = expandPath("error_getAssetsByProgram.html");
+			WriteDump(var="#e#", format='html', output=dumpLocation);
+        }
+       
+       */
+       
+       }catch(any e){
+       	   local.error = {};
+       	  // WriteOutput("#local.sql#");    
+       	  // writeoutput("#e#");
+       	  // dumpLocation = expandPath("error_getAssetsByProgram.html");
+		  // WriteDump(var="#e#", format='html', output=dumpLocation);
+       }
+      
+       
+       
+      
+       
+       return local.qryResult;           
+   }
+   
+   public query function getSystemByProgram(required string programId, required string unit){
+   	   var local = {};
+       local.qry = new Query();
+       local.qry.setName("qSystem");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       local.sql = "
+				SELECT DISTINCT (lcs.code_value) SYSTEM, lcs.code_id
+			           FROM core_tables.inv_assets ia,
+			                core_tables.inv_systems s,
+			                core_tables.lu_code lcs,
+			                globaleye.asset a,
+			                globaleye.part_list p,
+			                (SELECT DISTINCT (partno_id), code_id
+			                            FROM globaleye.partno_code) pc
+			          WHERE a.ct_asset_id = ia.asset_id
+			            AND ia.sys_id = s.sys_id
+			            AND s.sys_type = lcs.code_id
+			            AND a.partno_id = p.partno_id
+			            AND p.partno_id = pc.partno_id
+			            AND a.nha_asset_id IS NULL
+			            AND pc.code_id = :programid
+			            AND (a.loc_ida IN (:unit) OR a.loc_idc IN (:unit))
+			            AND a.active = 'Y'
+			       ORDER BY SYSTEM
+            ";
+       
+       local.qry.addParam(name="programId", value="#val(trim(arguments.programId))#",cfsqltype="CF_SQL_NUMERIC");              
+       local.qry.addParam(name="unit", value="#val(trim(arguments.unit))#",cfsqltype="CF_SQL_NUMERIC");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+        
+       return local.qryResult;
+   }
+   
+   public query function getDashboard(required string programId, required string unit){
+       var local = {};
+       local.qry = new Query();
+       local.qry.setName("qDashboard");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+        local.sql = "
+			 SELECT DISTINCT(a.partno_id),
+			  p.config,
+			  ROUND((select count(1) from globaleye.asset ac, globaleye.code c where ac.partno_id = a.partno_id and c.code_id = ac.status_cd and c.code_value = 'FMC' AND ac.LOC_IDA = :unit AND ac.active = 'Y')/
+              (select count(1) from globaleye.asset ac where ac.partno_id = a.partno_id AND ac.LOC_IDA = :unit AND ac.active = 'Y') * 100,2) FMC_PCT,
+			  (select count(1) from globaleye.asset ac where ac.partno_id = a.partno_id AND ac.LOC_IDA = :unit AND ac.active = 'Y')  TOTAL,
+			  (select count(1) from globaleye.asset ac, globaleye.code c where ac.partno_id = a.partno_id and c.code_id = ac.status_cd and c.code_value = 'FMC' AND ac.LOC_IDA = :unit AND ac.active = 'Y' )  FMC,
+			  (select count(1) from globaleye.asset ac, globaleye.code c where ac.partno_id = a.partno_id and c.code_id = ac.status_cd and c.code_value = 'PMC' AND ac.LOC_IDA = :unit AND ac.active = 'Y' )  PMC,
+			  (select count(1) from globaleye.asset ac, globaleye.code c where ac.partno_id = a.partno_id and c.code_id = ac.status_cd and c.code_value = 'NMCM' AND ac.LOC_IDA = :unit AND ac.active = 'Y')  NMCM,
+			  (select count(1) from globaleye.asset ac, globaleye.code c where ac.partno_id = a.partno_id and c.code_id = ac.status_cd and c.code_value = 'NMCS' AND ac.LOC_IDA = :unit AND ac.active = 'Y')  NMCS,
+			  (select count(1) from globaleye.asset ac, globaleye.code c where ac.partno_id = a.partno_id and c.code_id = ac.status_cd and c.code_value = 'CNDM' AND ac.LOC_IDA = :unit AND ac.active = 'Y')  CNDM,
+			  (select count(1) from globaleye.asset ac, globaleye.code c where ac.partno_id = a.partno_id and c.code_id = ac.status_cd and c.code_value = 'UNKN' AND ac.LOC_IDA = :unit AND ac.active = 'Y')  UNKN			
+			FROM globaleye.asset a,
+			  globaleye.part_list p,
+			  globaleye.partno_code pc, globaleye.code c
+			WHERE a.partno_id   = p.partno_id
+			and p.partno_id = pc.partno_id
+			AND a.nha_asset_id IS NULL			
+         AND P.SYS_TYPE = c.code_id
+         AND c.code_value <> 'PART'
+			AND pc.code_id = :programId  
+            and a.loc_ida = :unit
+			AND a.active = 'Y'
+			ORDER BY config ";
+       	   
+   	   local.qry.addParam(name="programId", value="#val(trim(arguments.programId))#",cfsqltype="CF_SQL_NUMERIC");              
+       local.qry.addParam(name="unit", value="#val(trim(arguments.unit))#",cfsqltype="CF_SQL_NUMERIC");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+        
+       return local.qryResult;           
+   }
+   
+   public query function getInboundAssets(required string programId, required string unit){
+        var local = {};
+       local.qry = new Query();
+       local.qry.setName("qDashboard");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+        local.sql = "
+           SELECT a.ASSET_ID,
+		       A.SERNO,
+               p.noun,
+               p.partno,
+		       A.IN_TRANSIT,
+		       AH.LOC_IDA FROM_ASSIGNED,
+		       A.LOC_IDA TO_ASSIGNED,
+		       AH.LOC_IDC FROM_CURRENT,
+		       A.LOC_IDC TO_CURRENT,
+		       FROM_CD.CODE_VALUE FROM_SITE,
+		       TO_CD.CODE_VALUE TO_SITE
+		  FROM globaleye.asset a,
+		       globaleye.part_list p,
+		       --globaleye.partno_code pc,
+		       GLOBALEYE.LOCATION FROM_LOC,
+		       GLOBALEYE.LOCATION TO_LOC,
+		       GLOBALEYE.CODE FROM_CD,
+		       GLOBALEYE.CODE TO_CD,
+		       (SELECT *
+		          FROM globaleye.asset_hist ah
+		         WHERE hist_date =
+		                  (SELECT MAX (hist_date)
+		                     FROM globaleye.asset_hist
+		                    WHERE asset_id = ah.asset_id AND in_transit = 'N')) ah
+		 WHERE     a.partno_id = p.partno_id
+		       --AND p.partno_id = pc.partno_id
+		       AND AH.LOC_IDC = FROM_LOC.LOC_ID
+		       AND FROM_LOC.UNIT_CD = FROM_CD.CODE_ID
+		       AND A.LOC_IDC = TO_LOC.LOC_ID
+		       AND TO_LOC.UNIT_CD = TO_CD.CODE_ID
+		       AND P.PGM_ID = :programId
+		       AND a.active = 'Y'
+		       AND a.in_transit = 'Y'
+		       AND a.asset_id = ah.asset_id       
+		       AND AH.LOC_IDC <> a.loc_idc
+		       and :unit = (select l.loc_id
+		                from globaleye.location l,
+		                     globaleye.location squad
+		                where l.site_cd = squad.site_cd
+		                and l.unit_cd = squad.unit_cd
+		                and l.squad_cd is null
+		                and squad.loc_id = A.LOC_IDC)
+        ";
+           
+       local.qry.addParam(name="programId", value="#val(trim(arguments.programId))#",cfsqltype="CF_SQL_NUMERIC");              
+       local.qry.addParam(name="unit", value="#val(trim(arguments.unit))#",cfsqltype="CF_SQL_NUMERIC");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+        
+       return local.qryResult;           	   
+   }
+   
+   public query function getOutboundAssets(required string programId, required string unit){
+        var local = {};
+       local.qry = new Query();
+       local.qry.setName("qDashboard");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+        local.sql = "
+           SELECT a.ASSET_ID,
+			       A.SERNO,
+               p.noun,
+               p.partno,
+			       A.IN_TRANSIT,
+			       AH.LOC_IDA FROM_ASSIGNED,
+			       A.LOC_IDA TO_ASSIGNED,
+			       AH.LOC_IDC FROM_CURRENT,
+			       A.LOC_IDC TO_CURRENT,
+			       FROM_CD.CODE_VALUE FROM_SITE,
+			       TO_CD.CODE_VALUE TO_SITE
+			  FROM globaleye.asset a,
+			       globaleye.part_list p,
+			       --globaleye.partno_code pc,
+			       GLOBALEYE.LOCATION FROM_LOC,
+			       GLOBALEYE.LOCATION TO_LOC,
+			       GLOBALEYE.CODE FROM_CD,
+			       GLOBALEYE.CODE TO_CD,
+			       (SELECT *
+			          FROM globaleye.asset_hist ah
+			         WHERE hist_date =
+			                  (SELECT MAX (hist_date)
+			                     FROM globaleye.asset_hist
+			                    WHERE asset_id = ah.asset_id AND in_transit = 'N')) ah
+			 WHERE     a.partno_id = p.partno_id
+			       --AND p.partno_id = pc.partno_id
+			       AND AH.LOC_IDC = FROM_LOC.LOC_ID
+			       AND FROM_LOC.UNIT_CD = FROM_CD.CODE_ID
+			       AND A.LOC_IDC = TO_LOC.LOC_ID
+			       AND TO_LOC.UNIT_CD = TO_CD.CODE_ID
+			       AND P.PGM_ID = :programId
+			       AND a.active = 'Y'
+			       AND a.in_transit = 'Y'
+			       AND a.asset_id = ah.asset_id
+			       AND AH.LOC_IDC <> a.loc_idc
+			       and :unit = (select l.loc_id
+			                from globaleye.location l,
+			                     globaleye.location squad
+			                where l.site_cd = squad.site_cd
+			                and l.unit_cd = squad.unit_cd
+			                and l.squad_cd is null
+			                and squad.loc_id = AH.LOC_IDC)
+        ";
+           
+       local.qry.addParam(name="programId", value="#val(trim(arguments.programId))#",cfsqltype="CF_SQL_NUMERIC");              
+       local.qry.addParam(name="unit", value="#val(trim(arguments.unit))#",cfsqltype="CF_SQL_NUMERIC");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+        
+       return local.qryResult;           	   
+   }
+   
+   public query function getSpares(required string program, string noun=""){
+    var local = {};
+       local.nounClause = "";
+       //local.partnoCodeService = application.objectFactory.create("PartnoCodeService");
+       //local.partnoIdList = local.partnoCodeService.getPartnoIdAsValueListByProgram(val(ARGUMENTS.program));
+       
+       local.qry = new Query();
+       local.qry.setName("qSpares");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       if(len(trim(ARGUMENTS.noun))){
+            local.nounClause = "AND UPPER(TRIM(p.noun)) = :noun ";    
+       }
+       local.id = getSysIdByProgram(trim(arguments.program));
+
+        local.sql = "
+            SELECT A.*, p.noun,
+              p.partno,
+              p.sys_type,
+              a.serno,
+              a.asset_id,
+              a.status_cd,
+              astat.code_value status,
+              a.deployed_date,
+              a.accept_date,
+              a.mfg_date,
+              a.next_ndi_date,
+              a.loc_ida,
+              a.loc_idc,
+              a.remarks,
+              aloc.site_cd assigned_site_cd,
+              cloc.site_cd current_site_cd,
+              depotloc.site_cd depot_site_cd,
+              aloc.unit_cd assigned_unit_cd,
+              cloc.unit_cd current_unit_cd,
+              aLocCode.code_value ASSIGNED_LOC,
+              cLocCode.code_value CURRENT_LOC,
+              depotLocCode.code_value DEPOT_LOC,
+              aUnitCode.code_value ASSIGNED_UNIT,
+              cUnitCode.code_value CURRENT_UNIT,
+              a.IN_TRANSIT IS_ORDERED
+            FROM globaleye.part_list p,
+              globaleye.asset a,
+              globaleye.code astat,
+              globaleye.code alocCode,
+              globaleye.code cLocCode,
+              globaleye.code depotLocCode,
+              globaleye.code aUnitCode,
+              globaleye.code cUnitCode,
+              globaleye.code pgm,
+              globaleye.location aloc,
+              globaleye.location cloc,
+              globaleye.location depotloc,
+              globaleye.code sysTypeCode
+            WHERE p.partno_id = a.partno_id(+)
+            AND a.status_cd = astat.code_id
+            and a.loc_ida = aloc.loc_id(+)
+            and a.loc_idc = cloc.loc_id(+)
+            and p.loc_idr = depotloc.loc_id(+)
+            and aloc.site_cd = alocCode.code_id(+)
+            and cloc.site_cd = clocCode.code_id(+)
+            and depotloc.site_cd = depotLocCode.code_id(+)
+            and aloc.unit_cd = aUnitCode.code_id(+)
+            and cloc.unit_cd = cUnitCode.code_id(+)
+            and p.sys_type = sysTypeCode.code_id(+)
+            and P.PGM_id = pgm.code_id
+            AND (pgm.code_value = :pgm OR a.sys_id = :sysId)
+            AND UPPER(TRIM(sysTypeCode.code_value)) IN ('PART','ECU')
+            AND a.nha_asset_id is null
+            AND UPPER(TRIM(p.noun)) = :noun 
+            AND p.active = 'Y'
+            AND a.active = 'Y'
+            order by p.noun,p.partno,a.serno
+        ";
+
+       local.qry.addParam(name="sysId", value="#val(local.id)#",cfsqltype="CF_SQL_NUMERIC");    
+       local.qry.addParam(name="pgm", value="#arguments.program#",cfsqltype="CF_SQL_VARCHAR");   
+              
+       local.qry.addParam(name="noun", value="#ucase(trim(arguments.noun))#",cfsqltype="CF_SQL_VARCHAR");        
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       return local.qryResult;  	   
+   }
+   
+   public query function searchSpares(required string program,string criteria=""){
+    var local = {};
+
+       local.partnoCodeService = application.objectFactory.create("PartnoCodeService");
+       //local.partnoIdList = local.partnoCodeService.getPartnoIdAsValueListByProgram(val(ARGUMENTS.program));
+       
+       local.qry = new Query();
+       local.qry.setName("qSpares");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       local.regExCriteria = " ";
+       local.regExCriteria = (ARGUMENTS.criteria neq "")?Replace(UCASE(criteria)," ", "|", "All" ):"$|";
+       local.id = getSysIdByProgram(trim(arguments.program));
+       
+        local.sql = "
+            SELECT p.noun,
+              p.partno,
+              p.sys_type,
+              a.serno,
+              a.asset_id,
+              a.status_cd,
+              astat.code_value status,
+              a.deployed_date,
+              a.accept_date,
+              a.mfg_date,
+              a.next_ndi_date,
+              a.loc_ida,
+              a.loc_idc,
+              a.remarks,
+              aloc.site_cd assigned_site_cd,
+              cloc.site_cd current_site_cd,
+              aloc.unit_cd assigned_unit_cd,
+              cloc.unit_cd current_unit_cd,
+              depotloc.site_cd depot_site_cd,
+              aLocCode.code_value ASSIGNED_LOC,
+              cLocCode.code_value CURRENT_LOC,
+              depotLocCode.code_value DEPOT_LOC,
+              aUnitCode.code_value ASSIGNED_UNIT,
+              cUnitCode.code_value CURRENT_UNIT,
+              DECODE(ORDERS.ASSET_ID, NULL, 'N', 'Y') IS_ORDERED
+            FROM globaleye.part_list p,
+              globaleye.asset a,
+              globaleye.code astat,
+              globaleye.code alocCode,
+              globaleye.code cLocCode,
+              globaleye.code depotLocCode,
+              globaleye.code aUnitCode,
+              globaleye.code cUnitCode,
+              globaleye.code pgm,
+              globaleye.location aloc,
+              globaleye.location cloc,
+              globaleye.location depotloc,
+              globaleye.code sysTypeCode,
+              (SELECT SO2.ASSET_ID
+               FROM GLOBALEYE.SRU_ORDER SO2, 
+                    GLOBALEYE.REPAIR R2
+               WHERE SO2.REPAIR_ID = R2.REPAIR_ID
+               AND R2.STOP_DATE IS NULL
+               GROUP BY SO2.ASSET_ID ) orders
+            WHERE p.partno_id = a.partno_id(+)
+            AND a.status_cd = astat.code_id
+            and a.loc_ida = aloc.loc_id(+)
+            and a.loc_idc = cloc.loc_id(+)
+            and p.loc_idr = depotloc.loc_id(+)
+            and aloc.site_cd = alocCode.code_id(+)
+            and cloc.site_cd = clocCode.code_id(+)
+            and depotloc.site_cd = depotLocCode.code_id(+)
+            and aloc.unit_cd = aUnitCode.code_id(+)
+            and cloc.unit_cd = cUnitCode.code_id(+)
+            and p.sys_type = sysTypeCode.code_id(+)
+            and a.asset_id = orders.asset_id(+)
+            and P.PGM_id = pgm.code_id
+            AND (pgm.code_value = :pgm OR a.sys_id = :sysId)  
+            AND UPPER(TRIM(sysTypeCode.code_value)) = 'PART'
+            AND a.nha_asset_id is null
+            AND p.active = 'Y' 
+            AND a.active = 'Y'  
+            AND (
+                REGEXP_LIKE(UPPER(TRIM(p.noun)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(p.partno)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(a.serno)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(astat.code_value)) , :regExCriteria, 'i' )
+                OR REGEXP_LIKE(UPPER(TRIM(cLocCode.code_value)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(cUnitCode.code_value)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(depotLocCode.code_value)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(a.remarks)), :regExCriteria , 'i')
+            ) 
+            order by p.noun,p.partno,a.serno
+        ";
+/*UPPER(TRIM(p.noun)) like :criteria 
+                OR UPPER(TRIM(p.partno)) like :criteria
+                OR UPPER(TRIM(a.serno)) like :criteria
+                OR UPPER(TRIM(astat.code_value)) like :criteria
+                OR UPPER(TRIM(cLocCode.code_value)) like :criteria
+                OR UPPER(TRIM(cUnitCode.code_value)) like :criteria
+                OR UPPER(TRIM(depotLocCode.code_value)) like :criteria
+                OR UPPER(TRIM(a.remarks)) like :criteria
+                
+                OR */
+                
+       local.qry.addParam(name="sysId", value="#val(getSysIdByProgram(trim(arguments.program)))#",cfsqltype="CF_SQL_NUMERIC");  
+       local.qry.addParam(name="pgm", value="#arguments.program#",cfsqltype="CF_SQL_VARCHAR");     
+                    
+       local.qry.addParam(name="criteria", value="%#ucase(trim(arguments.criteria))#%",cfsqltype="CF_SQL_VARCHAR");         
+       local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+        
+       return local.qryResult;         
+   }
+   
+   
+   // function add - Kevin 05 Nov 2013
+   public query function searchBacklogs(required string program,string criteria="", required string loc){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       local.regExCriteria = (ARGUMENTS.criteria neq "")?Replace(UCASE(criteria)," ", "|", "All" ):"$|";
+       
+           
+        local.sql = 
+		           "SELECT e.event_id eventid,
+					       a.asset_id,
+					       a.serno pod_serno,
+					       pl.partno,
+					       pl.sys_type,
+					       lp.is_pqdr, lp.dr_num,
+					       NVL (pl.config, pl.noun) config,
+					       e.job_no || ' ' || LPAD (r.repair_seq, 3, '0') jobno,
+					       e.job_no simpleJobNo,
+					       r.repair_id repairid,
+					       sra_asset.asset_id sra_asset,
+					       sra_pl.noun sra_noun,
+					       sra_pl.partno sra_partno,
+					       sra_asset.serno sra_serno,
+					       sys.code_value systype_value,
+					       --e.ins_date insdate,
+					       e.start_job insdate,
+					       status.code_value status,
+					       e.stop_job,
+					       e.discrepancy || ' :::: ' || l.corrective || ' :::: ' || l.remarks
+					          narrative,
+					       NVL (R.REPAIR_SEQ, 0) repair_seq,
+					       NVL (r.type_maint, 0) type_maint,
+					       e.old_job oldJob,
+					       e.discrepancy,
+					     --  site.code_value site,
+					       (SELECT meter_in
+					          FROM globaleye.meter_hist mh
+					         WHERE     mh.asset_id = a.asset_id
+					               AND meter_id = (SELECT MAX (meter_id)
+					                                 FROM globaleye.meter_hist
+					                                WHERE asset_id = mh.asset_id))
+					          meter_in,
+					       (SELECT SUM (delta)
+					          FROM (  SELECT cm.asset_id ct_asset_id,
+					                         aa.asset_id ge_asset_id,
+					                         meter_seq,
+					                         MIN (value_out) min_etm,
+					                         MAX (NVL (value_out, value_in)) max_etm,
+					                         (MAX (NVL (value_out, value_in)) - MIN (value_in))
+					                            delta
+					                    FROM core_tables.cfg_meters cm, globaleye.asset aa
+					                   WHERE     aa.ct_asset_id = cm.asset_id
+					                         AND aa.asset_id = a.asset_id
+					                GROUP BY cm.asset_id, meter_seq, aa.asset_id))
+					          delta, ";
+       if(application.sessionManager.getMaintLevelSetting() EQ 'DEPOT'){
+       		local.sql = local.sql & "decode(REGEXP_INSTR (e.old_job, '[^[:digit:]]'),0,(select LV2.unit
+                                                       from GLOBALEYE.LOCATION_VIEW lv2,
+                                                        globaleye.event e2
+                                                    where E2.LOC_ID = LV2.LOC_ID
+                                                    and e2.event_id = e.old_job ),unit.code_value) unit, ";
+       local.sql = local.sql & "decode(REGEXP_INSTR (e.old_job, '[^[:digit:]]'),0,(select LV2.site
+                                                       from GLOBALEYE.LOCATION_VIEW lv2,
+                                                        globaleye.event e2
+                                                    where E2.LOC_ID = LV2.LOC_ID
+                                                    and e2.event_id = e.old_job ),site.code_value) SITE";                                                    
+       }else{
+			local.sql = local.sql & "site.code_value site, unit.code_value unit ";       
+       } 
+       local.sql = local.sql & "
+       			  FROM globaleye.asset a,
+				       globaleye.event e,
+				       globaleye.repair r,
+				       globaleye.labor l,
+				       globaleye.labor_part lp,
+				       globaleye.part_list pl,
+				       globaleye.code pgm,
+				       globaleye.code sys,
+				       globaleye.location loc,
+				       globaleye.code unit,
+				       globaleye.code site,
+				       globaleye.code tm,
+				       globaleye.code status,
+				       globaleye.asset sra_asset,
+				       globaleye.part_list sra_pl
+				 WHERE     a.asset_id = e.asset_id
+				       AND e.event_id = r.event_id(+)
+				       AND r.repair_id = l.repair_id(+)
+				       AND l.labor_id = lp.labor_id(+)
+				       AND lp.part_action(+) IN ('WORKED', 'REMOVED')
+				       AND a.partno_id = pl.partno_id
+				       AND pl.pgm_id = pgm.code_id
+				       AND UPPER (pgm.code_value) LIKE '%' || :program || '%'
+				       AND pl.sys_type = sys.code_id
+				       AND loc.loc_id IN (e.loc_id)
+				       AND loc.unit_cd = unit.code_id
+				       AND LOC.SITE_CD = site.code_id
+				       AND e.loc_id = :loc
+				       AND lp.asset_id = sra_asset.asset_id(+)
+				       AND sra_asset.partno_id = sra_pl.partno_id(+)
+				       AND status.code_id = a.status_cd
+				       --AND stop_job IS NULL
+				       AND r.type_maint = tm.code_id(+)
+				       AND (   pl.sys_type IN (SELECT code_b
+				                                 FROM globaleye.code_by_code cbc,
+				                                      globaleye.code cg,
+				                                      globaleye.code ca
+				                                WHERE     cbc.group_cd = cg.code_id
+				                                      AND cg.code_value LIKE
+				                                                '%'
+				                                             || :program
+				                                             || '_SYSTYPE_BY_CAT%'
+				                                      AND cbc.code_a = ca.code_id
+				                                      AND UPPER (ca.code_value) LIKE
+				                                             UPPER ( :sub))
+				            OR PL.SYS_TYPE IN (SELECT CODE_ID
+				                                 FROM CODE
+				                                WHERE     CODE_VALUE = 'PART'
+				                                      AND CODE_TYPE = 'SYS_TYPE')
+				            OR e.asset_id IN (SELECT a.asset_id
+				                                FROM GLOBALEYE.CFG_LIST cl,
+				                                     globaleye.part_list p,
+				                                     globaleye.part_list c,
+				                                     GLOBALEYE.ASSET a
+				                               WHERE     CL.PARTNO_P = P.PARTNO_ID
+				                                     AND CL.PARTNO_C = C.PARTNO_ID
+				                                     AND A.PARTNO_ID = C.PARTNO_ID
+				                                     AND P.SYS_TYPE IN (SELECT code_b
+				                                                          FROM globaleye.code_by_code cbc,
+				                                                               globaleye.code cg,
+				                                                               globaleye.code ca
+				                                                         WHERE     cbc.group_cd =
+				                                                                      cg.code_id
+				                                                               AND cg.code_value LIKE
+				                                                                         '%'
+				                                                                      || :program
+				                                                                      || '_SYSTYPE_BY_CAT%'
+				                                                               AND cbc.code_a =
+				                                                                      ca.code_id
+				                                                               AND UPPER (
+				                                                                      ca.code_value) LIKE
+				                                                                      UPPER (
+				                                                                         :sub))))
+				       AND NVL (tm.description, 0) NOT IN ('TCTO',
+				                                           'SPECIAL INSPECTION',
+				                                           'PERIODIC INSPECTION',
+				                                           'SCHEDULED INSPECTION',
+				                                           'SCHEDULED CALIBRATION')	
+           AND(
+                REGEXP_LIKE(UPPER(TRIM(a.serno)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(e.job_no)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(sra_asset.asset_id)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(sra_pl.noun)) , :regExCriteria, 'i' )
+                OR REGEXP_LIKE(UPPER(TRIM(sra_pl.partno)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(sra_asset.serno)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(unit.code_value)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(e.start_job)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(status.code_value)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(narrative)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(NVL (pl.config, pl.noun))), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(repair_seq)), :regExCriteria , 'i')
+            ) ";
+           if (arguments.criteria EQ ""){
+           	 local.sql = local.sql & "              
+                         and stop_job is null 
+                         order by config, jobno desc, pod_serno, repair_seq";
+           } else {
+           	   local.sql = local.sql & "
+           	             order by config, jobno desc, pod_serno, repair_seq";
+           }
+     
+     
+     /*
+     try
+     {     	       
+       	WriteOutput("<p>#local.sql#</p>");
+     }
+     catch(Any e)
+     {
+     	WriteOutput("#e#");
+     }
+	*/
+      	
+     
+       local.qry.addParam(name="program", value="#ucase(trim(arguments.program))#",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.addParam(name="sub", value="%#ucase(trim(application.sessionManager.getSubSection()))#",cfsqltype="CF_SQL_VARCHAR"); 
+       local.qry.addParam(name="loc", value="#val(trim(arguments.loc))#",cfsqltype="CF_SQL_NUMERIC");   
+       local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+       
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+       
+      /*
+     	try
+         {
+         	
+         //	dumpLocation = expandPath("sql_searchBacklogs.html");
+		 //	WriteDump(var="#local.sql#", format='html', output=dumpLocation);
+         	
+         }
+         catch(Any e)
+         {
+         	WriteOutput("#e#");
+         }
+	*/
+       	
+        
+       return local.qryResult;         
+   }
+   // function add - end
+   
+   
+   public query function searchPmi(required string program,string criteria="", required string loc){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       local.regExCriteria = " ";
+       local.regExCriteria = (ARGUMENTS.criteria neq "")?Replace(UCASE(ARGUMENTS.criteria)," ", "|", "All" ):"$|";
+       
+       
+        local.sql = 
+           "select eventid, asset_id, pod_serno, jobno, repairid, unit, pmi_type, insdate,site,
+       start_job, status, meter_in, meter_out, NVL(config, noun) config, repair_seq, next_etm_is_due, delta, next_etm_is_due - delta, stop_job, how_mal,
+       discrepancy || ' :::: ' || corrective || ' :::: ' || remarks narrative
+from 
+(
+            select e.event_id eventid, e.asset_id, ga.serno pod_serno, PL.NOUN,              
+                  e.job_no||' '||lpad(r.repair_seq, 3, '0') jobno, 
+                  r.repair_id repairid,
+                  lc.code_value unit,            
+                  r.pmi_type,
+                  e.ins_date insdate, 
+                  e.start_job,
+                  e.stop_job,
+                  sc.code_value status, 
+                  mh.meter_in,
+                  mh.meter_out,
+                  s.config,
+                  nvl(r.repair_seq, 0) repair_seq,
+                  next_etm_is_due, 
+                  cumHrs.delta,
+                  r.how_mal,
+                  r.corrective,
+                  r.remarks  ,
+                  e.discrepancy,
+                  l.site   
+           from globaleye.event e,   
+                (select er.event_id, rr.repair_id, rr.repair_seq, ai.pmi pmi_type, ai.next_etm_is_due, c.description, cm.code_value||' - '||cm.description how_mal, ll.corrective, ll.remarks
+                 from globaleye.event er,globaleye.repair rr, globaleye.code c, globaleye.code cm, globaleye.labor ll,
+                      (select aii.hist_id, aii.asset_id, aii.ins_by, aii.ins_date, aii.valid, aii.wuc_cd, aii.jst_id, aii.repair_id,
+                               aii.complete_date, aii.next_due_date, aii.job_no, aii.completed_by, aii.chg_by, aii.chg_date, aii.pmi_type, pc.code_value pmi,
+                               aii.completed_etm, aii.next_due_etm due_etm, ai2.next_due_etm next_etm_is_due
+                       from globaleye.asset_inspection aii, globaleye.asset_inspection ai2, globaleye.code pc
+                       where to_number(aii.job_no) = ai2.hist_id(+)
+                       and ((REGEXP_LIKE(aii.job_no, '^[[:digit:]]+$')) or (aii.job_no is null))
+                       and aii.pmi_type = pc.code_id(+)
+                       order by aii.hist_id desc) ai
+                 where er.event_id = rr.event_id
+                 and Rr.TYPE_MAINT = c.code_id
+                 and rr.how_mal = cm.code_id
+                 and rr.repair_id = AI.REPAIR_ID(+)
+                 and rr.repair_id = ll.repair_id(+)
+                 and er.loc_id = :loc
+                 ) r,      
+                globaleye.asset ga,                
+                globaleye.part_list pl,
+                globaleye.code gc,
+                globaleye.code sc,
+                globaleye.location_view l,
+                globaleye.code lc,
+                core_tables.inv_assets ca,
+                core_tables.inv_systems s,
+                globaleye.meter_hist mh,
+               (SELECT CT_ASSET_ID, GE_ASSET_ID, 
+                           SUM(DELTA) delta
+                    FROM (  
+                        SELECT CM.ASSET_ID CT_ASSET_ID, 
+                               A.ASSET_ID GE_ASSET_ID,
+                               METER_SEQ,        
+                               MIN(VALUE_OUT) MIN_ETM,
+                               MAX(NVL(VALUE_OUT, VALUE_IN)) MAX_ETM,
+                               (MAX(NVL(VALUE_OUT, VALUE_IN)) - MIN(VALUE_IN)) DELTA
+                        FROM CORE_TABLES.CFG_METERS CM,
+                             GLOBALEYE.ASSET_VIEW A,
+                              globaleye.part_list pl,
+                                    globaleye.code gc
+                        WHERE A.CT_ASSET_ID = CM.ASSET_ID 
+                               and UPPER(gc.code_value) like :program
+                               and gc.code_type = 'PROGRAM_ID'
+                        and a.partno_id = pl.partno_id 
+                     --   AND A.PARTNO IN ('02501000-1', '02501010-1', '09061000-1', '01261000-1', '95170080-')
+                        GROUP BY CM.ASSET_ID, METER_SEQ, A.ASSET_ID
+                        ORDER BY METER_SEQ DESC
+                    )
+                    GROUP BY CT_ASSET_ID, GE_ASSET_ID) cumHrs
+           where e.asset_id = ga.asset_id  
+           and e.event_id = r.event_id(+)           
+           and ga.partno_id = pl.partno_id        
+           and pl.pgm_id = gc.code_id
+           and UPPER(gc.code_value) like :program
+           and gc.code_type = 'PROGRAM_ID'
+           and e.loc_id = :loc
+           and pl.sys_type in (select code_b
+                               from globaleye.code_by_code cbc, globaleye.code cg, globaleye.code ca
+                               where cbc.group_cd = cg.code_id
+                               and cg.code_value like '%'|| :program || '_SYSTYPE_BY_CAT%'
+                               and cbc.code_a = ca.code_id
+                               and upper(ca.code_value) like upper(:sub))
+           and ga.ct_asset_id = ca.asset_id
+           and ca.sys_id = s.sys_id
+           and e.loc_id = l.loc_id
+           and l.unit_cd = lc.code_id
+           and r.description in ('PERIODIC INSPECTION', 'SCHEDULED INSPECTION', 'SCHEDULED CALIBRATION')
+           and ga.status_cd = sc.code_id
+           and e.event_id = mh.event_id(+)
+           and GA.CT_ASSET_ID = cumHrs.ct_asset_id(+))
+where (((start_job - sysdate) <= 60) or ((next_etm_is_due - delta) <= 200))  
+ AND(
+				REGEXP_LIKE(UPPER(TRIM(eventid)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM((asset_id))) , :regExCriteria, 'i' )
+                OR REGEXP_LIKE(UPPER(TRIM(pod_serno)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(jobno)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(repairid)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(unit)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(insdate)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(status)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(meter_in)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(config)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(corrective)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(remarks)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(repair_seq)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(delta)), :regExCriteria , 'i')
+			) ";
+			
+		
+           if (arguments.criteria EQ ""){
+           	 local.sql = local.sql & "              
+                         and stop_job is null 
+                         order by jobno desc, pod_serno, repair_seq";
+           } else {
+           	   local.sql = local.sql & "
+           	             order by jobno desc, pod_serno, repair_seq";
+           }				
+                      
+       local.qry.addParam(name="program", value="%#ucase(trim(arguments.program))#%",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.addParam(name="sub", value="%#ucase(trim(application.sessionManager.getSubSection()))#",cfsqltype="CF_SQL_VARCHAR"); 
+       local.qry.addParam(name="criteria", value="%#ucase(trim(arguments.criteria))#%",cfsqltype="CF_SQL_VARCHAR");       
+       local.qry.addParam(name="loc", value="#val(trim(arguments.loc))#",cfsqltype="CF_SQL_NUMERIC");    
+	   local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+       
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+    public query function getLaborBitPcByLaborId(required string laborId){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qLaborBitPc");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "SELECT LABOR_BIT_ID, LABOR_ID, BIT_PARTNO, BIT_NAME, INS_BY,  
+                    INS_DATE, SENT_IMDS, BIT_SEQ, BIT_WUC, HOW_MAL,   
+                    BIT_QTY, FSC, BIT_DELETE, VALID, VAL_BY,   
+                    VAL_DATE, NVL((SELECT 'Y'
+					  FROM GLOBALEYE.PARTNO_CODE  PC,
+					       GLOBALEYE.PART_LIST    PL
+					 WHERE PL.PARTNO_ID = PC.PARTNO_ID     
+					 AND PARTNO = BIT_PARTNO
+					       AND GROUP_CD IN
+					               (SELECT CODE_ID
+					                  FROM GLOBALEYE.CODE
+					                 WHERE CODE_VALUE LIKE 'NSP' AND CODE_TYPE LIKE 'GROUP')  ), 'N') IS_NSP,
+			         NVL (
+			             (SELECT 'Y'
+			                FROM GLOBALEYE.LABOR    L,
+			                     GLOBALEYE.SRU_ORDER SO,
+			                     GLOBALEYE.PART_LIST PL
+			               WHERE     L.REPAIR_ID = SO.REPAIR_ID
+			                     AND L.LABOR_ID = LBP.LABOR_ID
+			                     AND PL.PARTNO = BIT_PARTNO
+			                     AND SO.PARTNO_ID = PL.PARTNO_ID),
+			             'N')
+			             HAS_PART_ORDER,
+			         NVL (
+			             (SELECT ASSET_ID
+			                FROM GLOBALEYE.ASSET A, GLOBALEYE.PART_LIST PL
+			               WHERE     SERNO LIKE 'NSP'
+			                     AND A.PARTNO_ID = PL.PARTNO_ID
+			                     AND PL.PARTNO = BIT_PARTNO),
+			             0)
+			             NSP_ASSET_ID
+                FROM GLOBALEYE.LABOR_BIT_PC LBP
+                	WHERE LABOR_ID = :laborId 
+                	ORDER BY INS_DATE ";
+                      
+       local.qry.addParam(name="laborId", value="#arguments.laborId#",cfsqltype="CF_SQL_VARCHAR");
+       
+       
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+   
+    public query function getSruOrderByRepairId(required string repairId){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSruOrder");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "SELECT *
+                FROM GLOBALEYE.SRU_ORDER 
+                	WHERE REPAIR_ID = :repairId ";
+                      
+       local.qry.addParam(name="repairId", value="#arguments.repairId#",cfsqltype="CF_SQL_VARCHAR");
+       
+       
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+    public query function getLaborByRepairId(required string repairId){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qLabor");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "SELECT *
+                FROM GLOBALEYE.LABOR 
+                	WHERE REPAIR_ID = :repairId ";
+                      
+       local.qry.addParam(name="repairId", value="#arguments.repairId#",cfsqltype="CF_SQL_VARCHAR");
+       
+       
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+    public query function getTctoByRepairId(required string repairId){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qTcto");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "SELECT *
+                FROM GLOBALEYE.TCTO_ASSET 
+                	WHERE REPAIR_ID = :repairId ";
+                      
+       local.qry.addParam(name="repairId", value="#arguments.repairId#",cfsqltype="CF_SQL_VARCHAR");
+       
+       
+        
+       local.qry.setSQL(local.sql);       
+       local.qryResult = local.qry.execute().getResult();  
+       
+       /*
+       try
+       {
+       	
+       	
+        	//WriteOutput("<p>#local.sql#</p>");
+        	
+        	//dumpLocation = expandPath("SQL_getTctoByRepairId.html");
+			//WriteDump(var="#local.sql#", format='html', output=dumpLocation);
+        
+       }
+       catch(Any e)
+       {
+       	WriteOutput("#e#");
+       }
+	*/
+       
+        
+       return local.qryResult;         
+   }
+   
+   
+    public query function searchTcto(required string program,string criteria="", required string loc){
+    var local = {};
+
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       local.regExCriteria = " ";
+       local.regExCriteria = (ARGUMENTS.criteria neq "")?Replace(UCASE(ARGUMENTS.criteria)," ", "|", "All" ):"$|";
+	   /*
+	   try
+       {
+       	 writeoutput("#regExCriteria#");
+       }
+       catch(Any e)
+       {
+       	 writeoutput("#e#");
+       }
+		*/
+	   
+	  
+       
+        local.sql = 
+           "select eventid, asset_id, pod_serno, jobno, repairid, sra_asset, partno,site
+                   sra_noun, sra_partno, sra_serno, unit, insdate, status, meter_in, meter_out, config, repair_seq, delta, stop_job, discrepancy || ' :::: ' || corrective || ' :::: ' || remarks narrative, site
+            from
+                (                   
+                    	select e.event_id eventid, e.asset_id, ga.serno pod_serno, pl.partno,              
+                              e.job_no||' '||lpad(gr.repair_seq, 3, '0') jobno, 
+                              gr.repair_id repairid,
+                              gr.sra_asset,
+                              gr.sra_noun,
+                              gr.sra_partno,
+                              gr.sra_serno,
+                              gr.corrective,
+                              gr.remarks,
+                              lc.code_value unit,            
+                              e.ins_date insdate, 
+                              sc.code_value status, 
+                              mh.meter_in,
+                              mh.meter_out,
+                              pl.config,
+                              e.stop_job,
+                              nvl(gr.repair_seq, 0) repair_seq,
+                              cumHrs.delta, nvl(gr.type_maint, 0) type_maint,
+                              e.discrepancy,
+                              l.site
+                       from globaleye.event e,                
+                            globaleye.asset ga,                
+                            globaleye.part_list pl,
+                            globaleye.code gc,
+                            globaleye.code sc,
+                            globaleye.location_view l,
+                            globaleye.code lc,
+                            core_tables.inv_assets ca,
+                            core_tables.inv_systems s,
+                            globaleye.meter_hist mh,
+                            (select r.event_id, r.repair_id, r.repair_seq, r.narrative, nvl(c.description, 0) type_maint, ll.labor_id, ll.labor_part_id, ll.sra_asset, ll.sra_serno, ll.sra_partno, ll.sra_noun, ll.corrective, ll.remarks
+                            from globaleye.repair r, 
+                                 (select l.repair_id, l.labor_id, lpp.labor_part_id, sra_asset, sra_serno, sra_partno, sra_noun, l.corrective, l.remarks
+                                                      from globaleye.labor l, (select lp.labor_id, lp.labor_part_id, lp.asset_id sra_asset, a.serno sra_serno, pl.partno sra_partno, pl.noun sra_noun
+                                                                               from globaleye.labor_part lp, globaleye.asset a, globaleye.part_list pl
+                                                                               where lp.asset_id = a.asset_id
+                                                                               and lp.part_action in ('WORKED', 'REMOVED')
+                                                                               and a.partno_id = pl.partno_id) lpp
+                                                      where l.labor_id = lpp.labor_id(+)) ll, globaleye.code c
+                            where r.repair_id = ll.repair_id(+)
+                            and r.type_maint = c.code_id(+)) gr,
+                           (SELECT CT_ASSET_ID, GE_ASSET_ID, 
+                                       SUM(DELTA) delta
+                                FROM (  
+                                    SELECT CM.ASSET_ID CT_ASSET_ID, 
+                                           A.ASSET_ID GE_ASSET_ID,
+                                           METER_SEQ,        
+                                           MIN(VALUE_OUT) MIN_ETM,
+                                           MAX(NVL(VALUE_OUT, VALUE_IN)) MAX_ETM,
+                                           (MAX(NVL(VALUE_OUT, VALUE_IN)) - MIN(VALUE_IN)) DELTA
+                                    FROM CORE_TABLES.CFG_METERS CM,
+                                         GLOBALEYE.ASSET_VIEW A,
+                                          globaleye.part_list pl,
+                                                globaleye.code gc
+                                    WHERE A.CT_ASSET_ID = CM.ASSET_ID 
+                                           and UPPER(gc.code_value) like :program
+                                           and gc.code_type = 'PROGRAM_ID'
+                                    and a.partno_id = pl.partno_id 
+                                  --  AND A.PARTNO IN ('02501000-1', '02501010-1', '09061000-1', '95170080-')
+                                    GROUP BY CM.ASSET_ID, METER_SEQ, A.ASSET_ID
+                                    ORDER BY METER_SEQ DESC
+                                )
+                                GROUP BY CT_ASSET_ID, GE_ASSET_ID) cumHrs
+                       where e.asset_id = ga.asset_id               
+                       and ga.partno_id = pl.partno_id             
+                       and pl.pgm_id = gc.code_id
+                       and UPPER(gc.code_value) like :program
+                       and gc.code_type = 'PROGRAM_ID'
+                       and e.loc_id = :loc
+                       and ((pl.sys_type in (select code_b
+                                                       from globaleye.code_by_code cbc, globaleye.code cg, globaleye.code ca
+                                                       where cbc.group_cd = cg.code_id
+                                                       and cg.code_value like '%'|| :program || '_SYSTYPE_BY_CAT%'
+                                                       and cbc.code_a = ca.code_id
+                                                       and upper(ca.code_value) like upper(:sub)) )
+                             or
+                             (pl.sys_type in (select distinct p.sys_type
+                                               from globaleye.cfg_list cl, globaleye.cfg_set cs,
+                                                    globaleye.code cct,globaleye.code_by_code cbc,
+                                                    globaleye.code cg, globaleye.code ca,
+                                                    part_list p
+                                               where cs.cfg_set_id = cl.cfg_set_id
+                                               and cs.cfg_type = cct.code_value
+                                               and cct.code_type = 'SYS_TYPE'
+                                               and cct.code_id = cbc.code_b
+                                               and cbc.group_cd = cg.code_id
+                                               and cg.code_value like '%'|| :program || '_SYSTYPE_BY_CAT%'
+                                               and cbc.code_a = ca.code_id
+                                               and upper(ca.code_value) like upper(:sub)
+                                               and cl.partno_c = p.partno_id))
+                             )
+                       and ((pl.sys_type in (select code_b
+                               				from globaleye.code_by_code cbc, globaleye.code cg, globaleye.code ca
+                               				where cbc.group_cd = cg.code_id
+                               				and cg.code_value like '%'|| :program || '_SYSTYPE_BY_CAT%'
+                               				and cbc.code_a = ca.code_id
+                               				and upper(ca.code_value) like upper(:sub)) )
+                             or
+                             (pl.sys_type in (select distinct p.sys_type
+                                               from globaleye.cfg_list cl, globaleye.cfg_set cs,
+                                                    globaleye.code cct,globaleye.code_by_code cbc,
+                                                    globaleye.code cg, globaleye.code ca,
+                                                    part_list p
+                                               where cs.cfg_set_id = cl.cfg_set_id
+                                               and cs.cfg_type = cct.code_value
+                                               and cct.code_type = 'SYS_TYPE'
+                                               and cct.code_id = cbc.code_b
+                                               and cbc.group_cd = cg.code_id
+                                               and cg.code_value like '%'|| :program || '_SYSTYPE_BY_CAT%'
+                                               and cbc.code_a = ca.code_id
+                                               and upper(ca.code_value) like upper(:sub)
+                                               and cl.partno_c = p.partno_id))
+                             )
+                       and ga.ct_asset_id = ca.asset_id(+)
+                       and ca.sys_id = s.sys_id(+)
+                       and e.loc_id = l.loc_id
+                       and l.unit_cd = lc.code_id
+                       and e.event_id = gr.event_id(+)
+                       and ga.status_cd = sc.code_id
+                       and e.event_id = mh.event_id(+)
+                        and GA.CT_ASSET_ID = cumHrs.ct_asset_id(+))
+                        where type_maint in ('TCTO')
+                       AND(
+							REGEXP_LIKE(UPPER(TRIM(eventid)) , :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM((asset_id))) , :regExCriteria, 'i' )
+			                OR REGEXP_LIKE(UPPER(TRIM(pod_serno)) , :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(jobno)) , :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(repairid)) , :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(sra_asset)) , :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(sra_noun)) , :regExCriteria, 'i' )
+			                OR REGEXP_LIKE(UPPER(TRIM(sra_partno)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(sra_serno)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(unit)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(insdate)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(status)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(meter_in)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(corrective)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(remarks)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(config)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(repair_seq)), :regExCriteria , 'i')
+			                OR REGEXP_LIKE(UPPER(TRIM(delta)), :regExCriteria , 'i')
+						)  ";
+			    
+						
+		  if (arguments.criteria EQ ""){
+           	 local.sql = local.sql & "              
+                         and stop_job is null 
+                         order by config, jobno desc, pod_serno, repair_seq";
+           } else {
+           	   local.sql = local.sql & "
+           	             order by config, jobno desc, pod_serno, repair_seq";
+           }							
+                      
+                      
+                      
+		
+                      
+       local.qry.addParam(name="program", value="%#ucase(trim(arguments.program))#%",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.addParam(name="sub", value="%#ucase(trim(application.sessionManager.getSubSection()))#",cfsqltype="CF_SQL_VARCHAR"); 
+       local.qry.addParam(name="criteria", value="%#ucase(trim(arguments.criteria))#%",cfsqltype="CF_SQL_VARCHAR");       
+       local.qry.addParam(name="loc", value="#val(trim(arguments.loc))#",cfsqltype="CF_SQL_NUMERIC");   
+       local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+       
+       /*
+        try
+        {
+        	//WriteOutput("<p>#local.sql#</p>");
+        	
+        	//dumpLocation = expandPath("SQL_searchTcto.html");
+			//WriteDump(var="#local.sql#", format='html', output=dumpLocation);
+        }
+        catch(Any e)
+        {
+        	WriteOutput("#e#");
+        }
+		*/
+        
+        
+       return local.qryResult;         
+   }
+   
+   
+   public query function searchPartLabor(required string laborId, required string partAction){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = 
+           "select labor_part_id laborPartId, labor_id laborId, asset_id assetId
+            from globaleye.labor_part
+            where labor_id = :labor
+            and part_action like :part";
+                      
+       local.qry.addParam(name="labor", value="#ucase(trim(arguments.laborId))#",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.addParam(name="part", value="%#ucase(trim(arguments.partAction))#%",cfsqltype="CF_SQL_VARCHAR");             
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+   public query function getCumulativeETM(required string assetId){
+   	   var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = 
+           "SELECT CT_ASSET_ID, GE_ASSET_ID, 
+                    nvl(SUM(DELTA), 0) delta
+            FROM (  
+                   SELECT CM.ASSET_ID CT_ASSET_ID, 
+                          A.ASSET_ID GE_ASSET_ID,
+                          METER_SEQ,        
+                          MIN(VALUE_OUT) MIN_ETM,
+                          MAX(NVL(VALUE_OUT, VALUE_IN)) MAX_ETM,
+                          (MAX(NVL(VALUE_OUT, VALUE_IN)) - MIN(VALUE_IN)) DELTA
+                   FROM CORE_TABLES.CFG_METERS CM,
+                        GLOBALEYE.ASSET_VIEW A,
+                        globaleye.part_list pl,
+                        globaleye.code gc
+                   WHERE A.CT_ASSET_ID = CM.ASSET_ID 
+                   and gc.code_type = 'PROGRAM_ID'
+                   and a.partno_id = pl.partno_id 
+                --   AND A.PARTNO IN ('02501000-1', '02501010-1', '09061000-1', '95170080-')
+                   GROUP BY CM.ASSET_ID, METER_SEQ, A.ASSET_ID
+                   ORDER BY METER_SEQ DESC
+                 )
+            where ct_asset_id = :asset
+            GROUP BY CT_ASSET_ID, GE_ASSET_ID";
+                      
+       local.qry.addParam(name="asset", value="#ucase(trim(arguments.assetId))#",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;      
+   }
+   
+   public query function getEventbyAssetStartDate(required string assetId, required string maintStart){
+   var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = 
+           "select event_id, job_no, asset_id, start_job
+            from globaleye.event
+            where asset_id = :asset
+            and start_job = :mStart";
+                      
+       local.qry.addParam(name="asset", value="#ucase(trim(arguments.assetId))#",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.addParam(name="mStart", value="#ucase(trim(arguments.maintStart))#",cfsqltype="CF_SQL_VARCHAR");             
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;   
+   }
+   
+   public query function getEventbyAssetStartETM(required string assetId, required string etmStart){
+   var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = 
+           "select ai.repair_id, ai.asset_id, job_no
+            from globaleye.asset_inspection ai
+            where ai.asset_id = :asset
+            and JOB_NO = :mStart";
+                      
+       local.qry.addParam(name="asset", value="#ucase(trim(arguments.assetId))#",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.addParam(name="mStart", value="#ucase(trim(arguments.etmStart))#",cfsqltype="CF_SQL_VARCHAR");             
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;   
+   }
+   
+   
+   public query function searchAssetInspectionByRepairId(required string repairId){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = 
+           "select hist_id, asset_id assetId, ins_by insBy, ins_date insDate, valid, wuc_cd wucCd, jst_id jstId,
+                   repair_id repairId, complete_date completeDate, next_due_date nextDueDate, job_no jobNo, 
+                   completed_by completedBy, chg_by chgBy, chg_date chgDate
+            from globaleye.asset_inspection
+            where repair_id = :repair";
+                      
+       local.qry.addParam(name="repair", value="#ucase(trim(arguments.repairId))#",cfsqltype="CF_SQL_VARCHAR");             
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+   public query function searchPartOrderByLoc(required string program,string criteria="", required string loc){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       local.regExCriteria = " ";
+       local.regExCriteria = (ARGUMENTS.criteria neq "")?Replace(UCASE(ARGUMENTS.criteria)," ", "|", "All" ):"$|";
+
+       
+        local.sql = 
+           "SELECT GCL.CODE_VALUE UNIT, GCL2.CODE_VALUE BASE, PL.NOUN REM_NOUN, PL.PARTNO REM_PARTNO, A.SERNO REM_SERNO, A.ASSET_ID REM_ASSET, 
+                   EAP.PARTNO POD_PARTNO, EA.SERNO POD_SERNO, EA.ASSET_ID POD_ASSET,
+                   REPP.NOUN REP_NOUN, REPP.PARTNO REP_PARTNO, 
+                   REPA.SERNO REP_SERNO, REPA.ASSET_ID REP_ASSET, NVL(REPA.SHIPPER, S.SHIPPER) AS SHIPPER, NVL(REPA.TCN, S.TCN) AS TCN, REPA.SHIP_DATE,
+                   S.ORDER_ID, S.REPAIR_ID, S.EVENT_ID, S.ORDER_DATE, S.FILL_DATE, S.RECEIVE_DATE, S.ACKNOWLEDGE_DATE, S.INS_DATE,
+                   S.ACTIVE, S.INS_BY, S.SRU_ID, S.DOC_NO, S.ESD, S.CHG_BY, S.CHG_DATE, 
+                   S.PARTNO_ID, S.ORDER_QTY, S.STATUS, S.MICAP, S.DELIVERY_DEST, 
+                   S.DELIVERY_PRIORITY, S.UJC, S.RECEIVER, S.RECEIVE_QTY, S.REMARKS, S.WUC_CD, S.LOC_ID, S.REPL_SRU_RECV_DATE, LRP.IS_PQDR
+            FROM GLOBALEYE.SRU_ORDER S, GLOBALEYE.EVENT E, GLOBALEYE.REPAIR R, GLOBALEYE.LABOR LR, GLOBALEYE.ASSET A, GLOBALEYE.PART_LIST PL,
+                 GLOBALEYE.CODE GC, GLOBALEYE.LOCATION L, GLOBALEYE.CODE GCL, GLOBALEYE.CODE GCL2,GLOBALEYE.ASSET EA, GLOBALEYE.LABOR_PART LRP,
+                 GLOBALEYE.PART_LIST EAP, GLOBALEYE.ASSET REPA, GLOBALEYE.PART_LIST REPP, GLOBALEYE.CODE EAPC
+            WHERE S.EVENT_ID = E.EVENT_ID
+            AND S.REPAIR_ID = R.REPAIR_ID
+            AND R.REPAIR_ID = LR.REPAIR_ID
+            AND LR.LABOR_ID = LRP.LABOR_ID
+            AND LRP.PART_ACTION = 'REMOVED'
+            AND (
+            	(E.LOC_ID = :loc) 
+            	OR
+            	(pl.LOC_IDR = :loc)
+            	)
+            AND LRP.ASSET_ID = A.ASSET_ID
+       		 AND S.PARTNO_ID = A.PARTNO_ID
+            AND A.PARTNO_ID = PL.PARTNO_ID
+            AND PL.PGM_ID = GC.CODE_ID
+            AND E.LOC_ID = L.LOC_ID
+            AND L.UNIT_CD = GCL.CODE_ID
+            AND L.SITE_CD = GCL2.CODE_ID
+            AND E.ASSET_ID = EA.ASSET_ID
+            AND EA.PARTNO_ID = EAP.PARTNO_ID
+            AND EAP.PGM_ID = EAPC.CODE_ID
+            AND E.STOP_JOB IS NULL
+            AND EAPC.CODE_VALUE LIKE :program
+            --AND REPA.RECV_DATE IS NULL
+            AND REPL_SRU_RECV_DATE IS NULL
+            AND S.ASSET_ID = REPA.ASSET_ID(+)
+            AND REPA.PARTNO_ID = REPP.PARTNO_ID(+)
+            AND(
+				REGEXP_LIKE(UPPER(TRIM(EA.SERNO)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM((PL.NOUN))) , :regExCriteria, 'i' )
+                OR REGEXP_LIKE(UPPER(TRIM(PL.PARTNO)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(A.SERNO)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(EAP.PARTNO)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(REPP.PARTNO)) , :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(REPP.NOUN)) , :regExCriteria, 'i' )
+                OR REGEXP_LIKE(UPPER(TRIM(REPA.SHIPPER)), :regExCriteria , 'i')
+                OR REGEXP_LIKE(UPPER(TRIM(REPA.TCN)), :regExCriteria , 'i')                
+			)			
+            ORDER BY S.INS_DATE desc";
+                        
+       local.qry.addParam(name="program", value="%#ucase(trim(arguments.program))#%",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.addParam(name="loc", value="#val(trim(arguments.loc))#",cfsqltype="CF_SQL_NUMERIC");   
+       local.qry.addParam(name="regExCriteria", value="#ucase(trim(local.regExCriteria))#",cfsqltype="CF_SQL_VARCHAR");   
+       
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult(); 
+        
+       return local.qryResult;         
+   }
+   
+   public query function isNSP(required string assetID){
+    var local = {};
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+        local.sql = 
+           "SELECT ASSET.ASSET_ID 
+				FROM GLOBALEYE.ASSET INNER JOIN GLOBALEYE.PARTNO_CODE_VIEW
+				ON ASSET.PARTNO_ID = PARTNO_CODE_VIEW.PARTNO_ID
+				AND PARTNO_CODE_VIEW.GROUP_NAME = 'NSP'
+				AND ASSET_ID = :assetID";
+                        
+       local.qry.addParam(name="assetID", value="#ucase(trim(arguments.assetID))#",cfsqltype="CF_SQL_VARCHAR");         
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult(); 
+        
+       return local.qryResult;         
+   }   
+   
+   public query function searchPartOrderByRepairId(required string repairId){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = 
+           "SELECT ORDER_ID, ACTIVE, INS_BY, INS_DATE, SRU_ID,EVENT_ID, DOC_NO, 
+            ORDER_DATE, RECEIVE_DATE, ESD, CHG_BY, CHG_DATE, REPAIR_ID, PARTNO_ID, 
+            ORDER_QTY,STATUS, MICAP, DELIVERY_DEST, DELIVERY_PRIORITY, UJC,
+            RECEIVER, RECEIVE_QTY, REMARKS, WUC_CD, LOC_ID, ASSET_ID, ACKNOWLEDGE_DATE
+            FROM GLOBALEYE.SRU_ORDER
+            WHERE REPAIR_ID = :repair";
+                      
+       local.qry.addParam(name="repair", value="#ucase(trim(arguments.repairId))#",cfsqltype="CF_SQL_VARCHAR");             
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+   public query function searchTctoByRepairId(required string repairId){
+   	    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = 
+           "SELECT TCTO_ID, ASSET_ID, INS_BY, INS_DATE, VALID, VAL_BY, VAL_DATE, REMARKS,
+           		   COMPLETE_DATE, CHG_BY, CHG_DATE, REPAIR_ID
+            FROM GLOBALEYE.TCTO_ASSET
+            WHERE REPAIR_ID = :repair";
+                      
+       local.qry.addParam(name="repair", value="#ucase(trim(arguments.repairId))#",cfsqltype="CF_SQL_VARCHAR");             
+        
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+   
+   public query function getAttachmentsByRepairId(required string repairId){
+   var local = {};
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+              
+       local.sql = 
+           "select att_id attId, asset_id assetId, repair_id repairId,
+                   name, attachment, thumbnail, content_type, description
+            from globaleye.attachments
+            where repair_id = :repair";
+                      
+       local.qry.addParam(name="repair", value="#arguments.repairId#",cfsqltype="CF_SQL_VARCHAR");             
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+   public query function getAttachmentsByAssetId(required string assetId){
+   var local = {};
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+              
+       local.sql = 
+           "select att_id attId, asset_id assetId, repair_id repairId,
+                   name, attachment, thumbnail, content_type, description
+            from globaleye.attachments
+            where asset_id = :asset
+            AND repair_id IS NULL";
+                      
+       local.qry.addParam(name="asset", value="#arguments.assetId#",cfsqltype="CF_SQL_VARCHAR");             
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }   
+   
+   public boolean function deleteAtt(required string attId){
+   var local = {};
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+              
+       local.sql = 
+           "delete from globaleye.attachments
+            where att_id = :att";
+                      
+       local.qry.addParam(name="att", value="#arguments.attId#",cfsqltype="CF_SQL_VARCHAR");             
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return true;         
+   }     
+   
+    public boolean function hasAttachmentsByRepairId(required string repairId){
+   	   var local = {};
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+              
+       local.sql = 
+           "select att_id attId, asset_id assetId, repair_id repairId,
+                   name, attachment, thumbnail, content_type, description
+            from globaleye.attachments
+            where repair_id = :repair";
+                      
+       local.qry.addParam(name="repair", value="#arguments.repairId#",cfsqltype="CF_SQL_VARCHAR");             
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+       
+       local.hasAttachment = false; 
+       if(local.qryResult.recordcount GT 0){
+       		local.hasAttachment = true;   
+       }
+        
+       return local.hasAttachment;         
+   }
+   
+   
+   
+   public query function getTestFailedByLaborId(required string laborId){
+   var local = {};
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+              
+       local.sql = 
+           "select f.test_fail_id, f.labor_id, f.test_fail_cd, f.test_type_cd,
+                   f.ins_by, f.ins_date, f.chg_by, f.chg_date, f.valid, f.val_by, 
+                   f.val_date, c.code_value fail_value
+            from globaleye.test_failed f, globaleye.code c
+            where labor_id = :labor
+            and f.test_fail_cd = c.code_id";
+                      
+       local.qry.addParam(name="labor", value="#arguments.laborId#",cfsqltype="CF_SQL_VARCHAR");             
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+   
+   public query function getOpen365DayAssetInspectionsByAssetId(required string assetId){
+   var local = {};
+       
+       local.qry = new Query();
+       local.qry.setName("qSearch");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+              
+       local.sql = 
+           "SELECT HIST_ID,
+			       ASSET_ID,
+			       REPAIR_ID,
+			       PMI_TYPE
+			    FROM GLOBALEYE.ASSET_INSPECTION
+			 WHERE     ASSET_ID = :assetId
+			       AND COMPLETE_DATE IS NULL
+			       AND PMI_TYPE IN ( (SELECT CODE_ID
+			                            FROM GLOBALEYE.CODE
+			                           WHERE     CODE_TYPE = 'PMI_TYPE'
+			                                 AND CODE_VALUE = '365-DAY'),
+			                        (SELECT CODE_ID
+			                           FROM GLOBALEYE.CODE
+			                          WHERE     CODE_TYPE = 'INSPECTION_TYPE'
+			                                AND CODE_VALUE = 'PMI360'),
+			                        (SELECT CODE_ID
+			                           FROM GLOBALEYE.CODE
+			                          WHERE     CODE_TYPE = 'INSPECTION_TYPE'
+			                                AND CODE_VALUE = 'BAT365'))   ";
+                      
+       local.qry.addParam(name="assetId", value="#arguments.assetId#",cfsqltype="CF_SQL_VARCHAR");             
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();  
+        
+       return local.qryResult;         
+   }
+      
+    public numeric function getTopLevelAssetID(required assetid){
+       var local = {};
+        local.qry = new Query();       
+        local.qry.setName("qGetTopLevelAsset");
+        local.qry.setDatasource(variables.instance.datasource.getDsName());
+        local.result = "";
+ 
+        
+        local.sql = "SELECT asset_id,serno,nha_asset_id  " & 
+                  "FROM GLOBALEYE.asset  " &
+                  "Where nha_asset_id is null " &
+                  "START WITH asset_id = ? " &
+                  "CONNECT BY prior nha_asset_id = asset_id";
+                  
+       local.qry.addParam(value=UCASE(TRIM(arguments.assetid)),cfsqltype="CF_SQL_NUMERIC");              
+       local.qry.setSQL(local.sql);
+       
+       local.qryResult = local.qry.execute().getResult();
+        if(local.qryResult.recordcount){
+            local.result = local.qryResult['ASSET_ID'];     
+        }
+        return local.result;    
+   }  
+   
+   
+   public numeric function checkAsset(required string program, string partnoId = "",string serno=""){
+    var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qCheckAsset");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "
+            SELECT asset_id
+            FROM globaleye.part_list p,
+              globaleye.asset a
+            WHERE p.partno_id = a.partno_id 
+            AND a.sys_id = :sysId   
+            AND a.partno_id = :partnoId  
+            AND UPPER(TRIM(a.serno)) = :serno
+        ";
+
+       local.qry.addParam(name="sysId", value="#val(trim(getSysIdByProgram(arguments.program)))#",cfsqltype="CF_SQL_NUMERIC");
+       local.qry.addParam(name="partnoId", value="#val(trim(arguments.partnoId))#",cfsqltype="CF_SQL_NUMERIC");              
+       local.qry.addParam(name="serno", value="#ucase(trim(arguments.serno))#",cfsqltype="CF_SQL_VARCHAR");   
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       if(local.qryResult.recordcount == 1){
+            return local.qryResult.asset_id;	   
+       }else{
+       	    return 0;   
+       }
+         
+   }
+
+   public any function getSysIdByProgram(required program){
+        var local = {};
+        local.result = "";
+        local.codeService = application.objectFactory.create("CodeService");
+        try{
+            local.result = local.codeService.findByCodeTypeCodeValue("SYSTEM",ucase(trim(ARGUMENTS.program))).getCodeId();
+        }catch (any e){
+        }
+        return local.result;    
+    }
+    
+    public numeric function getProgamIdBySysId(required string sysId){
+        var local = {};
+
+       
+       local.qry = new Query();
+       local.qry.setName("qGetProgramId");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "
+            SELECT c2.code_id,c2.code_value
+			FROM globaleye.code c1,
+			  globaleye.code c2
+			WHERE c1.code_value = c2.code_value
+			AND c2.code_type    ='PROGRAM_ID'
+			AND c1.code_id = :sysId
+        ";
+
+       local.qry.addParam(name="sysId", value="#val(trim(ARGUMENTS.sysId))#",cfsqltype="CF_SQL_NUMERIC");
+       
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       if(local.qryResult.recordcount == 1){
+            return local.qryResult.code_id;       
+       }else{
+            return 0;   
+       }
+         
+   }
+    
+    public any function getSysIdByProgramId(required programId){
+        var local = {};
+        local.result = [];
+        local.codeService = application.objectFactory.create("CodeService");
+        local.ids = ListToArray(ARGUMENTS.programId);
+        for(local.p = 1; local.p <=ArrayLen(local.ids); local.p++){
+	        try{
+	        	local.code = local.codeService.getCode(local.ids[local.p]);
+	        	local.program = local.code.getCodeValue();
+	        	ArrayAppend(local.result,local.codeService.findByCodeTypeCodeValue("SYSTEM",ucase(trim(local.program))).getCodeId());
+	            //local.result = local.codeService.findByCodeTypeCodeValue("SYSTEM",ucase(trim(local.program))).getCodeId();
+	            
+	        }catch (any e){
+	        	
+	        }
+        }
+        return ArrayToList(local.result);    
+    }
+   
+   
+   public query function getSoftwareBySysId(required string sysId){
+       var local = {};
+       local.qry = new Query();
+       local.qry.setName("qSoftwareList");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "
+            SELECT st.code_value sw_type_value,
+		  sys.code_value sys_value,
+		  s.sw_id,
+		  s.sw_number,
+		  s.sw_type,
+		  s.sys_id,
+		  s.active,
+		  s.cpin_flag,
+		  s.revision,
+		  s.revision_date,
+		  s.sw_title,
+		  s.sw_desc,
+		  s.eff_date,
+		  s.valid,
+		  s.val_by,
+		  s.val_date
+		FROM globaleye.software s,
+		  globaleye.code st,
+		  globaleye.code SYS
+		WHERE s.sw_type = st.code_id(+)
+		AND s.sys_id  = sys.code_id(+)
+		AND s.active  ='Y'
+		AND s.sys_id = :sysId   
+		ORDER BY s.sw_number,s.sw_title
+        ";
+
+       local.qry.addParam(name="sysId", value="#val(arguments.sysId)#",cfsqltype="CF_SQL_NUMERIC");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       return local.qryResult;
+      
+   } 
+   
+   public query function getSoftwareByAssetId(required string assetId){
+       var local = {};
+
+       local.qry = new Query();
+       local.qry.setName("qSoftwareList");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       
+       
+        local.sql = "
+            SELECT st.code_value sw_type_value,
+          sys.code_value sys_value,
+          s.sw_id,
+          s.sw_number,
+          s.sw_type,
+          s.sys_id,
+          s.active,
+          s.cpin_flag,
+          s.revision,
+          s.revision_date,
+          s.sw_title,
+          s.sw_desc,
+          s.eff_date,
+          s.valid,
+          s.val_by,
+          s.val_date
+        FROM globaleye.software s,
+            globaleye.software_asset sa,
+          globaleye.code st,
+          globaleye.code SYS
+        WHERE s.sw_id = sa.sw_id  
+        AND s.sw_type = st.code_id(+)
+        AND s.sys_id  = sys.code_id(+)
+        AND s.active  ='Y'
+        AND sa.asset_id = :assetId  
+        ORDER BY s.sw_number,s.sw_title
+        ";
+
+       local.qry.addParam(name="assetId", value="#val(arguments.assetId)#",cfsqltype="CF_SQL_NUMERIC");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       return local.qryResult;
+   }
+   
+   public query function getSoftwareById(required string swId){
+       var local = {};
+
+       local.qry = new Query();
+       local.qry.setName("qSoftwareList");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       if(!len(trim(ARGUMENTS.swId))){
+            ARGUMENTS.swId = 0;	   
+       }
+       
+        local.sql = "
+            SELECT st.code_value sw_type_value,
+          sys.code_value sys_value,
+          s.sw_id,
+          s.sw_number,
+          s.sw_type,
+          s.sys_id,
+          s.active,
+          s.cpin_flag,
+          s.revision,
+          s.revision_date,
+          s.sw_title,
+          s.sw_desc,
+          s.eff_date,
+          s.valid,
+          s.val_by,
+          s.val_date
+        FROM globaleye.software s,
+          globaleye.code st,
+          globaleye.code SYS
+        WHERE s.sw_type = st.code_id(+)
+        AND s.sys_id  = sys.code_id(+)
+        AND s.active  ='Y'
+        AND s.sw_id IN (:swId)  
+        ORDER BY s.sw_number,s.sw_title
+        ";
+
+       local.qry.addParam(name="swId", value="#trim(arguments.swId)#", list="yes",cfsqltype="CF_SQL_NUMERIC");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       return local.qryResult;
+   }
+   
+   public query function getMessagesBySysId(required string sysId, string startDate, string stopDate){
+       var local = {};
+
+       local.qry = new Query();
+       local.qry.setName("qMessagesBySys");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       if(!len(trim(ARGUMENTS.sysId))){
+            ARGUMENTS.sysId = 0;    
+       }
+       
+       local.startDateClause = "";
+       local.stopDateClause = "";
+       
+       if(Structkeyexists(ARGUMENTS,"startDate") && isDate(ARGUMENTS.startDate) && Structkeyexists(ARGUMENTS,"stopDate") && isDate(ARGUMENTS.stopDate)){
+            
+            local.startDateClause = " AND ((TRUNC(m.START_DATE) >= TRUNC(to_date(:start, 'DD-MON-YYYY'))
+            AND TRUNC(m.START_DATE) <= TRUNC(to_date(:stop, 'DD-MON-YYYY')))
+            OR (TRUNC(m.STOP_DATE) >= TRUNC(to_date(:start, 'DD-MON-YYYY'))
+            AND TRUNC(m.STOP_DATE) <= TRUNC(to_date(:stop, 'DD-MON-YYYY')))) "; 
+
+       }else{
+       	   if(Structkeyexists(ARGUMENTS,"startDate") && isDate(ARGUMENTS.startDate)){
+       	        local.startDateClause = " AND TRUNC(m.START_DATE) >= TRUNC(to_date(:start, 'DD-MON-YYYY')) ";
+       	   }
+       	   
+       	   if(Structkeyexists(ARGUMENTS,"stopDate") && isDate(ARGUMENTS.stopDate)){
+             local.stopDateClause = " AND TRUNC(m.STOP_DATE) <= TRUNC(to_date(:stop, 'DD-MON-YYYY')) ";       
+           }
+       	   
+       }
+
+        local.sql = "
+            SELECT DECODE(c.code_value,'NONE','ALL',c.code_value) program,
+			  m.msg_id,
+			  m.msg_text,
+			  m.ins_by,
+			  m.ins_date,
+			  m.start_date,
+			  m.stop_date,
+			  m.active,
+			  m.priority,
+			  m.loc_id,
+			  m.sys_id,
+			  m.from_user,
+			  m.to_user,
+			  m.chg_by,
+			  m.chg_date
+			FROM globaleye.msg_transmit m,
+			  globaleye.code c
+			WHERE m.sys_id = c.code_id
+			AND m.active = 'Y'
+			AND m.sys_id in(:sysId) 
+			 #local.startDateClause# 
+			 #local.stopDateClause# 
+        ORDER BY m.priority, m.start_date desc nulls last
+        ";
+       local.qry.addParam(name="sysId", value="#trim(arguments.sysId)#", list="yes",cfsqltype="CF_SQL_NUMERIC");
+       
+       if (Structkeyexists(ARGUMENTS,"startDate") && IsDate(arguments.startDate)) {
+            local.qry.addParam(name="start", value="#UCASE(TRIM(arguments.startDate))#",cfsqltype="CF_SQL_VARCHAR");
+        }
+        
+        if (Structkeyexists(ARGUMENTS,"stopDate") && IsDate(arguments.stopDate)) {
+            local.qry.addParam(name="stop",value="#UCASE(TRIM(arguments.stopDate))#",cfsqltype="CF_SQL_VARCHAR");
+        }
+
+       /*local.qry.addParam(name="startDate", value="#ucase(trim(arguments.startDate))#",cfsqltype="CF_SQL_TIMESTAMP");
+       local.qry.addParam(name="stopDate", value="#ucase(trim(arguments.stopDate))#",cfsqltype="CF_SQL_TIMESTAMP");*/
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       return local.qryResult;
+   }
+    
+   public query function getPartsById(required string partnoid){
+       var local = {};
+
+       local.qry = new Query();
+       local.qry.setName("qPartList");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       if(!len(trim(ARGUMENTS.partnoid))){
+            ARGUMENTS.partnoid = 0;    
+       }
+       
+        local.sql = "
+            Select * from globaleye.part_list where partno_id in
+            (Select DISTINCT cfg.partno_c from  GLOBALEYE.cfg_list cfg
+            where cfg.partno_p = :partnoid)
+        ";
+
+       local.qry.addParam(name="partnoid", value="#trim(arguments.partnoid)#", list="yes",cfsqltype="CF_SQL_NUMERIC");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       return local.qryResult;
+   }
+   
+   public query function getPartsByParentPartno(required string partno="0", required string sranoun=""){
+       var local = {};
+
+       local.qry = new Query();
+       local.qry.setName("qPartList");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+      
+       
+        /*local.sql = "
+            SELECT PARTNO_C, CHILD_PARTNO
+            FROM CFG_LIST_VIEW CFV
+            WHERE CHILD_NOUN LIKE :sranoun
+            --AND PARTNO_P LIKE :partno1
+            GROUP BY PARTNO_C, CHILD_PARTNO
+        ";*/
+        local.sql = "
+            SELECT PARTNO_C, CHILD_PARTNO
+            FROM CFG_LIST_VIEW CFV
+            WHERE CHILD_NOUN LIKE :sranoun
+            GROUP BY PARTNO_C, CHILD_PARTNO
+        ";
+        
+
+       local.qry.addParam(name="sranoun", value="#arguments.sranoun#",cfsqltype="CF_SQL_VARCHAR");
+       /*local.qry.addParam(name="partno1", value="#arguments.partno#",cfsqltype="CF_SQL_NUMERIC");*/
+       local.qry.setSQL(local.sql);
+
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   }
+   
+   public query function getMessagesBySysIdAndDate(required string sysId, string currentDate=""){
+       var local = {};
+
+       local.qry = new Query();
+       local.qry.setName("qMessagesBySysDate");
+       local.qry.setDatasource(variables.instance.datasource.getDsName());
+       local.qryResult = "";
+       if(!len(trim(ARGUMENTS.sysId))){
+            ARGUMENTS.sysId = 0;    
+       }
+       
+       if(!isDate(ARGUMENTS.currentDate)){
+            ARGUMENTS.currentDate = Now();     
+       }
+        ARGUMENTS.currentDate = UCASE(TRIM(DateFormat(NOW(),"dd-mmm-yyyy")));   
+        
+        
+        local.sql = "
+            SELECT DECODE(c.code_value,'NONE','ALL',c.code_value) program,
+              m.msg_id,
+              m.msg_text,
+              m.ins_by,
+              m.ins_date,
+              m.start_date,
+              m.stop_date,
+              m.active,
+              m.priority,
+              m.loc_id,
+              m.sys_id,
+              m.from_user,
+              m.to_user,
+              m.chg_by,
+              m.chg_date
+            FROM globaleye.msg_transmit m,
+              globaleye.code c
+            WHERE m.sys_id = c.code_id
+            AND m.active = 'Y'
+            AND m.sys_id in (:sysId)
+            AND TRUNC(to_date(:currentDate)) between TRUNC(m.START_DATE) and TRUNC(m.STOP_DATE)        
+        ORDER BY m.priority, m.start_date desc nulls last
+        ";
+       local.qry.addParam(name="sysId", value="#trim(arguments.sysId)#", cfsqltype="CF_SQL_INTEGER", list="true");
+       
+       local.qry.addParam(name="currentDate", value="#UCASE(TRIM(arguments.currentDate))#",cfsqltype="CF_SQL_VARCHAR");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       return local.qryResult;
+   }
+   
+   public query function getRepairSeqByEventId(required string eventId){
+   			var local = {};
+   			
+   			local.qry = new Query();
+   			local.qry.setName("qRepairSeqByEventId");
+   			local.qry.setDatasource(variables.instance.datasource.getDsName());
+   			local.qryResult = "";
+   			
+   			if (!len(trim(ARGUMENTS.eventId))){
+   				ARGUMENTS.eventId - 0;
+   			}  
+   			
+   			local.sql = "select lpad(nvl(max(repair_seq), 0) + 1, 3, '0') repair_seq
+   					     from globaleye.repair r
+   					     where event_id = :eventId";
+   					     
+            local.qry.addParam(name="eventId", value="#trim(arguments.eventId)#", cfsqltype="CF_SQL_NUMERIC");
+	        local.qry.setSQL(local.sql);
+	        local.qryResult = local.qry.execute().getResult();
+	        return local.qryResult;   					     
+   }
+   
+   
+   
+   public query function getCfgMeterByEvent(required string eventId, required string assetId){
+   		   var local = {};
+   		   local.qry = new Query();
+	       local.qry.setName("qCFGMetersByEventId");
+	       local.qry.setDatasource(variables.instance.datasource.getDsName());
+	       local.qryResult = "";
+	       
+	       if(!len(trim(ARGUMENTS.eventId))){
+	            ARGUMENTS.eventId = 0;    
+	       }   
+	       
+   		   local.sql = " select asset_id, 
+	                            event_id,
+	                            meter_type,
+	                            value_in,
+	                            value_out,
+	                            is_meter_chg,
+	                            meter_seq,
+	                            eff_date
+	                     from core_tables.cfg_meters
+	                     where event_id = :eventId
+	                     and asset_id = :assetId";
+	                     
+	       local.qry.addParam(name="eventId", value="#trim(arguments.eventId)#", cfsqltype="CF_SQL_VARCHAR");
+	       local.qry.addParam(name="assetId", value="#trim(arguments.assetId)#", cfsqltype="CF_SQL_VARCHAR");
+	       local.qry.setSQL(local.sql);
+	       local.qryResult = local.qry.execute().getResult();
+	       return local.qryResult; 
+   }
+
+  public query function getCumHrsByAssetId(required string assetId, string program="ACTS"){
+  		   var local = {};
+   		   local.qry = new Query();
+	       local.qry.setName("qGetcumHrByAssetId");
+	       local.qry.setDatasource(variables.instance.datasource.getDsName());
+	       local.qryResult = "";
+  	
+  			local.sql = "SELECT CT_ASSET_ID, GE_ASSET_ID, 
+						       SUM(DELTA) DELTA
+						FROM (  
+						    SELECT CM.ASSET_ID CT_ASSET_ID, 
+						           A.ASSET_ID GE_ASSET_ID,
+						           METER_SEQ,        
+						           MIN(VALUE_OUT) MIN_ETM,
+						           MAX(NVL(VALUE_OUT, VALUE_IN)) MAX_ETM,
+						           (MAX(NVL(VALUE_OUT, VALUE_IN)) - MIN(VALUE_IN)) DELTA
+						    FROM CORE_TABLES.CFG_METERS CM,
+						         GLOBALEYE.ASSET_VIEW A,
+						          globaleye.part_list pl,
+						                globaleye.code gc
+						    WHERE A.CT_ASSET_ID = CM.ASSET_ID 
+						           and UPPER(gc.code_value) like :program
+						           and gc.code_type = 'PROGRAM_ID'
+						    and a.partno_id = pl.partno_id 
+    						and cm.asset_id = :assetId
+						--    AND A.PARTNO IN ('02501000-1', '02501010-1', '09061000-1', '95170080-')
+						    GROUP BY CM.ASSET_ID, METER_SEQ, A.ASSET_ID
+						    ORDER BY METER_SEQ DESC
+						)
+						GROUP BY CT_ASSET_ID, GE_ASSET_ID ";  
+				
+				
+	       	local.qry.addParam(name="assetId", value="#trim(arguments.assetId)#", cfsqltype="CF_SQL_VARCHAR");
+	       	local.qry.addParam(name="program", value="#trim(arguments.program)#", cfsqltype="CF_SQL_VARCHAR");
+	       	
+	       	local.qry.setSQL(local.sql);
+	       local.qryResult = local.qry.execute().getResult();
+	       return local.qryResult; 
+	       
+  }
+  
+  public query function getBenchHrsByAssetId(required string assetId, string program="ACTS"){
+  		   var local = {};
+   		   local.qry = new Query();
+	       local.qry.setName("qGetcumHrByAssetId");
+	       local.qry.setDatasource(variables.instance.datasource.getDsName());
+	       local.qryResult = "";
+  	
+  			local.sql = "SELECT CT_ASSET_ID, GE_ASSET_ID, SUM(DELTA) BENCH
+					FROM (                         
+					    SELECT CM.ASSET_ID CT_ASSET_ID, 
+					           A.ASSET_ID GE_ASSET_ID,
+					           EVENT_ID,        
+					           MIN(VALUE_IN) MIN_ETM,
+					           MAX(VALUE_OUT) MAX_ETM,
+					           (MAX(VALUE_OUT) - MIN(VALUE_IN)) DELTA
+					    FROM CORE_TABLES.CFG_METERS CM,
+					         GLOBALEYE.ASSET_VIEW A,
+					          globaleye.part_list pl,
+					                globaleye.code gc
+					    WHERE A.CT_ASSET_ID = CM.ASSET_ID 
+					           and UPPER(gc.code_value) like :program
+					           and gc.code_type = 'PROGRAM_ID'
+					    and a.partno_id = pl.partno_id 
+					    and cm.asset_id = :assetId
+					--    AND A.PARTNO IN ('02501000-1', '02501010-1', '09061000-1', '95170080-')
+					    AND EVENT_ID IS NOT NULL
+					    AND IS_METER_CHG = 'N'
+					    GROUP BY CM.ASSET_ID, EVENT_ID, A.ASSET_ID
+					    ORDER BY EVENT_ID DESC  
+					)
+					GROUP BY CT_ASSET_ID, GE_ASSET_ID ";  
+				
+				
+	       	local.qry.addParam(name="assetId", value="#trim(arguments.assetId)#", cfsqltype="CF_SQL_VARCHAR");
+	       	local.qry.addParam(name="program", value="#trim(arguments.program)#", cfsqltype="CF_SQL_VARCHAR");
+	       	
+	       	local.qry.setSQL(local.sql);
+	       local.qryResult = local.qry.execute().getResult();
+	       return local.qryResult; 
+	       
+  }
+    
+   public query function getRepairByEventId(required string eventId){
+   	       
+   	       var local = {};
+   	
+	   	   local.qry = new Query();
+	       local.qry.setName("qRepairByEventId");
+	       local.qry.setDatasource(variables.instance.datasource.getDsName());
+	       local.qryResult = "";
+	       
+	       if(!len(trim(ARGUMENTS.eventId))){
+	            ARGUMENTS.eventId = 0;    
+	       }   
+	       
+	       local.sql = " select r.repair_id repairid, 
+	                            r.repair_seq,
+	                            r.ins_by,
+	                            r.ins_date,
+	                            tm.CODE_VALUE type_maint,
+	                            ss.code_value shop_status,
+	                            r.asset_id,
+	                            l.corrective narrative,
+	                            r.start_date,  
+	                            r.stop_date,
+	                            r.recv_date,
+	                            r.chg_by, 
+	                            r.chg_date,
+	                            a.serno,
+	                            a.partno, 
+	                            a.noun
+	                     from globaleye.repair r,globaleye.code tm,globaleye.code ss, globaleye.labor l,
+						      (select a1.asset_id, a1.serno, p1.partno, p1.noun
+							   from globaleye.asset a1, globaleye.part_list p1
+							   where a1.partno_id = p1.partno_id) a
+	                     where tm.CODE_ID(+) = r.type_maint 
+	                     and ss.code_id(+) = r.shop_status 
+	                     and r.event_id = :eventId
+	                     and r.asset_id = a.asset_id(+)
+	                     and r.repair_id = l.repair_id(+)
+	                     order by r.repair_seq";
+	       
+	       local.qry.addParam(name="eventId", value="#trim(arguments.eventId)#", cfsqltype="CF_SQL_VARCHAR");
+	       local.qry.setSQL(local.sql);
+	       local.qryResult = local.qry.execute().getResult();
+	       return local.qryResult;
+	       
+   }
+   
+   public boolean function openRepairsExist(required string eventId){
+   	       
+   	       var local = {};
+   	
+	   	   local.qry = new Query();
+	       local.qry.setName("qOpenRepairsExist");
+	       local.qry.setDatasource(variables.instance.datasource.getDsName());
+	       local.qryResult = "";
+	       
+	       if(!len(trim(ARGUMENTS.eventId))){
+	            ARGUMENTS.eventId = 0;    
+	       }   
+	       
+	       local.sql = " SELECT R.*
+						  FROM GLOBALEYE.EVENT E,
+						       GLOBALEYE.REPAIR R,
+						       GLOBALEYE.LABOR L,
+						       GLOBALEYE.LABOR_PART LP
+						 WHERE E.EVENT_ID = :eventId
+						       AND E.EVENT_ID = R.EVENT_ID
+						       AND R.REPAIR_ID = L.REPAIR_ID
+						       AND L.LABOR_ID = LP.LABOR_ID
+						       AND R.STOP_DATE IS NULL ";
+	       
+	       local.qry.addParam(name="eventId", value="#trim(arguments.eventId)#", cfsqltype="CF_SQL_VARCHAR");
+	       local.qry.setSQL(local.sql);
+	       local.qryResult = local.qry.execute().getResult();
+	       
+	       if (local.qryResult.recordcount) {
+	            return true;
+	        }else{
+	        	return false;
+	        }        
+	       
+   }
+   
+   public any function getCfgSetByPgm(string program = "ACTS"){
+   	var local = {};
+   	
+	   	   local.qry = new Query();
+	       local.qry.setName("qCfgSetByPgm");
+	       local.qry.setDatasource(variables.instance.datasource.getDsName());
+	       local.qryResult = "";
+	       
+	       
+	       local.sql = " SELECT CS.CFG_SET_ID, C.CODE_VALUE PGM, CS.CFG_NAME, CS.DESCRIPTION, PL.PARTNO_ID, PL.PARTNO, PL.NOUN, PL.NSN
+						FROM GLOBALEYE.CFG_SET CS, GLOBALEYE.CODE C, GLOBALEYE.PART_LIST PL
+						WHERE CS.PGM_ID = C.CODE_ID
+						AND CS.PARTNO_ID = PL.PARTNO_ID
+						AND C.CODE_VALUE = :program
+						AND CS.ACTIVE = 'Y'
+						ORDER BY CFG_SET_ID DESC ";
+	       
+	       local.qry.addParam(name="program", value="#trim(arguments.program)#", cfsqltype="CF_SQL_VARCHAR");
+	       local.qry.setSQL(local.sql);
+	       local.qryResult = local.qry.execute().getResult();
+	       
+	       return local.qryResult;
+   }
+   
+   public any function getCfgListBySetId(required string setId){
+   	var local = {};
+   	
+   	local.qry = new Query();
+   	local.qry.setName("qCfgListBySetId");
+   	local.qry.setDatasource(variables.instance.datasource.getDsName());
+   	local.qryResult = "";
+   	
+   if(!len(trim(ARGUMENTS.setId))){
+        ARGUMENTS.setId = 0;    
+   }  
+   	local.sql = "    SELECT LEVEL+1 LVL,
+		    				C.LIST_ID,
+		                    C.CFG_SET_ID,
+		                    C.PARTNO_C C_PARTNO_ID,
+		                    C_PART.PARTNO C_PARTNO,
+		                    C_PART.NOUN C_NOUN, 
+		                    C_PART.NSN,
+		                    C.PARTNO_P P_PARTNO_ID, 
+		                    P_PART.PARTNO P_PARTNO,
+		                    P_PART.NOUN P_NOUN,
+		                    QPA,
+		                    LPAD ('-', 5 * LEVEL) PADDING
+		      FROM (SELECT *
+		              FROM GLOBALEYE.CFG_LIST
+		             WHERE CFG_SET_ID = :setId) c,
+		           GLOBALEYE.PART_LIST P_PART,
+		           GLOBALEYE.PART_LIST C_PART
+		     WHERE C_PART.PARTNO_ID = PARTNO_C AND P_PART.PARTNO_ID = PARTNO_P
+		START WITH partno_p = (SELECT PARTNO_ID
+		                         FROM GLOBALEYE.CFG_SET
+		                        WHERE CFG_SET_ID = :setId)
+		CONNECT BY PRIOR PARTNO_C = PARTNO_P ";
+				           
+	   local.qry.addParam(name="setId", value="#trim(arguments.setId)#", cfsqltype="CF_SQL_NUMBER");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   }
+   
+   public any function getPartListBySysType(string sysType="ACTS"){
+   	var local = {};
+   	
+   	local.qry = new Query();
+   	local.qry.setName("qPartListBySysType");
+   	local.qry.setDatasource(variables.instance.datasource.getDsName());
+   	local.qryResult = "";
+   	
+   	local.sql = "      SELECT SYS.CODE_VALUE SYS_TYPE,
+					         PGM.CODE_VALUE PGM,
+					         PL.PARTNO, PL.PARTNO_ID, PL.NSN,
+					         PL.NOUN
+					    FROM GLOBALEYE.PART_LIST PL, GLOBALEYE.CODE PGM, GLOBALEYE.CODE SYS
+					   WHERE     PL.PGM_ID = PGM.CODE_ID
+					         AND PL.SYS_TYPE = SYS.CODE_ID
+					         AND PGM.CODE_VALUE LIKE 'ACTS'
+					         AND PL.ACTIVE = 'Y'
+					ORDER BY NOUN, PARTNO ";
+				           
+	   local.qry.addParam(name="sysType", value="#trim(arguments.sysType)#", cfsqltype="CF_SQL_VARCHAR");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   }
+   
+   public any function getParentPartByCfgSetId(required string cfgSetId){
+   	var local = {};
+   	
+   	local.qry = new Query();
+   	local.qry.setName("qGetParentPartByCfgSetId");
+   	local.qry.setDatasource(variables.instance.datasource.getDsName());
+   	local.qryResult = "";
+   	
+   	/*local.sql = "      SELECT partno_id,
+						       partno,
+						       noun, nsn,
+						       loc_idr
+						  FROM globaleye.part_list pl
+						 WHERE partno_id = (SELECT partno_id
+						                      FROM GLOBALEYE.CFG_SET
+						                     WHERE cfg_set_id = :cfgSetId) ";*/
+						                     
+   	local.sql = "      SELECT partno_id,
+						       partno,
+						       noun, nsn,
+						       loc_idr, cl.qpa
+						  FROM globaleye.part_list pl INNER JOIN
+						  GLOBALEYE.CFG_LIST cl ON pl.partno_id = cl.partno_c
+						 WHERE partno_id = (SELECT partno_id
+						                      FROM GLOBALEYE.CFG_SET
+						                     WHERE cfg_set_id = :cfgSetId) ";						                     
+				           
+	   local.qry.addParam(name="cfgSetId", value="#trim(arguments.cfgSetId)#", cfsqltype="CF_SQL_VARCHAR");
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   }
+ 
+   public any function getBitPc(){
+   	var local = {};
+   	
+   	local.qry = new Query();
+   	local.qry.setName("qGetBitPc");
+   	local.qry.setDatasource(variables.instance.datasource.getDsName());
+   	local.qryResult = "";
+   	
+   	local.sql = "      SELECT PC.PN_CD_ID,
+					       GRP.CODE_VALUE GRP,
+					       SYS.CODE_VALUE SYS,
+					       PL.PARTNO,
+					       PL.NOUN
+					  FROM GLOBALEYE.PARTNO_CODE  PC,
+					       GLOBALEYE.CODE         GRP,
+					       GLOBALEYE.CODE         SYS,
+					       GLOBALEYE.PART_LIST    PL
+					 WHERE     GRP.CODE_ID = PC.GROUP_CD
+					       AND SYS.CODE_ID = PC.CODE_ID
+					       AND PL.PARTNO_ID = PC.PARTNO_ID      
+					       AND GROUP_CD IN
+					               (SELECT CODE_ID
+					                  FROM GLOBALEYE.CODE
+					                 WHERE (CODE_VALUE LIKE 'BIT_PC' OR CODE_VALUE LIKE 'NSP') AND CODE_TYPE LIKE 'GROUP') 
+					 ORDER BY PARTNO";
+				           
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   	
+   }
+   public any function getBitPcByPartNo(required string PARTNO){
+   	var local = {};
+   	
+   	local.qry = new Query();
+   	local.qry.setName("qGetBitPcByPartNo");
+   	local.qry.setDatasource(variables.instance.datasource.getDsName());
+   	local.qryResult = "";
+   	
+   	local.sql = "      SELECT PC.PN_CD_ID,
+					       GRP.CODE_VALUE GRP,
+					       SYS.CODE_VALUE SYS,
+					       PL.PARTNO,
+					       PL.NOUN
+					  FROM GLOBALEYE.PARTNO_CODE  PC,
+					       GLOBALEYE.CODE         GRP,
+					       GLOBALEYE.CODE         SYS,
+					       GLOBALEYE.PART_LIST    PL
+					 WHERE     GRP.CODE_ID = PC.GROUP_CD
+					       AND SYS.CODE_ID = PC.CODE_ID
+					       AND PL.PARTNO_ID = PC.PARTNO_ID  
+					       and PL.PARTNO = :PARTNO    
+					       AND GROUP_CD IN
+					               (SELECT CODE_ID
+					                  FROM GLOBALEYE.CODE
+					                 WHERE (CODE_VALUE LIKE 'BIT_PC' OR CODE_VALUE LIKE 'NSP') AND CODE_TYPE LIKE 'GROUP') 
+					 ORDER BY PARTNO";
+
+	   local.qry.addParam(name="PARTNO", value="#trim(arguments.PARTNO)#", cfsqltype="CF_SQL_VARCHAR");				           
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   	
+   }   
+   
+   public any function getPartRequestEmailByLocIdr(required string locIdr){
+   	var local = {};
+   	
+   	local.qry = new Query();
+   	local.qry.setName("qGetPartRequestEmailByLocIdr");
+   	local.qry.setDatasource(variables.instance.datasource.getDsName());
+   	local.qryResult = "";
+   	
+   	local.sql = "      SELECT AU.USER_ID,
+					       AU.USER_NAME,
+					       AU.EMAIL,
+					       L.LOC_ID,
+					       L.SITE
+					  FROM GLOBALEYE.USER_GROUP     UG,
+					       AGGREGATE.AGG_USER       AU,
+					       GLOBALEYE.LOCATION_VIEW  L
+					 WHERE     AU.USER_ID = UG.USER_ID
+					       AND L.LOC_ID = UG.LOC_ID
+					       AND UG.LOC_ID LIKE :locIdr
+					       AND GROUP_CD = (SELECT CODE_ID
+					                         FROM GLOBALEYE.CODE
+					                        WHERE CODE_VALUE LIKE 'RIMSS_DEPOT') ";
+					                        
+	   local.qry.addParam(name="locIdr", value="#trim(arguments.locIdr)#", cfsqltype="CF_SQL_VARCHAR");		           
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   	
+   }
+   
+    public any function runSQL(required string sqlString, required string datasource){
+   	var local = {};
+   	
+   	local.qry = new Query();
+   	local.qry.setName("qryResult");
+   	local.qry.setDatasource(arguments.datasource);
+   	local.qryResult = "";
+   	
+   	local.sql = PreserveSingleQuotes(ARGUMENTS.sqlString);
+					                        		           
+       local.qry.setSQL(local.sql);
+       local.qryResult = local.qry.execute().getResult();
+       
+       return local.qryResult;
+   	
+   }
+   
+   public any function getAssetConfig(required string assetId){
+		try{
+			spObj = new StoredProc();
+			spObj.setDatasource(#application.datasource#);	
+			spObj.setProcedure("GLOBALEYE.CONFIG_PKG.GET_ASSET_CONFIG");
+			spObj.addParam(cfsqltype="cf_sql_varchar", type="in",value=ARGUMENTS.assetId);
+			spObj.addProcResult(name="res",resultset=1); 	
+			result = spObj.execute(); 
+			
+			return result.getProcResultSets();
+		}catch(any e){}
+	}
+   
+   
+}

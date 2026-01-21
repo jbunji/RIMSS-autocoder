@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Statistics</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf364104-7fba.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf364104-7fba.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff5.html" title="Overview"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffb.html" title="Alerts"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff7.html"><b>Using the ColdFusion Server Monitor</b></a> 
+      / <a href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff3.html"><b>Viewing Server Monitor Reports</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Statistics</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf363cdd-7ff0"><span class="topictitle1">Request Statistics</span>
+</a></p><ul><li><p><a href="#WSCBE9CBA7-6772-4c93-8373-9E5DB1E58C3D"><span class="topictitle2">Active Requests</span>
+</a></p></li><li><p><a href="#WSE41F29AA-42CA-4c95-AD5A-D7239ED270C8"><span class="topictitle2">Active ColdFusion Threads</span>
+</a></p></li><li><p><a href="#WS59AA7E60-B0B3-48e1-BB46-213F8E87764B"><span class="topictitle2">Slowest Requests</span>
+</a></p></li><li><p><a href="#WS410D37AF-E3E7-4c75-8450-62030C733F36"><span class="topictitle2">Slowest ColdFusion Threads</span>
+</a></p></li><li><p><a href="#WS2B53E710-9750-4956-B4A9-D45F98EE25F9"><span class="topictitle2">Active Sessions</span>
+</a></p></li><li><p><a href="#WS8D6D876F-A832-44a1-A2BB-EDB16B3102A1"><span class="topictitle2">Cumulative Server Usage</span>
+</a></p></li><li><p><a href="#WS9C06AEA5-B6BF-4964-B982-DABA120BD906"><span class="topictitle2">Highest Hit Counts</span>
+</a></p></li><li><p><a href="#WSEE3AFBDC-AD1A-44dc-8E28-CC4273855B87"><span class="topictitle2">Template Cache Status</span>
+</a></p></li><li><p><a href="#WSEAFB36C5-8568-45ad-8F4E-AE6594C06A01"><span class="topictitle2">Request Throttle Data</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7fb8"><span class="topictitle1">Memory Usage</span>
+</a></p><ul><li><p><a href="#WS38AFCCA9-92B7-4051-B8C1-FB6407E60B3C"><span class="topictitle2">Memory Usage Summary</span>
+</a></p></li><li><p><a href="#WS0D16E4B3-E82E-4e96-A782-BE68DA934A6F"><span class="topictitle2">Requests by Memory Usage</span>
+</a></p></li><li><p><a href="#WSFAF5F5B9-9948-4ddc-AE24-B1F69F188BE8"><span class="topictitle2">CF Threads by Memory Usage</span>
+</a></p></li><li><p><a href="#WSB19A7011-D7B4-4148-82D5-29BEAD0A73A5"><span class="topictitle2">Queries by Memory Usage</span>
+</a></p></li><li><p><a href="#WSC21886D8-98D9-4cbe-9943-8D916B02804C"><span class="topictitle2">Sessions by Memory Usage</span>
+</a></p></li><li><p><a href="#WS86B9A43F-AF7D-4a5f-91C2-38372D32C714"><span class="topictitle2">Application Scope Memory Usage</span>
+</a></p></li><li><p><a href="#WS0A1B8D42-3AFF-4b7e-A63F-7C43B8B0949B"><span class="topictitle2">Server Scope Memory Usage</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7fb7"><span class="topictitle1">Database</span>
+</a></p><ul><li><p><a href="#WS4B3BF217-71FD-487c-8BD4-AAB21F505902"><span class="topictitle2">Active Queries</span>
+</a></p></li><li><p><a href="#WSEA4E8364-0CDB-476b-84C5-F959A29969EB"><span class="topictitle2">Slowest Queries</span>
+</a></p></li><li><p><a href="#WSF334C833-3E42-4231-AB81-CA90E54919F3"><span class="topictitle2">Cached Queries</span>
+</a></p></li><li><p><a href="#WS3553B2A1-A2B2-46b2-A977-1DFE102F90F4"><span class="topictitle2">Query Cache Status</span>
+</a></p></li><li><p><a href="#WSF8A8B23B-312C-4c98-9973-E5355ECDDD2D"><span class="topictitle2">Pool Status</span>
+</a></p></li><li><p><a href="#WS73CE8B93-94D5-4191-AA44-5FA33F965963"><span class="topictitle2">Most Frequently Run Queries</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf363cdd-7ffc"><span class="topictitle1">Errors</span>
+</a></p><ul><li><p><a href="#WS84957419-C4BA-4b44-8A91-D189567D3B3F"><span class="topictitle2">Requests with Errors</span>
+</a></p></li><li><p><a href="#WSF78F1587-8E6F-4737-9E16-D08D949A3F1A"><span class="topictitle2">Requests Timed Out</span>
+</a></p></li></ul></li></ul></div></div></div></div><div><ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff0" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff0"><!-- --></a><h2 class="topictitle2">Request Statistics</h2><div><p>The Request Statistics section contains the following reports:</p>
+</div><div id="WSCBE9CBA7-6772-4c93-8373-9E5DB1E58C3D" class="nochunk"><a name="WSCBE9CBA7-6772-4c93-8373-9E5DB1E58C3D"><!-- --></a><h3 class="topictitle3">Active Requests</h3><div><p>The Active Requests report lists all currently active requests
+that take longer to load than the request interval for reports specified
+in the Refresh Interval setting. Requests include browser requests,
+CFC HTTP requests, web services, gateways, and Flash remoting. You
+can view a list, a detailed view, or a graph of active requests.
+The detailed view includes the CFML stack trace, which you can use
+to find deadlocked requests and where a long running request is
+blocked. To see all request graphs in one view, click Chart. The
+graph indicates the number of requests that the server is currently
+processing and the number of requests that are awaiting allocation
+of an application server thread to begin execution. If the graph
+indicates that many requests are queued, you might want to increase
+the size of the thread pool. Alternatively, if ColdFusion is deployed
+in a cluster, you may want to add a server instance for more efficient
+load balancing.</p>
+<div class="note"><span class="notetitle">Note:  </span>The Server Monitor includes LiveCycle Data Management
+Assemblers as Flash Remoting requests.</div>
+</div></div><div id="WSE41F29AA-42CA-4c95-AD5A-D7239ED270C8" class="nochunk"><a name="WSE41F29AA-42CA-4c95-AD5A-D7239ED270C8"><!-- --></a><h3 class="topictitle3">Active ColdFusion Threads</h3><div><p>The Active ColdFusion Threads report lists all currently
+active threads. You can view a list, a detailed view, or a graph
+of active threads.</p>
+</div></div><div id="WS59AA7E60-B0B3-48e1-BB46-213F8E87764B" class="nochunk"><a name="WS59AA7E60-B0B3-48e1-BB46-213F8E87764B"><!-- --></a><h3 class="topictitle3">Slowest Requests</h3><div><p>The Slowest Requests report lists the slowest requests.
+You can specify the threshold that determines whether a request
+appears on this page. The lower the threshold, the more requests
+appear on the list. Use the Report Size option to limit the number
+of items in the list. You can view a list or a detailed view of
+the slowest requests. The detailed view includes the CFML stack
+trace. For more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fb5.html">Request handling</a>.</p>
+</div></div><div id="WS410D37AF-E3E7-4c75-8450-62030C733F36" class="nochunk"><a name="WS410D37AF-E3E7-4c75-8450-62030C733F36"><!-- --></a><h3 class="topictitle3">Slowest ColdFusion Threads</h3><div><p>The Slowest ColdFusion Threads report lists the slowest
+ColdFusion threads. You can specify the threshold that determines
+whether a ColdFusion thread appears in this report. As the threshold
+decreases, the number of requests in the report increases.</p>
+</div></div><div id="WS2B53E710-9750-4956-B4A9-D45F98EE25F9" class="nochunk"><a name="WS2B53E710-9750-4956-B4A9-D45F98EE25F9"><!-- --></a><h3 class="topictitle3">Active Sessions</h3><div><p>The Active Sessions report lists all active
+sessions. You can view a list, a detailed view, or a graph of active
+sessions. The graph displays the active sessions and the number
+of users logged in to the server.</p>
+</div></div><div id="WS8D6D876F-A832-44a1-A2BB-EDB16B3102A1" class="nochunk"><a name="WS8D6D876F-A832-44a1-A2BB-EDB16B3102A1"><!-- --></a><h3 class="topictitle3">Cumulative Server Usage</h3><div><p>The Cumulative Server Usage report lists the requests that
+have cumulatively used the most CPU time on the server. Even if
+a request runs rapidly, if it runs frequently, it can consume a
+large proportion of CPU time. Tuning requests with high cumulative
+server time can provide server-wide performance benefits. You can
+view a list, a detailed view, or a graph of cumulative server usage.
+Use the Report Size option to limit the number of items in the list.</p>
+</div></div><div id="WS9C06AEA5-B6BF-4964-B982-DABA120BD906" class="nochunk"><a name="WS9C06AEA5-B6BF-4964-B982-DABA120BD906"><!-- --></a><h3 class="topictitle3">Highest Hit Counts</h3><div><p>The Highest Hit Counts report lists the requests that have
+the highest hit count. You can view a list or a graph of requests
+with the highest hit count. Use the Report Size option to limit
+the number of items in the list.</p>
+</div></div><div id="WSEE3AFBDC-AD1A-44dc-8E28-CC4273855B87" class="nochunk"><a name="WSEE3AFBDC-AD1A-44dc-8E28-CC4273855B87"><!-- --></a><h3 class="topictitle3">Template Cache Status</h3><div><p>The Template Cache status report shows information about
+the template cache to indicate how it is performing. The template
+cache is where ColdFusion stores compiled CFM and CFC templates
+in memory. When a template is executed for the first time, it is
+compiled to Java bytecode, and then stored in the template cache.
+As long as the template is unchanged, ColdFusion uses the compiled
+form of the template stored in the template cache. The Template
+Cache status page lets you monitor the cache-hit ratio, which indicates
+the number of cache hits in relation to the number of cache misses. <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Cache hits</i> are
+the templates retrieved from the cache. <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Cache misses</i> are
+the templates that must be compiled before being placed in the cache.
+A server that is performing well should have more cache hits than
+misses, which is a high cache-hit ratio. If the cache-hit ratio
+is too low, you might want to increase the cache size by selecting
+Server Settings &gt; Caching in the ColdFusion Administrator. For
+more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fb6.html">Caching</a>.
+The Template Cache page also lets you monitor the number of templates
+in the cache, and the estimated memory that the cache occupies.</p>
+<div class="note"><span class="notetitle">Note:  </span>The template cache count includes both the Least
+Recently Used (LRU) cache and the soft cache. As a result, the count
+can exceed the number configured in the ColdFusion Administrator.</div>
+</div></div><div id="WSEAFB36C5-8568-45ad-8F4E-AE6594C06A01" class="nochunk"><a name="WSEAFB36C5-8568-45ad-8F4E-AE6594C06A01"><!-- --></a><h3 class="topictitle3">Request Throttle Data</h3><div><p>The Request Throttle Data report lists all requests that
+the ColdFusion server throttles. Requests are throttled when ColdFusion
+queues them, because not enough total memory is available to handle
+them. Requests smaller than the specified limit are not queued or
+counted as part of the total memory. Requests larger than the specified
+limit are counted as part of total memory and are queued if the
+request throttle-memory size of the request is exceeded. The default
+value is 4 MB. To change the throttle threshold and memory, select
+Server Settings &gt; Settings in the ColdFusion Administrator.</p>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7fb8" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7fb8"><!-- --></a><h2 class="topictitle2">Memory Usage</h2><div><p>The Memory Usage section contains the following reports:</p>
+</div><div id="WS38AFCCA9-92B7-4051-B8C1-FB6407E60B3C" class="nochunk"><a name="WS38AFCCA9-92B7-4051-B8C1-FB6407E60B3C"><!-- --></a><h3 class="topictitle3">Memory Usage Summary</h3><div><p>The Memory Usage Summary report displays a graph that shows
+the estimated memory consumption by persistent scopes on the server,
+including the server scope, the application scopes, and the session
+scopes. If your server is consuming too much memory, the graph provides
+information about which scope is using too much memory, and when
+the increased memory consumption began. Detailed reports let you
+examine estimated memory consumption for the server scope and all
+active application and session scopes. For more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fb3.html">Variable memory usage</a>.</p>
+<div class="note"><span class="notetitle">Note:  </span>Memory usage information displayed in the Server
+Monitor is estimated and might vary from the actual memory usage.
+The information in the memory usage report is based on empirical
+estimates of how different Java types, and their corresponding ColdFusion
+types, consume memory. Use the information provided in the memory
+usage report as an indicator rather than an absolute measure. Also,
+the Server Monitor does not track COM objects for memory usage information.</div>
+</div></div><div id="WS0D16E4B3-E82E-4e96-A782-BE68DA934A6F" class="nochunk"><a name="WS0D16E4B3-E82E-4e96-A782-BE68DA934A6F"><!-- --></a><h3 class="topictitle3">Requests by Memory Usage</h3><div><p>The Requests by Memory Usage report lists the requests
+that use the most memory. You can view a list or a detailed view.
+The detailed view lists the variables that use the most memory during
+the execution of the request. </p>
+</div></div><div id="WSFAF5F5B9-9948-4ddc-AE24-B1F69F188BE8" class="nochunk"><a name="WSFAF5F5B9-9948-4ddc-AE24-B1F69F188BE8"><!-- --></a><h3 class="topictitle3">CF Threads by Memory Usage</h3><div><p>The CF Threads by Memory Usage report lists the ColdFusion
+threads that use the most memory. </p>
+</div></div><div id="WSB19A7011-D7B4-4148-82D5-29BEAD0A73A5" class="nochunk"><a name="WSB19A7011-D7B4-4148-82D5-29BEAD0A73A5"><!-- --></a><h3 class="topictitle3">Queries by Memory Usage</h3><div><p>The Queries by Memory Usage report lists the queries that
+use the most memory. When a query appears in this report, you might
+want to tune the query to reduce the size of the result set, or
+cache the query to reduce memory consumption and network traffic.
+This report does not include information about cached queries.</p>
+</div></div><div id="WSC21886D8-98D9-4cbe-9943-8D916B02804C" class="nochunk"><a name="WSC21886D8-98D9-4cbe-9943-8D916B02804C"><!-- --></a><h3 class="topictitle3">Sessions by Memory Usage</h3><div><p>The Sessions by Memory Usage report lists the sessions
+that use the most memory.</p>
+</div></div><div id="WS86B9A43F-AF7D-4a5f-91C2-38372D32C714" class="nochunk"><a name="WS86B9A43F-AF7D-4a5f-91C2-38372D32C714"><!-- --></a><h3 class="topictitle3">Application Scope Memory Usage</h3><div><p>The Application Scope Memory Usage report lists the application
+scopes that use the most memory. The detail lists the application
+scope variables that use the most memory.</p>
+</div></div><div id="WS0A1B8D42-3AFF-4b7e-A63F-7C43B8B0949B" class="nochunk"><a name="WS0A1B8D42-3AFF-4b7e-A63F-7C43B8B0949B"><!-- --></a><h3 class="topictitle3">Server Scope Memory Usage</h3><div><p>The Server Scope Memory Usage page lists the server scope
+variables that use the most memory.</p>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7fb7" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7fb7"><!-- --></a><h2 class="topictitle2">Database</h2><div><p>The Database section contains the following reports:</p>
+</div><div id="WS4B3BF217-71FD-487c-8BD4-AAB21F505902" class="nochunk"><a name="WS4B3BF217-71FD-487c-8BD4-AAB21F505902"><!-- --></a><h3 class="topictitle3">Active Queries</h3><div><p>The Active Queries report lists all currently active queries
+that take longer to load than the threshold specified on the Slowest
+Queries report. You can view a list or a detailed view.</p>
+</div></div><div id="WSEA4E8364-0CDB-476b-84C5-F959A29969EB" class="nochunk"><a name="WSEA4E8364-0CDB-476b-84C5-F959A29969EB"><!-- --></a><h3 class="topictitle3">Slowest Queries</h3><div><p>The Slowest Queries report provides the Slowest Queries
+report and the Slowest Queries by Average report. Both reports let
+you identify queries by template name and line number. The slowest
+queries report shows specific instances of a query that is slow,
+along with the SQL statement for the query. The detail view includes
+the SQL statement. This information lets you determine why an instance of
+that query was slow. The Slowest Queries by Average report indicates
+queries that are slow on average. This report does not provide the
+SQL code for the queries because the SQL statement might vary from
+one instance of the query to another. Cached queries are not included
+in either report. To improve performance, tune the queries listed
+in these reports. If the result of a query is static, you can improve
+performance by caching the query using ColdFusion’s query cache. For
+more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fb4.html">Database response time</a>.</p>
+</div></div><div id="WSF334C833-3E42-4231-AB81-CA90E54919F3" class="nochunk"><a name="WSF334C833-3E42-4231-AB81-CA90E54919F3"><!-- --></a><h3 class="topictitle3">Cached Queries</h3><div><p>The Cached Queries report lists the queries that were cached.
+You can view a list of cached queries or details about an individual
+query. If the execution time of a query is low, determine if you
+really need to cache it. If the execution count is high, tune the <samp class="codeph">cachedafter</samp> and <samp class="codeph">cachedwithin</samp> settings
+of the query.</p>
+</div></div><div id="WS3553B2A1-A2B2-46b2-A977-1DFE102F90F4" class="nochunk"><a name="WS3553B2A1-A2B2-46b2-A977-1DFE102F90F4"><!-- --></a><h3 class="topictitle3">Query Cache Status</h3><div><p>The Query Cache Status report graphs the number of cached
+queries, the estimated memory that the query cache consumes, and
+the query cache-hit ratio. Performance increases as the query cache-hit
+ratio increases. If the cache-hit ratio is too low, you might want
+to increase the size of the query cache. Alternatively, to analyze
+how your application uses the query cache, determine whether you
+can tune the <samp class="codeph">cachedAfter</samp> and <samp class="codeph">cachedWithin</samp> attributes
+of the <samp class="codeph">cfquery</samp> tag. If the query cache is too large,
+determine if you can move some queries out of the cache.</p>
+</div></div><div id="WSF8A8B23B-312C-4c98-9973-E5355ECDDD2D" class="nochunk"><a name="WSF8A8B23B-312C-4c98-9973-E5355ECDDD2D"><!-- --></a><h3 class="topictitle3">Pool Status</h3><div><p>The Pool Status report lists the data sources, whether
+an application on the ColdFusion server is using the data source,
+and the number of connections. You can view a list of data sources
+or details about an individual data source.</p>
+</div></div><div id="WS73CE8B93-94D5-4191-AA44-5FA33F965963" class="nochunk"><a name="WS73CE8B93-94D5-4191-AA44-5FA33F965963"><!-- --></a><h3 class="topictitle3">Most Frequently Run Queries</h3><div><p>The Most Frequently Run Queries report lists the queries
+that were made the most. Even if individual instances of a query
+run rapidly, tuning queries with a high frequency can result in
+improved performance. This report does not provide information about
+cached queries. You can view a list of queries or details about an
+individual query.</p>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffc" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffc"><!-- --></a><h2 class="topictitle2">Errors</h2><div><p>The Errors section includes the following reports:</p>
+</div><div id="WS84957419-C4BA-4b44-8A91-D189567D3B3F" class="nochunk"><a name="WS84957419-C4BA-4b44-8A91-D189567D3B3F"><!-- --></a><h3 class="topictitle3">Requests with Errors</h3><div><p>The Requests with Errors report lists the templates that
+generate an error. The report includes the path of the template,
+and the number of times errors occurred in that template. For the
+most recent error, the report indicates the time of the error, the
+error message, CFML stack traces, and Java stack traces. You can view
+a list of templates or details about an individual template. The
+detailed information includes the CFML stack trace.</p>
+</div></div><div id="WSF78F1587-8E6F-4737-9E16-D08D949A3F1A" class="nochunk"><a name="WSF78F1587-8E6F-4737-9E16-D08D949A3F1A"><!-- --></a><h3 class="topictitle3">Requests Timed Out</h3><div><p>The Requests Timed Out page lists the templates that timed
+out. The report includes the path of the template, the number of
+times the template timed out, the most recent response time for
+the template, the time when the template was most recently used,
+the most recent estimated request size, and the CFML stack trace.
+A Java stack trace is not provided because time outs can only occur
+within CFML. You can view a list of templates or details about an
+individual template. The detailed information includes the CFML
+stack trace.</p>
+</div></div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff5.html" title="Overview"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ffb.html" title="Alerts"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff7.html"><b>Using the ColdFusion Server Monitor</b></a> 
+      / <a href="WSc3ff6d0ea77859461172e0811cbf363cdd-7ff3.html"><b>Viewing Server Monitor Reports</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

@@ -1,0 +1,142 @@
+component output="false" displayName="CfgMeters" name="CfgMeters" accessors="true" {
+	/* properties */
+	property name="assetId" type="string";
+    property name="eventId" type="string";
+    property name="meterType" type="string";
+    property name="valueIn" type="string";
+    property name="valueOut" type="string";
+    property name="isMeterChg" type="string";
+    property name="meterSeq" type="string";
+    property name="operHrs" type="string";
+    property name="benchHrs" type="string";
+    property name="effDate" type="string";
+    property name="sourceTable" type="string";
+    property name="sourceDummyPk" type="string";
+    property name="remarks" type="string";
+    property name="isValid" type="string";
+    property name="valBy" type="string";
+    property name="valDate" type="string";
+    property name="chgBy" type="string";
+    property name="chgDate" type="string";
+    property name="createDate" type="string";
+    property name="createdBy" type="string";
+    
+
+	
+	
+
+	/* init */
+	function init() {
+	    /* initialize CfgMeters properties */
+        setAssetId("");
+        setEventId("");
+        setMeterType("183");
+        setValueIn("");
+        setValueOut("");
+        setIsMeterChg("N");
+        setMeterSeq("1");
+        setOperHrs("");
+        setBenchHrs("");
+        setEffDate("");
+        setSourceTable("");
+        setSourceDummyPk("");
+        setRemarks("");
+        setIsValid("Y");
+        setValBy("");
+        setValDate("");
+        setChgBy("");
+        setChgDate("");
+        setCreateDate("");
+        setCreatedBy("");
+
+		return this;
+	}
+
+	
+
+    /* return the property name/value pair of this object */
+    public any function toString() {
+       var local = {};
+       local.results = {};
+       
+       local.metaData = getMetaData(this);
+       if(Structkeyexists(local.metaData,"properties") and isArray(local.metaData['properties'])) {           
+          local.properties = local.metaData['properties']; 
+          for(local.p=1;local.p<=ArrayLen(local.properties);local.p++) {
+              local.name = local.properties[local.p].name;
+               local.results[local.name] = (Structkeyexists(variables,local.name))? variables[local.name] :"";          
+          }    
+       }
+       return SerializeJSON(local.results);  
+    }
+
+    /* Validate CfgMeters */
+    public void function validate() {
+        /* validate not null properties */
+        if (isNull(getAssetId()) or !len(trim(getAssetId()))) {
+            throw (type="CfgMetersException", message="Missing Asset_Id", detail="Please enter in the Asset_Id");
+        }
+        if (isNull(getMeterType()) or !len(trim(getMeterType()))) {
+            throw (type="CfgMetersException", message="Missing Meter_Type", detail="Please enter in the Meter_Type");
+        }
+        if (isNull(getIsMeterChg()) or !len(trim(getIsMeterChg()))) {
+            throw (type="CfgMetersException", message="Missing Is_Meter_Chg", detail="Please enter in the Is_Meter_Chg");
+        }
+        if (isNull(getMeterSeq()) or !len(trim(getMeterSeq()))) {
+            throw (type="CfgMetersException", message="Missing Meter_Seq", detail="Please enter in the Meter_Seq");
+        }
+        if (isNull(getIsValid()) or !len(trim(getIsValid()))) {
+            throw (type="CfgMetersException", message="Missing Is_Valid", detail="Please enter in the Is_Valid");
+        }
+        if (isNull(getChgBy()) or !len(trim(getChgBy()))) {
+            throw (type="CfgMetersException", message="Missing Chg_By", detail="Please enter in the Chg_By");
+        }
+        if (isNull(getChgDate()) or !len(trim(getChgDate()))) {
+            throw (type="CfgMetersException", message="Missing Chg_Date", detail="Please enter in the Chg_Date");
+        }
+    
+        /* validate numeric properties */
+        if (!isNull(getAssetId()) and len(trim(getAssetId())) and !isNumeric(getAssetId())) {
+            throw (type="CfgMetersException", message="Asset_Id not a number", detail="Please enter a valid number for Asset_Id");
+        }
+        if (!isNull(getEventId()) and len(trim(getEventId())) and !isNumeric(getEventId())) {
+            throw (type="CfgMetersException", message="Event_Id not a number", detail="Please enter a valid number for Event_Id");
+        }
+        if (!isNull(getMeterType()) and len(trim(getMeterType())) and !isNumeric(getMeterType())) {
+            throw (type="CfgMetersException", message="Meter_Type not a number", detail="Please enter a valid number for Meter_Type");
+        }
+        if (!isNull(getValueIn()) and len(trim(getValueIn())) and !isNumeric(getValueIn())) {
+            throw (type="CfgMetersException", message="Value_In not a number", detail="Please enter a valid number for Value_In");
+        }
+        if (!isNull(getValueOut()) and len(trim(getValueOut())) and !isNumeric(getValueOut())) {
+            throw (type="CfgMetersException", message="Value_Out not a number", detail="Please enter a valid number for Value_Out");
+        }
+        if (!isNull(getMeterSeq()) and len(trim(getMeterSeq())) and !isNumeric(getMeterSeq())) {
+            throw (type="CfgMetersException", message="Meter_Seq not a number", detail="Please enter a valid number for Meter_Seq");
+        }
+        if (!isNull(getOperHrs()) and len(trim(getOperHrs())) and !isNumeric(getOperHrs())) {
+            throw (type="CfgMetersException", message="Oper_Hrs not a number", detail="Please enter a valid number for Oper_Hrs");
+        }
+        if (!isNull(getBenchHrs()) and len(trim(getBenchHrs())) and !isNumeric(getBenchHrs())) {
+            throw (type="CfgMetersException", message="Bench_Hrs not a number", detail="Please enter a valid number for Bench_Hrs");
+        }
+        if (!isNull(getSourceDummyPk()) and len(trim(getSourceDummyPk())) and !isNumeric(getSourceDummyPk())) {
+            throw (type="CfgMetersException", message="Source_Dummy_Pk not a number", detail="Please enter a valid number for Source_Dummy_Pk");
+        }
+    
+        /* validate date properties */
+        if (!isNull(getEffDate()) and len(trim(getEffDate())) and !isDate(getEffDate())) {
+            throw (type="CfgMetersException", message="Eff_Date not a valid date", detail="Please enter a valid date for Eff_Date");
+        }
+        if (!isNull(getValDate()) and len(trim(getValDate())) and !isDate(getValDate())) {
+            throw (type="CfgMetersException", message="Val_Date not a valid date", detail="Please enter a valid date for Val_Date");
+        }
+        if (!isNull(getChgDate()) and len(trim(getChgDate())) and !isDate(getChgDate())) {
+            throw (type="CfgMetersException", message="Chg_Date not a valid date", detail="Please enter a valid date for Chg_Date");
+        }
+        if (!isNull(getCreateDate()) and len(trim(getCreateDate())) and !isDate(getCreateDate())) {
+            throw (type="CfgMetersException", message="Create_Date not a valid date", detail="Please enter a valid date for Create_Date");
+        }
+    }
+}
+

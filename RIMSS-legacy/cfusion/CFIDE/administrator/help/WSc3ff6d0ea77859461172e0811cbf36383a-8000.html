@@ -1,0 +1,872 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Administering ColdFusion</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf36383a-8000.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf36383a-8000.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3637ad-7fff.html" title="About ColdFusion documentation"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html" title="Using the ColdFusion Administrator"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a></div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Administering ColdFusion</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf36383a-7fff"><span class="topictitle1">About the ColdFusion Administrator</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d318518-5970fe04134e6fd6784-8000"><span class="topictitle2">Key features of the ColdFusion Administrator</span>
+</a></p></li></ul></li><li><p><a href="#WSe61e35da8d3185187333d6e9134c7c298b9-8000"><span class="topictitle1">What you can do in ColdFusion Administrator</span>
+</a></p></li><li><p><a href="#WSe61e35da8d31851874c57066134e62b3e10-8000"><span class="topictitle1">Optional configuration overview</span>
+</a></p></li><li><p><a href="#WSe61e35da8d318518-4a0c870d134e6480be4-8000"><span class="topictitle1">Services and processes</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d318518-4a0c870d134e6480be4-7fff"><span class="topictitle2">ColdFusion services in Windows</span>
+</a></p></li><li><p><a href="#WSe61e35da8d318518-5970fe04134e6fd6784-7fff"><span class="topictitle2">ColdFusion processes on UNIX</span>
+</a></p></li></ul></li><li><p><a href="#WSe61e35da8d3185187333d6e9134c7c298b9-7fff"><span class="topictitle1">Working environment</span>
+</a></p><ul><li><p><a href="#WSe61e35da8d3185187333d6e9134c7c298b9-7ffe"><span class="topictitle2">Layout of the ColdFusion Administrator</span>
+</a></p></li><li><p><a href="#WSe61e35da8d3185187333d6e9134c7c298b9-7ffd"><span class="topictitle2">Verify that the web server is running</span>
+</a></p></li><li><p><a href="#WSe61e35da8d31851823c5628f134c7c6b150-8000"><span class="topictitle2">System information</span>
+</a></p></li></ul></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf36383a-7ffe"><span class="topictitle1">About web server administration</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf36383a-7ffd"><span class="topictitle1">About Solr administration</span>
+</a></p></li><li><p><a href="#WSe61e35da8d3185187333d6e9134c7c298b9-7ffc"><span class="topictitle1">What’s new in this release</span>
+</a></p></li></ul></div></div></div></div><div><p>Although you use the ColdFusion Administrator to perform
+most ColdFusion administration tasks, you can also manage databases,
+web server configurations, and ColdFusion Search Server.</p>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf36383a-7fff" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf36383a-7fff"><!-- --></a><h2 class="topictitle2">About the ColdFusion Administrator</h2><div><p>The
+ColdFusion Administrator provides a browser-based interface for
+managing your ColdFusion environment. You can configure many settings
+to provide optimal levels of security and functionality. The available
+options are based on your edition of ColdFusion —Standard or Enterprise—as
+well as your configuration: server, multiserver, or J2EE. For more
+information on ColdFusion configurations, see <a href="http://help.adobe.com/en_US/ColdFusion/10.0/Installing/WSc3ff6d0ea77859461172e0811cdec186d9-7ffd.html" target="_self">Preparing
+to Install ColdFusion</a> in <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Installing ColdFusion</i>.</p>
+<p>The
+default location for the ColdFusion Administrator login page is:</p>
+<p>http://<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">servername</i>[<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">:portnumber</i>]/CFIDE/administrator/index.cfm</p>
+<p>Where <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">servername</i> is the fully qualified domain name of
+your web server. Common values for <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">servername</i> are localhost
+or 127.0.0.1 (each refers to the web server on the local computer). </p>
+<p>If you are using the ColdFusion built-in web server, include
+the port number as part of the servername. The default port number
+for the server configuration is 8500; for example, http://<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">servername</i>:8500/CFIDE/administrator/index.cfm.
+The default port number for the multiserver configuration is 8300.
+If you are using the J2EE configuration, include the port number
+that the web server of the J2EE application server uses.</p>
+<div class="tip"><img src="images/tip_help.png" />If you were using the built-in web server in
+a version earlier than ColdFusion MX 7 and upgraded to ColdFusion
+8, the installer automatically finds an unused port for the built-in
+web server (typically 8501).</div><p>If your
+ColdFusion Administrator is on a remote computer, use the Domain
+Name Services (DNS) name or Internet Protocol (IP) address of the
+remote host.</p>
+<p>To access the ColdFusion Administrator, enter the password specified
+when you installed ColdFusion.</p>
+<div class="note"><span class="notetitle">Note:  </span>If you are running ColdFusion in a multihomed
+environment and have problems displaying the ColdFusion Administrator,
+see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ffd.html">Web Server Management</a> for configuration information.</div>
+<p>For more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html">Using the ColdFusion Administrator</a>.</p>
+<ul class="navlinklist"></ul>
+</div><div id="WSe61e35da8d318518-5970fe04134e6fd6784-8000" class="nochunk"><a name="WSe61e35da8d318518-5970fe04134e6fd6784-8000"><!-- --></a><h3 class="topictitle3">Key features of the ColdFusion Administrator</h3><div><div class="para"><ul><li><p><strong>Server configuration:</strong> The Server area
+of the Administrator lets you set up and manage the functionality
+of ColdFusion. You can define caching preferences, connect to data
+sources for use in ColdFusion applications, select debugging options,
+manage variables, set up task automation, and register Java applets,
+settings, and custom tags.</p>
+</li>
+<li><p><strong>Security:</strong> The Security area of the Administrator lets
+you secure your development environment. You can enable password
+protection for the Administrator, enable password protection for
+remote access, and control access by using ColdFusion tags and functions
+to server resources.</p>
+</li>
+<li><p><strong>ColdFusion resources:</strong> The ColdFusion Administrator
+home page provides access to the following information and support:</p>
+<ul><li><p><strong>Local resources</strong> - release notes, new features documentation,
+product documentation, and example applications</p>
+</li>
+<li><p><strong>Technical support</strong> - installation, support, resources,
+and TechNotes</p>
+</li>
+<li><p><strong>Online resources</strong> - product registration, developer
+information, white papers, training, enhancement requests, and security</p>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div></div></div>
+<div id="WSe61e35da8d3185187333d6e9134c7c298b9-8000" class="nochunk"><a name="WSe61e35da8d3185187333d6e9134c7c298b9-8000"><!-- --></a><h2 class="topictitle2">What you can do in ColdFusion Administrator</h2><div><p>Some of the tasks that you can perform in ColdFusion Administrator:</p>
+<div class="para"><ul><li><p>Set up and maintain your server</p>
+</li>
+<li><p> Monitor system performance</p>
+</li>
+<li><p>Secure your resources</p>
+</li>
+<li><p> Manage and analyze log files</p>
+</li>
+<li><p>Connect to ColdFusion data sources</p>
+</li>
+<li><p> Schedule tasks</p>
+</li>
+<li><p> Integrate Java applets and custom tags</p>
+</li>
+<li><p> Download and install Server Manager</p>
+</li>
+<li><p>Configure OpenOffice</p>
+</li>
+<li><p> Manage undelivered mails</p>
+</li>
+<li><p>Access online product documentation, release notes, product
+upgrades, and TechNotes</p>
+</li>
+<li><p>Download and install product updates and hotfixes.</p>
+</li>
+</ul>
+</div>
+<ul class="navlinklist"></ul>
+</div></div>
+<div id="WSe61e35da8d31851874c57066134e62b3e10-8000" class="nochunk"><a name="WSe61e35da8d31851874c57066134e62b3e10-8000"><!-- --></a><h2 class="topictitle2">Optional configuration overview</h2><div><p>After you perform basic configuration tasks in the Administrator
+pages, consider taking these actions:</p>
+<div class="para"><ul><li><p><strong>Determine the identity of a website visitor:</strong> ColdFusion
+lets you use client variables to determine the identity of a client
+visiting your site. By managing client variables, you can use this
+information to customize page content for your clients. Select Server
+Settings &gt; Client Variables in the ColdFusion Administrator navigation
+pane to specify a default storage mechanism for client variables
+and to optionally specify the data source used to store client information.
+For details, see Client variable planning and Manage client variables.</p>
+</li>
+<li><p><strong>Create logical aliases for physical directories:</strong> You
+can create logical aliases for paths to directories on your server.
+Select Server Settings &gt; Mappings in the ColdFusion Administrator
+navigation pane. </p>
+<div class="para">By creating aliases for directories on your
+server, you can use them in your ColdFusion applications. These
+are referred to as mappings. You typically use two types of mappings: <ul><li><p><strong>ColdFusion mappings:</strong> Equates a logical path (for example,
+/payroll) with a physical directory path (for example, C:\finance\payroll).
+ColdFusion uses these mappings for the cfinclude tag, the cfmodule
+tag, and when locating ColdFusion components.</p>
+</li>
+<li><p><strong>Web server mappings: </strong>Web server mappings also equate
+a logical path to a physical path, but at the web server level.
+Web server mappings are in effect for all requests made to a web
+server. In many cases, web server mappings render ColdFusion mappings
+unnecessary.</p>
+</li>
+</ul>
+</div>
+<p>For details, see Create logical
+mappings.</p>
+</li>
+<li><p><strong>Register Java applets and CFX tags:</strong> You can use Java
+applets and CFX tags in your ColdFusion applications. Register the
+applets on the appropriate Extensions pages by selecting Extensions
+&gt; Java Applets or Extensions &gt; CFX Tags in the ColdFusion
+Administrator navigation pane. After they are registered, you can
+incorporate the applets and tags in your applications. For details,
+see Java applets and the CFX Tags.</p>
+</li>
+<li><p><strong>Configure standard debugging options: </strong>You can get
+useful debugging information about your application page requests
+from browsers by setting debugging preferences. Select Debugging
+&amp; Logging &gt; Debug Output Settings in the ColdFusion Administrator
+navigation pane to set up debugging. For details, see Select debugging
+options. </p>
+</li>
+<li><p><strong>Perform advanced administration tasks:</strong> If you require
+granular security control over your ColdFusion resources, or need
+to decentralize ColdFusion administrative responsibilities, implement
+ColdFusion Security. In the ColdFusion Administrator navigation
+pane, select Security &gt; Sandbox Security (Enterprise Edition)
+or Security &gt; Resource Security (Standard Edition). To take advantage
+of additional capabilities that ColdFusion provides for controlling access
+by applications to resources on the server (such as data sources,
+files, directories, and IP addresses), consider configuring Sandbox
+Security. For details, see Configure ColdFusion security.</p>
+</li>
+</ul>
+</div>
+<ul class="navlinklist"></ul>
+</div></div>
+<div id="WSe61e35da8d318518-4a0c870d134e6480be4-8000" class="nochunk"><a name="WSe61e35da8d318518-4a0c870d134e6480be4-8000"><!-- --></a><h2 class="topictitle2">Services and processes</h2><div><p>ColdFusion uses services in Windows operating systems and
+processes on UNIX systems.</p>
+<div class="para"><div class="note"><span class="notetitle">Note:  </span>This does not apply when deploying ColdFusion on a J2EE
+server.</div>
+If you enable or disable security or change any option
+in the Java and JVM Settings page in the ColdFusion Administrator,
+you must stop and restart ColdFusion for your changes to take effect.
+For details, see Start and stop ColdFusion.</div>
+<ul class="navlinklist"></ul>
+</div><div id="WSe61e35da8d318518-4a0c870d134e6480be4-7fff" class="nochunk"><a name="WSe61e35da8d318518-4a0c870d134e6480be4-7fff"><!-- --></a><h3 class="topictitle3">ColdFusion services in Windows</h3><div><div class="para">The ColdFusion installation creates the following services
+in Windows 2000, Windows XP, and Windows 2003:
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e422"><p>Service</p>
+</th>
+<th valign="top" width="NaN%" id="d16e425"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e422 "><p>ColdFusion Application Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e425 "><p>The main ColdFusion service. ColdFusion
+pages cannot be processed if this service is not running.</p>
+<p>Note:
+This does not apply when deploying ColdFusion on a J2EE server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e422 "><p>ColdFusion .NET extension</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e425 "><p>The extension that lets you access .NET
+assembly classes as ColdFusion objects. Uses Java proxies to represent
+the .NET classes on the ColdFusion system, and requires that the
+ColdFusion .NET-side agent run on the system where the assemblies
+are located. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e422 "><p>ColdFusion ODBC Agent</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e425 "><p>The service that configures data sources
+for the ColdFusion ODBC Server.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e422 "><p>ColdFusion ODBC Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e425 "><p>The middle-tier service for ODBC connections
+that use the ColdFusion DataDirect drivers for Microsoft Access
+and ODBC Socket.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e422 "><p>ColdFusion Search Server</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e425 "><p>Manages and controls configuration and services
+of Solr.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div><div id="WSe61e35da8d318518-5970fe04134e6fd6784-7fff" class="nochunk"><a name="WSe61e35da8d318518-5970fe04134e6fd6784-7fff"><!-- --></a><h3 class="topictitle3">ColdFusion processes on UNIX</h3><div><div class="para"><div class="note"><span class="notetitle">Note:  </span>The coldfusion process discussion does not apply
+when deploying ColdFusion on a J2EE server.</div>
+</div>
+<p>The ColdFusion installation creates a single process in UNIX
+called <samp class="codeph">cfusion</samp>. To check whether it is running,
+use the following command:</p>
+<p><samp class="codeph">ps - eaf | grep coldfusion</samp></p>
+<p>If it is running, your computer returns a line like the following: </p>
+<p><samp class="codeph">nobody 4528 1 10 12:44 pts/0 00:00:07 /opt/coldfusion/bin/coldfusion -start</samp></p>
+<div class="section"><h4 class="sectiontitle">Manage the ColdFusion process in UNIX</h4><ol><li><p>Log in as root.</p>
+</li>
+<li><p>Enter the following command: <samp class="codeph">cd cf_root/bin</samp></p>
+</li>
+<li><p>Enter the appropriate command, as the following table describes:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e510"><p>Task</p>
+</th>
+<th valign="top" width="NaN%" id="d16e513"><p>Command</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e510 "><p>Start ColdFusion</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e513 "><p><samp class="codeph">coldfusion start</samp></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e510 "><p>Stop ColdFusion</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e513 "><p><samp class="codeph">coldfusion stop</samp></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e510 "><p>Restart ColdFusion</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e513 "><p><samp class="codeph">coldfusion restart</samp></p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e510 "><p>View performance information for ColdFusion</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e513 "><p><samp class="codeph">coldfusion status</samp></p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div></div></div>
+<div id="WSe61e35da8d3185187333d6e9134c7c298b9-7fff" class="nochunk"><a name="WSe61e35da8d3185187333d6e9134c7c298b9-7fff"><!-- --></a><h2 class="topictitle2">Working environment</h2><div><ul class="navlinklist"></ul>
+</div><div id="WSe61e35da8d3185187333d6e9134c7c298b9-7ffe" class="nochunk"><a name="WSe61e35da8d3185187333d6e9134c7c298b9-7ffe"><!-- --></a><h3 class="topictitle3">Layout of the ColdFusion Administrator</h3><div><p>To become familiar with the layout of the ColdFusion Administrator
+pages, open the Administrator and refer to the following descriptions:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e571"><p>Area or Button</p>
+</th>
+<th valign="top" width="NaN%" id="d16e574"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e571 "><p>Help button</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e574 "><p>Displays online help for the page in the
+ColdFusion Administrator you are viewing.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e571 "><p>System information button</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e574 "><p>Displays system information.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e571 "><p>Resource button</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e574 "><p>Displays links to additional sources of
+information.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e571 "><p>Left pane</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e574 "><p>Lets you navigate to pages in the ColdFusion
+Administrator.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div><div id="WSe61e35da8d3185187333d6e9134c7c298b9-7ffd" class="nochunk"><a name="WSe61e35da8d3185187333d6e9134c7c298b9-7ffd"><!-- --></a><h3 class="topictitle3">Verify that the web server is running</h3><div><div class="para">Before you install ColdFusion, ensure that your web server
+is installed and running.<ol><li><p>Open a web browser.</p>
+</li>
+<li><p>In the address line, enter the URL for a web page or site.
+For example, if the file myindex.htm is in your web document root
+directory, load the page in your browser, using the localhost URL,
+as follows: </p>
+<p><samp class="codeph">http://127.0.0.1/myindex.htm</samp>or<samp class="codeph">http://127.0.0.1:8500/myindex.htm</samp> (built-in
+web server)</p>
+</li>
+<li><p>Click Enter. If the web server is running, the page appears,
+otherwise, an error message appears.</p>
+</li>
+</ol>
+</div>
+</div></div><div id="WSe61e35da8d31851823c5628f134c7c6b150-8000" class="nochunk"><a name="WSe61e35da8d31851823c5628f134c7c6b150-8000"><!-- --></a><h3 class="topictitle3">System information</h3><div><div class="para">Use the ColdFusion System Information page to do the following:<ul><li><p>Update or upgrade a Trial or Developer Edition of ColdFusion
+as follows:</p>
+<div class="para"><ol><li><p>On the System Information page, enter
+your product serial number in the New License field.</p>
+</li>
+<li><p> Click Submit Changes.</p>
+</li>
+</ol>
+</div>
+</li>
+<li><p>See the expiration date of your Trial copy of ColdFusion
+Administrator.</p>
+</li>
+<li><p>Identify values that correspond to several ColdFusion server
+variables.</p>
+</li>
+</ul>
+To access the ColdFusion System Information
+page, click the System Information button in the top right of the
+ColdFusion Administrator.</div>
+</div></div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf36383a-7ffe" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf36383a-7ffe"><!-- --></a><h2 class="topictitle2">About web server administration</h2><div><p>ColdFusion applications require a web server to process
+ColdFusion Markup Language (CFML) pages. The server and multiserver
+configurations provide a built-in web server along with support
+for external web servers, such as Apache, IIS, and Sun ONE Web Server
+(formerly known as iPlanet). </p>
+<p>For more information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ffd.html">Web Server Management</a>.</p>
+<ul class="navlinklist"></ul>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf36383a-7ffd" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf36383a-7ffd"><!-- --></a><h2 class="topictitle2">About Solr administration</h2><div><p>ColdFusion includes Solr Server search technology. Solr
+is a high-performance open search engine designed to process searches
+quickly in a high-performance, distributed system. </p>
+<p>For more information, see Solr
+Server and Collections.</p>
+<ul class="navlinklist"></ul>
+</div></div>
+<div id="WSe61e35da8d3185187333d6e9134c7c298b9-7ffc" class="nochunk"><a name="WSe61e35da8d3185187333d6e9134c7c298b9-7ffc"><!-- --></a><h2 class="topictitle2">What’s new in this release</h2><div><p>The ColdFusion Administrator has significant new functionality
+that includes:</p>
+<div class="section"><h4 class="sectiontitle">Server updates</h4><p>Verify if there are any
+product updates using the ColdFusion Administrator (Server Update
+&gt; Update). The updates can include hot fixes and security hot fixes
+for ColdFusion Zeus. For details, see <a href="WSe61e35da8d318518-33adffe0134c60cd31c-7fff.html">Updates page</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Configure built-in web server</h4><p>Instead
+of JRun, Tomcat 7.0.8 is embedded with a stand-alone ColdFusion
+Zeus installation. ColdFusion Administrator provides options to
+configure Tomcat. For details, see <a href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fc2.html">Enterprise Manager section</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Scheduling</h4><p>Scheduling tasks feature (Server
+Settings &gt; Scheduled Tasks) has been enhanced in this release.
+The enhancements include options for Application and Server Level
+scheduled tasks and enabling cluster setup. For details, see <a href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fd8.html">Scheduled Tasks</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Caching</h4><p>Options to use internal cache
+to store queries, clear query cache, and to clear folder-specific
+template cache. For details, see <a href="WSc3ff6d0ea77859461172e0811cbf3638e6-7ff9.html">Caching page</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Web services</h4><p>ColdFusion supports Axis
+2 web service and an option is provided to specify the Axis version.
+For details, see <a href="WSe61e35da8d318518-cfc6153134d13aef47-8000.html">Web Services</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">REST services</h4><p>Option to register an application
+with REST service. For details, see <a href="WSe61e35da8d318518-17fae27134c7aed33a-8000.html">REST Services page</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Enabling RDS</h4><p>RDS can be enabled from ColdFusion
+Administrator. For details, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ff5.html">RDS page</a>.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Accessing the ColdFusion Administrator</h4><p>If
+you are using the Developer Edition of ColdFusion, in the previous
+releases, only two IP addresses are allowed to access ColdFusion
+Administrator concurrently. Even if either or both of the IP addresses
+do not access ColdFusion Administrator, a third IP address is denied
+the right. </p>
+<p>In this release, access is permitted to any two
+IP addresses concurrently. For example, Client1 and Client2 already
+have access to ColdFusion Administrator. When either Client1 or
+Client2 does not access ColdFusion Administrator, Client3 is allowed
+access.</p>
+</div>
+<div class="section"><h4 class="sectiontitle">Restricting access to ColdFusion Administrator</h4><p>For
+details, see <a href="WSe61e35da8d318518-32a693a2134f111bf34-8000.html">Restricting access to ColdFusion Administrator</a></p>
+</div>
+<div class="section"><h4 class="sectiontitle">Logging Administrator actions</h4><p>By default
+all major ColdFusion Administrator actions are logged. The log contains
+details that include current user, date, time, and action taken.</p>
+<div class="para">Note
+that the logs cover only high-level actions such as the following:<pre>&lt;timestamp&gt;: &lt;Username&gt;: &lt;deleted data source name&gt;</pre>
+The
+default log location is cfusion\logs\audit.log.</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Changes to the default settings</h4><p>The following
+default settings in the previous releases of ColdFusion have been revised
+in this release:</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e786"><p>Area/UI</p>
+</th>
+<th valign="top" width="NaN%" id="d16e789"><p>Path</p>
+</th>
+<th valign="top" width="NaN%" id="d16e792"><p>Previous value</p>
+</th>
+<th valign="top" width="NaN%" id="d16e795"><p>New value</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e786 "><p>Client variable storage name</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Server Settings &gt; Client Variables &gt;
+Select Default Storage Mechanism for Client Sessions</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 "><p>Registry</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>Cookie</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e786 "><p>Use UUID for cftoken</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Server Settings &gt; Settings</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 "><p>Unchecked</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>Checked</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e786 "><p>Enable Global Script Protection</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Server Settings &gt; Settings </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 "><p>Unchecked</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>Checked</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e786 "><p>Maximum number of simultaneous Template
+requests</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Server Settings &gt; Request Tuning &gt;
+Request Limits </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 "><p>10</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>25</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e786 "><p>Maximum number of simultaneous CFC function
+requests </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Server Settings &gt; Request Tuning &gt;
+Request Limits </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 "><p>10</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>15</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e786 "><p>Minimum JVM Heap Size (MB)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Server Settings &gt; Java and JVM </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 ">&#160;</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>256</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e786 "><p>Maximum size of post data (in MB)</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Server Settings &gt; Settings &gt; Request
+Size Limits </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 "><p>100</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>20</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e786 "><p>Enable ColdFusion Event Gateway Services </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e789 "><p>Event Gateways &gt; Settings</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e792 "><p>Checked</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e795 "><p>Unchecked</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Session cookie settings</h4><p>The following
+settings can be made at the server level using ColdFusion Administrator
+(Server Settings &gt; Memory Variables &gt; Session Cookie Settings). </p>
+<p>Adobe
+recommends that you use the new settings.</p>
+<div class="para">
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e915"><p>Setting</p>
+</th>
+<th valign="top" width="NaN%" id="d16e918"><p>Default</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e915 "><p>HTTPONLY session cookie</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e918 "><p>Checked</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e915 "><p>Secure Session cookie</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e918 "><p>Unchecked</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e915 "><p>Session cookie timeout</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e918 "><p>Maximum of 30 years and minimum of two minutes.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<ul class="navlinklist"></ul>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3637ad-7fff.html" title="About ColdFusion documentation"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html" title="Using the ColdFusion Administrator"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a></div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

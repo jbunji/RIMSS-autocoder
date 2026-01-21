@@ -1,0 +1,114 @@
+J-Integra for COM Release Notes
+
+What's new in J-Integra® for COM v2.11? (Released May 3, 2010)
+
+J-Integra® for COM supports Windows 7 and Exchange Server 2010. For a complete list of supported platforms and JDKs, please see this KB article.
+Updated AuthInfo's getCallerDomain() and getCallerUser() methods for use on Windows 7.
+Resolved a bug coercing unsigned long data types.
+
+What's new in J-Integra® for COM v2.10? (Released June 8, 2009)
+
+   1. J-Integra® for COM supports Windows Server 2008. For a complete list of supported platforms and JDKs, please see this KB article.
+   2. Resolved an EOFException on Windows Server 2003 SP2 and Vista SP1 when the DCOM Authentication Level is set to None.
+   3. Enhanced the java2com tool so that (given the same Java source and configuration file) the generated proxies should be identical.
+   4. Added a new runtime property (JINTEGRA_DCOM_PING_TIMEOUT) that can be used to prevent Java event listeners from timing out (in DCOM Mode) on COM objects hosted in Windows Vista. For more information, please refer to the Runtime Properties section of our documentation.
+   5. J-Integra® for Exchange: The Contact class has been updated to resolve an Address Book issue. Here is the updated Contact source. 
+
+What's new in J-Integra® for COM v2.9? (Released September 18, 2008)
+
+   1. J-Integra® for COM now fully supports Windows XP SP3. For a complete list of supported platforms and JDKs, please see this KB article.
+   2. ID 6127: Fixed bug causing a java.io.EOFException to be thrown on DCOM connections to Windows Server 2003 SP2. 
+
+What's new in J-Integra® for COM v2.8? (Released January 14, 2008)
+
+   1. ID 5997: Fixed bug preventing pvarResult from being set to NULL when vtRet==VT_EMPTY.
+   2. ID 6005: Fixed bug causing VB-to-Java applications to hang in Windows Vista when run from a VB editor/IDE.
+   3. ID 5998: Fixed memory leak in ntvinv when VT_USERDEFINED is used.
+   4. ID 6006: Fixed memory leak in ntvinv when SAFEARRAY is used.
+   5. ID 6010: Fixed memory leak in ntvinv when BOOLEAN is used.
+   6. ID 6011: Fixed memory leak in ntvinv when VT_DISPATCH is used. 
+   
+What's new in J-Integra for COM® v2.2? (Released September 13, 2004)
+
+   1. J-Integra for COM (formerly J-Integra) is now part of the J-Integra Interoperability Suite offered by Intrinsyc Software International, Inc.
+   2. J-Integra for COM is now fully supported on Windows XP SP2. See J-Integra for COM and Windows XP/2003 in the KB for complete details.
+   3. New installer for Windows platforms makes installation fast and easy!
+   4. ID 2023: You can now use the full path to unregister a TLB file with regtlb (e.g. regtlb c:\pure\dcomawt\dcomawt.tlb).
+   5. ID 2129: Fixed com2java to generate the correct VT type for VT_USERDEFINED|VT_BYREF parameters.
+   6. ID 2151: Fixed com2java to once again support deserialization for generated Java proxies (bug introduced in v1.6).
+   7. ID 2169: Updated com2java to generate valid javadoc in the generated Java proxies.
+   8. ID 2186: Retrieving a reference to an active COM object no longer throws java.lang.UnsatisfiedLinkError.
+   9. ID 2209: Native mode no longer fails with java.lang.NoSuchMethodError when an event callback involving a struct parameter passes from COM to Java.
+  10. ID 2226: Updated regjvm GUI to display classpath entries of more than 1004 characters. In addition, the regjvm GUI now wraps the classpath value if it is longer than the width of the classpath textbox.
+  11. ID 2227: Updated the regtlb /unregister option so that it removes all entries added to the registry when a TLB was originally registered.
+  12. ID 2235: J-Integra for COM supports passing a VT_ARRAY|BSTR from Java to COM in DCOM mode on Windows XP SP2.
+  13. ID 2236: J-Integra for COM supports passing a VT_CY|VT_BYREF or VT_VARIANT|VT_BYREF in DCOM mode on Windows XP SP2.
+  14. ID 2238: Updated java2com with an enhanced GUI interface. 
+
+What's new in J-Integra® v2.1? (Released May 18, 2004)
+
+   1. ID 1753a: J-Integra is now fully supported on both Windows XP and Windows Server 2003. Please see J-Integra and Windows XP/2003 in the KB for complete details.
+   2. ID 1753b: Fixed a bug where installing Microsoft Security Update KB835732 caused J-Integra to stop working. Please see Problems with MS04-011 (KB835732) Security Patch from Microsoft in the KB for more details.
+   3.
+      ID 1753c: J-Integra has been successfully tested with J2SE v1.5.0 Beta 1.
+   4.
+      ID 1828: Fixed a bug so that users can now catch the java.lang.UnsatisfiedLinkError when ntvinv.dll fails to load.
+   5.
+      ID 2087: Fixed a bug which was causing a SAFEARRAY(struct) to be passed incorrectly because the struct size information was not being obtained correctly.
+   6.
+      ID 2093: The BeanInfo generated for ActiveX components previously exposed all the event methods for source interfaces. This has been changed to behave more like VB where only the default interface is exposed for source interfaces.
+   7.
+      ID 2108: The JINTEGRA_RETURN_BYREFARGS property is no longer needed when running J-Integra on Windows XP.
+   8.
+      ID 2109: The Java 2 checkbox has been removed from the regjvm tool, as JDK v1.1.x is no longer supported.
+   9.
+      ID 2110: Fixed a bug where J-Integra was incorrectly handling parameters of the type [in, out]IDispatch** and [in, out]IUnknown** when using Dispatch invocation.
+  10.
+      ID 2111: You can now specify the pathext option when using regjvmcmd if you want to append values to the system PATH at runtime.
+
+What's new in J-Integra® v2.0? (Released February 1, 2004)
+
+   1.
+      J-Integra announces new upgrade policy.
+   2.
+      ID 738a: Fixed a bug where debugging VB client code resulted in the IDE crashing (when running J-Integra in native in-proc mode).
+   3.
+      ID 738b: Fixed a bug where PowerBuilder 9 clients calling Java methods with primitive and/or object parameters resulted in a "memory could not be read" error.
+   4.
+      ID 1751: Added new option Generate BeanInfo to com2java. This option allows you to generate BeanInfo classes for COM components marked as controls in the registry. This enables you to use COM controls as Java Beans in Java IDEs such as JBuilder and Sun One Studio.
+   5.
+      ID 1785: J-Integra now handles parameters of type [in,out] SAFEARRAY** in native mode.
+   6.
+      ID 1798: Fixed a bug where some COM applications would throw an error when passing parameters of type VT_INT.
+   7.
+      ID 1805: Fixed a bug where com2java (when processing a DISPINTERFACE) assumed that any method parameter that was an interface derived from IDispatch. Com2java now checks if the parameter derives from IUnknown or IDispatch and generates the appropriate code.
+   8.
+      ID 1807: Fixed a bug where Setdllhost was failing when processing a DLL located on a mapped drive.
+   9.
+      ID 1808: J-Integra now handles parameters of type [in] SAFEARRAY(Typename)*.
+  10.
+      ID 1810: J-Integra now supports the passing of COM structs across the wire in native mode. Up until now, COM structs were only supported in DCOM mode.
+  11.
+      ID 1811: Fixed a bug where J-Integra was throwing an an ArrayIndexOutOfBoundsException when handling an event with no parameters.
+  12.
+      ID 1812: Fixed a bug where J-Integra was causing an error on the COM side when passing an empty string to a COM object in native mode.
+  13.
+      ID 1813: J-Integra now handles parameters of type [in] VARIANT*.
+  14.
+      ID 1814: Fixed a bug where J-Integra was hanging if the instanciation of an ActiveX control failed. This will now cause an exception (instead of hanging).
+  15.
+      ID 1820: For optional parameters, com2java generates comments in the Java proxies which tell the user to use null if the parameter is not required. This was updated so that if the optional parameter is a primitive type, the comment will now say optional, pass [default value] if not required.
+  16.
+      ID 1821: Fixed a bug where the proxies generated by java2com in the early binding example do not compile when using JDK v1.4.2.
+  17.
+      ID 1826: J-Integra no longer supports JDK v1.1.x. If you need JDK v1.1.x compatibility, please email J-Integra Support to request an older version of J-Integra.
+  18.
+      ID 1827: When the Generate Java AWT classes option is selected, com2java now checks the registry to see if a COM coclass is a visual component before deriving its associated Java class from java.awt.Component. This was done because some ActiveX controls contain coclasses which are not visual components, and making them Java components means you have to add them to a Java frame before calling any of their methods. Obviously this does not make sense since non-visual classes should not have to be added to a frame before calling their methods.
+  19.
+      ID 1830: Fixed a bug where the package name and output directory were not always being picked up properly by com2java. For example, sometimes the Java proxies were placed in the wrong directory, or the Java package name was generated incorrectly.
+  20.
+      ID 1939: Fixed a bug where loading the J-Integra runtime sometimes caused NullPointerExceptions on multi-processor machines.
+  21.
+      ID 1990: Com2java now indicates the default value given in the COM type library when generating comments for method parameters.
+  22.
+      ID 2042: Fixed a bug where [out, retval] parameters were being generated by com2java as method parameters for event interfaces. These arguments were not being supplied by J-Integra's native code, which resulted in IllegalArgumentExceptions.

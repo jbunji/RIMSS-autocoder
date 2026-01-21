@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Using sandbox security</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf364104-7fc8.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf364104-7fc8.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSe61e35da8d318518-32a693a2134f111bf34-8000.html" title="Restricting access to ColdFusion Administrator"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html" title="Using Multiple Server Instances"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ff2.html"><b>Administering Security</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Using sandbox security</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf363b95-8000"><span class="topictitle1">Using multiple sandboxes (Enterprise Edition only)</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf363b95-7ff8"><span class="topictitle1">Resources that you can restrict</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf364104-7fcc"><span class="topictitle1">About directories and permissions</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf363b95-7ffa"><span class="topictitle1">Add a sandbox (Enterprise Edition only)</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf363b95-7ffd"><span class="topictitle1">Configure a sandbox</span>
+</a></p></li><li><p><a href="#WS1d1b45f647252298133c5daf123c9646ac8-8000"><span class="topictitle1">Sandbox Considerations</span>
+</a></p></li></ul></div></div></div></div><div><p>Sandbox
+security (called Resource security in the Standard Edition) uses
+the location of your ColdFusion pages to control access to ColdFusion
+resources. A <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">sandbox</i> is a designated directory of your site
+to which you apply security restrictions. Sandbox security lets
+you specify which tags, functions, and resources (for example, files,
+directories, and data sources) can be used by ColdFusion pages located
+in and under the designated directory.</p>
+<p>To use sandbox security in the multiserver and J2EE editions,
+the application server must be running a security manager (<samp class="codeph">java.lang.SecurityManager</samp>)
+and you define the following JVM arguments (for Tomcat, this is
+the java.args line in the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/cfusion/bin/jvm.config
+file):</p>
+<pre>-Djava.security.manager "-Djava.security.policy=<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/WEB-INF/cfusion/lib/coldfusion.policy" "-Djava.security.auth.policy=<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>/WEB-INF/cfusion/lib/neo_jaas.policy" </pre>
+<div class="note"><span class="notetitle">Note:  </span>Sandbox security is not enabled by default.
+You enable it on the Security &gt; Sandbox Security page before
+ColdFusion enforces the settings. </div>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WSc3ff6d0ea77859461172e0811cbf363b95-8000" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf363b95-8000"><!-- --></a><h2 class="topictitle2">Using multiple sandboxes (Enterprise Edition only)</h2><div><p>By default, a subdirectory of a sandbox inherits the settings
+of the directory one level above it. However, if you define a sandbox
+for a subdirectory, the subdirectory no longer inherits settings
+from the parent, completely overriding the parent directory’s sandbox
+settings. For example, consider the following directories:</p>
+<pre>C:\Inetpub\wwwroot 
+C:\Inetpub\wwwroot\sales 
+C:\Inetpub\wwwroot\rnd 
+C:\Inetpub\wwwroot\rnd\dev 
+C:\Inetpub\wwwroot\rnd\'a</pre>
+<p>If you define a sandbox for the wwwroot directory, the settings
+also apply to the sales and rnd directories. If you also define
+a sandbox for the rnd directory, the rnd sandbox settings also apply
+to the dev and qa directories. The wwwroot and sales directories
+maintain their original settings, and the rnd settings override
+the wwwroot directory settings for the rnd directory and subdirectories.</p>
+<p>This hierarchical arrangement of security permits the configuration
+of personalized sandboxes for users with different security levels.
+For example, if you are a web hosting administrator who hosts several
+clients on a ColdFusion shared server, you can configure a sandbox
+for each customer. This prevents one customer from accessing the
+data sources or files of another customer.</p>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf363b95-7ff8" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf363b95-7ff8"><!-- --></a><h2 class="topictitle2">Resources that you can restrict</h2><div><p>You can restrict the following resources:</p>
+<dl><dt class="dlterm">Data Sources</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Restrict the use of ColdFusion data sources.</dd><p class="dlseparator"></p><dt class="dlterm">CF Tags</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Restrict the use of ColdFusion tags that manipulate resources
+on the server (or on an external server), such as files, the registry,
+Lightweight Directory Access Protocol (LDAP), mail, and the log.</dd><p class="dlseparator"></p><dt class="dlterm">CF Functions</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Restrict the use of ColdFusion functions that access the
+file system.</dd><p class="dlseparator"></p><dt class="dlterm">Files/Dirs</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Enable tags and functions in the sandbox to access files
+and directories outside the sandbox.<div class="note"><span class="notetitle">Note:  </span>To use
+the Administrator API when sandbox security is enabled, allow access
+to the cf_web_root/CFIDE/adminapi directory.</div>
+</dd><p class="dlseparator"></p><dt class="dlterm">Server/Ports</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">Specify the servers, ports, and port ranges that the ColdFusion tags
+that call third-party resources can use.<p>For more information,
+see the Administrator online Help.</p>
+<div class="note"><span class="notetitle">Note:  </span>When you
+run ColdFusion in the J2EE configuration on IBM WebSphere, the Files/Dirs
+and Server/Ports tabs are not enabled.</div>
+</dd><p class="dlseparator"></p></dl>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf364104-7fcc" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf364104-7fcc"><!-- --></a><h2 class="topictitle2">About directories and permissions</h2><div><p>When
+you enable access to files outside the sandbox, you specify the
+filename. When you enable access to directories outside the sandbox,
+you specify <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">directoryname</i>\<i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">indicator</i>, where <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">indicator</i> is
+a dash or asterisk, as follows: </p>
+<ul><li><p>A backslash followed by a dash (\-) lets tags and functions
+access all files in the specified directory, and recursively allows
+access to all files in subdirectories.</p>
+</li>
+<li><p>A backslash followed by an asterisk (\*) lets tags and functions
+access all files in the specified directory and also lets tags and
+functions access a list of subdirectories. However, this option
+denies access to files in any subdirectories.</p>
+</li>
+</ul>
+<p>You can also specify the actions that ColdFusion tags and functions
+can perform on files and directories outside the sandbox. The following
+table shows the relationship between the permissions of a file and
+a directory:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e13328"><p>Permission</p>
+</th>
+<th valign="top" width="NaN%" id="d16e13331"><p>Effect on files</p>
+</th>
+<th valign="top" width="NaN%" id="d16e13334"><p>Effect on directories</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e13328 "><p>Read</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13331 "><p>View the file</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13334 "><p>List all files in the directory</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e13328 "><p>Write</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13331 "><p>Write to the file</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13334 "><p>Not applicable</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e13328 "><p>Execute</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13331 "><p>Execute the file </p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13334 "><p>Not applicable</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e13328 "><p>Delete</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13331 "><p>Delete the file</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e13334 "><p>Delete the directory</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf363b95-7ffa" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf363b95-7ffa"><!-- --></a><h2 class="topictitle2">Add a sandbox (Enterprise Edition only)</h2><div><p>ColdFusion
+Enterprise Edition lets you define multiple security sandboxes.</p>
+<ol><li><p>Open the Security &gt; Sandbox Security page in the ColdFusion
+Administrator.</p>
+<p>The Sandbox Security Permissions page appears.</p>
+</li>
+<li><p>In the Add Security Sandbox box, enter the name of the new
+sandbox. This name must be either a ColdFusion mapping (defined
+in the Administrator) or an absolute path.</p>
+</li>
+<li><p>Select New Sandbox from the drop-down list to create a sandbox
+based on the default sandbox, or select an existing sandbox to copy
+its settings to your new sandbox. </p>
+</li>
+<li><p>Click Add.</p>
+<p>The new sandbox appears in the list of Defined
+Directory Permissions.</p>
+</li>
+</ol>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf363b95-7ffd" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf363b95-7ffd"><!-- --></a><h2 class="topictitle2">Configure a sandbox</h2><div><p>Before
+you begin security sandbox configuration, analyze your application
+and its usage to determine the tags, functions, and resources that
+it requires. You can then configure the sandbox to enable access
+to the required resources and disable use of the appropriate tags
+and functions. For example, if the applications in the sandbox do
+not use the <samp class="codeph">cfregistry</samp> tag, you can safely disable
+it.</p>
+<div class="note"><span class="notetitle">Note:  </span>In the Standard Edition, the Root
+Security Context is the only sandbox without any initial list of
+defined directory permissions.</div>
+<ol><li><p>Open the Security &gt; Sandbox Security page (Security
+&gt; Resource Security page in the Standard Edition) in the ColdFusion
+Administrator.</p>
+</li>
+<li><p>(Enterprise Edition only) In the list of Defined Directory
+Permissions, click the name or Edit icon for the directory.</p>
+<p>A
+page with several tabs appears. This is the initial page in the
+Standard Edition. The remaining steps describe the use of each tab.</p>
+</li>
+<li><p>To disable a data source, in the
+left column of the Datasources tab, highlight the data source, and
+click the right arrow.</p>
+<p>By default, ColdFusion pages in this
+sandbox can access all data sources.</p>
+<div class="note"><span class="notetitle">Note:  </span>If &lt;&lt;ALL
+DATASOURCES&gt;&gt; is in the Enabled Datasources column, any data source
+that you add is enabled. If you move &lt;&lt;ALL DATASOURCES&gt;&gt;
+to the Disabled Datasources column, any new data source is disabled.</div>
+</li>
+<li><p>Click the CFTags tab.</p>
+</li>
+<li><p>To disable tags, in the left column of the CFTags tab, highlight
+the tags, and click the right arrow.</p>
+<p>By default, ColdFusion
+pages in this sandbox can access all listed tags.</p>
+</li>
+<li><p>Click the CFFunctions tab.</p>
+</li>
+<li><p>To disable functions, in the left column of the CFFunctions
+tab, highlight the functions, and click the right arrow.</p>
+<p>By
+default, ColdFusion pages in this sandbox can access all listed
+functions.</p>
+</li>
+<li><p>Click the Files/Dirs tab.</p>
+</li>
+<li><p>To enable files or directories, in the File Path box, enter
+or browse to the files or directories; for example, C:\pix. A file
+path that consists of the special token &lt;&lt;ALL FILES&gt;&gt;
+matches any file. For information on using the backslash-hyphen
+(\-) and backslash-asterisk (\*) wildcard characters, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fcc.html">About directories and permissions</a>.</p>
+</li>
+<li><p>Select the permissions.</p>
+<p>For example, select the Read
+check box to let ColdFusion pages in the mytestapps sandbox read
+files in the C:\pix directory.</p>
+</li>
+<li><p>Click Add Files/Paths. When you edit an existing sandbox,
+this button reads Edit Files/Paths.</p>
+<p>The file path and its
+permissions appear in the Secured Files and Directories list.</p>
+</li>
+<li><p>In the Secured Files and Directories list, verify that the
+file path is correct.</p>
+<p>The character after the backslash is
+important. For information, see <a href="WSc3ff6d0ea77859461172e0811cbf364104-7fcc.html">About directories and permissions</a>.</p>
+<div class="note"><span class="notetitle">Note:  </span>The Files/Dirs tab
+works together with the file-based permissions of the operating
+system. To restrict a user from browsing another user’s directory,
+use file-based permissions.</div>
+</li>
+<li><p>Click the Server/Ports tab.</p>
+</li>
+<li><p>To turn off default behavior (global access to all servers
+and ports), enter the IP addresses and port numbers that pages in
+this sandbox can connect to by using tags that access external resources
+(for example, <samp class="codeph">cfmail</samp>, <samp class="codeph">cfpop</samp>, <samp class="codeph">cfldap</samp>, <samp class="codeph">cfhttp</samp>,
+and so on). You can specify an IP address, a server name (such as
+www.someservername.com), or a domain name (such as someservername.com).
+You can optionally specify a port restriction.</p>
+<div class="note"><span class="notetitle">Note:  </span>This
+behavior differs from other tabs, such as CFTags, where you select
+items to disable. If you set any values in this tab, external-resource
+tags executed in this sandbox can access only the specified servers
+and ports.</div>
+<p>For example, to allow this sandbox access to
+207.88.220.3 on ports 80 and lower, perform the following steps:</p>
+<ol type="a"><li><p>In the IP Address field, enter 207.88.220.3.</p>
+</li>
+<li><p>In the Port field, enter 80, and click This Port and Lower.</p>
+</li>
+</ol>
+<div class="note"><span class="notetitle">Note:  </span>To deny access by these ColdFusion tags to an
+entire site, enable access for a local resource, such as your local
+mail server, FTP server, and so on.</div>
+</li>
+<li><p>Click Finish to save changes to the sandbox.</p>
+</li>
+</ol>
+</div></div>
+<div id="WS1d1b45f647252298133c5daf123c9646ac8-8000" class="nochunk"><a name="WS1d1b45f647252298133c5daf123c9646ac8-8000"><!-- --></a><h2 class="topictitle2">Sandbox Considerations</h2><div><div class="section"><h4 class="sectiontitle">Using OpenOffice within Sandbox</h4><div class="para">Grant
+permissions in sandbox for the following filepaths:<ul><li><p>D:\ColdFusion9\runtime\servers\lib
+Read </p>
+</li>
+<li><p>D:\ColdFusion9\runtime\servers\lib\- Read </p>
+</li>
+<li><p>D:\ColdFusion9\runtime\lib\- Read </p>
+</li>
+<li><p>D:\ColdFusion9\runtime\lib Read</p>
+</li>
+<li><p>C:\Program Files\OpenOffice.org 3\ Read, Execute</p>
+</li>
+<li><p>C:\Program Files\OpenOffice.org 3\- Read</p>
+</li>
+</ul>
+, Execute</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Using Caching within Sandbox</h4><p>For disk-based
+caching to work inside a sandbox, the sandbox must provide read/write
+permission to the disk cache directory. This can be the default directory
+(<samp class="codeph">java.io.tmpdir</samp>) or a user-configured directory
+as identified by the <samp class="codeph">diskStore</samp> property.</p>
+<div class="para">The <samp class="codeph">diskStore</samp> property
+in <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>\lib\ehcache.xml is used to specify the directory
+for disk cache (<samp class="codeph">&lt;diskStore path="java.io.tmpdir"/&gt;</samp>).Use the
+following code to identify the temp directory:<pre>&lt;cfscript&gt; 
+writeoutput("Temp Dir : " &amp; createobject("java","java.lang.System").getProperty("java.io.tmpdir") ); 
+&lt;/cfscript&gt;</pre>
+Also, read permission must be granted
+to cf_root\lib\ehcache.xml for certain functions that read from/write
+to ehCache.xml to work. For example, <samp class="codeph">cacheGetProperties</samp> and <samp class="codeph">cacheSetProperties</samp>.</div>
+</div>
+<div class="section"><h4 class="sectiontitle">Using Service CFCs within Sandbox</h4><p>Grant
+the following permissions:</p>
+<div class="para"><ul><li><p>execute permission to <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>\CustomTags\com\adobe\coldfusion</p>
+</li>
+<li><p>read permission to <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_root</i>\WEB-INF\cftags\META_INF\taglib.tld</p>
+</li>
+</ul>
+</div>
+</div>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSe61e35da8d318518-32a693a2134f111bf34-8000.html" title="Restricting access to ColdFusion Administrator"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf363c31-7ff4.html" title="Using Multiple Server Instances"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-7ff2.html"><b>Administering Security</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>

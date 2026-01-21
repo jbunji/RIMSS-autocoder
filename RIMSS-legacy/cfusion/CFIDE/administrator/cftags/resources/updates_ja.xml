@@ -1,0 +1,107 @@
+<cfprocessingdirective suppresswhitespace="yes" pageencoding="UTF-8">
+<cfsilent>
+<!--
+L10N Resource File
+Section: Updates
+Locale: English (en)
+Find the requested resource by id
+-->
+</cfsilent>
+<cfswitch expression="#ATTRIBUTES.id#">
+
+<cfcase value="l10n_status_start">ダウンロード開始中</cfcase>
+<cfcase value="l10n_status_downloading">ダウンロード中</cfcase>
+<cfcase value="l10n_status_installing">インストールしています</cfcase>
+<cfcase value="l10n_signnature_check_failed">シグネチャの検証に失敗しました。</cfcase>
+<cfcase value="l10n_err_message1_exists">アップデートファイルは次の場所に既に存在します</cfcase>
+<cfcase value="l10n_update_message1">アップデートファイルは正常にダウンロードされました </cfcase>
+<cfcase value="l10n_dwninfo_ok">OK</cfcase>
+<cfcase value="l10n_update_err1">アップデートをインストールする際に、エラーが発生しました :</cfcase>
+<cfcase value="l10n_update_err2">アップデートをダウンロードする際に、エラーが発生しました :</cfcase>
+<cfcase value="l10n_err_message1_success">アップデートファイルは次の場所に正常にダウンロードされました</cfcase>
+<cfcase value="l10n_errinfo_ok">OK</cfcase>
+<cfcase value="update_pageheader">
+サーバー更新／更新</cfcase>
+<cfcase value="l10n_avail_update_label"><cfoutput>使用できるアップデート#CALLER.count#</cfoutput></cfcase>
+<cfcase value="l10n_install_update_label">インストール済みアップデート</cfcase>
+<cfcase value="l10n_settings_updates_label">設定</cfcase>
+<cfcase value="l10n_window_title1">インストーラー設定</cfcase>
+<cfcase value="l10n_window_title2">インストールを続行</cfcase>
+<cfcase value="info_dialog">進行状況情報</cfcase>
+<cfcase value="err_dialog">エラー</cfcase>
+<cfcase value="confirm_dialog">上書きを確認</cfcase>
+<cfcase value="uninstall_dialog">アンインストールの確認</cfcase>
+<cfcase value="l10n_update_message2">インストールの間に ColdFusion サーバーは停止されて再起動されます。</cfcase>
+<cfcase value="l10n_update_message3">ステータスを確認するには、ColdFusion Administrator に再ログインしてください。</cfcase>
+<cfcase value="l10n_update_message5">インストールを開始しています。時間がかかる場合があります</cfcase>
+<cfcase value="l10n_info_ok">OK</cfcase>
+<cfcase value="l10n_installer_message2">インストールの間に ColdFusion サーバーは停止されて再起動されます。</cfcase>
+<cfcase value="l10n_installer_message1">次の詳細を指定してください</cfcase>
+<cfcase value="l10n_select_instances">アップデートをインストールする ColdFusion インスタンスを選択 :</cfcase>
+<cfcase value="l10n_select_instances_all">すべてを選択</cfcase>
+<cfcase value="l10n_installer_restart_message">注意 : 続行する前に、選択したすべてのインスタンスを停止してください</cfcase>
+<cfcase value="l10n_installer_message4">続行</cfcase>
+<cfcase value="l10n_installer_message5">キャンセル</cfcase>
+<cfcase value="l10n_overwrite_message3">アップデートファイルは既に存在します。</cfcase>
+<cfcase value="l10n_overwrite_message2">既存のファイルを上書きしますか？</cfcase>
+<cfcase value="l10n_overwrite_ok">OK</cfcase>
+<cfcase value="l10n_overwrite_cancel">キャンセル</cfcase>
+<cfcase value="l10n_overwrite_continue">はい</cfcase>
+<cfcase value="l10n_overwrite_dont">いいえ</cfcase>
+<cfcase value="l10n_notification_subject">ColdFusion サーバーに使用可能な新規アップデート</cfcase>
+<cfcase value="l10n_notification_msg1">ColdFusion サーバーに使用可能なアップデート</cfcase>
+<cfcase value="l10n_notification_msg1_login">詳細を取得してアップデートをインストールするには、ColdFusion Administrator にログインしてください。</cfcase>
+<cfcase value="l10n_uninstall_message3">アップデートをアンインストールしますか？</cfcase>
+<cfcase value="l10n_uninstall_message2">アンインストールプロセスの間に ColdFusion サーバーは停止されて再起動されます。</cfcase>
+<cfcase value="l10n_uninstall_ok">OK</cfcase>
+<cfcase value="l10n_uninstall_cancel">キャンセル</cfcase>
+<cfcase value="l10n_mailalert">電子メール通知を受け取るには、メールサーバーを設定します (サーバー設定／メール)</cfcase>
+<cfcase value="l10n_mailalert1">次の電子メール ID は有効なフォーマットではありません : </cfcase>
+<cfcase value="l10n_mailalert2">通知の送信先の電子メールアドレスを指定してください。</cfcase>
+<cfcase value="url_wrong_format">指定されている URL のフォーマットが正しくありません。</cfcase>
+<cfcase value="_settings_statmess">サーバーの更新に成功しました</cfcase>
+<cfcase value="l10n_add_new_dsn_autocheck">自動確認</cfcase>
+<cfcase value="l10n_settings_autocheck_lbl">アップデートを自動的に確認</cfcase>
+<cfcase value="l10n_settings_autocheck_desc">選択すると、ログインのたびにアップデートが自動的に確認されます。</cfcase>
+<cfcase value="l10n_add_new_dsn_noti">通知</cfcase>
+<cfcase value="l10n_checkinterval">アップデート確認間隔</cfcase>
+<cfcase value="l10n_checkinterval1">日</cfcase>
+<cfcase value="l10n_emailnotification">アップデートが使用可能な場合の、電子メール通知の送信先</cfcase>
+<cfcase value="l10n_emailnotification_ex">(例 : user1@company.com,user2@company.com)</cfcase>
+<cfcase value="l10n_add_updatesite">サイトを更新</cfcase>
+<cfcase value="l10n_siteurl">サイト URL</cfcase>
+<cfcase value="l10n_siteurldesc">ローカル更新サイトを設定してある場合は、そのサイトの URL を指定してアップデートを取得します。</cfcase>
+<cfcase value="l10n_settings_submit">変更を送信</cfcase>
+<cfcase value="l10n_update_unistall_block_msg1">J2EE のデプロイでは ColdFusion Administrator からアップデートをアンインストールすることはできません。サーバーを停止し、コマンドプロンプトからアンインストーラーを手動で実行してください。</cfcase>
+<cfcase value="l10n_secdsource">使用可能なアップデート</cfcase>
+<cfcase value="l10n_cftags">インストール済みアップデート</cfcase>
+<cfcase value="l10n_cffunctions">設定</cfcase>
+<cfcase value="l10n_update_level">アップデートレベル :</cfcase>
+<cfcase value="l10n_update_type">アップデートのタイプ :</cfcase>
+<cfcase value="l10n_update_ins_date">インストール日 :</cfcase>
+<cfcase value="l10n_update_desc">アップデートの説明 :</cfcase>
+<cfcase value="l10n_update_read_more">詳細...</cfcase>
+<cfcase value="l10n_update_bckdir">バックアップディレクトリ :</cfcase>
+<cfcase value="l10n_update_log">インストールログ :</cfcase>
+<cfcase value="l10n_uninstall_bttn">アンインストール</cfcase>
+<cfcase value="l10n_no_updates_installed">インストールされているアップデートはありません</cfcase>
+<cfcase value="l10n_no_updates_err">アップデート情報を読み取る際に、エラーが発生しました - </cfcase>
+<cfcase value="l10n_check_updates">アップデートを確認</cfcase>
+<cfcase value="l10n_update_success">アップデートファイルは正常にダウンロードされました</cfcase>
+<cfcase value="l10n_update_errmsg">アップデートをダウンロードする際に、エラーが発生しました :</cfcase>
+<cfcase value="l10n_updates_download">ダウンロード</cfcase>
+<cfcase value="l10n_updates_redownload">再ダウンロード</cfcase>
+<cfcase value="l10n_updates_download_and_install">ダウンロードとインストール</cfcase>
+<cfcase value="l10n_updates_only_install">インストール</cfcase>
+<cfcase value="l10n_updates_install_errmsg">
+J2EE のデプロイでは、ColdFusion Administrator からアップデートをインストールすることはできません。アップデートをダウンロードし、サーバーを停止して、コマンドプロンプトからインストーラーを手動で実行してください。
+</cfcase>
+<cfcase value="l10n_no_updates1">アップデートが見つかりませんでした</cfcase>
+<cfcase value="l10n_no_updates2">アップデートを確認するには、右側のボタンをクリックしてください</cfcase>
+<cfcase value="l10n_status_error">エラー</cfcase>
+<cfcase value="l10n_connect_error">ダウンロードサービスに接続できません</cfcase>
+
+<cfdefaultcase><cfset bSuccess="false"/></cfdefaultcase>
+</cfswitch>
+</cfprocessingdirective>
+

@@ -1,0 +1,52 @@
+/*---DEFAULT STYLES FOR ALL MSG---*/
+.global_notice_msg, .global_error_msg, .global_success_msg, .global_info_msg, .global_loading_msg
+{
+ /*padding:2px 0px;*/
+ padding-left:3em;
+ padding-right:3px;
+ font-size:11px;
+ font-weight:bold;
+ color:#666666;
+ background-position:10px center;
+ background-repeat:no-repeat;
+ line-height:2em;
+ display:block;
+ word-wrap: break-word; /* IE>=5.5 */  
+ white-space: pre; /* IE>=6 */  
+ white-space: -moz-pre-wrap; /* For Fx<=2 */   
+ white-space: pre-wrap; /* Fx>3, Opera>8, Safari>3 */
+}
+
+/*---CUSTOM STYLES FOR MSG---*/
+.global_notice_msg
+{
+    border:2px solid #C69B1A;
+    background-color:#FFFF99;
+    background-image:url(../images/icons/notice.png);
+}
+.global_error_msg
+{
+    border:2px solid #990000;
+    background-color:#CA0000;
+    color:#fff;
+    background-image:url(../images/icons/error.png);
+}
+.global_success_msg
+{
+    border:2px solid #006633;
+    background-color:#C4FFC4;
+    background-image:url(../images/icons/success.png);
+}
+.global_info_msg
+{
+    border:2px solid #003366;
+    background-color:#C1E0FF;
+    background-image:url(../images/icons/info.png);
+}
+
+.global_loading_msg
+{
+    border:2px solid #7D8F8F;
+    background-color:#B2CCCC;
+    background-image:url(../images/icons/ajax-loader.gif);
+}

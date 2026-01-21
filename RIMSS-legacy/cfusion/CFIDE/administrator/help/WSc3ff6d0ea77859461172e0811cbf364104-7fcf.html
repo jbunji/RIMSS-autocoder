@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#config errmsg="" --><!-- saved from url=(0022)http://help.adobe.com/ -->
+<html lang="en-us">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="lang" content="en-us" />
+    <meta name="area" content="livedocs" />
+    <title>Adobe&#160;ColdFusion&#160;10 * Administrator API</title>
+    <link rel="shortcut icon" href="images/ColdFusionLinkIndicator.png" />
+    <meta name="book" content="Configuring and Administering ColdFusion 10" />
+    <meta name="product" content="ColdFusion" />
+    <meta name="keywords" content="" /><!--<PageMap><DataObject type="document"><Attribute name="product" value="ColdFusion"></Attribute><Attribute name="book" value="Configuring and Administering ColdFusion 10"></Attribute><Attribute name="keywords" value=""></Attribute></DataObject></PageMap>-->
+    
+    <script type="text/javascript" language="Javascript" charset="UTF-8"><!--[CDATA[
+        var currentTreeNode = "WSc3ff6d0ea77859461172e0811cbf364104-7fcf.html";
+    document.cookie = "topicId=" + "WSc3ff6d0ea77859461172e0811cbf364104-7fcf.html";
+// ]]--></script>
+<script src="terms.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="help.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script>  <script src="utilities.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="event.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="treeview.js" type="text/javascript" language="Javascript" charset="UTF-8">...</script> <script src="toc.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script> <script src="swfobject.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>  <script src="booklist.js" language="Javascript" type="text/javascript" charset="UTF-8">..</script>
+<script type="text/javascript">
+<!--[CDATA[
+var topictype = "topic";
+var headId = document.getElementsByTagName("head")[0];         
+if (use_ie_6_behavior) {
+  var linkId = document.createElement("link");
+  linkId.href = "content-ie6.css";
+  linkId.rel = "stylesheet";
+  linkId.type = "text/css";
+  headId.appendChild(linkId);
+}
+function initRoboHelpDOM() {
+  if (use_chm_behavior) {
+    hideElement("search");
+  }
+  if (use_robohelp_behavior) {
+    hideElement("search");
+    hideElement("productmenu");
+    //hideElement("notyourversion");
+  }
+  if(!use_chc_behavior) {
+    //document.getElementById("notyourversion").style.display = "inline";;
+  }
+}
+var dirname = location.pathname.match( /.*\// );    
+function setSearchUserPref(){
+  if ( document.cookie.indexOf( "ah_searchpref" ) > -1 ) {
+    if ( document.cookie.indexOf( dirname ) > 0 ) {
+      document.search.gsa.checked = true ;
+    }else{
+      document.search.gsa.checked = false ;            
+    }
+  }
+}
+YAHOO.util.Event.onDOMReady(initRoboHelpDOM);
+YAHOO.util.Event.onDOMReady(setSearchUserPref);
+// ]]-->
+</script>
+<!--#include virtual="/ssi/globalheader.ssi" -->
+<!--#include virtual="/en_US/ssi/localheader.ssi" -->
+<!--#include virtual="header.ssi" -->
+    <link rel="stylesheet" type="text/css" href="tree.css" />
+    <link rel="stylesheet" type="text/css" href="content.css" />
+    <link rel="stylesheet" type="text/css" href="localeSpecific.css" />
+  </head>
+  <body id="content_body" onload="window.focus();">
+    <a name="top" shape="rect"><!--LeaveCommentHere--></a>
+    
+    <div id="mnemonic">
+      <div class="ColdFusion"><div class="banner"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html">Adobe&#160;ColdFusion&#160;10</a></div></div>
+    </div>
+    
+    <div id="searchbar">
+<table id="searchbartable">
+<tr>
+<td colspan="2">
+      <div id="pdf"><img src="images/PDF.gif" width="16" height="16" hspace="10" />&#160;
+           <a title="View Help PDF" href="http://help.adobe.com/en_US/ColdFusion/10.0/Admin/coldfusion_10_admin.pdf">View Help PDF (adobe.com)</a></div>
+</td>
+</tr>
+</table>
+    </div>
+
+<!-- BEGIN SEARCH CONTENT -->
+<form id="search" name="search" action="search.html" target="_self">
+<script type="text/javascript">
+<!--[CDATA[
+if ( !use_chc_behavior ){
+    if (typeof(terms_AHV_SEARCH_CONSTRAINT) != "undefined" && 
+        terms_AHV_SEARCH_CONSTRAINT.length > 0 && 
+        document.location.href.indexOf(".adobe.com") > 0){
+        if ( typeof(terms_SEARCH_THIS_HELP_ONLY) != "undefined" && terms_SEARCH_THIS_HELP_ONLY == "ON" ) {
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                checked="checked" \
+                value="1" ><\/input>'); 
+                
+        // Leave the "Search this help system only" checkbox unckecked
+        }else{    
+            document.write('<div id="searchscope"> \
+                <input onchange="setAHSearchPref();" \
+                class="gsa" \
+                name="gsa" \
+                id="gsa" \
+                type="checkbox" \
+                value="1" ><\/input>'); 
+        }
+        document.write('<span class="gsalabel">' + terms_AHV_SEARCH_CONSTRAINT + '<\/span><\/div>'); 
+    }
+    document.write('<input class="searchinput" \
+        name="q" \
+        id="q" \
+        type="text" \
+        maxlength="256" \
+        value="' + terms_AHV_SEARCH_BUTTON + '" \
+        onclick="clearSearch()"><\/input><input \
+        type="button" \
+        name="searchbutton" \
+        class="searchbutton" \
+        onclick="submit()"><\/input>'); 
+} 
+ 
+/* 
+ * Start Functions 
+ */
+function clearSearch(){
+    if (document.search.q.value == terms_AHV_SEARCH_BUTTON){document.search.q.value = ""}; 
+}
+
+// set search preferences
+function setAHSearchPref(){
+    if (document.search.gsa.checked == 1){
+        setAHSearchCookie( dirname );
+    }else{
+        setAHSearchCookie( "community" );
+    }
+}
+
+// Set search preferences cookie
+function setAHSearchCookie( p ){
+    // set cookie ah_searchpref with a value of the document path
+    var expire=new Date();
+    expire.setDate(expire.getDate()+365); // Cookie expires after 1 year (365 days) 
+    document.cookie="ah_searchpref=" +p+ "; expires=" +expire.toGMTString()+ ";";
+}
+
+// ]]-->
+</script> 
+ </form>
+<!-- END SEARCH CONTENT -->    
+
+
+
+<!-- BEGIN PAGE CONTENT WRAPPER -->
+    <div id="page_content_wrapper">
+<!-- BEGIN PAGE WRAPPER -->
+<table id="page_content_table">
+<tr>
+<!--#include virtual="recommendations_topic.ssi" -->
+<td id="col2">
+<!-- BEGIN CONTENT WRAPPER -->
+<!-- BEGIN BREADCRUMBS -->
+
+      
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fbf.html" title="Custom Extensions section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html" title="Data Source Management"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+      <div id="content_wrapper">
+<!-- BEGIN PAGE TITLE -->
+        <h1>Administrator API</h1>
+<!-- END PAGE TITLE -->
+<!-- BEGIN IONCOMMENTCOUNT -->
+        <div id="ionCount">
+        </div>
+<!-- END IONCOMMENTCOUNT -->
+<table id="inner_content_table" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td>
+          <div style="border-top:#ccc solid 1px;"><p> </p>
+          </div>
+<!--#include virtual="contentheader.ssi" -->
+
+          <div id="minitoc"><div class="t"><div class="b"><div><ul id="minitoc-links"><li><p><a href="#WS22A46B0F-C945-444a-8775-BF305446EF86"><span class="topictitle1">Use the Administrator API</span>
+</a></p></li><li><p><a href="#WSc3ff6d0ea77859461172e0811cbf3638e6-7fbb"><span class="topictitle1">Examples</span>
+</a></p></li></ul></div></div></div></div><div><p>You can use the Administrator API to perform
+most ColdFusion Administrator tasks programmatically. The Administrator
+API consists of a set of ColdFusion components (CFCs) that contain
+methods you call to perform Administrator tasks. For example, you
+use the <samp class="codeph">setMSQL</samp> method of datasource.cfc to add
+a SQL Server data source.</p>
+<p>The CFCs for the Administrator API are located in the <i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">cf_web_root</i>/CFIDE/adminapi
+directory. Each CFC corresponds to an area of the ColdFusion Administrator,
+as the following table shows:</p>
+
+<div class="tablenoborder"><table border="1" cellpadding="4" cellspacing="0"><thead align="left"><tr><th valign="top" width="NaN%" id="d16e7220"><p>CFC</p>
+</th>
+<th valign="top" width="NaN%" id="d16e7223"><p>Description</p>
+</th>
+</tr>
+</thead>
+<tbody><tr><td valign="top" width="NaN%" headers="d16e7220 "><p>accessmanager.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Specify the user name, password, description,
+access rights, sandboxes, and allowed roles for individual users.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>administrator.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Contains basic Administrator functionality,
+including login, logout, the Migration wizard, and the Setup wizard.
+You must call the <samp class="codeph">login</samp> method before calling any
+other methods in the Administrator API.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>base.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Base object for all other Administrator
+API CFCs.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>datasource.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Add, modify, and delete ColdFusion data
+sources.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>debugging.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Manage debug settings</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>eventgateway.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Manage event gateways</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>extensions.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Manage custom tags, mappings, CFXs, applets,
+CORBA, and web services.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>office.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Manage OpenOffice settings.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>mail.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Manage ColdFusion mail settings.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>runtime.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Manage runtime settings for fonts, cache,
+charts, configuration, and other settings.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>security.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Manage passwords, RDS, and sandbox security.</p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>serverinstance.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Start, stop, and restart Tomcat servers.
+This CFC only works when running the multiserver configuration. </p>
+</td>
+</tr>
+<tr><td valign="top" width="NaN%" headers="d16e7220 "><p>servermonitoring.cfc</p>
+</td>
+<td valign="top" width="NaN%" headers="d16e7223 "><p>Perform many of the Server Monitor tasks
+programmatically.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The adminapi directory also contains an Application.cfm file
+and two subdirectories.</p>
+<div class="note"><span class="notetitle">Note:  </span>If you are using sandbox security, enable access
+to the cf_web_root/CFIDE/adminapi directory to use the Administrator
+API.</div>
+<p>Following are the styles of methods in the Administrator API:</p>
+<dl><dt class="dlterm">Method arguments</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">When setting complex or varied values, the Administrator API
+uses method arguments.</dd><p class="dlseparator"></p><dt class="dlterm">Getting and setting simple values</dt>
+<dd xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema">When setting simple values, such as true or false debug settings,
+the Administrator API uses get and set property methods.<p>To
+view the methods, method arguments, and documentation for the Administrator
+API CFCs, use the CFC Explorer. For example, to view datasource.cfc
+when running in the server configuration, open a browser to http://localhost:8500/CFIDE/adminapi/datasource.cfc. </p>
+</dd><p class="dlseparator"></p></dl>
+<ul class="navlinklist"></ul>
+</div>
+<div id="WS22A46B0F-C945-444a-8775-BF305446EF86" class="nochunk"><a name="WS22A46B0F-C945-444a-8775-BF305446EF86"><!-- --></a><h2 class="topictitle2">Use the Administrator API</h2><div><ol><li><p>Instantiate administrator.cfc:</p>
+<pre>&lt;cfscript&gt; 
+    // Login is always required. 
+    adminObj = createObject("component","cfide.adminapi.administrator");</pre>
+<div class="note"><span class="notetitle">Note:  </span>You can instantiate administrator.cfc and call
+the <samp class="codeph">login</samp><i xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:xs="http://www.w3.org/2001/XMLSchema"> method in a single line of code, as the following example shows:</i></div>
+<pre>createObject("component","cfide.adminapi.administrator").login("admin");</pre>
+<div class="note"><span class="notetitle">Note:  </span>You
+can log in as a user other than administrator, but with proper permissions,
+as follows. Provide the user name after the password.</div>
+<pre>createObject("component","cfide.adminapi.administrator").login("#password#","#username#")</pre>
+</li>
+<li><p>Call the administrator.cfc <samp class="codeph">login</samp> method,
+passing the ColdFusion Administrator password or the RDS password:</p>
+<pre>adminObj.login("admin");</pre>
+</li>
+<li><p>Instantiate the desired CFC:</p>
+<pre>myObj = createObject("component","cfide.adminapi.debugging");</pre>
+</li>
+<li><p>Call the desired CFC method (this example enables debugging):</p>
+<pre>myObj.setDebugProperty(propertyName="enableDebug", propertyValue="true");</pre>
+</li>
+</ol>
+</div></div>
+<div id="WSc3ff6d0ea77859461172e0811cbf3638e6-7fbb" class="nochunk"><a name="WSc3ff6d0ea77859461172e0811cbf3638e6-7fbb"><!-- --></a><h2 class="topictitle2">Examples</h2><div><p>The following example adds a SQL Server data source:</p>
+<pre>&lt;cfscript&gt; 
+    // Login is always required. This example uses two lines of code. 
+    adminObj = createObject("component","cfide.adminapi.administrator"); 
+    adminObj.login("admin"); 
+ 
+    // Instantiate the data source object. 
+    myObj = createObject("component","cfide.adminapi.datasource"); 
+ 
+    // Create a DSN. 
+    myObj.setMSSQL(driver="MSSQLServer",  
+        name="northwind_MSSQL",  
+        host = "xx.x.xxx.xx",  
+        port = "1433", 
+        database = "northwind", 
+        username = "sa", 
+        login_timeout = "29", 
+        timeout = "23", 
+        interval = 6, 
+        buffer = "64000", 
+        blob_buffer = "64000", 
+        setStringParameterAsUnicode = "false", 
+        description = "Northwind SQL Server", 
+        pooling = true, 
+        maxpooledstatements = 999, 
+        enableMaxConnections = "true", 
+        maxConnections = "299", 
+        disable_clob = true, 
+        disable_blob = true, 
+        disable = false, 
+        storedProc = true, 
+        alter = false, 
+        grant = true, 
+        select = true, 
+        update = true, 
+        create = true, 
+        delete = true, 
+        drop = false, 
+        revoke = false ); 
+&lt;/cfscript&gt;</pre>
+<p>The following example adds the same SQL Server data source, but
+uses the <samp class="codeph">argumentCollection</samp> attribute to pass all
+method arguments in a structure:</p>
+<pre>&lt;cfscript&gt; 
+    // Login is always required. This example uses a single line of code. 
+    createObject("component","cfide.adminapi.administrator").login("admin"); 
+ 
+    // Instantiate the data source object. 
+    myObj = createObject("component","cfide.adminapi.datasource"); 
+ 
+    // Required arguments for a data source. 
+    stDSN = structNew(); 
+    stDSN.driver = "MSSQLServer"; 
+    stDSN.name="northwind_MSSQL"; 
+    stDSN.host = "xx.x.xxx.xx"; 
+    stDSN.port = "1433"; 
+    stDSN.database = "northwind"; 
+    stDSN.username = "sa"; 
+ 
+    // Optional and advanced arguments. 
+    stDSN.login_timeout = "29"; 
+    stDSN.timeout = "23"; 
+    stDSN.interval = 6; 
+    stDSN.buffer = "64000"; 
+    stDSN.blob_buffer = "64000"; 
+    stDSN.setStringParameterAsUnicode = "false"; 
+    stDSN.description = "Northwind SQL Server"; 
+    stDSN.pooling = true; 
+    stDSN.maxpooledstatements = 999; 
+    stDSN.enableMaxConnections = "true"; 
+    stDSN.maxConnections = "299"; 
+    stDSN.enable_clob = true; 
+    stDSN.enable_blob = true; 
+    stDSN.disable = false; 
+    stDSN.storedProc = true; 
+    stDSN.alter = false; 
+    stDSN.grant = true; 
+    stDSN.select = true; 
+    stDSN.update = true; 
+    stDSN.create = true; 
+    stDSN.delete = true; 
+    stDSN.drop = false; 
+    stDSN.revoke = false; 
+ 
+    //Create a DSN. 
+    myObj.setMSSQL(argumentCollection=stDSN); 
+&lt;/cfscript&gt; 
+&lt;!--- Optionally dump the stDSN structure. ---&gt; 
+&lt;!---  
+&lt;cfoutput&gt; 
+&lt;cfdump var="#stDSN#"&gt; 
+&lt;/cfoutput&gt; 
+---&gt;</pre>
+</div></div>
+
+
+<!-- BEGIN USER PREFERENCES -->
+          <div id="userprefs">
+          </div>
+<!-- END USER PREFERENCES -->
+
+          <div id="related">
+            
+            
+            <div class="separator"><a href="#top"><img src="images/BTT.jpg" /></a>&#160;</div>
+          </div>
+          <div id="footer">
+<!-- BEGIN IONCOMMENTS -->
+            <div id="ionComHere">
+            </div>
+<!-- END IONCOMMENTS -->
+<!--#include virtual="/ssi/ionComments.ssi" -->
+            <p id="creativecommons"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" id="creativecommons_text"><img id="creativecommons_img" src="images/CC.png" alt="This work is licensed under a Creative Commons Attribution-Noncommercial-Share Alike 3.0 Unported License" /></a>&nbsp;Twitter™ and Facebook posts are not covered under the terms of Creative Commons.</p>
+          </div>
+</td>
+<td width="10px"></td>
+<td id="inner_rightcolumn">
+<!--#include virtual="rightcolumn.ssi" -->
+</td></tr></table>
+      </div>
+<!-- BEGIN BREADCRUMBS -->
+      <div id="breadcrumb">
+        
+<ul class="navigation"><li class="prev"><a accesskey="p" class="prev" href="WSc3ff6d0ea77859461172e0811cbf3638e6-7fbf.html" title="Custom Extensions section"><img src="images/blank.gif" alt="Previous" width="17" height="17" /></a></li><li class="next"><a accesskey="n" class="next" href="WSc3ff6d0ea77859461172e0811cbf364104-7ffa.html" title="Data Source Management"><img src="images/blank.gif" alt="Next" width="17" height="17" /></a></li></ul><div class="hierarchy" id="hierarchy"><a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Home</b></a> / <a href="WSf01dbd23413dda0e51f089d212047ee7a02-8000.html"><b>Configuring and Administering ColdFusion 10</b></a> / <a href="WSc3ff6d0ea77859461172e0811cbf364104-8000.html"><b>Using the ColdFusion Administrator</b></a> 
+     </div>
+
+      </div>
+<!-- END BREADCRUMBS -->
+<!-- END CONTENT WRAPPER -->
+<!--#include virtual="contentfooter.ssi" -->
+</td>
+<td id="col3">
+    <div>
+        <img src="images/adobe-lq.png" />
+    </div>
+</td>
+</tr>
+</table>
+    </div>
+<!-- END PAGE CONTENT WRAPPER -->
+<script type="text/javascript">
+<!--[CDATA[
+scrollToNameAnchor();
+// ]]-->
+</script> 
+<!--#include virtual="/en_US/ssi/productmenu.ssi" -->
+<style>
+#legal-notices{ 
+    margin:10px 40px; 
+    font-size:11px;
+}
+</style>
+
+<p id="legal-notices">
+<script language="javascript">
+var pageLoc = "en_US";
+var metaElements = document.all ?
+document.all.tags('meta') :
+document.getElementsByTagName ?
+document.getElementsByTagName ('meta') : new Array();
+for (var m = 0; m < metaElements.length; m++) {
+	if (metaElements[m].name == "lang") {
+		pageLoc = metaElements[m].content;
+		break;
+	}
+}
+var ptn = /(..)-(..)/;
+if (ptn.test(pageLoc)) {
+	var languageCode = pageLoc.replace(ptn, "$1");
+	var countryCode = pageLoc.replace(ptn, "$2");
+	pageLoc = languageCode + "_" + countryCode.toUpperCase();
+}
+
+var legalLoc = "en_US";
+var legalText = "Legal Notices";
+var legalPath = legalLoc;
+var legalArray=[
+"ar_AE", "إشعارات قانونية",
+"bg_BG", "Юридически бележки",
+"cs_CZ", "Právní upozornění",
+"da_DK", "Juridiske meddelelser",
+"de_DE", "Rechtliche Hinweise",
+"el_GR", "Σημειώσεις νομικού περιεχομένου",
+"es_ES", "Avisos legales",
+"et_EE", "Juriidilised teated",
+"fi_FI", "Lakisääteiset ilmoitukset",
+"fr_FR", "Mentions légales",
+"he_IL", "הצהרות משפטיות",
+"hr_HR", "Pravne napomene",
+"hu_HU", "Jogi közlemények",
+"it_IT", "Informazioni legali",
+"ja_JP", "法律上の注意",
+"ko_KR", "법적 고지 사항",
+"lt_LT", "Teisinės pastabos",
+"lv_LV", "Juridisks paziņojums",
+"nb_NO", "Juridiske merknader",
+"nl_NL", "Juridische kennisgevingen",
+"pl_PL", "Informacje prawne",
+"pt_BR", "Aspectos jurídicos",
+"ro_RO", "Prevederi legale",
+"ru_RU", "Юридическая информация",
+"sk_SK", "Právne upozornenie",
+"sl_SI", "Pravni pouk",
+"sv_SE", "Upphovsrätt",
+"tr_TR", "Yasal uyarılar",
+"uk_UA", "Юридична інформація",
+"zh_CN", "法律声明",
+"zh_TW", "法律注意事項"
+];
+
+for (var i = 0; i < legalArray.length; i+=2) {
+	if (pageLoc == legalArray[i]) {
+		legalLoc = pageLoc;
+		legalText = legalArray[i+1];
+		legalPath = legalLoc;
+		break;
+	}
+}
+document.write('<a target="_blank" href="http://help.adobe.com/'+legalPath+'/legalnotices/index.html">'+legalText+'</a>');
+</script>
+</p>
+
+<!--#include virtual="/en_US/ssi/localfooter.ssi" -->
+<!--#include virtual="footer.ssi" -->
+<!--#include virtual="/ubi/analytics/analytics_ssi.html" -->
+  </body>
+</html>
