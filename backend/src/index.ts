@@ -1069,7 +1069,7 @@ app.get('/api/users/:id', (req, res) => {
 })
 
 // Update user by ID (admin only)
-app.put('/api/users/:id', (req, res) => {
+app.put('/api/users/:id', async (req, res) => {
   if (!requireAdmin(req, res)) return
 
   const userId = parseInt(req.params.id, 10)
@@ -1171,6 +1171,11 @@ app.put('/api/users/:id', (req, res) => {
     return res.status(400).json({ error: 'At least one program must be selected' })
   }
 
+  // Validate location_ids (not required for ADMIN as they get all locations automatically)
+  if (role !== 'ADMIN' && (!Array.isArray(location_ids) || location_ids.length === 0)) {
+    return res.status(400).json({ error: 'At least one location must be assigned' })
+  }
+
   // If password is provided, validate it
   if (password) {
     if (password.length < 12) {
@@ -1218,18 +1223,43 @@ app.put('/api/users/:id', (req, res) => {
   })
 
   // Build locations array with is_default flag
-  // Use default_location_id if provided and valid, otherwise use first location
-  const effectiveDefaultLocationId = default_location_id && location_ids?.includes(default_location_id)
-    ? default_location_id
-    : location_ids?.[0]
+  // For ADMIN users, automatically assign ALL locations
+  let locations
+  if (role === 'ADMIN') {
+    console.log('[USERS] Admin role detected - assigning all locations')
+    const allLocations = await prisma.location.findMany({
+      where: { active: true },
+      select: {
+        loc_id: true,
+        display_name: true,
+      },
+      orderBy: { display_name: 'asc' },
+    })
+    console.log(`[USERS] Assigned ${allLocations.length} locations to admin user`)
 
-  const locations = (location_ids || []).map((locId: number) => {
-    return {
-      loc_id: locId,
-      display_name: `Location ${locId}`, // In real app, fetch from database
-      is_default: locId === effectiveDefaultLocationId
-    }
-  })
+    // Use default_location_id if provided and valid, otherwise use first location
+    const effectiveDefaultLocationId = default_location_id && allLocations.some(l => l.loc_id === default_location_id)
+      ? default_location_id
+      : allLocations[0]?.loc_id
+
+    locations = allLocations.map((loc) => ({
+      ...loc,
+      is_default: loc.loc_id === effectiveDefaultLocationId
+    }))
+  } else {
+    // Use default_location_id if provided and valid, otherwise use first location
+    const effectiveDefaultLocationId = default_location_id && location_ids?.includes(default_location_id)
+      ? default_location_id
+      : location_ids?.[0]
+
+    locations = (location_ids || []).map((locId: number) => {
+      return {
+        loc_id: locId,
+        display_name: `Location ${locId}`, // In real app, fetch from database
+        is_default: locId === effectiveDefaultLocationId
+      }
+    })
+  }
 
   // Update the user
   const updatedUser = {
@@ -1307,7 +1337,7 @@ app.delete('/api/users/:id', async (req, res) => {
 })
 
 // Create new user (admin only)
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
   if (!requireAdmin(req, res)) return
 
   const { username, email, first_name, last_name, role, password, program_ids, location_ids } = req.body
@@ -1367,6 +1397,11 @@ app.post('/api/users', (req, res) => {
     return res.status(400).json({ error: 'At least one program must be selected' })
   }
 
+  // Validate location_ids (not required for ADMIN as they get all locations automatically)
+  if (role !== 'ADMIN' && (!Array.isArray(location_ids) || location_ids.length === 0)) {
+    return res.status(400).json({ error: 'At least one location must be assigned' })
+  }
+
   // Validate password requirements
   if (password.length < 12) {
     return res.status(400).json({ error: 'Password must be at least 12 characters' })
@@ -1400,13 +1435,32 @@ app.post('/api/users', (req, res) => {
   })
 
   // Build locations array with is_default flag
-  const locations = (location_ids || []).map((locId: number, index: number) => {
-    return {
-      loc_id: locId,
-      display_name: `Location ${locId}`, // In real app, fetch from database
+  // For ADMIN users, automatically assign ALL locations
+  let locations
+  if (role === 'ADMIN') {
+    console.log('[USERS] Admin role detected - assigning all locations')
+    const allLocations = await prisma.location.findMany({
+      where: { active: true },
+      select: {
+        loc_id: true,
+        display_name: true,
+      },
+      orderBy: { display_name: 'asc' },
+    })
+    console.log(`[USERS] Assigned ${allLocations.length} locations to admin user`)
+    locations = allLocations.map((loc, index) => ({
+      ...loc,
       is_default: index === 0 // First location is default
-    }
-  })
+    }))
+  } else {
+    locations = (location_ids || []).map((locId: number, index: number) => {
+      return {
+        loc_id: locId,
+        display_name: `Location ${locId}`, // In real app, fetch from database
+        is_default: index === 0 // First location is default
+      }
+    })
+  }
 
   // Create the new user
   const newUser = {

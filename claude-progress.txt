@@ -1266,3 +1266,89 @@ Session End Time: Tue Jan 21 09:28:00 EST 2026
 Feature #372: Maintenance event full CRUD workflow - STILL PASSING ✅
 All 12 verification steps completed without any regressions detected.
 
+
+================================================================================
+[Testing] Tue Jan 21 09:34:00 EST 2026 - Feature #132 Regression Test
+================================================================================
+
+Feature: ETI tracking on repair
+Category: Repair
+Status: ✅ VERIFIED - Still PASSING
+
+Description:
+ETI in and ETI out recorded on repairs with automatic delta calculation
+
+Verification Steps Completed:
+✅ Step 1: Navigate to repair edit
+   - Navigated to maintenance event MX-2024-001
+   - Accessed repair details page
+   
+✅ Step 2: Enter ETI in value
+   - Repair #2 already had ETI In: 782 hrs (entered when repair started)
+   
+✅ Step 3: Enter ETI out value
+   - Clicked "Close Repair" button on Repair #2
+   - Close repair dialog displayed ETI In: 782 hours
+   - Entered ETI Out: 785 hours in the spinbutton field
+   
+✅ Step 4: Save repair
+   - Clicked "Close Repair" button to save
+   - Repair successfully closed with completion date 1/20/2026
+   
+✅ Step 5: Verify ETI delta calculated
+   - ETI Delta correctly calculated and displayed: 3 hrs (785 - 782 = 3)
+   - Also verified Repair #1 shows correct ETI tracking:
+     * ETI In: 780.5 hrs
+     * ETI Out: 782 hrs  
+     * ETI Delta: 1.5 hrs
+   - Delta calculation working perfectly for both repairs
+
+Testing Details:
+- Browser: Playwright automation at 1280x720 resolution
+- User: admin (John Admin)
+- Maintenance Event: MX-2024-001 (Camera System X - CRIIS-005)
+- Repairs tested:
+  * Repair #1 (already closed) - ETI Delta: 1.5 hrs ✅
+  * Repair #2 (closed during test) - ETI Delta: 3 hrs ✅
+- Screenshots captured:
+  * feature-132-eti-close-repair-form.png (ETI fields in close repair dialog)
+  * feature-132-eti-tracking-verified.png (completed repairs showing ETI delta)
+- Console errors: None
+- Feature includes "Meter Changed" checkbox for cases where physical meter replaced
+
+Technical Notes:
+- ETI In is recorded when repair starts (displayed on repair card)
+- ETI Out is entered when closing the repair (in close repair dialog)
+- ETI Delta is automatically calculated: ETI Out - ETI In
+- Delta displayed in hours with 1 decimal precision
+- System handles edge case where meter is replaced (allows ETI Out < ETI In)
+
+Result: Feature #132 is working correctly with no regressions found.
+
+Session Duration: ~6 minutes
+Session Status: SUCCESS ✅
+
+Session End Time: Tue Jan 21 09:34:00 EST 2026
+================================================================================
+[Testing] Wed Jan 21 09:37:02 EST 2026 - Feature #209 Regression Test Complete
+Feature: Notifications list displays
+Status: ✅ VERIFIED - Still PASSING
+
+All 4 verification steps completed successfully:
+✅ Step 1: Navigate to /notifications - Page loaded without errors
+✅ Step 2: Verify notifications list displays - 5 notifications shown with proper formatting
+✅ Step 3: Verify priority visible - All priority levels (CRITICAL, HIGH, MEDIUM, LOW) displayed with color coding
+✅ Step 4: Verify dates visible - All dates shown in readable format (MMM DD, YYYY, HH:MM AM/PM)
+
+Additional verification:
+- Program tags visible (CRIIS, ACTS, ARDS)
+- Sender information displayed
+- Acknowledgement status shown
+- No console errors
+
+Screenshot: feature-209-notifications-list.png
+Result: No regressions detected. Feature working correctly.
+
+Session Duration: ~8 minutes
+Session Status: SUCCESS ✅
+
