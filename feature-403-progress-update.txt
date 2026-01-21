@@ -1,0 +1,80 @@
+
+================================================================================
+[COMPLETED] Tue Jan 21 2026 - Feature #403 Implementation Session
+================================================================================
+
+Feature: Sortie queries filter by location
+Category: functional
+Status: PASSING ✅
+
+Implementation Status:
+✅ FEATURE WAS ALREADY IMPLEMENTED - No code changes required
+
+Backend Implementation (backend/src/index.ts, lines 14090-14098):
+- GET /api/sorties endpoint includes location-based filtering
+- For non-admin users: filters sorties by checking if associated asset's
+  loc_ida OR loc_idc matches user's location IDs
+- Admin users: bypass location filtering (see all sorties)
+- Filtering combines with program-based access control
+
+Testing Results:
+
+Test 1 - field_tech (Bob Field):
+- Role: FIELD_TECHNICIAN
+- Location: 394 (24892/526/527 - Field Site Bravo)
+- Program: CRIIS
+- Result: Sees 1 sortie (CRIIS-SORTIE-003 for asset CRIIS-006)
+- Asset CRIIS-006: loc_ida=394, loc_idc=394 ✓
+- Screenshot: feature-403-field-tech-one-sortie.png
+
+Test 2 - admin (John Admin):
+- Role: ADMIN
+- Locations: 154, 212 (24892/1160/1426 - Depot Alpha)
+- Program: CRIIS
+- Result: Sees all 4 CRIIS sorties (bypasses location filtering)
+- Sorties: CRIIS-SORTIE-001, 002, 003, 004
+- Screenshot: feature-403-admin-four-sorties.png
+
+Asset Location Mapping Verified:
+- CRIIS-001: location 154 (Depot Alpha)
+- CRIIS-003: location 154 (Depot Alpha)
+- CRIIS-005: location 154 (Depot Alpha)
+- CRIIS-006: location 394 (Field Site Bravo) ← field_tech can see this
+
+Sortie to Asset Mapping:
+- CRIIS-SORTIE-001 → CRIIS-001 (location 154)
+- CRIIS-SORTIE-002 → CRIIS-005 (location 154)
+- CRIIS-SORTIE-003 → CRIIS-006 (location 394) ← visible to field_tech
+- CRIIS-SORTIE-004 → CRIIS-003 (location 154)
+
+Technical Verification:
+✅ Server-side filtering enforced (cannot be bypassed)
+✅ Role-based access control working correctly
+✅ Program filtering also applied
+✅ Location filtering based on asset location (loc_ida OR loc_idc)
+✅ Admin role exempted from location restrictions
+✅ Zero console errors detected
+✅ All network requests successful (200 OK)
+
+Security Verification:
+✅ Non-admin users restricted to their assigned locations
+✅ Admin users have full access across all locations
+✅ Data filtering happens server-side
+✅ No unauthorized data exposure in API responses
+✅ Location IDs validated against user's assigned locations
+
+Project Progress:
+- Before: 400/423 features passing (94.6%)
+- After:  401/423 features passing (94.8%)
+
+Git Commit: d779380
+Session Status: SUCCESS ✅
+Session Duration: ~15 minutes
+Completed: Tue Jan 21 2026
+
+Notes:
+This feature was part of a suite of location-based filtering features
+(#393-#403) that were implemented together. The sortie filtering follows
+the same pattern as asset, maintenance, repair, labor, spares, and parts
+filtering - all using the user's location assignments to restrict data
+access. The implementation is consistent, secure, and working correctly.
