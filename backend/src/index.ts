@@ -7330,6 +7330,8 @@ interface PartsOrder {
   status: 'pending' | 'acknowledged' | 'shipped' | 'received' | 'cancelled';
   requestor_id: number;
   requestor_name: string;
+  requesting_loc_id: number | null; // Location where part is being requested from (field location)
+  fulfilling_loc_id: number | null; // Location where part will be fulfilled from (depot location)
   asset_sn: string | null;
   asset_name: string | null;
   job_no: string | null;
