@@ -58,8 +58,19 @@ export default function PMIDetailPage() {
   const [completing, setCompleting] = useState(false)
   const [completeError, setCompleteError] = useState<string | null>(null)
 
+  // Edit PMI Modal State
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editPmiType, setEditPmiType] = useState('')
+  const [editNextDueDate, setEditNextDueDate] = useState('')
+  const [editWucCode, setEditWucCode] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
   // Check if user can complete PMI (field technician, depot manager, or admin)
   const canCompletePMI = user?.role && ['FIELD_TECHNICIAN', 'DEPOT_MANAGER', 'ADMIN'].includes(user.role)
+
+  // Check if user can edit PMI (depot manager or admin)
+  const canEditPMI = user?.role && ['DEPOT_MANAGER', 'ADMIN'].includes(user.role)
 
   useEffect(() => {
     const fetchPMI = async () => {
@@ -162,6 +173,53 @@ export default function PMIDetailPage() {
       setCompleteError(err instanceof Error ? err.message : 'Failed to complete PMI')
     } finally {
       setCompleting(false)
+    }
+  }
+
+  const openEditModal = () => {
+    if (!pmi) return
+    setEditPmiType(pmi.pmi_type)
+    setEditNextDueDate(pmi.next_due_date.split('T')[0])
+    setEditWucCode(pmi.wuc_cd)
+    setEditError(null)
+    setShowEditModal(true)
+  }
+
+  const handleEditPMI = async () => {
+    if (!token || !id) return
+
+    setEditing(true)
+    setEditError(null)
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/pmi/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          pmi_type: editPmiType,
+          next_due_date: editNextDueDate,
+          wuc_cd: editWucCode,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update PMI')
+      }
+
+      const data = await response.json()
+      setPmi(data.pmi)
+      setShowEditModal(false)
+
+      // Show success message
+      alert('PMI record updated successfully!')
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Failed to update PMI')
+    } finally {
+      setEditing(false)
     }
   }
 
@@ -337,18 +395,33 @@ export default function PMIDetailPage() {
             </button>
           </div>
 
-          {/* Complete PMI Button */}
-          {canCompletePMI && (
-            <button
-              onClick={openCompleteModal}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Complete PMI
-            </button>
-          )}
+          <div className="flex space-x-3">
+            {/* Edit PMI Button */}
+            {canEditPMI && (
+              <button
+                onClick={openEditModal}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+            )}
+
+            {/* Complete PMI Button */}
+            {canCompletePMI && (
+              <button
+                onClick={openCompleteModal}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Complete PMI
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

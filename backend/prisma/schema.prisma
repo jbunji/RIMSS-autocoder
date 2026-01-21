@@ -26,13 +26,15 @@ model Program {
   chg_date    DateTime?
 
   // Relations
-  userPrograms  UserProgram[]
-  partLists     PartList[]
-  cfgSets       CfgSet[]
-  sorties       Sortie[]
-  tctos         Tcto[]
-  notifications Notification[]
-  spares        Spare[]
+  userPrograms     UserProgram[]
+  partLists        PartList[]
+  cfgSets          CfgSet[]
+  sorties          Sortie[]
+  tctos            Tcto[]
+  notifications    Notification[]
+  spares           Spare[]
+  locSets          LocSet[]
+  programLocations ProgramLocation[]
 
   @@map("program")
 }
@@ -99,6 +101,24 @@ model UserLocation {
   @@map("user_location")
 }
 
+model ProgramLocation {
+  program_location_id Int       @id @default(autoincrement())
+  pgm_id              Int
+  loc_id              Int
+  active              Boolean   @default(true)
+  ins_by              String?   @db.VarChar(50)
+  ins_date            DateTime  @default(now())
+  chg_by              String?   @db.VarChar(50)
+  chg_date            DateTime?
+
+  // Relations
+  program  Program  @relation(fields: [pgm_id], references: [pgm_id], onDelete: Cascade)
+  location Location @relation(fields: [loc_id], references: [loc_id], onDelete: Cascade)
+
+  @@unique([pgm_id, loc_id])
+  @@map("program_location")
+}
+
 model Code {
   code_id     Int       @id @default(autoincrement())
   code_type   String    @db.VarChar(50)
@@ -149,14 +169,16 @@ model Location {
   chg_date     DateTime?
 
   // Relations
-  assetsAdmin     Asset[]        @relation("AdminLocation")
-  assetsCustodial Asset[]        @relation("CustodialLocation")
-  events          Event[]
-  sruOrders       SruOrder[]
-  badActors       BadActor[]
-  notifications   Notification[]
-  spares          Spare[]
-  userLocations   UserLocation[]
+  assetsAdmin      Asset[]           @relation("AdminLocation")
+  assetsCustodial  Asset[]           @relation("CustodialLocation")
+  events           Event[]
+  sruOrders        SruOrder[]
+  badActors        BadActor[]
+  notifications    Notification[]
+  spares           Spare[]
+  userLocations    UserLocation[]
+  locSets          LocSet[]
+  programLocations ProgramLocation[]
 
   @@map("location")
 }
@@ -884,4 +906,28 @@ model Spare {
 
   @@unique([partno, serno])
   @@map("spares")
+}
+
+// ============================================================================
+// Location Set Tables
+// ============================================================================
+
+model LocSet {
+  set_id       Int       @id @default(autoincrement())
+  set_name     String    @db.VarChar(100)
+  pgm_id       Int
+  loc_id       Int
+  display_name String?   @db.VarChar(255)
+  active       Boolean   @default(true)
+  ins_by       String?   @db.VarChar(50)
+  ins_date     DateTime  @default(now())
+  chg_by       String?   @db.VarChar(50)
+  chg_date     DateTime?
+
+  // Relations
+  program  Program  @relation(fields: [pgm_id], references: [pgm_id])
+  location Location @relation(fields: [loc_id], references: [loc_id])
+
+  @@unique([set_name, loc_id])
+  @@map("loc_set")
 }

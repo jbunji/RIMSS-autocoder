@@ -143,8 +143,8 @@ const mockUsers = [
       { pgm_id: 4, pgm_cd: '236', pgm_name: 'Program 236', is_default: false },
     ],
     locations: [
-      { loc_id: 154, display_name: '24892/1160/1426', is_default: true },
-      { loc_id: 212, display_name: '24892/1360/24893', is_default: false },
+      { loc_id: 154, display_name: '24892/1160/1426', is_default: true, pgm_id: 1 }, // CRIIS location
+      { loc_id: 212, display_name: '24892/1360/24893', is_default: false, pgm_id: 1 }, // CRIIS location
     ],
   },
   {
