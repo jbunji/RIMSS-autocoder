@@ -53,3 +53,56 @@ Session Status: SUCCESS ✅
 - Feature still passing ✓
 [Testing] Wed Jan 21 09:10:00 EST 2026 - Feature #18 verification PASSED - Admin role can access admin routes
 [Testing] Note: Found documentation issue - README.md has incorrect admin password (Admin123!Pass should be admin123)
+
+================================================================================
+[COMPLETED] Tue Jan 21 09:10:15 EST 2026 - Feature #379 Implementation Session
+================================================================================
+
+Feature: Update PDF/Excel export headers from Administrative/Custodial to 
+         Assigned Base/Current Base
+
+Status: ✅ PASSING (marked passing in features.db)
+
+Changes Made:
+- Modified frontend/src/pages/AssetsPage.tsx
+- Updated PDF export header on line 587:
+  - Changed from: ['Serial Number', 'Part Number', 'Name', 'Status', 'Location', 'ETI Hours', 'Next PMI']
+  - Changed to: ['Serial Number', 'Part Number', 'Name', 'Status', 'Assigned Base', 'Current Base', 'ETI Hours', 'Next PMI']
+- Updated PDF column widths (lines 614-622) to accommodate 8 columns instead of 7
+- Excel export already had correct headers (no changes needed)
+
+Verification Steps Completed:
+✅ 1. Export asset list to PDF
+✅ 2. Verify column headers use Assigned Base and Current Base
+✅ 3. Export asset list to Excel
+✅ 4. Verify column headers use Assigned Base and Current Base
+
+Testing Details:
+- Exported PDF file: CUI_Assets_20260121.pdf
+- Verified PDF headers: "Serial Number | Part Number | Name | Status | Assigned Base | Current Base | ETI Hours | Next PMI"
+- Exported Excel file: CUI_Assets_20260121.xlsx
+- Verified Excel headers (Row 7): ['Serial Number', 'Part Number', 'Name', 'Status', 'Status Name', 'Assigned Base', 'Current Base', 'ETI Hours', 'Next PMI Date', 'Bad Actor', 'In Transit', 'Remarks']
+- All 10 assets exported correctly with proper location data
+- No console errors detected
+- Both export formats working perfectly
+
+Git Commit:
+- efe9a99: Feature #379 implementation
+
+Project Progress:
+- Before: 377/423 features passing (89.1%)
+- After:  378/423 features passing (89.4%)
+- Features completed: #379
+
+Session Duration: ~3 minutes
+Session Status: SUCCESS ✅
+
+This completes the label update trilogy:
+- Feature #375: Asset form labels ✅
+- Feature #377: Asset detail view labels ✅
+- Feature #379: PDF/Excel export headers ✅
+
+All asset-related interfaces now use "Assigned Base/Current Base" terminology 
+consistently throughout the application.
+
+Session End Time: Tue Jan 21 09:10:15 EST 2026
