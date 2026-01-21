@@ -541,3 +541,83 @@ Session Duration: ~15 minutes
 Session Status: SUCCESS ✅
 
 Session End Time: Tue Jan 21 09:21:00 EST 2026
+
+================================================================================
+[COMPLETED] Wed Jan 21 09:21:00 EST 2026 - Feature #385 Implementation Session
+================================================================================
+
+Feature: User can view their assigned locations in profile
+
+Status: ✅ PASSING (marked passing in features.db)
+
+Changes Made:
+- Updated frontend/src/stores/authStore.ts:
+  * Added optional locations array to User interface
+  * Includes loc_id, display_name, majcom_cd, site_cd, is_default fields
+
+- Updated frontend/src/pages/ProfilePage.tsx:
+  * Added "Assigned Locations" section after "Assigned Programs"
+  * Displays location badges with location.display_name
+  * Shows default location with blue badge and "(default)" text
+  * Shows non-default locations with gray badges
+  * Displays "No locations assigned" message when locations array is empty
+  * Styling consistent with programs section above it
+
+- Backend (backend/src/index.ts):
+  * MockUsers already had locations data added by previous session
+  * Admin user: 2 locations (loc_id 154, 212)
+  * Depot manager: 1 location (loc_id 154)
+  * Field tech: 1 location (loc_id 394)
+  * Viewer: 0 locations (empty array)
+  * Acts user: 2 locations
+
+Verification Steps Completed:
+✅ 1. Navigate to user profile
+     - Logged in as admin, clicked user dropdown, clicked "Your Profile"
+     - Successfully navigated to /profile
+✅ 2. Verify list of assigned locations is displayed
+     - Admin user: Shows "24892/1160/1426" and "24892/1360/24893"
+     - Field tech user: Shows "24892/526/527"
+     - Viewer user: Shows "No locations assigned" (empty state)
+✅ 3. Verify default location is indicated
+     - Admin user: "24892/1160/1426 (default)" with blue badge
+     - Field tech user: "24892/526/527 (default)" with blue badge
+     - Non-default locations shown with gray badges
+     - Default location has blue background and ring-1 ring-primary-600
+
+Testing Details:
+- Tested with 3 different users (admin, field_tech, viewer)
+- Admin user: Multiple locations with default properly highlighted
+- Field tech user: Single location marked as default
+- Viewer user: Empty state message displayed correctly
+- No console errors detected
+- Visual consistency with Assigned Programs section
+- Proper badge styling (blue for default, gray for non-default)
+- Location display_name shown correctly
+
+Technical Implementation:
+- User interface extended with optional locations field
+- Profile page uses conditional rendering for empty state
+- Badge styling reuses same pattern as programs section
+- Default location identified by is_default boolean flag
+- Falls back gracefully when locations is undefined or empty
+
+Screenshots Captured:
+- feature-385-admin-locations.png (admin with 2 locations)
+- feature-385-field-tech-one-location.png (field tech with 1 location)
+- feature-385-viewer-no-locations.png (viewer with no locations)
+
+Git Commit:
+- 866c3e3: Feature #385 implementation
+
+Project Progress:
+- Before: 381/423 features passing (90.1%)
+- After:  382/423 features passing (90.3%)
+- Features completed: #385
+
+Next Steps:
+- Feature #385 complete and verified
+- Ready for next pending feature in queue
+
+Session End Time: Wed Jan 21 09:21:00 EST 2026
+Session Status: SUCCESS ✅

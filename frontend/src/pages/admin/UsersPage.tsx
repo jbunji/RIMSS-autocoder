@@ -340,6 +340,9 @@ export default function UsersPage() {
     // Find the default program
     const defaultProgram = user.programs?.find(p => p.is_default)
     const defaultProgramId = defaultProgram?.pgm_id || (user.programs?.[0]?.pgm_id ?? null)
+    // Find the default location
+    const defaultLocation = user.locations?.find(l => l.is_default)
+    const defaultLocationId = defaultLocation?.loc_id || (user.locations?.[0]?.loc_id ?? null)
     // Pre-fill form with user data
     resetEdit({
       username: user.username,
@@ -350,10 +353,14 @@ export default function UsersPage() {
       password: '',
       program_ids: user.programs?.map(p => p.pgm_id) || [],
       default_program_id: defaultProgramId ?? undefined,
+      location_ids: user.locations?.map(l => l.loc_id) || [],
+      default_location_id: defaultLocationId ?? undefined,
       admin_password: '',
     })
     setEditSelectedPrograms(user.programs?.map(p => p.pgm_id) || [])
     setEditDefaultProgramId(defaultProgramId)
+    setEditSelectedLocations(user.locations?.map(l => l.loc_id) || [])
+    setEditDefaultLocationId(defaultLocationId)
     setIsEditModalOpen(true)
   }
 
@@ -363,6 +370,8 @@ export default function UsersPage() {
     resetEdit()
     setEditSelectedPrograms([])
     setEditDefaultProgramId(null)
+    setEditSelectedLocations([])
+    setEditDefaultLocationId(null)
     setOriginalRole(null)
     setIsRoleChanged(false)
     setError(null)
@@ -436,6 +445,8 @@ export default function UsersPage() {
         role: data.role,
         program_ids: data.program_ids,
         default_program_id: editDefaultProgramId || data.program_ids[0],
+        location_ids: data.location_ids || [],
+        default_location_id: editDefaultLocationId || (data.location_ids && data.location_ids[0]),
       }
 
       // Only include password if provided
