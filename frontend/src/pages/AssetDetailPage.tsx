@@ -162,13 +162,16 @@ interface MaintenanceEventsSummary {
   }
 }
 
-// Status badge colors
+// Status badge colors (aligned with AFI 21-103)
 const statusColors: Record<string, { bg: string; text: string; border: string }> = {
   FMC: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
   PMC: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+  PMCM: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-300' },
+  PMCS: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-300' },
+  PMCB: { bg: 'bg-yellow-100', text: 'text-yellow-900', border: 'border-yellow-400' },
   NMCM: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
   NMCS: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200' },
-  CNDM: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' },
+  NMCB: { bg: 'bg-red-200', text: 'text-red-900', border: 'border-red-300' },
 }
 
 // Priority badge colors for maintenance events
@@ -1032,7 +1035,7 @@ export default function AssetDetailPage() {
 
   // Status badge component
   const StatusBadge = ({ status, statusName }: { status: string; statusName?: string }) => {
-    const colors = statusColors[status] || statusColors.CNDM
+    const colors = statusColors[status] || { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' }
     return (
       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${colors.bg} ${colors.text} border ${colors.border}`}>
         {status}

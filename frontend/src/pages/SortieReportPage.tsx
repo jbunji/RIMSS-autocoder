@@ -106,7 +106,7 @@ export default function SortieReportPage() {
           s.sortie_effect === 'FMC' || s.sortie_effect === 'Full Mission Capable'
         ).length,
         pmc_count: sortieList.filter((s: Sortie) =>
-          s.sortie_effect === 'PMC' || s.sortie_effect === 'Partial Mission Capable'
+          s.sortie_effect === 'PMC' || s.sortie_effect === 'Partially Mission Capable'
         ).length,
         nmcm_count: sortieList.filter((s: Sortie) =>
           s.sortie_effect === 'NMCM' || s.sortie_effect === 'Non-Mission Capable Maintenance' ||
@@ -402,7 +402,7 @@ export default function SortieReportPage() {
     if (effect === 'FMC' || effect === 'Full Mission Capable') {
       return 'bg-green-100 text-green-800'
     }
-    if (effect === 'PMC' || effect === 'Partial Mission Capable') {
+    if (effect === 'PMC' || effect === 'Partially Mission Capable') {
       return 'bg-yellow-100 text-yellow-800'
     }
     if (effect === 'NMCM' || effect.includes('Non-Mission Capable')) {

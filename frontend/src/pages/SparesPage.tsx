@@ -102,13 +102,16 @@ interface SparesResponse {
   program: ProgramInfo
 }
 
-// Status badge colors
+// Status badge colors (aligned with AFI 21-103)
 const statusColors: Record<string, { bg: string; text: string; border: string }> = {
   FMC: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
   PMC: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+  PMCM: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-300' },
+  PMCS: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-300' },
+  PMCB: { bg: 'bg-yellow-100', text: 'text-yellow-900', border: 'border-yellow-400' },
   NMCM: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
   NMCS: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200' },
-  CNDM: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' },
+  NMCB: { bg: 'bg-red-200', text: 'text-red-900', border: 'border-red-300' },
 }
 
 export default function SparesPage() {
@@ -1130,10 +1133,13 @@ export default function SparesPage() {
             >
               <option value="">All Statuses</option>
               <option value="FMC">FMC - Full Mission Capable</option>
-              <option value="PMC">PMC - Partial Mission Capable</option>
-              <option value="NMCM">NMCM - Not Mission Capable Maintenance</option>
-              <option value="NMCS">NMCS - Not Mission Capable Supply</option>
-              <option value="CNDM">CNDM - Cannot Determine Mission</option>
+              <option value="PMC">PMC - Partially Mission Capable</option>
+              <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
+              <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
+              <option value="PMCB">PMCB - Partially Mission Capable (Both)</option>
+              <option value="NMCM">NMCM - Not Mission Capable (Maintenance)</option>
+              <option value="NMCS">NMCS - Not Mission Capable (Supply)</option>
+              <option value="NMCB">NMCB - Not Mission Capable (Both)</option>
             </select>
           </div>
 

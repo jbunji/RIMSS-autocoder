@@ -1,0 +1,9 @@
+
+'OWNER'||','||'TABLE_NAME'||','||'CONSTRAINT_NAME
+OWNER,TABLE_NAME,CONSTRAINT_NAME,SEARCH_CONDITION
+    '"' || REPLACE(REPLACE(TO_CHAR(con.SEARCH_CONDITION), CHR(10), ' '), '"', '""') || '"'
+                           *
+ERROR at line 5:
+ORA-00932: inconsistent datatypes: expected CHAR got LONG
+
+

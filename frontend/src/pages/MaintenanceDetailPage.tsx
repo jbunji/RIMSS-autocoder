@@ -657,14 +657,17 @@ export default function MaintenanceDetailPage() {
     { value: 'OTHER', label: 'Other' },
   ]
 
-  // Asset status options for removed parts
+  // Asset status options for removed parts (aligned with AFI 21-103)
   const assetStatusOptions = [
     { value: '', label: 'Keep current status' },
-    { value: 'NMCM', label: 'NMCM - Non-Mission Capable Maintenance' },
-    { value: 'NMCS', label: 'NMCS - Non-Mission Capable Supply' },
-    { value: 'CNDM', label: 'CNDM - Condition Not Determined' },
     { value: 'FMC', label: 'FMC - Full Mission Capable' },
-    { value: 'PMC', label: 'PMC - Partial Mission Capable' },
+    { value: 'PMC', label: 'PMC - Partially Mission Capable' },
+    { value: 'PMCM', label: 'PMCM - Partially Mission Capable (Maintenance)' },
+    { value: 'PMCS', label: 'PMCS - Partially Mission Capable (Supply)' },
+    { value: 'PMCB', label: 'PMCB - Partially Mission Capable (Both)' },
+    { value: 'NMCM', label: 'NMCM - Not Mission Capable (Maintenance)' },
+    { value: 'NMCS', label: 'NMCS - Not Mission Capable (Supply)' },
+    { value: 'NMCB', label: 'NMCB - Not Mission Capable (Both)' },
   ]
 
   // Action taken code options for labor records

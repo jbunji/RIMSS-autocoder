@@ -428,28 +428,32 @@ const allPrograms = [
   { pgm_id: 4, pgm_cd: '236', pgm_name: 'Program 236' },
 ]
 
-// Asset status codes
+// Asset status codes (aligned with AFI 21-103)
 const assetStatusCodes = [
   { status_cd: 'FMC', status_name: 'Full Mission Capable', description: 'Asset is fully operational and mission ready' },
-  { status_cd: 'PMC', status_name: 'Partial Mission Capable', description: 'Asset can perform some but not all mission types' },
+  { status_cd: 'PMC', status_name: 'Partially Mission Capable', description: 'Asset can perform some but not all mission types' },
+  { status_cd: 'PMCM', status_name: 'Partially Mission Capable Maintenance', description: 'Asset partially capable, limited by maintenance' },
+  { status_cd: 'PMCS', status_name: 'Partially Mission Capable Supply', description: 'Asset partially capable, limited by parts/supplies' },
+  { status_cd: 'PMCB', status_name: 'Partially Mission Capable Both', description: 'Asset partially capable, limited by both maintenance and supply' },
   { status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', description: 'Asset is down due to maintenance requirements' },
   { status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', description: 'Asset is down awaiting parts/supplies' },
-  { status_cd: 'CNDM', status_name: 'Cannot Determine Mission', description: 'Asset status cannot be determined' },
+  { status_cd: 'NMCB', status_name: 'Not Mission Capable Both', description: 'Asset is down due to both maintenance and supply issues' },
 ]
 
-// Status transition rules - defines which transitions are allowed
+// Status transition rules - defines which transitions are allowed (per AFI 21-103)
 // Business rules:
-// - FMC: Can transition to any status (asset can degrade or need maintenance)
-// - PMC: Can transition to FMC (fixed), or degrade to NMCM/NMCS/CNDM
-// - NMCM: Can transition to FMC (fully fixed), PMC (partially fixed), or NMCS (waiting for parts), CNDM
-// - NMCS: Can transition to FMC (fixed), PMC (partially fixed), NMCM (parts arrived, now in maintenance), CNDM
-// - CNDM: Cannot directly go to FMC or PMC (must go through maintenance - NMCM/NMCS first)
+// - FMC: Can transition to any PMC or NMC status (asset can degrade or need maintenance)
+// - PMC variants: Can improve to FMC, degrade to NMC, or move between PMC variants based on issue resolution
+// - NMC variants: Can improve to FMC or PMC variants, or move between NMC variants as issues are identified/resolved
 const statusTransitionRules: Record<string, string[]> = {
-  'FMC': ['PMC', 'NMCM', 'NMCS', 'CNDM'],  // FMC can degrade to anything
-  'PMC': ['FMC', 'NMCM', 'NMCS', 'CNDM'],  // PMC can improve to FMC or degrade further
-  'NMCM': ['FMC', 'PMC', 'NMCS', 'CNDM'],  // NMCM can be fixed or transition to supply wait
-  'NMCS': ['FMC', 'PMC', 'NMCM', 'CNDM'],  // NMCS can be fixed or transition to maintenance
-  'CNDM': ['NMCM', 'NMCS'],  // CNDM must go through maintenance before becoming capable
+  'FMC': ['PMC', 'PMCM', 'PMCS', 'PMCB', 'NMCM', 'NMCS', 'NMCB'],  // FMC can degrade to any status
+  'PMC': ['FMC', 'PMCM', 'PMCS', 'PMCB', 'NMCM', 'NMCS', 'NMCB'],  // Generic PMC can transition anywhere
+  'PMCM': ['FMC', 'PMC', 'PMCS', 'PMCB', 'NMCM', 'NMCS', 'NMCB'],  // PMCM can improve or degrade
+  'PMCS': ['FMC', 'PMC', 'PMCM', 'PMCB', 'NMCM', 'NMCS', 'NMCB'],  // PMCS can improve or degrade
+  'PMCB': ['FMC', 'PMC', 'PMCM', 'PMCS', 'NMCM', 'NMCS', 'NMCB'],  // PMCB can improve or degrade
+  'NMCM': ['FMC', 'PMC', 'PMCM', 'PMCS', 'PMCB', 'NMCS', 'NMCB'],  // NMCM can improve or change issue type
+  'NMCS': ['FMC', 'PMC', 'PMCM', 'PMCS', 'PMCB', 'NMCM', 'NMCB'],  // NMCS can improve or change issue type
+  'NMCB': ['FMC', 'PMC', 'PMCM', 'PMCS', 'PMCB', 'NMCM', 'NMCS'],  // NMCB can improve or resolve one issue type
 }
 
 // Function to validate status transitions
@@ -468,14 +472,6 @@ function isValidStatusTransition(fromStatus: string, toStatus: string): { valid:
   if (!allowedTransitions.includes(toStatus)) {
     const fromName = assetStatusCodes.find(s => s.status_cd === fromStatus)?.status_name || fromStatus;
     const toName = assetStatusCodes.find(s => s.status_cd === toStatus)?.status_name || toStatus;
-
-    // Provide specific guidance for CNDM restrictions
-    if (fromStatus === 'CNDM' && (toStatus === 'FMC' || toStatus === 'PMC')) {
-      return {
-        valid: false,
-        message: `Invalid status transition: Cannot change directly from ${fromName} to ${toName}. Assets with undetermined status must first be placed in maintenance (NMCM) or supply wait (NMCS) before becoming mission capable.`
-      };
-    }
 
     return {
       valid: false,

@@ -1,0 +1,9 @@
+
+'OWNER'||','||'TABLE_NAME'||','||'COLUMN_NAME'||','||'COLUMN_ID'||','||'DATA_TYPE'||','||'DATA_LENGTH'||','||'DATA_PR
+OWNER,TABLE_NAME,COLUMN_NAME,COLUMN_ID,DATA_TYPE,DATA_LENGTH,DATA_PRECISION,DATA_SCALE,NULLABLE,DATA_DEFAULT,COMMENTS
+    '"' || REPLACE(REPLACE(NVL(TRIM(c.DATA_DEFAULT), ''), CHR(10), ' '), '"', '""') || '"' || ',' ||
+                                    *
+ERROR at line 11:
+ORA-00932: inconsistent datatypes: expected CHAR got LONG
+
+

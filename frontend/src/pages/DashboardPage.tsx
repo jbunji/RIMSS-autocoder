@@ -132,13 +132,16 @@ interface ActivityData {
   total: number
 }
 
-// Status code colors and styling
+// Status code colors and styling (aligned with AFI 21-103)
 const statusColors: Record<string, { bg: string; text: string; border: string }> = {
   FMC: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-500' },
   PMC: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-500' },
+  PMCM: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-400' },
+  PMCS: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-400' },
+  PMCB: { bg: 'bg-yellow-100', text: 'text-yellow-900', border: 'border-yellow-600' },
   NMCM: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-500' },
   NMCS: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-500' },
-  CNDM: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-500' },
+  NMCB: { bg: 'bg-red-200', text: 'text-red-900', border: 'border-red-600' },
 }
 
 // Get PMI color class based on days until due
@@ -689,7 +692,7 @@ export default function DashboardPage() {
               {/* Status Breakdown */}
               <div className="grid grid-cols-5 gap-1 md:gap-2">
                 {assetStatus.status_summary.map((status) => {
-                  const colors = statusColors[status.status_cd] || statusColors.CNDM
+                  const colors = statusColors[status.status_cd] || { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-500' }
                   return (
                     <div
                       key={status.status_cd}
