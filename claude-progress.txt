@@ -4504,3 +4504,68 @@ Notes:
 
 ================================================================================
 
+
+================================================================================
+[Testing] Wed Jan 21 10:36:00 EST 2026 - Feature #247 Regression Test
+================================================================================
+
+Feature: Configuration meters tracked
+Category: ETM (Equipment Tracking Management)
+Status: ✅ PASSING (No Regression)
+
+Verification Summary:
+All 4 verification steps completed successfully. No regressions detected.
+
+Test Execution Details:
+
+✅ Step 1: Navigate to configuration detail
+   - Logged in as admin user
+   - Navigated to Configurations page
+   - Clicked "View" on Camera System X Configuration
+   - Successfully reached configuration detail page at /configurations/1
+
+✅ Step 2: View configuration meters
+   - Meters tab visible with badge showing "(1)" meter
+   - Clicked on "Meters (1)" tab
+   - Tab content loaded correctly showing "Meter Tracking Requirements" section
+
+✅ Step 3: Verify meter types displayed
+   - Meter type "ETI" (Equipment Time In-service) displayed in table
+   - Table has proper column headers: Meter Type, Tracking Interval, Description, Added By, Actions
+   - Meter data clearly visible and formatted correctly
+
+✅ Step 4: Verify current values shown
+   - Meter Type: ETI
+   - Tracking Interval: 500 hours
+   - Description: "Track operating hours for camera system - check every 500 hours"
+   - Added By: admin (Mar 27, 2025)
+   - Total meter requirements: 1
+   - All values displaying correctly
+
+Technical Verification:
+✅ Zero console errors
+✅ Zero JavaScript warnings
+✅ Clean UI rendering
+✅ Proper table structure
+✅ Tab navigation working correctly
+✅ Badge count accurate ("Meters (1)")
+✅ Delete functionality available
+✅ Add meter functionality available
+
+Screenshots Captured:
+- feature-247-meters-tab-verification.png
+- feature-247-complete-verification.png
+- feature-247-meter-data-visible.png
+
+Test Result: PASSING ✅
+No regressions detected.
+Feature #247 continues to work exactly as specified.
+
+Project Progress: 410/423 features passing (96.9%)
+Testing Agent: Regression Test Session
+Configuration Tested: Camera System X Configuration (ID: 1)
+Browser: Playwright automated testing
+Session End: Wed Jan 21 10:36:00 EST 2026
+
+================================================================================
+[Testing] Feature #247 verified - still passing

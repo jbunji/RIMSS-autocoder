@@ -162,6 +162,7 @@ model Location {
   description  String?   @db.VarChar(255)
   geoloc       String?   @db.VarChar(100)
   display_name String    @db.VarChar(100)
+  old_loc_id   Int?
   active       Boolean   @default(true)
   ins_by       String?   @db.VarChar(50)
   ins_date     DateTime  @default(now())
