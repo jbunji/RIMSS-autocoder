@@ -571,7 +571,8 @@ export default function AssetsPage() {
         asset.partno,
         asset.part_name,
         asset.status_cd,
-        asset.location,
+        asset.admin_loc_name || asset.admin_loc,
+        asset.cust_loc_name || asset.cust_loc,
         asset.eti_hours != null ? asset.eti_hours.toLocaleString() : '-',
         formatDate(asset.next_pmi_date)
       ])
