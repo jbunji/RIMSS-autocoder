@@ -8323,15 +8323,33 @@ app.get('/api/assets', (req, res) => {
   // Get detailed assets from mutable array
   const allAssets = detailedAssets;
 
-  // Get user's location IDs for filtering
+  // Get user's location IDs for authorization check
   const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
 
   // Filter by program and only include active assets (exclude soft-deleted)
   let filteredAssets = allAssets.filter(asset => asset.pgm_id === programIdFilter && asset.active !== false);
 
-  // SECURITY: Filter by location - assets must have Assigned Base (loc_ida) OR Current Base (loc_idc) matching user's locations
-  // Admin users with no location restrictions can see all assets
-  if (userLocationIds.length > 0) {
+  // SECURITY: Filter by location - assets must have Assigned Base (loc_ida) OR Current Base (loc_idc) matching the requested location
+  // If a specific location is requested, filter by that location
+  // If no location specified and user has location restrictions, show assets from all their locations
+  if (locationIdFilter) {
+    // Filter by the specific requested location
+    filteredAssets = filteredAssets.filter(asset => {
+      // Asset is visible if EITHER loc_ida OR loc_idc matches the requested location
+      const matchesAssignedBase = asset.loc_ida === locationIdFilter;
+      const matchesCurrentBase = asset.loc_idc === locationIdFilter;
+      return matchesAssignedBase || matchesCurrentBase;
+    });
+  } else if (userLocationIds.length > 0) {
+    // No specific location requested - filter by all user's locations
     filteredAssets = filteredAssets.filter(asset => {
       // Asset is visible if EITHER loc_ida OR loc_idc matches any of the user's locations
       const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);

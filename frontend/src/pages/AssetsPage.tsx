@@ -120,7 +120,7 @@ const statusColors: Record<string, { bg: string; text: string; border: string }>
 export default function AssetsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { token, currentProgramId, user } = useAuthStore()
+  const { token, currentProgramId, currentLocationId, user } = useAuthStore()
   const { showSuccess, showError } = useToast()
   const queryClient = useQueryClient()
 
@@ -218,12 +218,13 @@ export default function AssetsPage() {
     error: queryError,
     refetch: refetchAssets,
   } = useQuery<AssetsResponse, Error>({
-    queryKey: ['assets', currentProgramId, currentPage, statusFilter, debouncedSearch, sortBy, sortOrder],
+    queryKey: ['assets', currentProgramId, currentLocationId, currentPage, statusFilter, debouncedSearch, sortBy, sortOrder],
     queryFn: async () => {
       if (!token) throw new Error('No authentication token')
 
       const params = new URLSearchParams()
       if (currentProgramId) params.append('program_id', currentProgramId.toString())
+      if (currentLocationId) params.append('location_id', currentLocationId.toString())
       params.append('page', currentPage.toString())
       params.append('limit', '10')
       if (statusFilter) params.append('status', statusFilter)

@@ -32,6 +32,7 @@ const FILE_NAMES = {
   asset: "GLOBALEYE.ASSET.csv",
   repair: "GLOBALEYE.repair.csv",
   event: "GLOBALEYE.event.csv",
+  part_list: "GLOBALEYE.PART_LIST.csv",
 };
 
 // ============================================================================
@@ -173,8 +174,35 @@ async function countCsvRows(filePath: string): Promise<number> {
 // REBUILD MAPPINGS
 // ============================================================================
 
+// Map from Oracle PARTNO_ID -> PARTNO string (loaded from PART_LIST.csv)
+const oraclePartnoIdToPartno = new Map<string, string>();
+
+async function loadPartListMapping(): Promise<void> {
+  console.log("Loading PART_LIST mapping (Oracle PARTNO_ID -> PARTNO)...");
+
+  const csvPath = path.join(DATA_DIR, FILE_NAMES.part_list);
+  if (!fs.existsSync(csvPath)) {
+    console.log("  PART_LIST CSV not found!");
+    return;
+  }
+
+  let count = 0;
+  for await (const row of streamCsvRecords(csvPath)) {
+    if (row.PARTNO_ID && row.PARTNO) {
+      oraclePartnoIdToPartno.set(row.PARTNO_ID, row.PARTNO);
+      count++;
+    }
+  }
+  console.log(`  Loaded ${count.toLocaleString()} part mappings`);
+}
+
 async function rebuildAssetMappings(): Promise<void> {
   console.log("Rebuilding asset ID mappings from database and CSV...");
+
+  // First, ensure we have the part list mapping
+  if (oraclePartnoIdToPartno.size === 0) {
+    await loadPartListMapping();
+  }
 
   // Load all assets from DB with their part info
   const assets = await prisma.asset.findMany({
@@ -213,8 +241,12 @@ async function rebuildAssetMappings(): Promise<void> {
   let processed = 0;
   for await (const row of streamCsvRecords(csvPath)) {
     processed++;
-    const key = `${row.SERNO}|${row.PARTNO}`;
+
+    // Look up the PARTNO string from the Oracle PARTNO_ID
+    const partno = oraclePartnoIdToPartno.get(row.PARTNO_ID) || '';
+    const key = `${row.SERNO}|${partno}`;
     const newId = dbAssetBySerno.get(key);
+
     if (newId && row.ASSET_ID) {
       assetIdMap.set(row.ASSET_ID, newId);
       matched++;
