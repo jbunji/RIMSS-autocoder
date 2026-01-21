@@ -10511,7 +10511,7 @@ app.put('/api/assets/:id', async (req, res) => {
     oldValues.ship_date = detailedAsset.ship_date;
   }
 
-  const { partno, serno, name, status_cd, admin_loc, cust_loc, notes, active, bad_actor, in_transit, carrier, tracking_number, ship_date } = req.body;
+  const { partno, serno, name, status_cd, status_reason, admin_loc, cust_loc, notes, active, bad_actor, in_transit, carrier, tracking_number, ship_date } = req.body;
 
   // Track changes for audit log
   const changes: string[] = [];
@@ -10559,10 +10559,32 @@ app.put('/api/assets/:id', async (req, res) => {
       return res.status(400).json({ error: transitionResult.message });
     }
 
+    // Require reason when transitioning to non-mission-capable statuses
+    const nmcStatuses = ['NMCM', 'NMCS', 'NMCB'];
+    if (nmcStatuses.includes(status_cd) && !status_reason) {
+      return res.status(400).json({
+        error: 'Status change reason is required when changing to a non-mission-capable status. Please provide a reason for this status change.'
+      });
+    }
+
+    // Validate reason is not empty if provided
+    if (status_reason && typeof status_reason === 'string' && status_reason.trim().length === 0) {
+      return res.status(400).json({
+        error: 'Status change reason cannot be empty. Please provide a meaningful reason for this status change.'
+      });
+    }
+
     const oldStatus = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
     const newStatus = assetStatusCodes.find(s => s.status_cd === status_cd);
-    changes.push(`Status: ${oldStatus?.status_name || asset.status_cd} → ${newStatus?.status_name || status_cd}`);
-    historyChanges.push({ field: 'status_cd', field_label: 'Status', old_value: oldStatus?.status_name || asset.status_cd, new_value: newStatus?.status_name || status_cd });
+    const statusChangeMsg = `Status: ${oldStatus?.status_name || asset.status_cd} → ${newStatus?.status_name || status_cd}`;
+    const statusChangeWithReason = status_reason ? `${statusChangeMsg} (Reason: ${status_reason})` : statusChangeMsg;
+    changes.push(statusChangeWithReason);
+    historyChanges.push({
+      field: 'status_cd',
+      field_label: 'Status',
+      old_value: oldStatus?.status_name || asset.status_cd,
+      new_value: status_reason ? `${newStatus?.status_name || status_cd} (Reason: ${status_reason})` : (newStatus?.status_name || status_cd)
+    });
     asset.status_cd = status_cd;
   }
 
@@ -11488,6 +11510,9 @@ app.get('/api/reference/locations', async (req, res) => {
 
   try {
     const programId = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+    const majcomFilter = req.query.majcom ? (req.query.majcom as string) : null;
+
+    let locations;
 
     // If program_id is provided, filter locations by program-location mapping
     if (programId) {
@@ -11497,36 +11522,68 @@ app.get('/api/reference/locations', async (req, res) => {
           active: true,
         },
         include: {
-          location: true,
+          location: {
+            where: majcomFilter ? { majcom_cd: majcomFilter } : undefined,
+            select: {
+              loc_id: true,
+              majcom_cd: true,
+              site_cd: true,
+              unit_cd: true,
+              squad_cd: true,
+              description: true,
+              geoloc: true,
+              display_name: true,
+              active: true,
+            }
+          },
         },
       });
 
-      // Extract location IDs that are valid for this program
-      const validLocationIds = new Set(programLocations.map(pl => pl.loc_id));
+      locations = programLocations
+        .map(pl => pl.location)
+        .filter(loc => loc.active);
 
-      // Filter locations to only include those valid for the program
-      const activeAdminLocations = adminLocations.filter(loc =>
-        loc.active !== false && validLocationIds.has(loc.loc_id)
-      );
-      const activeCustodialLocations = custodialLocations.filter(loc =>
-        loc.active !== false && validLocationIds.has(loc.loc_id)
-      );
+      console.log(`[REFERENCE-LOCATIONS] Filtered locations for program ${programId}${majcomFilter ? ` and MAJCOM ${majcomFilter}` : ''}: ${locations.length} valid locations`);
+    } else {
+      // If no program_id, return all active locations
+      const whereClause: any = { active: true };
+      if (majcomFilter) {
+        whereClause.majcom_cd = majcomFilter;
+      }
 
-      console.log(`[REFERENCE-LOCATIONS] Filtered locations for program ${programId}: ${validLocationIds.size} valid locations`);
-
-      return res.json({
-        admin_locations: activeAdminLocations,
-        custodial_locations: activeCustodialLocations,
+      locations = await prisma.location.findMany({
+        where: whereClause,
+        select: {
+          loc_id: true,
+          majcom_cd: true,
+          site_cd: true,
+          unit_cd: true,
+          squad_cd: true,
+          description: true,
+          geoloc: true,
+          display_name: true,
+          active: true,
+        },
       });
+
+      console.log(`[REFERENCE-LOCATIONS] Returning active locations${majcomFilter ? ` for MAJCOM ${majcomFilter}` : ''}: ${locations.length}`);
     }
 
-    // If no program_id, return all active locations (backwards compatibility)
-    const activeAdminLocations = adminLocations.filter(loc => loc.active !== false);
-    const activeCustodialLocations = custodialLocations.filter(loc => loc.active !== false);
+    // Get distinct MAJCOMs for filter dropdown
+    const distinctMajcoms = Array.from(
+      new Set(
+        locations
+          .map(loc => loc.majcom_cd)
+          .filter((majcom): majcom is string => majcom !== null && majcom !== undefined)
+      )
+    ).sort();
 
+    // For backwards compatibility, return both admin and custodial as the same list
+    // In the new system, all locations can be used for both purposes
     res.json({
-      admin_locations: activeAdminLocations,
-      custodial_locations: activeCustodialLocations,
+      admin_locations: locations,
+      custodial_locations: locations,
+      majcoms: distinctMajcoms, // Add list of available MAJCOMs for filtering
     });
   } catch (error) {
     console.error('[REFERENCE-LOCATIONS] Error fetching locations:', error);

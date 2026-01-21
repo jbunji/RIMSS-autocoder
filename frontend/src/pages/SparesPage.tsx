@@ -24,13 +24,11 @@ import { useAuthStore } from '../stores/authStore'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { formatLocationHierarchical, compareLocations } from '../utils/locationFormatter'
+import type { Location as LocationType } from '../utils/locationFormatter'
 
 // Reference data interfaces
-interface Location {
-  loc_id: number
-  loc_cd: string
-  loc_name: string
-}
+type Location = LocationType
 
 interface AssetStatus {
   status_cd: string

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Dialog, Transition } from '@headlessui/react'
@@ -24,13 +24,12 @@ import { useToast } from '../hooks/useToast'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
+import { formatLocationHierarchical, compareLocations } from '../utils/locationFormatter'
+import type { Location as LocationType } from '../utils/locationFormatter'
+import LocationSelect from '../components/LocationSelect'
 
 // Reference data interfaces
-interface Location {
-  loc_id: number
-  loc_cd: string
-  loc_name: string
-}
+type Location = LocationType
 
 interface AssetStatus {
   status_cd: string
@@ -145,6 +144,7 @@ export default function AssetsPage() {
   const [adminLocations, setAdminLocations] = useState<Location[]>([])
   const [custodialLocations, setCustodialLocations] = useState<Location[]>([])
   const [assetStatuses, setAssetStatuses] = useState<AssetStatus[]>([])
+  const [majcoms, setMajcoms] = useState<string[]>([])
 
   // Filters - Initialize from URL search params
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
@@ -162,6 +162,7 @@ export default function AssetsPage() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetSchema),
@@ -170,8 +171,8 @@ export default function AssetsPage() {
       serno: '',
       name: '',
       status_cd: 'FMC', // Default to Fully Mission Capable
-      admin_loc: 'DEPOT-A', // Default to first depot location (Depot Alpha)
-      cust_loc: 'MAINT-BAY-1', // Default to first maintenance location (Maintenance Bay 1)
+      admin_loc: '', // Will be set dynamically after locations load
+      cust_loc: '', // Will be set dynamically after locations load
       notes: '',
     },
   })
@@ -371,7 +372,8 @@ export default function AssetsPage() {
         const locData = await locResponse.json()
         setAdminLocations(locData.admin_locations || [])
         setCustodialLocations(locData.custodial_locations || [])
-        console.log('[ASSETS-PAGE] Loaded locations for program:', currentProgramId, 'Admin locations:', locData.admin_locations?.length, 'Custodial locations:', locData.custodial_locations?.length)
+        setMajcoms(locData.majcoms || [])
+        console.log('[ASSETS-PAGE] Loaded locations for program:', currentProgramId, 'Admin locations:', locData.admin_locations?.length, 'Custodial locations:', locData.custodial_locations?.length, 'MAJCOMs:', locData.majcoms?.length)
       }
 
       if (statusResponse.ok) {
@@ -1365,70 +1367,62 @@ export default function AssetsPage() {
 
                     {/* Assigned Base */}
                     <div>
-                      <label htmlFor="admin_loc" className="block text-sm font-medium text-gray-700">
-                        <span className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="text-sm font-medium text-gray-700">
                           Assigned Base <span className="text-red-500">*</span>
-                          <QuestionMarkCircleIcon
-                            className="h-4 w-4 text-gray-400 cursor-help"
-                            title="Assigned Base indicates which organization owns this asset"
-                          />
                         </span>
-                      </label>
-                      <select
-                        id="admin_loc"
-                        {...register('admin_loc')}
-                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                          errors.admin_loc
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
-                        }`}
-                        aria-invalid={errors.admin_loc ? 'true' : 'false'}
-                        aria-describedby={errors.admin_loc ? 'admin_loc-error' : undefined}
-                      >
-                        <option value="">Select assigned base...</option>
-                        {adminLocations.map((loc) => (
-                          <option key={loc.loc_cd} value={loc.loc_cd}>
-                            {loc.loc_name}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.admin_loc && (
-                        <p id="admin_loc-error" className="mt-1 text-sm text-red-600" role="alert">{errors.admin_loc.message}</p>
-                      )}
+                        <QuestionMarkCircleIcon
+                          className="h-4 w-4 text-gray-400 cursor-help"
+                          title="Assigned Base indicates which organization owns this asset"
+                        />
+                      </div>
+                      <Controller
+                        name="admin_loc"
+                        control={control}
+                        render={({ field }) => (
+                          <LocationSelect
+                            value={field.value}
+                            onChange={field.onChange}
+                            locations={adminLocations.sort(compareLocations)}
+                            majcoms={majcoms}
+                            label=""
+                            required={true}
+                            error={errors.admin_loc?.message}
+                            id="admin_loc"
+                            placeholder="Select assigned base..."
+                          />
+                        )}
+                      />
                     </div>
 
                     {/* Current Base */}
                     <div>
-                      <label htmlFor="cust_loc" className="block text-sm font-medium text-gray-700">
-                        <span className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="text-sm font-medium text-gray-700">
                           Current Base <span className="text-red-500">*</span>
-                          <QuestionMarkCircleIcon
-                            className="h-4 w-4 text-gray-400 cursor-help"
-                            title="Current Base indicates where this asset is physically located"
-                          />
                         </span>
-                      </label>
-                      <select
-                        id="cust_loc"
-                        {...register('cust_loc')}
-                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                          errors.cust_loc
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
-                        }`}
-                        aria-invalid={errors.cust_loc ? 'true' : 'false'}
-                        aria-describedby={errors.cust_loc ? 'cust_loc-error' : undefined}
-                      >
-                        <option value="">Select current base...</option>
-                        {custodialLocations.map((loc) => (
-                          <option key={loc.loc_cd} value={loc.loc_cd}>
-                            {loc.loc_name}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.cust_loc && (
-                        <p id="cust_loc-error" className="mt-1 text-sm text-red-600" role="alert">{errors.cust_loc.message}</p>
-                      )}
+                        <QuestionMarkCircleIcon
+                          className="h-4 w-4 text-gray-400 cursor-help"
+                          title="Current Base indicates where this asset is physically located"
+                        />
+                      </div>
+                      <Controller
+                        name="cust_loc"
+                        control={control}
+                        render={({ field }) => (
+                          <LocationSelect
+                            value={field.value}
+                            onChange={field.onChange}
+                            locations={custodialLocations.sort(compareLocations)}
+                            majcoms={majcoms}
+                            label=""
+                            required={true}
+                            error={errors.cust_loc?.message}
+                            id="cust_loc"
+                            placeholder="Select current base..."
+                          />
+                        )}
+                      />
                     </div>
 
                     {/* Notes */}

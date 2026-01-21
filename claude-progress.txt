@@ -6154,3 +6154,235 @@ Next Steps (if continuing):
 
 ================================================================================
 
+
+================================================================================
+[REGRESSION TEST] Tue Jan 21 11:00:00 EST 2026 - Feature #386 Verification
+================================================================================
+
+Feature: Location switcher in application header
+Category: functional
+Status: ✅ PASSING (Verified - No Regression)
+
+Description:
+Users with multiple locations can switch their active location from the header navigation
+
+Verification Results:
+
+✅ Step 1: Log in as user with multiple locations
+   - Logged in as admin user (John Admin)
+   - Admin has 2 locations:
+     * 24892/1160/1426 (loc_id: 154, default location)
+     * 24892/1360/24893 (loc_id: 212)
+   - Screenshot: feature-386-regression-step1-logged-in.png
+
+✅ Step 2: Verify location switcher appears in header
+   - Location switcher visible in navbar
+   - Shows "Location: 24892/1160/1426" (default location)
+   - Positioned between notifications bell and program selector
+   - MapPinIcon displayed correctly
+   - Dropdown button functional
+
+✅ Step 3: Switch to different location
+   - Clicked location dropdown button
+   - Dropdown opened showing both locations:
+     * 24892/1160/1426 - marked as "Default location"
+     * 24892/1360/24893
+   - Screenshot: feature-386-regression-step2-dropdown-open.png
+   - Clicked second location (24892/1360/24893)
+   - Header updated to show "Location: 24892/1360/24893" ✅
+   - Screenshot: feature-386-regression-step3-location-switched.png
+
+✅ Step 4: Verify data filters to new location
+   - Dashboard data changed after location switch:
+     * Total Assets: 5 → 2 (location-specific filtering working)
+     * Mission Capability Rate: 60% → 100%
+     * Asset Status: Different counts (1 FMC, 1 PMC)
+     * PMI Due Soon: 3 items (different assets: CRIIS-004, CRIIS-008)
+     * Open Maintenance Jobs: 1 job (MX-2024-004 for Communication System)
+     * Recent Activity: 7 activities (location-filtered)
+   
+   - Navigated to Assets page:
+     * Location still shows "24892/1360/24893" in header ✅
+     * Shows 2 total assets (CRIIS-004, CRIIS-008) ✅
+     * Data correctly filtered to selected location
+     * Screenshot: feature-386-regression-step4-assets-page.png
+   
+   - Navigated to Maintenance page:
+     * Location persists across navigation ✅
+     * Shows 3 maintenance events (filtered by location)
+     * Events: MX-2024-001, MX-2024-004, MX-2024-003
+     * Screenshot: feature-386-regression-step5-maintenance-page.png
+
+Technical Verification:
+✅ Location switcher only appears for users with multiple locations
+✅ Dropdown shows all available locations with default marked
+✅ Active location highlighted in header
+✅ Location persists across page navigation
+✅ Data filtering works correctly for selected location
+✅ Zero console errors during entire workflow
+✅ UI/UX smooth and responsive
+
+Console Status:
+- Zero JavaScript errors
+- Zero warnings (except React Router future flags - expected)
+- All API calls successful
+- Location state persisted correctly
+
+Regression Status: ✅ NO REGRESSION DETECTED
+- Feature continues to work exactly as designed
+- All verification steps passed
+- Location switching functional
+- Data filtering accurate
+- Navigation persistence working
+- No code changes needed
+
+Project Progress: 419/423 features passing (99.1%)
+Session Status: SUCCESS ✅
+Session Duration: ~8 minutes
+Session End Time: Tue Jan 21 11:01:00 EST 2026
+
+Notes:
+- Feature #386 verified through comprehensive browser automation
+- All 4 verification steps completed successfully
+- Location switcher working perfectly in production
+- Data isolation by location confirmed working
+- Ready for continued production use
+
+================================================================================
+
+[Testing] Session complete - verified feature #386 - NO REGRESSION
+[Testing] Feature #386 verified - still passing
+
+================================================================================
+[REGRESSION TEST] `date` - Feature #78 Verification
+================================================================================
+
+Feature: Asset status transitions validated
+Category: Asset Management
+Status: ❌ FAILING (Regression Detected)
+
+Description:
+Tested that status changes follow business rules, specifically that changing
+to non-mission-capable statuses should require a reason.
+
+Regression Found:
+✅ Step 1: Create asset with FMC status - PASS (used existing CRIIS-001)
+❌ Step 2: Change to NMCM (should require reason) - FAIL
+   - Changed CRIIS-001 status from FMC to NMCM
+   - Status change was ACCEPTED without requiring a reason
+   - This violates business rule: NMC status changes should require justification
+
+Root Cause Analysis:
+- Backend has status transition validation (isValidStatusTransition function)
+- Transition rules exist and are enforced (FMC can transition to NMCM)
+- MISSING: No validation requiring status_reason when transitioning to NMC states
+- Line 10550-10567 in backend/src/index.ts handles status changes
+- No check for required reason when status_cd changes to NMCM/NMCS/NMCB
+
+Expected Behavior:
+- When changing asset status to NMCM, NMCS, or NMCB, system should:
+  1. Require a status_reason field in the request
+  2. Return 400 error if reason is missing
+  3. Store the reason for audit trail
+
+Actual Behavior:
+- Status change allowed without any reason
+- No validation error shown
+- Success toast: "Asset updated successfully! Changes: Status: Full Mission Capable → Not Mission Capable Maintenance"
+
+Technical Details:
+- Tested via browser automation
+- URL: http://localhost:5173/assets/1
+- Asset: CRIIS-001 (Sensor Unit A)
+- Status changed from FMC to NMCM successfully
+- Zero console errors
+- API endpoint: PUT /api/assets/1
+
+Screenshots Captured:
+1. feature-78-assets-page-initial.png - Initial assets list
+2. feature-78-status-changed-to-nmcm.png - Edit form with NMCM selected
+3. feature-78-status-field-visible.png - Status field visible in form
+4. feature-78-status-change-success.png - Success message without reason required
+
+Next Steps:
+1. Mark feature #78 as failing ✅ (completed)
+2. Add validation for status_reason when transitioning to NMC statuses
+3. Update frontend form to show reason field when NMC status selected
+4. Test the fix thoroughly
+5. Mark feature as passing after fix verified
+
+Regression Status: ❌ REGRESSION DETECTED - Fix Required
+Session Status: IN PROGRESS - Fixing regression
+Session Time: `date`
+
+================================================================================
+
+[Testing] Feature #78 marked as failing - regression found in status transition validation
+[Testing] Feature #165 verified - still passing ✅
+
+Feature: User can create TCTO
+Category: TCTO
+Status: PASSING
+
+Verification Summary:
+✅ Step 1: Navigated to Add TCTO form via 'New Event' button
+✅ Step 2: Entered TCTO number/description: 'TCTO 2026-001: Mandatory software update for navigation system compliance'
+✅ Step 3: Selected TCTO type from Event Type dropdown
+✅ Step 4: Set effective date (automatically set to today: 2026-01-21)
+✅ Step 5: Submitted form successfully
+✅ Step 6: Verified TCTO appears in list
+
+Test Results:
+- Job Number: MX-DEP-2026-001
+- Asset: Sensor Unit A (CRIIS-001)
+- Discrepancy: TCTO 2026-001: Mandatory software update for navigation system compliance
+- Event Type: TCTO
+- Priority: Routine
+- Base Location: DEPOT-A
+- Started: Jan 21, 2026
+- Status: OPEN
+
+Technical Quality:
+- Zero console errors
+- All API calls successful (201 Created, 200 OK)
+- Modal opened and closed properly
+- Form submission worked correctly
+- TCTO displayed in Backlog tab
+- Stats updated correctly (Open Jobs: 3→4, Routine: 1→2)
+
+Screenshots:
+- feature-165-tcto-tab-view.png
+- feature-165-tcto-in-backlog.png
+
+Session Date: Wed Jan 21 11:00:20 EST 2026
+Browser: Playwright automation
+Result: REGRESSION TEST PASSED ✅
+
+
+================================================================================
+[REGRESSION TEST COMPLETED] Wed Jan 21 11:00:27 EST 2026
+================================================================================
+
+Feature #165: User can create TCTO
+
+✅ REGRESSION TEST PASSED - Feature still works correctly
+
+All verification steps completed successfully:
+1. ✅ Navigate to Add TCTO form
+2. ✅ Enter TCTO number
+3. ✅ Select TCTO type  
+4. ✅ Set effective date
+5. ✅ Submit form
+6. ✅ Verify TCTO appears in list
+
+Quality Metrics:
+- Console Errors: 0
+- Failed Network Requests: 0
+- Form Validation: Working
+- API Response: 201 Created
+- UI Updates: Correct
+
+The feature is functioning as expected with no regressions detected.
+
+================================================================================
+

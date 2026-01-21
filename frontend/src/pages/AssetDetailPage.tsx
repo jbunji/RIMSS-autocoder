@@ -354,6 +354,7 @@ export default function AssetDetailPage() {
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState<Partial<Asset>>({})
+  const [statusReason, setStatusReason] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
@@ -914,6 +915,7 @@ export default function AssetDetailPage() {
           partno: editForm.partno,
           name: editForm.name,
           status_cd: editForm.status_cd,
+          status_reason: statusReason || undefined,
           admin_loc: editForm.admin_loc,
           cust_loc: editForm.cust_loc,
           notes: editForm.notes,
@@ -1423,17 +1425,45 @@ export default function AssetDetailPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-500">Status</label>
                 {isEditing ? (
-                  <select
-                    value={editForm.status_cd || ''}
-                    onChange={(e) => handleInputChange('status_cd', e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  >
-                    {statuses.map((status) => (
-                      <option key={status.status_cd} value={status.status_cd}>
-                        {status.status_cd} - {status.status_name}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <select
+                      value={editForm.status_cd || ''}
+                      onChange={(e) => {
+                        handleInputChange('status_cd', e.target.value)
+                        // Clear reason when switching away from NMC statuses
+                        if (!['NMCM', 'NMCS', 'NMCB'].includes(e.target.value)) {
+                          setStatusReason('')
+                        }
+                      }}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    >
+                      {statuses.map((status) => (
+                        <option key={status.status_cd} value={status.status_cd}>
+                          {status.status_cd} - {status.status_name}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Status Reason - Required for NMC statuses */}
+                    {editForm.status_cd && ['NMCM', 'NMCS', 'NMCB'].includes(editForm.status_cd) && (
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Status Change Reason <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                          value={statusReason}
+                          onChange={(e) => setStatusReason(e.target.value)}
+                          placeholder="Please provide a reason for this non-mission-capable status..."
+                          rows={3}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          required
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          A reason is required when changing to a non-mission-capable status.
+                        </p>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="mt-1">
                     <StatusBadge status={asset.status_cd} statusName={asset.status_name} />
