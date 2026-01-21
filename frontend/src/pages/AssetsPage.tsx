@@ -584,7 +584,7 @@ export default function AssetsPage() {
       // Generate table with autoTable
       autoTable(doc, {
         startY: statusFilter || debouncedSearch ? 48 : 43,
-        head: [['Serial Number', 'Part Number', 'Name', 'Status', 'Location', 'ETI Hours', 'Next PMI']],
+        head: [['Serial Number', 'Part Number', 'Name', 'Status', 'Assigned Base', 'Current Base', 'ETI Hours', 'Next PMI']],
         body: tableData,
       theme: 'striped',
       headStyles: {
@@ -612,13 +612,14 @@ export default function AssetsPage() {
       },
       // Style specific columns
       columnStyles: {
-        0: { cellWidth: 40 }, // Serial Number
-        1: { cellWidth: 35 }, // Part Number
-        2: { cellWidth: 55 }, // Name
+        0: { cellWidth: 35 }, // Serial Number
+        1: { cellWidth: 30 }, // Part Number
+        2: { cellWidth: 50 }, // Name
         3: { cellWidth: 20 }, // Status
-        4: { cellWidth: 45 }, // Location
-        5: { cellWidth: 25 }, // ETI Hours
-        6: { cellWidth: 30 }, // Next PMI
+        4: { cellWidth: 35 }, // Assigned Base
+        5: { cellWidth: 35 }, // Current Base
+        6: { cellWidth: 22 }, // ETI Hours
+        7: { cellWidth: 28 }, // Next PMI
       }
       })
 
@@ -1372,7 +1373,7 @@ export default function AssetsPage() {
                         aria-invalid={errors.admin_loc ? 'true' : 'false'}
                         aria-describedby={errors.admin_loc ? 'admin_loc-error' : undefined}
                       >
-                        <option value="">Select administrative location...</option>
+                        <option value="">Select assigned base...</option>
                         {adminLocations.map((loc) => (
                           <option key={loc.loc_cd} value={loc.loc_cd}>
                             {loc.loc_name}
@@ -1400,7 +1401,7 @@ export default function AssetsPage() {
                         aria-invalid={errors.cust_loc ? 'true' : 'false'}
                         aria-describedby={errors.cust_loc ? 'cust_loc-error' : undefined}
                       >
-                        <option value="">Select custodial location...</option>
+                        <option value="">Select current base...</option>
                         {custodialLocations.map((loc) => (
                           <option key={loc.loc_cd} value={loc.loc_cd}>
                             {loc.loc_name}

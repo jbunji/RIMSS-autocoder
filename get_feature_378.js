@@ -1,8 +1,5 @@
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./features.db');
-
-db.get('SELECT * FROM features WHERE id = 378', (err, row) => {
-  if (err) console.error(err);
-  else console.log(JSON.stringify(row, null, 2));
-  db.close();
-});
+const Database = require('better-sqlite3');
+const db = new Database('features.db');
+const feature = db.prepare('SELECT * FROM features WHERE id = ?').get(378);
+console.log(JSON.stringify(feature, null, 2));
+db.close();
