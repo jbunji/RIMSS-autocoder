@@ -4684,3 +4684,105 @@ Notes:
 - Duplicate records exist but don't affect functionality
 
 ================================================================================
+
+================================================================================
+[COMPLETED] Tue Jan 21 15:42:00 EST 2026 - Feature #413 Implementation Session
+================================================================================
+
+Feature: Preserve OLD_LOC_ID for legacy reference
+Category: data
+Status: ✅ PASSING
+
+Description:
+Import includes OLD_LOC_ID field to maintain reference to any previous location IDs.
+This feature enables tracking of legacy location IDs (CT_LOC_ID from Oracle GLOBALEYE)
+alongside the new location IDs in the PostgreSQL database.
+
+Implementation Summary:
+
+1. Schema Changes (backend/prisma/schema.prisma):
+   - Added old_loc_id field to Location model
+   - Field type: Int? (optional integer)
+   - Position: After display_name, before active flag
+
+2. Database Migration:
+   - Created migration: 20260121153712_add_old_loc_id_to_location
+   - SQL: ALTER TABLE "location" ADD COLUMN "old_loc_id" INTEGER;
+   - Migration applied successfully to rimss_dev database
+
+3. Data Import Script (backend/update_old_loc_id.mjs):
+   - Reads GLOBALEYE.LOCATION.csv to extract CT_LOC_ID values
+   - Updates existing location records with old_loc_id values
+   - Handles 717 CSV records
+   - Successfully updated 685 locations
+   - Skipped 32 records with no CT_LOC_ID value
+   - Zero errors during import
+
+4. Verification Script (backend/verify_old_loc_id.mjs):
+   - Checks if old_loc_id column exists in database schema
+   - Counts locations with old_loc_id values
+   - Displays sample records for verification
+   - Provides summary statistics
+
+Verification Steps Completed:
+
+✅ Step 1: Verify old_loc_id column exists in location table
+   - Column exists: YES
+   - Data type: integer (nullable)
+   - Verification query: information_schema.columns
+
+✅ Step 2: Verify legacy OLD_LOC_ID values imported correctly
+   - Total locations: 1,447
+   - Locations with old_loc_id: 685 (47.3%)
+   - Locations without old_loc_id: 762 (52.7%)
+   - Sample records verified with correct mappings
+
+Data Mapping Details:
+- Legacy CSV field: CT_LOC_ID (column 12 in GLOBALEYE.LOCATION.csv)
+- New database field: old_loc_id (Location model)
+- Purpose: Maintains reference to previous location IDs from legacy Oracle system
+- Use case: Data migration, reconciliation, historical tracking
+
+Example Mappings:
+- Location 1 (Main Warehouse): old_loc_id = 1
+- Location 2 (743/1290/1495): old_loc_id = 2
+- Location 3 (754/1158/1443): old_loc_id = 3
+- Location 402 (RKMF): old_loc_id = 402
+- Location 403 (971): old_loc_id = 403
+
+Technical Notes:
+- The old_loc_id field is nullable to accommodate:
+  * Newly created locations (no legacy reference)
+  * Legacy locations that didn't have CT_LOC_ID in Oracle
+- Import is idempotent - can be re-run safely
+- Values preserved exactly as they appeared in legacy system
+- No data transformation applied to old_loc_id values
+
+Legacy System Context:
+The CT_LOC_ID field in Oracle GLOBALEYE represented an older location
+identification system. By preserving these values, we maintain the ability to:
+- Cross-reference with legacy reports
+- Trace location history across system migrations
+- Support data reconciliation tasks
+- Maintain audit trail for location entities
+
+Project Progress:
+- Before: 409/423 features passing (96.7%)
+- After:  410/423 features passing (96.9%)
+- Features implemented: #413
+
+Git Commit: d4d44bc
+Session Status: SUCCESS ✅
+Session Duration: ~7 minutes
+Session End Time: Tue Jan 21 15:42:00 EST 2026
+Execution Mode: Single Feature Mode (Parallel Execution)
+
+Notes:
+- Feature #413 was assigned in single feature mode
+- Immediately marked as in-progress per instructions
+- All verification steps passed on first attempt
+- Import script is reusable across environments
+- Database integrity maintained throughout process
+- Ready for any features requiring legacy location ID references
+
+================================================================================
