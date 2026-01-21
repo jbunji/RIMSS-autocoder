@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MagnifyingGlassIcon, MapPinIcon, TableCellsIcon, Squares2X2Icon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, MapPinIcon, TableCellsIcon, Squares2X2Icon, PencilIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../../stores/authStore'
 import LocationHierarchyTree from '../../components/admin/LocationHierarchyTree'
+import LocationEditModal from '../../components/admin/LocationEditModal'
 
 interface Location {
   loc_id: number
@@ -40,6 +41,7 @@ export default function LocationsPage() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [toggleLoading, setToggleLoading] = useState<number | null>(null)
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('')
@@ -48,6 +50,10 @@ export default function LocationsPage() {
 
   // View mode state
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('table')
+
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -109,6 +115,45 @@ export default function LocationsPage() {
     setSelectedMajcom('all')
     setActiveFilter('all')
     setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleEditLocation = (location: Location) => {
+    setSelectedLocation(location)
+    setEditModalOpen(true)
+  }
+
+  const handleEditSuccess = () => {
+    fetchLocations()
+  }
+
+  const handleToggleActive = async (location: Location) => {
+    setToggleLoading(location.loc_id)
+    try {
+      const response = await fetch(`http://localhost:3001/api/admin/locations/${location.loc_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...location,
+          active: !location.active
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update location')
+      }
+
+      // Refresh the list
+      await fetchLocations()
+    } catch (err) {
+      console.error('Error toggling location status:', err)
+      setError(err instanceof Error ? err.message : 'Failed to update location status')
+    } finally {
+      setToggleLoading(null)
+    }
   }
 
   return (
@@ -287,19 +332,22 @@ export default function LocationsPage() {
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         Status
                       </th>
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                        <span className="sr-only">Actions</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {locations.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-12 text-center text-sm text-gray-500">
+                        <td colSpan={7} className="py-12 text-center text-sm text-gray-500">
                           <MapPinIcon className="mx-auto h-12 w-12 text-gray-400" />
                           <p className="mt-2">No locations found</p>
                         </td>
                       </tr>
                     ) : (
                       locations.map((location) => (
-                        <tr key={location.loc_id}>
+                        <tr key={location.loc_id} className="hover:bg-gray-50 transition-colors">
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <div className="flex items-center">
                               <MapPinIcon className="h-5 w-5 text-gray-400 mr-2" />
@@ -333,6 +381,37 @@ export default function LocationsPage() {
                                 Inactive
                               </span>
                             )}
+                          </td>
+                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleToggleActive(location)
+                                }}
+                                disabled={toggleLoading === location.loc_id}
+                                className={`inline-flex items-center px-3 py-1.5 border shadow-sm text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                  location.active
+                                    ? 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                                    : 'border-green-600 text-green-700 bg-green-50 hover:bg-green-100'
+                                }`}
+                              >
+                                {toggleLoading === location.loc_id ? (
+                                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-1.5"></span>
+                                ) : null}
+                                {location.active ? 'Deactivate' : 'Activate'}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditLocation(location)
+                                }}
+                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                              >
+                                <PencilIcon className="h-4 w-4 mr-1.5" />
+                                Edit
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -441,6 +520,16 @@ export default function LocationsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {selectedLocation && (
+        <LocationEditModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          location={selectedLocation}
+          onSuccess={handleEditSuccess}
+        />
       )}
     </div>
   )

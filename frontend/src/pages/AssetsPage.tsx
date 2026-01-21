@@ -169,7 +169,7 @@ export default function AssetsPage() {
       partno: '',
       serno: '',
       name: '',
-      status_cd: 'FMC', // Default to Full Mission Capable
+      status_cd: 'FMC', // Default to Fully Mission Capable
       admin_loc: 'DEPOT-A', // Default to first depot location (Depot Alpha)
       cust_loc: 'MAINT-BAY-1', // Default to first maintenance location (Maintenance Bay 1)
       notes: '',
@@ -915,7 +915,7 @@ export default function AssetsPage() {
               onChange={(e) => handleStatusChange(e.target.value)}
             >
               <option value="">All Statuses</option>
-              <option value="FMC">FMC - Full Mission Capable</option>
+              <option value="FMC">FMC - Fully Mission Capable</option>
               <option value="PMC">PMC - Partially Mission Capable</option>
               <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
               <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
@@ -1175,8 +1175,8 @@ export default function AssetsPage() {
         <h3 className="text-sm font-medium text-gray-900 mb-3">Status Legend</h3>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center">
-            <StatusBadge status="FMC" statusName="Full Mission Capable" />
-            <span className="ml-2 text-xs text-gray-500">Full Mission Capable</span>
+            <StatusBadge status="FMC" statusName="Fully Mission Capable" />
+            <span className="ml-2 text-xs text-gray-500">Fully Mission Capable</span>
           </div>
           <div className="flex items-center">
             <StatusBadge status="PMC" statusName="Partial Mission Capable" />

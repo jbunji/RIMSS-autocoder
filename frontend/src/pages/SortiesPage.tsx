@@ -1021,7 +1021,7 @@ export default function SortiesPage() {
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">All</option>
-                <option value="FMC">FMC - Full Mission Capable</option>
+                <option value="FMC">FMC - Fully Mission Capable</option>
                 <option value="PMC">PMC - Partially Mission Capable</option>
                 <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
                 <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
@@ -1300,7 +1300,7 @@ export default function SortiesPage() {
                   disabled={submitting}
                 >
                   <option value="">Select effectiveness...</option>
-                  <option value="FMC">FMC - Full Mission Capable</option>
+                  <option value="FMC">FMC - Fully Mission Capable</option>
                   <option value="PMC">PMC - Partially Mission Capable</option>
                   <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
                   <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
@@ -1423,7 +1423,7 @@ export default function SortiesPage() {
                   disabled={submitting}
                 >
                   <option value="">-- Select Effect --</option>
-                  <option value="FMC">FMC - Full Mission Capable</option>
+                  <option value="FMC">FMC - Fully Mission Capable</option>
                   <option value="PMC">PMC - Partially Mission Capable</option>
                   <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
                   <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>

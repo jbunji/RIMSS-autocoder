@@ -660,7 +660,7 @@ export default function MaintenanceDetailPage() {
   // Asset status options for removed parts (aligned with AFI 21-103)
   const assetStatusOptions = [
     { value: '', label: 'Keep current status' },
-    { value: 'FMC', label: 'FMC - Full Mission Capable' },
+    { value: 'FMC', label: 'FMC - Fully Mission Capable' },
     { value: 'PMC', label: 'PMC - Partially Mission Capable' },
     { value: 'PMCM', label: 'PMCM - Partially Mission Capable (Maintenance)' },
     { value: 'PMCS', label: 'PMCS - Partially Mission Capable (Supply)' },
@@ -2777,9 +2777,11 @@ export default function MaintenanceDetailPage() {
                         {linkedSortie.mission_id}
                       </span>
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        linkedSortie.sortie_effect === 'Full Mission Capable'
+                        linkedSortie.sortie_effect === 'FMC' || linkedSortie.sortie_effect === 'Full Mission Capable'
                           ? 'bg-green-100 text-green-800'
-                          : linkedSortie.sortie_effect === 'Partial Mission Capable'
+                          : linkedSortie.sortie_effect === 'PMC' || linkedSortie.sortie_effect === 'PMCM' ||
+                            linkedSortie.sortie_effect === 'PMCS' || linkedSortie.sortie_effect === 'PMCB' ||
+                            linkedSortie.sortie_effect === 'Partial Mission Capable'
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
