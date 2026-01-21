@@ -2427,3 +2427,85 @@ Session Status: SUCCESS
 ================================================================================
 
 [Testing] Feature #324 verified - still passing
+[Testing] Session complete - Feature #216 verified - still passing. All report options visible including Inventory and Backlog reports. No regressions found.
+
+================================================================================
+[COMPLETED] Tue Jan 21 10:15:00 EST 2026 - Feature #401 Implementation Session
+================================================================================
+
+Feature: Reports filter by location
+Category: functional
+Status: ✅ PASSING (marked passing in features.db)
+
+Implementation Summary:
+All generated reports now filter data by user assigned locations. Non-admin users
+only see report data from assets at their assigned locations. Admin users see all
+data without location restrictions.
+
+Changes Made:
+
+1. Inventory Report (backend/src/index.ts - lines 14764-14778):
+   - Added userLocationIds extraction from user.locations
+   - Applied location filtering: assets must be at loc_ida OR loc_idc
+   - Admin users bypass location filtering
+   - Updated log to show locations being filtered
+
+2. PMI Schedule Report (backend/src/index.ts - lines 14859-14889):
+   - Updated authentication to use authenticateRequest pattern
+   - Added userLocationIds extraction
+   - Applied location filtering via asset lookup
+   - PMI records filtered based on associated asset's location
+
+3. Bad Actor Report (backend/src/index.ts - lines 14956-14978):
+   - Updated authentication to use authenticateRequest pattern
+   - Added userLocationIds extraction
+   - Applied location filtering to bad actor assets
+   - Filtered based on asset loc_ida OR loc_idc
+
+4. Sorties API Endpoint (backend/src/index.ts - lines 13896-13923):
+   - Added userLocationIds extraction
+   - Applied location filtering via asset lookup
+   - Sorties filtered based on associated asset's location
+   - Non-admin users only see sorties for assets at their locations
+
+Already Location-Filtered Endpoints:
+- Maintenance Events (/api/events) - lines 4366-4380
+- Parts Orders (/api/parts-orders) - from Feature #398
+
+Testing and Verification:
+✅ Tested with field_tech user (location 394):
+   - Inventory report: 3 assets (all at Field Site Bravo)
+   - Sortie report: 1 sortie (asset CRIIS-006 at location 394)
+   - Backend logs: "[REPORTS] ... Locations: 394, Total assets: 3"
+
+✅ Tested with admin user (locations 154, 212):
+   - Inventory report: 10 assets (all locations visible)
+   - Backend logs: "[REPORTS] ... Locations: 154,212, Total assets: 10"
+
+✅ All report types verified:
+   - Inventory Report: Location filtering working ✓
+   - PMI Schedule Report: Location filtering via asset lookup ✓
+   - Bad Actor Report: Location filtering via asset lookup ✓
+   - Maintenance Backlog Report: Uses /api/events (already filtered) ✓
+   - Parts Ordered Report: Uses /api/parts-orders (already filtered) ✓
+   - Sortie Report: Location filtering via asset lookup ✓
+
+Technical Implementation:
+- Consistent pattern across all report endpoints
+- Non-admin users: filter by userLocationIds (from user.locations)
+- Admin users: no location filtering (see all data)
+- Assets filtered by: loc_ida OR loc_idc in userLocationIds
+- Related records (PMI, sorties) filtered via asset location lookup
+- All filtering happens at API level (not just UI)
+
+Project Progress:
+- Before: 398/423 features passing (94.1%)
+- After:  399/423 features passing (94.3%)
+- Features implemented: #401
+
+Session Status: SUCCESS ✅
+Session Duration: ~15 minutes
+Session End Time: Tue Jan 21 10:15:00 EST 2026
+
+================================================================================
+
