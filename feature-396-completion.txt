@@ -1,0 +1,111 @@
+================================================================================
+[COMPLETED] Tue Jan 21 10:35:00 EST 2026 - Feature #396 Implementation Session
+================================================================================
+
+Feature: Repair queries filter by location
+Category: Functional
+Status: ✅ PASSING (marked passing in features.db)
+
+Description:
+Repairs are filtered based on location through their parent maintenance event.
+Users can only access repairs for events at locations they have been assigned.
+
+Implementation Details:
+-----------------------
+
+**Problem:**
+Repairs were only filtered by program access, not by location. Users could
+potentially access repairs for maintenance events at locations they weren't
+authorized for, violating location-based data isolation requirements.
+
+**Solution:**
+Added location filtering to repair endpoints by checking the parent maintenance
+event's location (loc_id) against the user's assigned locations.
+
+Changes Made:
+
+1. **GET /api/events/:eventId/repairs endpoint** (backend/src/index.ts, line ~4673):
+   - Added location security check after program validation
+   - Retrieves user's location IDs: user.locations.map(l => l.loc_id)
+   - Validates event.loc_id is in user's assigned locations
+   - Returns 403 Forbidden if location not authorized
+   - Error message: "Access denied to this maintenance event - location not authorized"
+
+2. **GET /api/repairs/:id endpoint** (backend/src/index.ts, line ~4758):
+   - Added location security check through parent event
+   - First retrieves parent maintenance event
+   - Checks event.loc_id against user's assigned locations
+   - Returns 403 Forbidden if location not authorized
+   - Error message: "Access denied to this repair - location not authorized"
+
+Security Architecture:
+---------------------
+
+Repairs inherit location access from their parent maintenance event:
+
+Repair (repair_id: 3) -> event_id: 2 -> MaintenanceEvent (event_id: 2) -> loc_id: 394
+
+Two-level security enforcement:
+1. Program check (existing): User must have access to event's pgm_id
+2. Location check (NEW): User must have access to event's loc_id
+
+Verification Steps Completed:
+-----------------------------
+
+✅ Step 1: Log in as user with specific location
+   - User: field_tech (Bob Field, user_id: 3)
+   - Assigned location: 24892/526/527 (loc_id: 394 - Field Site Bravo)
+   - Program: CRIIS (pgm_id: 1)
+   - Login successful, dashboard displayed
+
+✅ Step 2: View repairs for accessible event
+   - Navigated to: MX-2024-002 (Event ID #2)
+   - Event location: Field Site Bravo (loc_id: 394)
+   - Event program: CRIIS (pgm_id: 1)
+   - Result: SUCCESS ✅
+   - Page loaded with full event details
+   - Repair #1 displayed with all details
+   - API calls successful (all 200 OK)
+
+✅ Step 3: Verify repairs blocked for unauthorized location
+   - Attempted to access: MX-2024-001 (Event ID #1)
+   - Event location: Depot Alpha (loc_id: 154)
+   - User location: 394 (Field Site Bravo) - MISMATCH!
+   - Result: BLOCKED ✅
+   - Repairs API returned 403 Forbidden
+   - Location filtering working correctly!
+
+Testing Details:
+---------------
+Browser: Playwright automation at 1280x720 resolution
+User: field_tech (Bob Field, FIELD_TECHNICIAN role)
+Assigned Location: 24892/526/527 (loc_id: 394)
+Program: CRIIS
+
+Screenshots Captured:
+- feature-396-repairs-accessible.png (authorized access)
+- feature-396-location-403-blocked.png (unauthorized access blocked)
+
+Technical Notes:
+---------------
+Repairs don't have their own location fields. They inherit location access
+through their parent maintenance event's loc_id field. This is consistent
+with the domain model where repairs are always performed at the location
+where the maintenance event is happening.
+
+Files Modified:
+- backend/src/index.ts (repair endpoint location security)
+
+Git Commit:
+- fef49a7: Feature #396 implementation
+
+Project Progress:
+- Before: 394/423 features passing (93.1%)
+- After:  395/423 features passing (93.4%)
+- Features completed this session: #396
+
+Session Duration: ~45 minutes
+Session Status: SUCCESS ✅
+
+Session End Time: Tue Jan 21 10:35:00 EST 2026
+================================================================================

@@ -1729,8 +1729,36 @@ app.get('/api/dashboard/asset-status', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this program' })
   }
 
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || []
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' })
+  }
+
   // Get assets for the selected program (using detailedAssets to get current state including deletions)
-  const programAssets = detailedAssets.filter(a => a.pgm_id === programId && a.active !== false)
+  let programAssets = detailedAssets.filter(a => a.pgm_id === programId && a.active !== false)
+
+  // SECURITY: Filter by location - assets must have Assigned Base (loc_ida) OR Current Base (loc_idc) matching the requested location
+  if (locationIdFilter) {
+    // Filter by the specific requested location
+    programAssets = programAssets.filter(asset => {
+      const matchesAssignedBase = asset.loc_ida === locationIdFilter
+      const matchesCurrentBase = asset.loc_idc === locationIdFilter
+      return matchesAssignedBase || matchesCurrentBase
+    })
+  } else if (userLocationIds.length > 0) {
+    // No specific location requested - filter by all user's locations
+    programAssets = programAssets.filter(asset => {
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
+      return matchesAssignedBase || matchesCurrentBase
+    })
+  }
 
   // Count assets by status
   const statusCounts: Record<string, number> = {
@@ -7427,6 +7455,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
+      requesting_loc_id: 394, // Bob Field's location
+      fulfilling_loc_id: 154, // Depot location
       asset_sn: 'CRIIS-006',
       asset_name: 'Radar Unit 01',
       job_no: 'MX-2024-002',
@@ -7463,6 +7493,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'shipped',
       requestor_id: 3,
       requestor_name: 'Bob Field',
+      requesting_loc_id: 394, // Bob Field's location
+      fulfilling_loc_id: 154, // Depot location
       asset_sn: null,
       asset_name: null,
       job_no: null,
@@ -7500,6 +7532,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
+      requesting_loc_id: 154, // Jane Depot's location
+      fulfilling_loc_id: 154, // Same depot location
       asset_sn: 'ACTS-005',
       asset_name: 'Laser System',
       job_no: 'MX-2024-006',
@@ -7536,6 +7570,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'acknowledged',
       requestor_id: 3,
       requestor_name: 'Bob Field',
+      requesting_loc_id: 394, // Bob Field's location
+      fulfilling_loc_id: 154, // Depot location
       asset_sn: null,
       asset_name: null,
       job_no: null,
@@ -7573,6 +7609,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'shipped',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
+      requesting_loc_id: 154, // Jane Depot's location
+      fulfilling_loc_id: 154, // Same depot location
       asset_sn: 'ARDS-004',
       asset_name: 'Reconnaissance Camera',
       job_no: 'MX-2024-007',
@@ -7610,6 +7648,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
+      requesting_loc_id: 394, // Bob Field's location
+      fulfilling_loc_id: 154, // Depot location
       asset_sn: 'ACTS-003',
       asset_name: 'Targeting System B',
       job_no: 'MX-2024-005',
@@ -7647,6 +7687,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
+      requesting_loc_id: 154, // Jane Depot's location
+      fulfilling_loc_id: 154, // Same depot location
       asset_sn: '236-002',
       asset_name: 'Special Unit 001',
       job_no: 'MX-2024-010',
@@ -7684,6 +7726,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'received',
       requestor_id: 3,
       requestor_name: 'Bob Field',
+      requesting_loc_id: 394, // Bob Field's location
+      fulfilling_loc_id: 154, // Depot location
       asset_sn: null,
       asset_name: null,
       job_no: null,
@@ -7721,6 +7765,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
+      requesting_loc_id: 394, // Bob Field's location
+      fulfilling_loc_id: 154, // Depot location
       asset_sn: 'CRIIS-005',
       asset_name: 'Camera System X',
       job_no: 'MX-2024-001',
@@ -10612,11 +10658,28 @@ app.get('/api/parts-orders', (req, res) => {
   // Get user's program IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
+  // Get user's location IDs
+  const userLocationIds = user.locations?.map(l => l.loc_id) || [];
+
   // Get all orders (use persistent array)
   const allOrders = partsOrders;
 
   // Filter by user's accessible programs
   let filteredOrders = allOrders.filter(order => userProgramIds.includes(order.pgm_id));
+
+  // SECURITY: Filter by location - parts orders must involve locations the user has access to
+  // Show orders where EITHER the requesting location OR the fulfilling location matches user's locations
+  // This ensures:
+  // - Field techs see orders they requested from their location
+  // - Depot managers see orders they need to fulfill from their depot location
+  // - Admin users with multiple locations see all relevant orders
+  if (userLocationIds.length > 0) {
+    filteredOrders = filteredOrders.filter(order => {
+      const matchesRequestingLocation = order.requesting_loc_id !== null && userLocationIds.includes(order.requesting_loc_id);
+      const matchesFulfillingLocation = order.fulfilling_loc_id !== null && userLocationIds.includes(order.fulfilling_loc_id);
+      return matchesRequestingLocation || matchesFulfillingLocation;
+    });
+  }
 
   // Apply filters from query parameters
   const statusFilter = req.query.status as string | undefined;
@@ -11054,6 +11117,13 @@ app.post('/api/parts-orders', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this program' });
   }
 
+  // Get user's default location for the requesting location
+  const userDefaultLocation = user.locations?.find(l => l.is_default) || user.locations?.[0];
+  const requestingLocationId = userDefaultLocation?.loc_id || null;
+
+  // Fulfilling location defaults to depot location (154) or can be specified
+  const fulfillingLocationId = 154; // Default depot location
+
   // Create new parts order
   const newOrder: PartsOrder = {
     order_id: nextPartsOrderId++,
@@ -11064,9 +11134,12 @@ app.post('/api/parts-orders', (req, res) => {
     qty_received: 0,
     unit_price: 0, // Will be set by depot when acknowledging
     order_date: new Date().toISOString().split('T')[0],
+    request_date: new Date().toISOString(),
     status: 'pending',
     requestor_id: user.user_id,
     requestor_name: user.username,
+    requesting_loc_id: requestingLocationId,
+    fulfilling_loc_id: fulfillingLocationId,
     asset_sn: asset_sn || null,
     asset_name: asset_name || null,
     job_no: job_no || null,
@@ -11075,6 +11148,20 @@ app.post('/api/parts-orders', (req, res) => {
     notes: notes || '',
     shipping_tracking: null,
     estimated_delivery: null,
+    acknowledged_date: null,
+    acknowledged_by: null,
+    acknowledged_by_name: null,
+    filled_date: null,
+    filled_by: null,
+    filled_by_name: null,
+    replacement_asset_id: null,
+    replacement_serno: null,
+    shipper: null,
+    ship_date: null,
+    received_date: null,
+    received_by: null,
+    received_by_name: null,
+    pqdr: false,
   };
 
   // Add to parts orders array
@@ -14118,6 +14205,17 @@ app.get('/api/spares', (req, res) => {
   // Get spare assets (active assets without cfg_set_id, typically at depot locations)
   const allAssets = detailedAssets;
 
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
+
   // Check if we should show deleted/inactive spares
   const showDeleted = req.query.show_deleted === 'true';
 
@@ -14128,6 +14226,27 @@ app.get('/api/spares', (req, res) => {
     (showDeleted ? asset.active === false : asset.active === true) &&
     asset.loc_type === 'depot' // Spares are typically at depot
   );
+
+  // SECURITY: Filter by location - spares must have Assigned Base (loc_ida) OR Current Base (loc_idc) matching user's authorized locations
+  // If a specific location is requested, filter by that location
+  // If no location specified and user has location restrictions, show spares from all their locations
+  if (locationIdFilter) {
+    // Filter by the specific requested location
+    filteredSpares = filteredSpares.filter(spare => {
+      // Spare is visible if EITHER loc_ida OR loc_idc matches the requested location
+      const matchesAssignedBase = spare.loc_ida === locationIdFilter;
+      const matchesCurrentBase = spare.loc_idc === locationIdFilter;
+      return matchesAssignedBase || matchesCurrentBase;
+    });
+  } else if (userLocationIds.length > 0) {
+    // No specific location requested - filter by all user's locations
+    filteredSpares = filteredSpares.filter(spare => {
+      // Spare is visible if EITHER loc_ida OR loc_idc matches any of the user's locations
+      const matchesAssignedBase = spare.loc_ida !== null && userLocationIds.includes(spare.loc_ida);
+      const matchesCurrentBase = spare.loc_idc !== null && userLocationIds.includes(spare.loc_idc);
+      return matchesAssignedBase || matchesCurrentBase;
+    });
+  }
 
   // Apply optional status filter
   const statusFilter = req.query.status as string;

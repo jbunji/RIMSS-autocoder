@@ -2033,3 +2033,146 @@ Session End Time: Tue Jan 21 10:11:00 EST 2026
 ================================================================================
 [Testing] Feature #376 verified - still passing
 
+================================================================================
+[Testing] Tue Jan 21 15:00:00 EST 2026 - Feature #237 Regression Test Complete
+================================================================================
+Feature: Audit log non-admin access blocked
+Category: Audit
+Status: ✅ VERIFIED - Still PASSING
+
+Description:
+Non-admin users cannot view audit logs
+
+Verification Steps Completed:
+✅ Step 1: Log in as field_technician
+   - Successfully logged in as field_tech (Bob Field)
+   - Password: field123
+   - Role: FIELD_TECHNICIAN
+   - Program: CRIIS
+
+✅ Step 2: Navigate to /admin/audit
+   - Attempted to navigate to http://localhost:5173/admin/audit
+   - Navigation successful (no redirect loop)
+
+✅ Step 3: Verify access denied
+   - Received 404 "Page not found" error page
+   - This is the expected behavior for unauthorized access
+   - No Admin menu visible in sidebar for field_technician users
+   - Access properly blocked at route level
+
+Testing Details:
+- Page tested: /admin/audit
+- Browser: Playwright automation at 1280x720 resolution
+- User: field_tech (Bob Field)
+- Role: FIELD_TECHNICIAN
+- Program: CRIIS (Common Remotely Operated Integrated Reconnaissance System)
+- Console errors: None (zero JavaScript errors)
+
+Screenshot captured:
+- feature-237-access-denied.png
+
+Access Control Verification:
+✅ Field technician user properly blocked from audit logs
+✅ 404 error page displayed (not exposing existence of protected route)
+✅ No console errors during access attempt
+✅ No navigation/sidebar links to admin routes for non-admin users
+✅ Clean user experience with option to return to dashboard
+
+Technical Verification:
+✅ Route protection working correctly
+✅ No unauthorized API calls visible in network logs
+✅ User session maintained after access denial
+✅ No client-side errors or warnings (except expected React Router future flags)
+
+Result Summary:
+Feature #237 is working correctly with no regressions found. Non-admin users
+(field_technician in this case) are properly prevented from accessing the audit
+log page at /admin/audit. The access control is implemented cleanly with a 404
+error page that doesn't expose the existence of protected routes.
+
+The feature correctly implements role-based access control (RBAC) for the audit
+log functionality, ensuring only ADMIN users can view system audit logs.
+
+No issues detected. Feature continues to pass all requirements.
+
+Session Duration: ~15 minutes
+Session Status: SUCCESS ✅
+
+Session End Time: Tue Jan 21 15:00:00 EST 2026
+================================================================================
+[Testing] Feature #237 verified - still passing
+
+================================================================================
+[Testing] Tue Jan 21 10:25:00 EST 2026 - Feature #75 Regression Test Complete
+================================================================================
+Feature: Asset detail page renders
+Category: Asset Management
+Status: ✅ VERIFIED - Still PASSING
+
+Description:
+Single asset detail view displays all information
+
+Verification Steps Completed:
+✅ Step 1: Navigate to assets list
+   - Navigated to http://localhost:5173/assets
+   - Assets list page loaded successfully
+   - 5 assets displayed (CRIIS program)
+
+✅ Step 2: Click on an asset row
+   - Clicked "View" button for CRIIS-001 (Sensor Unit A)
+   - Successfully navigated to /assets/1
+
+✅ Step 3: Verify detail page loads
+   - Asset detail page loaded successfully
+   - URL: http://localhost:5173/assets/1
+   - Page title correct
+   - Breadcrumb navigation displayed correctly
+
+✅ Step 4: Verify all asset fields displayed
+   Asset Identification Section:
+   - Serial Number: CRIIS-001 ✓
+   - Part Number: PN-SENSOR-A ✓
+   - Name: Sensor Unit A ✓
+   - UII: W91WSL000001PN-SENSOR- ✓
+
+   Manufacturing & Tracking Section:
+   - Manufacturing Date: March 14, 2020 ✓
+   - Acceptance Date: May 31, 2020 ✓
+   - ETI Hours: 1,250 hrs ✓
+   - Last Maintenance: January 5, 2026 ✓
+   - Next PMI Due: March 6, 2026 ✓
+
+   Status & Location Section:
+   - Status: FMC (Full Mission Capable) ✓
+   - Active Status: Active ✓
+   - Bad Actor Flag: Not flagged ✓
+   - Assigned Base: Depot Alpha ✓
+   - Current Base: Maintenance Bay 1 ✓
+
+   In-Transit / Shipping Information:
+   - In Transit Status: Not in transit ✓
+   - Carrier: Not specified ✓
+   - Tracking Number: Not specified ✓
+   - Ship Date: Not specified ✓
+
+✅ Step 5: Verify related information (configs, history)
+   Tab Navigation Tested:
+   1. Details Tab ✓ - All fields displayed correctly
+   2. History Tab ✓ - Change history with 2 entries
+   3. ETI Tracking Tab ✓ - ETI history with 2 entries
+   4. Meter History Tab ✓ - Meter history loaded
+   5. Maintenance Events Tab ✓ - 1 event displayed
+   6. PMI History Tab ✓ - 1 PMI entry shown
+   7. Software Tab ✓ - 1 software association shown
+
+Console Messages:
+⚠️ Minor React key warning (code quality, not functional)
+✅ No other errors - feature works correctly
+
+Result: Feature #75 working correctly with no regressions found.
+
+Session Status: SUCCESS ✅
+Session End Time: Tue Jan 21 10:25:00 EST 2026
+================================================================================
+[Testing] Feature #75 verified - still passing
+
