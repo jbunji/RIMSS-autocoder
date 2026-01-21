@@ -1,0 +1,46 @@
+[Testing] Wed Jan 21 09:07:22 EST 2026 - Starting regression test for Feature #85: Asset hierarchy displays NHA/SRA
+
+================================================================================
+[COMPLETED] Tue Jan 21 09:15:00 EST 2026 - Feature #377 Implementation Session
+================================================================================
+
+Feature: Update Asset detail view labels from Administrative/Custodial to
+         Assigned Base/Current Base
+
+Status: ✅ PASSING (marked passing in features.db)
+
+Changes Made:
+- Modified frontend/src/pages/AssetDetailPage.tsx
+- Updated label on line 1500: "Administrative Location" → "Assigned Base"
+- Updated label on line 1522: "Custodial Location" → "Current Base"
+- Changes apply to both view and edit modes
+
+Verification Steps Completed:
+✅ 1. Navigate to asset detail view (tested /assets/1 and /assets/3)
+✅ 2. Verify loc_ida displays as Assigned Base
+✅ 3. Verify loc_idc displays as Current Base
+
+Testing Details:
+- Tested on CRIIS-001 asset (view and edit modes)
+- Tested on CRIIS-003 asset (view and edit modes)
+- Verified labels in both read-only and dropdown selection modes
+- No console errors detected
+- No JavaScript errors
+- Labels working correctly across all tested assets
+
+Git Commits:
+- 2774dec: Feature #377 implementation
+- 940cbaf: Cleanup temporary script
+- 5e4de5e: Add completion summary
+
+Project Progress:
+- Before: 374/423 features passing (88.4%)
+- After:  376/423 features passing (88.9%)
+- Features completed: #377
+
+Next Steps:
+- Other parallel agents may be working on additional features
+- Continue with next pending feature in queue
+
+Session End Time: Tue Jan 21 09:15:00 EST 2026
+Session Status: SUCCESS ✅

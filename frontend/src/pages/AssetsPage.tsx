@@ -684,7 +684,7 @@ export default function AssetsPage() {
         : []
 
       // Table header row
-      const headerRow = ['Serial Number', 'Part Number', 'Name', 'Status', 'Status Name', 'Location', 'Location Type', 'ETI Hours', 'Next PMI Date', 'Bad Actor', 'In Transit', 'Remarks']
+      const headerRow = ['Serial Number', 'Part Number', 'Name', 'Status', 'Status Name', 'Assigned Base', 'Current Base', 'ETI Hours', 'Next PMI Date', 'Bad Actor', 'In Transit', 'Remarks']
 
       // Data rows from ALL assets
       const dataRows = allAssets.map(asset => [
@@ -693,8 +693,8 @@ export default function AssetsPage() {
         asset.part_name,
         asset.status_cd,
         asset.status_name,
-        asset.location,
-        asset.loc_type,
+        asset.admin_loc_name || asset.admin_loc,
+        asset.cust_loc_name || asset.cust_loc,
         asset.eti_hours !== null ? asset.eti_hours : '',
         asset.next_pmi_date ? formatDate(asset.next_pmi_date) : '',
         asset.bad_actor ? 'Yes' : 'No',
@@ -730,8 +730,8 @@ export default function AssetsPage() {
         { wch: 25 },  // Name
         { wch: 8 },   // Status
         { wch: 30 },  // Status Name
-        { wch: 20 },  // Location
-        { wch: 12 },  // Location Type
+        { wch: 20 },  // Assigned Base
+        { wch: 20 },  // Current Base
         { wch: 12 },  // ETI Hours
         { wch: 14 },  // Next PMI Date
         { wch: 10 },  // Bad Actor
