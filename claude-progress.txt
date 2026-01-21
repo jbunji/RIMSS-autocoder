@@ -4155,3 +4155,21 @@ Notes:
 - Ready for location-based filtering features
 
 ================================================================================
+[Testing] 2026-01-21 10:35:11 - Feature #83 Fix in Progress
+
+Root Cause Analysis:
+- Assets API filters by program_id=1 and location_id=154
+- Test assets were created at location 154
+- However, assets are still not visible due to additional filtering logic
+- Need to verify program_location mappings for location 154
+
+Actions Taken:
+1. Created 20 test assets (TEST-10 through TEST-29)
+2. Updated test assets to use location 154 (admin user's location)
+3. Test assets still not appearing - investigating program_location table
+
+Next Steps:
+- Check if location 154 is mapped to program 1 in program_location table
+- Add mapping if missing
+- Verify assets become visible after proper mapping
+
