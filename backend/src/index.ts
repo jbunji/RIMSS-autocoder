@@ -2018,6 +2018,17 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
+
   // Get interval filter from query string (optional) - supports 30, 60, 90, 180, 365
   const intervalFilter = req.query.interval_days ? parseInt(req.query.interval_days as string, 10) : null;
 
@@ -2046,6 +2057,27 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
     filteredPMI = filteredPMI.filter(pmi => pmi.pgm_id === programIdFilter);
+  }
+
+  // SECURITY: Filter by location - join with assets to check loc_ida/loc_idc
+  if (locationIdFilter || userLocationIds.length > 0) {
+    filteredPMI = filteredPMI.filter(pmi => {
+      const asset = detailedAssets.find(a => a.asset_id === pmi.asset_id);
+      if (!asset) return false; // PMI without asset shouldn't happen, but be defensive
+
+      if (locationIdFilter) {
+        // Filter by specific location
+        const matchesAssignedBase = asset.loc_ida === locationIdFilter;
+        const matchesCurrentBase = asset.loc_idc === locationIdFilter;
+        return matchesAssignedBase || matchesCurrentBase;
+      } else if (userLocationIds.length > 0) {
+        // Filter by all user's locations
+        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+        return matchesAssignedBase || matchesCurrentBase;
+      }
+      return true;
+    });
   }
 
   // Apply interval filter if specified (30, 60, 90, 180, 365 days)
@@ -4231,6 +4263,17 @@ app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
+
   // Use persistent maintenance events array
   const allEvents = maintenanceEvents;
 
@@ -4242,6 +4285,27 @@ app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
     filteredEvents = filteredEvents.filter(event => event.pgm_id === programIdFilter);
+  }
+
+  // SECURITY: Filter by location - join with assets to check loc_ida/loc_idc
+  if (locationIdFilter || userLocationIds.length > 0) {
+    filteredEvents = filteredEvents.filter(event => {
+      const asset = detailedAssets.find(a => a.asset_id === event.asset_id);
+      if (!asset) return false; // Event without asset shouldn't happen, but be defensive
+
+      if (locationIdFilter) {
+        // Filter by specific location
+        const matchesAssignedBase = asset.loc_ida === locationIdFilter;
+        const matchesCurrentBase = asset.loc_idc === locationIdFilter;
+        return matchesAssignedBase || matchesCurrentBase;
+      } else if (userLocationIds.length > 0) {
+        // Filter by all user's locations
+        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+        return matchesAssignedBase || matchesCurrentBase;
+      }
+      return true;
+    });
   }
 
   // Sort by priority (Critical first, then Urgent, then Routine)
@@ -7907,6 +7971,17 @@ app.get('/api/dashboard/parts-awaiting-action', (req, res) => {
   // Get program filter from query string (optional)
   const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
+
   // Get all orders (use persistent array)
   const allOrders = partsOrders;
 
@@ -7918,6 +7993,31 @@ app.get('/api/dashboard/parts-awaiting-action', (req, res) => {
   // Apply program filter if specified
   if (programIdFilter && userProgramIds.includes(programIdFilter)) {
     filteredOrders = filteredOrders.filter(order => order.pgm_id === programIdFilter);
+  }
+
+  // SECURITY: Filter by location - join with assets to check loc_ida/loc_idc
+  // Parts orders have asset_id which we can use to find the asset's location
+  if (locationIdFilter || userLocationIds.length > 0) {
+    filteredOrders = filteredOrders.filter(order => {
+      // If order has no associated asset, include it (general inventory orders)
+      if (!order.asset_id) return true;
+
+      const asset = detailedAssets.find(a => a.asset_id === order.asset_id);
+      if (!asset) return false; // Order for deleted asset
+
+      if (locationIdFilter) {
+        // Filter by specific location
+        const matchesAssignedBase = asset.loc_ida === locationIdFilter;
+        const matchesCurrentBase = asset.loc_idc === locationIdFilter;
+        return matchesAssignedBase || matchesCurrentBase;
+      } else if (userLocationIds.length > 0) {
+        // Filter by all user's locations
+        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+        return matchesAssignedBase || matchesCurrentBase;
+      }
+      return true;
+    });
   }
 
   // Sort by priority (critical first, then urgent, then routine)
@@ -8183,6 +8283,17 @@ app.get('/api/dashboard/recent-activity', (req, res) => {
   // Get user's program IDs
   const userProgramIds = user.programs.map(p => p.pgm_id);
 
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
+
   // Get optional limit from query string (default to 10)
   const limit = Math.min(parseInt(req.query.limit as string, 10) || 10, 50);
 
@@ -8190,9 +8301,61 @@ app.get('/api/dashboard/recent-activity', (req, res) => {
   const allActivity = [...generateMockActivityLog(), ...dynamicActivityLog];
 
   // Filter activity by user's accessible programs (null pgm_id entries are global and visible to all)
-  const filteredActivity = allActivity.filter(
+  let filteredActivity = allActivity.filter(
     activity => activity.pgm_id === null || userProgramIds.includes(activity.pgm_id)
   );
+
+  // SECURITY: Filter by location - check entity's location based on entity_type
+  if (locationIdFilter || userLocationIds.length > 0) {
+    filteredActivity = filteredActivity.filter(activity => {
+      // Global activities (null entity_id, user/session entity_type) are always visible
+      if (activity.entity_id === null || activity.entity_type === 'user' || activity.entity_type === 'session') {
+        return true;
+      }
+
+      // For other entity types, find the associated asset to check location
+      let asset: AssetDetails | undefined;
+
+      if (activity.entity_type === 'asset') {
+        asset = detailedAssets.find(a => a.asset_id === activity.entity_id);
+      } else if (activity.entity_type === 'maintenance') {
+        const event = maintenanceEvents.find(e => e.event_id === activity.entity_id);
+        if (event) {
+          asset = detailedAssets.find(a => a.asset_id === event.asset_id);
+        }
+      } else if (activity.entity_type === 'pmi') {
+        // PMI records - need to find via generateMockPMIData
+        const generatedPMI = generateMockPMIData();
+        const pmiRecord = [...generatedPMI, ...customPMIRecords].find(p => p.pmi_id === activity.entity_id);
+        if (pmiRecord) {
+          asset = detailedAssets.find(a => a.asset_id === pmiRecord.asset_id);
+        }
+      } else if (activity.entity_type === 'parts_order') {
+        const order = partsOrders.find(o => o.order_id === activity.entity_id);
+        if (order && order.asset_id) {
+          asset = detailedAssets.find(a => a.asset_id === order.asset_id);
+        } else {
+          // Parts order with no asset (general inventory) - include it
+          return true;
+        }
+      }
+
+      // If no asset found, exclude the activity (entity was deleted or data inconsistency)
+      if (!asset) return false;
+
+      // Check location match
+      if (locationIdFilter) {
+        const matchesAssignedBase = asset.loc_ida === locationIdFilter;
+        const matchesCurrentBase = asset.loc_idc === locationIdFilter;
+        return matchesAssignedBase || matchesCurrentBase;
+      } else if (userLocationIds.length > 0) {
+        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+        return matchesAssignedBase || matchesCurrentBase;
+      }
+      return true;
+    });
+  }
 
   // Sort by timestamp (most recent first) and limit
   const sortedActivity = filteredActivity
