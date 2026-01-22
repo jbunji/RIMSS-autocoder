@@ -14656,6 +14656,32 @@ app.get('/api/configurations', async (req, res) => {
     // Get total count for pagination
     const totalCount = await prisma.cfgSet.count({ where: whereClause });
 
+    // Build the asset count filter - should match the location filtering applied to configs
+    // This ensures the asset count reflects only assets at the selected location
+    let assetCountFilter: Prisma.AssetWhereInput = { active: true };
+
+    if (locationIdFilter && locationIdFilter > 0) {
+      // Specific location selected - count only assets at this location
+      assetCountFilter = {
+        active: true,
+        OR: [
+          { loc_ida: locationIdFilter },
+          { loc_idc: locationIdFilter },
+        ],
+      };
+    } else if (user.role !== 'ADMIN' && user.locations && user.locations.length > 0) {
+      // Non-admin user - count only assets at their assigned locations
+      const userLocationIds = user.locations.map(l => l.loc_id);
+      assetCountFilter = {
+        active: true,
+        OR: [
+          { loc_ida: { in: userLocationIds } },
+          { loc_idc: { in: userLocationIds } },
+        ],
+      };
+    }
+    // ADMIN with no location filter counts all active assets
+
     // Query configurations from database
     let dbConfigs;
 
@@ -14676,7 +14702,7 @@ app.get('/api/configurations', async (req, res) => {
           _count: {
             select: {
               cfgLists: { where: { active: true } },
-              assets: { where: { active: true } },
+              assets: { where: assetCountFilter },
             },
           },
         },
@@ -14713,7 +14739,7 @@ app.get('/api/configurations', async (req, res) => {
           _count: {
             select: {
               cfgLists: { where: { active: true } },
-              assets: { where: { active: true } },
+              assets: { where: assetCountFilter },
             },
           },
         },
@@ -14894,24 +14920,39 @@ app.get('/api/configurations/:id/bom', async (req, res) => {
       orderBy: { sort_order: 'asc' },
     });
 
-    // Transform to API response format
-    const bomItems = dbBomItems.map(item => ({
-      list_id: item.list_id,
-      cfg_set_id: item.cfg_set_id,
-      partno_p: item.partno_p,
-      parent_partno: item.parentPart.partno,
-      parent_noun: item.parentPart.noun,
-      partno_c: item.partno_c,
-      child_partno: item.childPart.partno,
-      child_noun: item.childPart.noun,
-      sort_order: item.sort_order,
-      qpa: item.qpa,
-      active: item.active,
-      ins_by: item.ins_by,
-      ins_date: item.ins_date.toISOString(),
-      chg_by: item.chg_by,
-      chg_date: item.chg_date?.toISOString() || null,
-    }));
+    // Transform to API response format with graceful handling of missing part references
+    const bomItems = dbBomItems.map(item => {
+      // Handle missing part references gracefully - log warning but don't crash
+      const hasParentPart = item.parentPart !== null;
+      const hasChildPart = item.childPart !== null;
+
+      if (!hasParentPart) {
+        console.warn(`[CONFIGS] BOM item ${item.list_id} references missing parent part (partno_p: ${item.partno_p})`);
+      }
+      if (!hasChildPart) {
+        console.warn(`[CONFIGS] BOM item ${item.list_id} references missing child part (partno_c: ${item.partno_c})`);
+      }
+
+      return {
+        list_id: item.list_id,
+        cfg_set_id: item.cfg_set_id,
+        partno_p: item.partno_p,
+        parent_partno: hasParentPart ? item.parentPart.partno : `UNKNOWN-${item.partno_p}`,
+        parent_noun: hasParentPart ? item.parentPart.noun : 'Unknown Part (Reference Missing)',
+        partno_c: item.partno_c,
+        child_partno: hasChildPart ? item.childPart.partno : `UNKNOWN-${item.partno_c}`,
+        child_noun: hasChildPart ? item.childPart.noun : 'Unknown Part (Reference Missing)',
+        sort_order: item.sort_order,
+        qpa: item.qpa,
+        active: item.active,
+        ins_by: item.ins_by,
+        ins_date: item.ins_date.toISOString(),
+        chg_by: item.chg_by,
+        chg_date: item.chg_date?.toISOString() || null,
+        // Flag to indicate orphaned references for UI handling
+        has_missing_references: !hasParentPart || !hasChildPart,
+      };
+    });
 
     console.log(`[CONFIGS] BOM database query for config ${config.cfg_name} by ${user.username} - ${bomItems.length} items`);
 
