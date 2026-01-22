@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { MagnifyingGlassIcon, WrenchScrewdriverIcon, CubeIcon, CogIcon } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import EmptySearchIllustration from '../components/EmptySearchIllustration'
 
 interface SearchResult {
   id: number
@@ -189,12 +190,12 @@ export default function SearchResultsPage() {
 
           {/* No Results */}
           {results.totalResults === 0 && (
-            <div className="text-center py-12">
-              <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No results found</h3>
-              <p className="mt-2 text-sm text-gray-600">
-                Try adjusting your search terms or search for something else.
-              </p>
+            <div className="py-12 px-4 sm:py-16 md:py-20">
+              <EmptySearchIllustration
+                title="No results found"
+                subtitle={`We couldn't find anything matching "${query}". Try adjusting your search terms or search for something else.`}
+                size="lg"
+              />
             </div>
           )}
 
