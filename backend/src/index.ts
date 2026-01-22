@@ -11072,8 +11072,53 @@ app.put('/api/assets/:id', async (req, res) => {
   const assetId = parseInt(req.params.id, 10);
   const assetIndex = mockAssets.findIndex(a => a.asset_id === assetId);
 
+  // If asset not found in mockAssets, try to update in database
   if (assetIndex === -1) {
-    return res.status(404).json({ error: 'Asset not found' });
+    try {
+      // Check if asset exists in database
+      const dbAsset = await prisma.asset.findUnique({
+        where: { asset_id: assetId },
+        include: {
+          part: { select: { pgm_id: true } }
+        }
+      });
+
+      if (!dbAsset || !dbAsset.active) {
+        return res.status(404).json({ error: 'Asset not found' });
+      }
+
+      // Check if user has access to this asset's program
+      const userProgramIds = user.programs.map(p => p.pgm_id);
+      const assetPgmId = dbAsset.part?.pgm_id;
+      if (assetPgmId && !userProgramIds.includes(assetPgmId) && user.role !== 'ADMIN') {
+        return res.status(403).json({ error: 'Access denied to this asset' });
+      }
+
+      const { uii } = req.body;
+
+      // Update the asset in database (only UII for now)
+      const updatedAsset = await prisma.asset.update({
+        where: { asset_id: assetId },
+        data: {
+          uii: uii !== undefined ? (uii || null) : undefined,
+          chg_date: new Date(),
+          chg_by: user.username
+        }
+      });
+
+      console.log(`[ASSETS] Database asset updated by ${user.username}: ID ${assetId}, UII: ${uii}`);
+
+      return res.json({
+        message: 'Asset updated successfully',
+        asset: {
+          asset_id: updatedAsset.asset_id,
+          uii: updatedAsset.uii
+        }
+      });
+    } catch (error) {
+      console.error('[ASSETS] Error updating database asset:', error);
+      return res.status(500).json({ error: 'Failed to update asset' });
+    }
   }
 
   const asset = mockAssets[assetIndex];
@@ -15318,7 +15363,7 @@ app.get('/api/reference/parts', (req, res) => {
 });
 
 // POST /api/configurations - Create new configuration (requires depot_manager or admin)
-app.post('/api/configurations', (req, res) => {
+app.post('/api/configurations', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -15332,7 +15377,7 @@ app.post('/api/configurations', (req, res) => {
     return res.status(403).json({ error: 'Insufficient permissions to create configurations' });
   }
 
-  const { cfg_name, cfg_type, partno_id, partno, part_name, description, pgm_id } = req.body;
+  const { cfg_name, cfg_type, partno_id, description, pgm_id } = req.body;
 
   // Validation
   if (!cfg_name || typeof cfg_name !== 'string' || cfg_name.trim().length === 0) {
@@ -15352,52 +15397,75 @@ app.post('/api/configurations', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this program' });
   }
 
-  // Check for duplicate configuration name in same program
-  const existingConfig = configurations.find(
-    c => c.cfg_name.toLowerCase() === cfg_name.trim().toLowerCase() && c.pgm_id === targetPgmId
-  );
-  if (existingConfig) {
-    return res.status(400).json({ error: 'A configuration with this name already exists in this program' });
+  try {
+    // Check for duplicate configuration name in same program
+    const existingConfig = await prisma.cfgSet.findFirst({
+      where: {
+        cfg_name: { equals: cfg_name.trim(), mode: 'insensitive' },
+        pgm_id: targetPgmId,
+      },
+    });
+    if (existingConfig) {
+      return res.status(400).json({ error: 'A configuration with this name already exists in this program' });
+    }
+
+    // Create new configuration in database
+    const newConfig = await prisma.cfgSet.create({
+      data: {
+        cfg_name: cfg_name.trim(),
+        cfg_type,
+        pgm_id: targetPgmId,
+        partno_id: partno_id || null,
+        description: description?.trim() || null,
+        active: true,
+        ins_by: user.username,
+        ins_date: new Date(),
+      },
+    });
+
+    // Get program info
+    const program = await prisma.program.findUnique({
+      where: { pgm_id: targetPgmId },
+      select: { pgm_cd: true, pgm_name: true },
+    });
+
+    // Get part info if partno_id was provided
+    let partInfo = null;
+    if (partno_id) {
+      partInfo = await prisma.partList.findUnique({
+        where: { partno_id: partno_id },
+        select: { partno: true, noun: true },
+      });
+    }
+
+    console.log(`[CONFIGS] Created new config "${newConfig.cfg_name}" (ID: ${newConfig.cfg_set_id}) by ${user.username} for program ${program?.pgm_cd}`);
+
+    res.status(201).json({
+      message: 'Configuration created successfully',
+      configuration: {
+        cfg_set_id: newConfig.cfg_set_id,
+        cfg_name: newConfig.cfg_name,
+        cfg_type: newConfig.cfg_type,
+        pgm_id: newConfig.pgm_id,
+        partno_id: newConfig.partno_id,
+        partno: partInfo?.partno || null,
+        part_name: partInfo?.noun || null,
+        description: newConfig.description,
+        active: newConfig.active,
+        ins_by: newConfig.ins_by,
+        ins_date: newConfig.ins_date.toISOString(),
+        chg_by: null,
+        chg_date: null,
+        bom_item_count: 0,
+        asset_count: 0,
+        program_cd: program?.pgm_cd || 'UNKNOWN',
+        program_name: program?.pgm_name || 'Unknown Program',
+      },
+    });
+  } catch (error) {
+    console.error('[CONFIGS] Error creating configuration:', error);
+    res.status(500).json({ error: 'Failed to create configuration' });
   }
-
-  // Generate new ID
-  const newId = Math.max(...configurations.map(c => c.cfg_set_id), 0) + 1;
-
-  // Create new configuration
-  const newConfig: ConfigurationSet = {
-    cfg_set_id: newId,
-    cfg_name: cfg_name.trim(),
-    cfg_type,
-    pgm_id: targetPgmId,
-    partno_id: partno_id || null,
-    partno: partno || null,
-    part_name: part_name || null,
-    description: description?.trim() || null,
-    active: true,
-    ins_by: user.username,
-    ins_date: new Date().toISOString(),
-    chg_by: null,
-    chg_date: null,
-    bom_item_count: 0,
-    asset_count: 0,
-  };
-
-  // Add to configurations array
-  configurations.push(newConfig);
-
-  // Get program info
-  const program = allPrograms.find(p => p.pgm_id === targetPgmId);
-
-  console.log(`[CONFIGS] Created new config "${newConfig.cfg_name}" (ID: ${newId}) by ${user.username} for program ${program?.pgm_cd}`);
-
-  res.status(201).json({
-    message: 'Configuration created successfully',
-    configuration: {
-      ...newConfig,
-      program_cd: program?.pgm_cd || 'UNKNOWN',
-      program_name: program?.pgm_name || 'Unknown Program',
-    },
-  });
 });
 
 // DELETE /api/configurations/:id - Delete configuration (requires depot_manager or admin)
