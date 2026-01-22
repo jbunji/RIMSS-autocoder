@@ -233,6 +233,7 @@ export default function ConfigurationsPage() {
   const [program, setProgram] = useState<ProgramInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [pageSize, setPageSize] = useState<number>(10)  // Page size selector state
 
   // Create modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -308,7 +309,7 @@ export default function ConfigurationsPage() {
         params.append('location_id', currentLocationId.toString())
       }
       params.append('page', page.toString())
-      params.append('limit', '10')
+      params.append('limit', pageSize.toString())
       if (typeFilter) params.append('type', typeFilter)
       if (sysTypeFilter) params.append('sys_type', sysTypeFilter)  // System category filter
       if (debouncedSearch) params.append('search', debouncedSearch)
@@ -337,7 +338,7 @@ export default function ConfigurationsPage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, currentLocationId, typeFilter, sysTypeFilter, debouncedSearch, sortBy, sortOrder])
+  }, [token, currentProgramId, currentLocationId, typeFilter, sysTypeFilter, debouncedSearch, sortBy, sortOrder, pageSize])
 
   // Fetch on mount and when dependencies change
   useEffect(() => {
@@ -1218,7 +1219,7 @@ export default function ConfigurationsPage() {
                   </button>
                 </div>
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                  <div>
+                  <div className="flex items-center gap-4">
                     <p className="text-sm text-gray-700">
                       Showing <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
                       <span className="font-medium">
@@ -1226,6 +1227,28 @@ export default function ConfigurationsPage() {
                       </span>{' '}
                       of <span className="font-medium">{pagination.total}</span> results
                     </p>
+                    {/* Page Size Selector */}
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="pageSize" className="text-sm text-gray-500">
+                        Show
+                      </label>
+                      <select
+                        id="pageSize"
+                        value={pageSize}
+                        onChange={(e) => {
+                          const newSize = parseInt(e.target.value, 10)
+                          setPageSize(newSize)
+                          // Reset to page 1 when changing page size
+                          fetchConfigurations(1)
+                        }}
+                        className="border-gray-300 rounded-md text-sm focus:ring-primary-500 focus:border-primary-500"
+                      >
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                      </select>
+                      <span className="text-sm text-gray-500">per page</span>
+                    </div>
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
