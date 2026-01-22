@@ -1,0 +1,86 @@
+================================================================================
+[COMPLETED] Wed Jan 21 22:58:00 EST 2026 - Feature #436 Verification Session
+================================================================================
+
+Feature: Resolve part numbers to readable names
+Category: data
+Status: PASSING
+
+Description:
+Part number IDs in cfg_set.partno_id and cfg_list (partno_p, partno_c) should be
+resolved to actual part numbers and names from the part_list table.
+
+Implementation (Already Existed):
+The feature was already fully implemented in both backend and frontend:
+
+Backend (backend/src/index.ts):
+- Line 14641-14662: GET /api/configurations includes part relation with partno, noun
+- Line 14677-14678: Returns partno and part_name (noun) in configuration list response
+- Line 14786-14869: GET /api/configurations/:id/bom endpoint
+  - Lines 14824-14831: Includes parentPart and childPart relations
+  - Lines 14836-14852: Returns parent_partno, parent_noun, child_partno, child_noun
+
+Frontend (frontend/src/pages/ConfigurationsPage.tsx):
+- Lines 72-73: Configuration interface has partno and part_name fields
+- Lines 1141-1145: Displays partno with part_name below in table
+
+Frontend (frontend/src/pages/ConfigurationDetailPage.tsx):
+- Lines 74-93: BOMItem interface has parent_partno, parent_noun, child_partno, child_noun
+- Lines 1436-1451: BOM table displays resolved part numbers and names
+
+Verification Results:
+
+Step 1: View configuration list - verify base part number shows readable part number, not just ID
+- A10 AVIONICS: Shows "-" (no partno_id, correctly shows dash)
+- ACT II: Shows "AD44012-2" with "ACT II" below (resolved from partno_id)
+- ADTS: Shows "S9-500-50" with "ADTS" below (resolved from partno_id)
+
+Step 2: View configuration detail - verify BOM items show part numbers and nouns
+- Viewed A10 AVIONICS configuration (cfg_set_id=50) with 6 BOM items
+- All child parts display part numbers: 091300-302, 091020-301, 816190-807, etc.
+- All child names display nouns: VIBRATION CCA A5, CABLE ASSEMBLY, SWITCHING UNIT
+- Parent parts display resolved numbers: 200222868-30 (IMPROVED ELECTRONIC PROCESSOR UNIT)
+
+Step 3: Test configurations with and without a base partno_id
+- A10 AVIONICS: No base partno_id -> shows "-" in list, "N/A" in detail
+- ACT II: Has base partno_id -> shows "AD44012-2" and "ACT II"
+- Both cases handled correctly
+
+Step 4: Verify part lookups work for both parent (partno_p) and child (partno_c) parts
+- Child parts resolved correctly:
+  * partno_c ID 12446 -> partno "091300-302", noun "VIBRATION CCA A5"
+  * partno_c ID 12445 -> partno "091020-301", noun "CABLE ASSEMBLY,SPECIAL PURPOSE,E"
+- Parent parts resolved correctly:
+  * partno_p ID 10091 -> partno "200222868-30", noun "IMPROVED ELECTRONIC PROCESSOR UNIT (IEPU)"
+  * partno_p ID 10015 -> partno "726801-807", noun "UHF R/T"
+
+Technical Quality:
+- Zero critical console errors
+- Minor 404s on software/meters tabs (separate features)
+- All API calls for part resolution successful
+- UI rendering correct
+- Data properly loaded from cfg_list and part_list tables
+
+Screenshots Captured:
+1. feature-436-config-list-part-numbers.png - Configuration list showing resolved part numbers
+2. feature-436-bom-part-numbers-resolved.png - BOM tab header
+3. feature-436-bom-table-resolved-part-numbers.png - BOM table with parent/child part resolution
+4. feature-436-bom-table-part-numbers-scrolled.png - Full BOM table view
+
+Project Progress:
+- Before: 427/449 features passing (95.1%)
+- After:  428/449 features passing (95.3%)
+
+Session Status: SUCCESS
+Session Duration: ~10 minutes
+Session End Time: Wed Jan 21 22:58:00 EST 2026
+Execution Mode: Single Feature Mode (Parallel Execution)
+
+Notes:
+- Feature #436 was already fully implemented
+- This session verified the existing implementation works correctly
+- All 4 verification steps passed successfully
+- Part number resolution works for both configuration list and BOM items
+- Both parent (partno_p) and child (partno_c) parts are resolved correctly
+
+================================================================================
