@@ -71,6 +71,7 @@ interface Configuration {
   partno_id: number | null
   partno: string | null
   part_name: string | null
+  sys_type: string | null  // System category: AIRBORNE, ECU, GROUND, SUPPORT EQUIPMENT
   description: string | null
   active: boolean
   ins_by: string
@@ -80,6 +81,77 @@ interface Configuration {
   bom_item_count: number
   asset_count: number
 }
+
+// System type code mapping (CODE_ID -> display info)
+// Maps legacy database CODE_IDs to their display values and descriptions
+const sysTypeCodeMap: Record<string, { code: string; description: string }> = {
+  '1': { code: 'CCS', description: 'Command Control System' },
+  '2': { code: 'DLG', description: 'Data Link Gateway' },
+  '3': { code: 'DS', description: 'Data System' },
+  '4': { code: 'INTERFACE', description: 'Interface Equipment' },
+  '5': { code: 'MRG', description: 'Mission Recording Gateway' },
+  '6': { code: 'NRC', description: 'Network Recording Controller' },
+  '7': { code: 'PART', description: 'Part/Component' },
+  '8': { code: 'PGS', description: 'Power Generation System' },
+  '9': { code: 'PLT', description: 'Platform' },
+  '10': { code: 'POD', description: 'Pod System' },
+  '11': { code: 'RAP', description: 'Radar Altimeter Pod' },
+  '12': { code: 'REM', description: 'Remote Equipment Module' },
+  '13': { code: 'RR', description: 'Radar Receiver' },
+  '14': { code: 'RRU', description: 'Remote Receiver Unit' },
+  '15': { code: 'SC', description: 'Shipping Container' },
+  '16': { code: 'SE', description: 'Support Equipment' },
+  '17': { code: 'TE', description: 'Test Equipment' },
+  '18': { code: 'TGS', description: 'Target Generation System' },
+  '19': { code: 'TIS', description: 'Thermal Imaging System' },
+  '20': { code: 'UNKN', description: 'Unknown' },
+  '38725': { code: 'ECU', description: 'Electronic Control Unit' },
+  '38726': { code: 'GSS', description: 'Ground Support System' },
+  '38727': { code: 'IM', description: 'Internal Mount' },
+  // Also support direct code values (for backward compatibility)
+  'CCS': { code: 'CCS', description: 'Command Control System' },
+  'DLG': { code: 'DLG', description: 'Data Link Gateway' },
+  'DS': { code: 'DS', description: 'Data System' },
+  'INTERFACE': { code: 'INTERFACE', description: 'Interface Equipment' },
+  'MRG': { code: 'MRG', description: 'Mission Recording Gateway' },
+  'NRC': { code: 'NRC', description: 'Network Recording Controller' },
+  'PART': { code: 'PART', description: 'Part/Component' },
+  'PGS': { code: 'PGS', description: 'Power Generation System' },
+  'PLT': { code: 'PLT', description: 'Platform' },
+  'POD': { code: 'POD', description: 'Pod System' },
+  'RAP': { code: 'RAP', description: 'Radar Altimeter Pod' },
+  'REM': { code: 'REM', description: 'Remote Equipment Module' },
+  'RR': { code: 'RR', description: 'Radar Receiver' },
+  'RRU': { code: 'RRU', description: 'Remote Receiver Unit' },
+  'SC': { code: 'SC', description: 'Shipping Container' },
+  'SE': { code: 'SE', description: 'Support Equipment' },
+  'TE': { code: 'TE', description: 'Test Equipment' },
+  'TGS': { code: 'TGS', description: 'Target Generation System' },
+  'TIS': { code: 'TIS', description: 'Thermal Imaging System' },
+  'UNKN': { code: 'UNKN', description: 'Unknown' },
+  'ECU': { code: 'ECU', description: 'Electronic Control Unit' },
+  'GSS': { code: 'GSS', description: 'Ground Support System' },
+  'IM': { code: 'IM', description: 'Internal Mount' },
+}
+
+// Get display code from sys_type value (handles both CODE_ID and CODE_VALUE)
+const getSysTypeDisplay = (sysType: string | null): { code: string; description: string } | null => {
+  if (!sysType) return null
+  const mapped = sysTypeCodeMap[sysType]
+  if (mapped) return mapped
+  // If not in map, return the value as-is
+  return { code: sysType, description: sysType }
+}
+
+// System category tab definitions (common system types for filtering)
+const systemCategoryTabs = [
+  { id: '', label: 'ALL', description: 'All system types' },
+  { id: 'POD', label: 'POD', description: 'Pod systems' },
+  { id: 'TE', label: 'TE', description: 'Test Equipment' },
+  { id: 'SE', label: 'SE', description: 'Support Equipment' },
+  { id: 'ECU', label: 'ECU', description: 'Electronic Control Units' },
+  { id: 'GSS', label: 'GSS', description: 'Ground Support Systems' },
+] as const
 
 interface Pagination {
   page: number
@@ -107,9 +179,46 @@ const typeColors: Record<string, { bg: string; text: string; border: string; ico
   COMPONENT: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', icon: Cog6ToothIcon },
 }
 
+// System type badge colors - distinct colors for visual differentiation
+const sysTypeColors: Record<string, { bg: string; text: string }> = {
+  // Pod/Airborne systems - Sky blue
+  'POD': { bg: 'bg-sky-100', text: 'text-sky-800' },
+  'IM': { bg: 'bg-sky-100', text: 'text-sky-800' },
+  'RAP': { bg: 'bg-sky-100', text: 'text-sky-800' },
+  // Test Equipment - Amber/Orange
+  'TE': { bg: 'bg-amber-100', text: 'text-amber-800' },
+  // Support/Ground Equipment - Emerald green
+  'SE': { bg: 'bg-emerald-100', text: 'text-emerald-800' },
+  'GSS': { bg: 'bg-emerald-100', text: 'text-emerald-800' },
+  'SC': { bg: 'bg-emerald-100', text: 'text-emerald-800' },
+  // Electronic Control Units - Violet/Purple
+  'ECU': { bg: 'bg-violet-100', text: 'text-violet-800' },
+  // Data/Communication systems - Blue
+  'CCS': { bg: 'bg-blue-100', text: 'text-blue-800' },
+  'DLG': { bg: 'bg-blue-100', text: 'text-blue-800' },
+  'DS': { bg: 'bg-blue-100', text: 'text-blue-800' },
+  'MRG': { bg: 'bg-blue-100', text: 'text-blue-800' },
+  'NRC': { bg: 'bg-blue-100', text: 'text-blue-800' },
+  // Parts/Components - Gray
+  'PART': { bg: 'bg-gray-100', text: 'text-gray-800' },
+  'UNKN': { bg: 'bg-gray-100', text: 'text-gray-600' },
+  // Platform/Infrastructure - Indigo
+  'PLT': { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+  'PGS': { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+  // Receiver/Remote systems - Teal
+  'RR': { bg: 'bg-teal-100', text: 'text-teal-800' },
+  'RRU': { bg: 'bg-teal-100', text: 'text-teal-800' },
+  'REM': { bg: 'bg-teal-100', text: 'text-teal-800' },
+  // Targeting/Imaging systems - Rose/Pink
+  'TGS': { bg: 'bg-rose-100', text: 'text-rose-800' },
+  'TIS': { bg: 'bg-rose-100', text: 'text-rose-800' },
+  // Interface - Cyan
+  'INTERFACE': { bg: 'bg-cyan-100', text: 'text-cyan-800' },
+}
+
 export default function ConfigurationsPage() {
   const navigate = useNavigate()
-  const { token, currentProgramId, user } = useAuthStore()
+  const { token, currentProgramId, currentLocationId, user } = useAuthStore()
 
   // Check if user can edit configurations
   const canEditConfig = user && ['ADMIN', 'DEPOT_MANAGER'].includes(user.role)
@@ -142,6 +251,7 @@ export default function ConfigurationsPage() {
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('')
+  const [sysTypeFilter, setSysTypeFilter] = useState<string>('')  // System category tab
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
   // Sorting
@@ -189,9 +299,14 @@ export default function ConfigurationsPage() {
     try {
       const params = new URLSearchParams()
       if (currentProgramId) params.append('program_id', currentProgramId.toString())
+      // Include location filter - 0 means "All Locations", otherwise filter by specific location
+      if (currentLocationId !== null && currentLocationId !== undefined) {
+        params.append('location_id', currentLocationId.toString())
+      }
       params.append('page', page.toString())
       params.append('limit', '10')
       if (typeFilter) params.append('type', typeFilter)
+      if (sysTypeFilter) params.append('sys_type', sysTypeFilter)  // System category filter
       if (debouncedSearch) params.append('search', debouncedSearch)
       params.append('sort_by', sortBy)
       params.append('sort_order', sortOrder)
@@ -218,7 +333,7 @@ export default function ConfigurationsPage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, typeFilter, debouncedSearch, sortBy, sortOrder])
+  }, [token, currentProgramId, currentLocationId, typeFilter, sysTypeFilter, debouncedSearch, sortBy, sortOrder])
 
   // Fetch on mount and when dependencies change
   useEffect(() => {
@@ -357,8 +472,9 @@ export default function ConfigurationsPage() {
       doc.text(`Total Configurations: ${pagination.total}`, pageWidth / 2, 38, { align: 'center' })
 
       // Add filter info if applied
-      if (typeFilter || debouncedSearch) {
+      if (typeFilter || sysTypeFilter || debouncedSearch) {
         const filters: string[] = []
+        if (sysTypeFilter) filters.push(`System: ${sysTypeFilter}`)
         if (typeFilter) filters.push(`Type: ${typeFilter}`)
         if (debouncedSearch) filters.push(`Search: "${debouncedSearch}"`)
         doc.setFontSize(8)
@@ -372,7 +488,7 @@ export default function ConfigurationsPage() {
       config.cfg_name,
       config.cfg_type,
       config.partno || '-',
-      config.part_name || '-',
+      config.sys_type || '-',
       config.bom_item_count.toString(),
       config.asset_count.toString(),
       config.active ? 'Yes' : 'No',
@@ -385,8 +501,8 @@ export default function ConfigurationsPage() {
 
     // Generate table with autoTable
     autoTable(doc, {
-      startY: typeFilter || debouncedSearch ? 48 : 43,
-      head: [['Configuration Name', 'Type', 'Part Number', 'Part Name', 'BOM Items', 'Assets', 'Active', 'Created']],
+      startY: typeFilter || sysTypeFilter || debouncedSearch ? 48 : 43,
+      head: [['Configuration Name', 'Type', 'Part Number', 'System Type', 'BOM Items', 'Assets', 'Active', 'Created']],
       body: tableData,
       theme: 'striped',
       headStyles: {
@@ -409,14 +525,14 @@ export default function ConfigurationsPage() {
       },
       // Style specific columns
       columnStyles: {
-        0: { cellWidth: 60 }, // Configuration Name
-        1: { cellWidth: 25 }, // Type
-        2: { cellWidth: 35 }, // Part Number
-        3: { cellWidth: 45 }, // Part Name
-        4: { cellWidth: 20 }, // BOM Items
-        5: { cellWidth: 20 }, // Assets
-        6: { cellWidth: 15 }, // Active
-        7: { cellWidth: 30 }, // Created
+        0: { cellWidth: 55 }, // Configuration Name
+        1: { cellWidth: 22 }, // Type
+        2: { cellWidth: 30 }, // Part Number
+        3: { cellWidth: 35 }, // System Type
+        4: { cellWidth: 18 }, // BOM Items
+        5: { cellWidth: 18 }, // Assets
+        6: { cellWidth: 12 }, // Active
+        7: { cellWidth: 28 }, // Created
       }
     })
 
@@ -447,19 +563,19 @@ export default function ConfigurationsPage() {
     const reportInfoRow1 = [`RIMSS Configuration Report - ${program ? `${program.pgm_cd} - ${program.pgm_name}` : 'All Programs'}`]
     const reportInfoRow2 = [`Generated: ${zuluTimestamp}`]
     const reportInfoRow3 = [`Total Configurations: ${pagination.total}`]
-    const filterRow = typeFilter || debouncedSearch
-      ? [`Filters: ${[typeFilter ? `Type: ${typeFilter}` : '', debouncedSearch ? `Search: "${debouncedSearch}"` : ''].filter(Boolean).join(', ')}`]
+    const filterRow = typeFilter || sysTypeFilter || debouncedSearch
+      ? [`Filters: ${[sysTypeFilter ? `System: ${sysTypeFilter}` : '', typeFilter ? `Type: ${typeFilter}` : '', debouncedSearch ? `Search: "${debouncedSearch}"` : ''].filter(Boolean).join(', ')}`]
       : []
 
     // Table header row
-    const headerRow = ['Configuration Name', 'Type', 'Part Number', 'Part Name', 'Description', 'BOM Items', 'Assets', 'Active', 'Created', 'Created By']
+    const headerRow = ['Configuration Name', 'Type', 'Part Number', 'System Type', 'Description', 'BOM Items', 'Assets', 'Active', 'Created', 'Created By']
 
     // Data rows
     const dataRows = configurations.map(config => [
       config.cfg_name,
       config.cfg_type,
       config.partno || '',
-      config.part_name || '',
+      config.sys_type || '',
       config.description || '',
       config.bom_item_count,
       config.asset_count,
@@ -494,7 +610,7 @@ export default function ConfigurationsPage() {
       { wch: 35 },  // Configuration Name
       { wch: 12 },  // Type
       { wch: 18 },  // Part Number
-      { wch: 25 },  // Part Name
+      { wch: 20 },  // System Type
       { wch: 40 },  // Description
       { wch: 12 },  // BOM Items
       { wch: 10 },  // Assets
@@ -579,6 +695,27 @@ export default function ConfigurationsPage() {
       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} border ${colors.border}`}>
         <IconComponent className="h-3.5 w-3.5" />
         {type}
+      </span>
+    )
+  }
+
+  // Get system type badge with color-coded display
+  const SysTypeBadge = ({ sysType }: { sysType: string | null }) => {
+    if (!sysType) return <span className="text-gray-400 text-xs">-</span>
+
+    // Get the display info (maps CODE_ID to CODE_VALUE)
+    const displayInfo = getSysTypeDisplay(sysType)
+    if (!displayInfo) return <span className="text-gray-400 text-xs">-</span>
+
+    const { code, description } = displayInfo
+    const colors = sysTypeColors[code] || { bg: 'bg-gray-100', text: 'text-gray-800' }
+
+    return (
+      <span
+        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors.bg} ${colors.text}`}
+        title={description}
+      >
+        {code}
       </span>
     )
   }
@@ -816,6 +953,43 @@ export default function ConfigurationsPage() {
         </div>
       )}
 
+      {/* System Category Tabs - like legacy RIMSS AIRBORNE/ECU/GROUND/SUPPORT EQUIPMENT tabs */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-6 px-4" aria-label="System Category Tabs">
+            {systemCategoryTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setSysTypeFilter(tab.id)
+                  // Reset to page 1 when changing tabs
+                  fetchConfigurations(1)
+                }}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                  ${sysTypeFilter === tab.id
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+                title={tab.description}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+        {/* Tab description */}
+        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+          <p className="text-xs text-gray-500">
+            {sysTypeFilter
+              ? `Showing configurations for ${sysTypeFilter} system type`
+              : 'Showing all system types'
+            }
+          </p>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -924,6 +1098,9 @@ export default function ConfigurationsPage() {
                     <th scope="col" className="px-6 py-3 text-left">
                       <SortableHeader column="partno" label="Part Number" />
                     </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      System Type
+                    </th>
                     <th scope="col" className="px-6 py-3 text-left">
                       <SortableHeader column="bom_item_count" label="BOM Items" />
                     </th>
@@ -962,6 +1139,9 @@ export default function ConfigurationsPage() {
                         {config.part_name && (
                           <div className="text-xs text-gray-500">{config.part_name}</div>
                         )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <SysTypeBadge sysType={config.sys_type} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">

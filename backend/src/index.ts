@@ -118,6 +118,91 @@ app.get('/api/health', (_req, res) => {
   })
 })
 
+// ============================================================================
+// Code Lookup Cache - for resolving code IDs to actual code values
+// ============================================================================
+// This cache maps string code IDs (from original Oracle data) to code values
+// The location table stores original Oracle CODE_IDs as strings (e.g., "24892")
+// which need to be resolved to actual code values (e.g., "AFGSC")
+let codeCache: Map<string, { code_type: string; code_value: string; description: string | null }> | null = null;
+
+async function loadCodeCache(): Promise<Map<string, { code_type: string; code_value: string; description: string | null }>> {
+  if (codeCache) return codeCache;
+
+  console.log('[CODE-CACHE] Loading code lookup cache...');
+
+  // Try to load from the original CSV file which has the Oracle CODE_IDs
+  const csvPath = path.join(process.cwd(), '..', 'data', 'GLOBALEYE.code.csv');
+  if (fs.existsSync(csvPath)) {
+    console.log('[CODE-CACHE] Loading from CSV file:', csvPath);
+    codeCache = new Map();
+
+    const fileContent = fs.readFileSync(csvPath, 'utf-8');
+    const lines = fileContent.split('\n');
+
+    // Skip header lines (SQL> and column headers)
+    let startLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('"CODE_ID"')) {
+        startLine = i + 1;
+        break;
+      }
+    }
+
+    for (let i = startLine; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // Parse CSV line - format: CODE_ID,CODE_TYPE,CODE_VALUE,DESCRIPTION,...
+      const match = line.match(/^(\d+),"([^"]+)","([^"]*)"(?:,"([^"]*)")?/);
+      if (match) {
+        const [, codeId, codeType, codeValue, description] = match;
+        codeCache.set(codeId, {
+          code_type: codeType,
+          code_value: codeValue,
+          description: description || null
+        });
+      }
+    }
+    console.log(`[CODE-CACHE] Loaded ${codeCache.size} codes from CSV`);
+  } else {
+    // Fallback: load from database (may have ID mismatch, but try anyway)
+    console.log('[CODE-CACHE] CSV not found at', csvPath, '- loading from database');
+    const codes = await prisma.code.findMany({
+      select: { code_id: true, code_type: true, code_value: true, description: true }
+    });
+
+    codeCache = new Map();
+    for (const code of codes) {
+      codeCache.set(String(code.code_id), {
+        code_type: code.code_type,
+        code_value: code.code_value,
+        description: code.description
+      });
+    }
+    console.log(`[CODE-CACHE] Loaded ${codeCache.size} codes from database`);
+  }
+
+  return codeCache;
+}
+
+// Helper to resolve a code ID (stored as string) to its actual code value
+function resolveCodeId(codeId: string | null, cache: Map<string, { code_type: string; code_value: string; description: string | null }>): string {
+  if (!codeId) return '';
+
+  // Trim whitespace - Oracle exports often have padded values
+  const trimmedId = codeId.trim();
+
+  // Try direct lookup with the trimmed string ID
+  const code = cache.get(trimmedId);
+  if (code) {
+    return code.code_value;
+  }
+
+  // If not found, return original trimmed value (might already be a code value)
+  return trimmedId;
+}
+
 // tRPC middleware - type-safe API endpoints
 app.use(
   '/api/trpc',
@@ -126,6 +211,11 @@ app.use(
     createContext: () => ({}), // Empty context for now
   })
 )
+
+// Maintenance level types
+// SHOP (I-level): Field maintenance - can REQUEST parts
+// DEPOT (D-level): Depot maintenance - can ACKNOWLEDGE, FILL, SHIP parts orders
+type MaintenanceLevel = 'SHOP' | 'DEPOT';
 
 // Mock user data for testing
 const mockUsers = [
@@ -137,15 +227,20 @@ const mockUsers = [
     last_name: 'Admin',
     role: 'ADMIN',
     programs: [
-      { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
-      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: false },
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+      { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: false },
       { pgm_id: 3, pgm_cd: 'ARDS', pgm_name: 'Airborne Reconnaissance Data System', is_default: false },
       { pgm_id: 4, pgm_cd: '236', pgm_name: 'Program 236', is_default: false },
     ],
     locations: [
-      { loc_id: 154, display_name: '24892/1160/1426', is_default: true, pgm_id: 1 }, // CRIIS location
-      { loc_id: 212, display_name: '24892/1360/24893', is_default: false, pgm_id: 1 }, // CRIIS location
+      // ACTS locations (mapped from Oracle IDs via id-mappings-v2.json)
+      { loc_id: 41, display_name: 'Shaw AFB - 20 FW', is_default: true, pgm_id: 2 }, // Oracle 18 -> PG 41
+      { loc_id: 24, display_name: 'Langley AFB - 1 FW', is_default: false, pgm_id: 2 }, // Oracle 1 -> PG 24
+      { loc_id: 46, display_name: 'Hill AFB - 388 FW', is_default: false, pgm_id: 2 }, // Oracle 24 -> PG 46
+      { loc_id: 50, display_name: 'Luke AFB - 56 FW', is_default: false, pgm_id: 2 }, // Oracle 28 -> PG 50
     ],
+    // Admin has access to both SHOP and DEPOT maintenance levels
+    allowedMaintenanceLevels: ['DEPOT', 'SHOP'] as MaintenanceLevel[],
   },
   {
     user_id: 2,
@@ -155,11 +250,13 @@ const mockUsers = [
     last_name: 'Depot',
     role: 'DEPOT_MANAGER',
     programs: [
-      { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
     ],
     locations: [
-      { loc_id: 154, display_name: '24892/1160/1426', is_default: true, pgm_id: 1 }, // CRIIS location
+      { loc_id: 41, display_name: 'Shaw AFB - 20 FW', is_default: true, pgm_id: 2 }, // ACTS DEPOT location
     ],
+    // Depot manager has DEPOT level - can fulfill parts orders
+    allowedMaintenanceLevels: ['DEPOT'] as MaintenanceLevel[],
   },
   {
     user_id: 3,
@@ -169,11 +266,13 @@ const mockUsers = [
     last_name: 'Field',
     role: 'FIELD_TECHNICIAN',
     programs: [
-      { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
     ],
     locations: [
-      { loc_id: 394, display_name: '24892/526/527', is_default: true, pgm_id: 1 }, // CRIIS location
+      { loc_id: 24, display_name: 'Langley AFB - 1 FW', is_default: true, pgm_id: 2 }, // ACTS SHOP location
     ],
+    // Field technician has SHOP level - can request parts but not fulfill
+    allowedMaintenanceLevels: ['SHOP'] as MaintenanceLevel[],
   },
   {
     user_id: 4,
@@ -183,9 +282,11 @@ const mockUsers = [
     last_name: 'Viewer',
     role: 'VIEWER',
     programs: [
-      { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: true },
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
     ],
     locations: [],
+    // Viewer has no maintenance level - read-only access
+    allowedMaintenanceLevels: [] as MaintenanceLevel[],
   },
   {
     user_id: 5,
@@ -198,9 +299,11 @@ const mockUsers = [
       { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
     ],
     locations: [
-      { loc_id: 437, display_name: '29306/29031/29030', is_default: true, pgm_id: 2 }, // ACTS location
-      { loc_id: 663, display_name: '29307/29032/29033', is_default: false, pgm_id: 2 }, // ACTS location
+      { loc_id: 41, display_name: 'Shaw AFB - 20 FW', is_default: true, pgm_id: 2 }, // Oracle 18 -> PG 41
+      { loc_id: 46, display_name: 'Hill AFB - 388 FW', is_default: false, pgm_id: 2 }, // Oracle 24 -> PG 46
     ],
+    // Field technician at ACTS has SHOP level
+    allowedMaintenanceLevels: ['SHOP'] as MaintenanceLevel[],
   },
 ]
 
@@ -238,8 +341,44 @@ function parseMockToken(token: string): { userId: number } | null {
   }
 }
 
+// Helper to resolve location display names using code cache
+async function resolveUserLocations(
+  locations: Array<{ loc_id: number; display_name: string; is_default: boolean; pgm_id?: number }>,
+  codes: Map<string, { code_type: string; code_value: string; description: string | null }>
+): Promise<Array<{ loc_id: number; display_name: string; is_default: boolean; pgm_id?: number }>> {
+  if (!locations || locations.length === 0) return locations;
+
+  // Fetch actual location data from database
+  const locIds = locations.map(l => l.loc_id);
+  const dbLocations = await prisma.location.findMany({
+    where: { loc_id: { in: locIds } },
+    select: { loc_id: true, majcom_cd: true, site_cd: true, unit_cd: true, display_name: true }
+  });
+
+  const dbLocMap = new Map(dbLocations.map(l => [l.loc_id, l]));
+
+  return locations.map(loc => {
+    const dbLoc = dbLocMap.get(loc.loc_id);
+    if (!dbLoc) return loc;
+
+    // Resolve the majcom, site, unit IDs to actual codes using string keys
+    const majcom = dbLoc.majcom_cd ? resolveCodeId(dbLoc.majcom_cd, codes) : '';
+    const site = dbLoc.site_cd ? resolveCodeId(dbLoc.site_cd, codes) : '';
+    const unit = dbLoc.unit_cd ? resolveCodeId(dbLoc.unit_cd, codes) : '';
+
+    // Build display name from resolved codes
+    const parts = [majcom, site, unit].filter(Boolean);
+    const resolvedDisplayName = parts.length > 0 ? parts.join('/') : loc.display_name;
+
+    return {
+      ...loc,
+      display_name: resolvedDisplayName
+    };
+  });
+}
+
 // Login endpoint
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body
 
   if (!username || !password) {
@@ -251,12 +390,30 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid username or password' })
   }
 
-  const token = generateMockToken(user.user_id)
-  res.json({ token, user })
+  try {
+    // Load code cache and resolve location display names
+    const codes = await loadCodeCache();
+    const resolvedLocations = await resolveUserLocations(user.locations, codes);
+
+    const userWithResolvedData = {
+      ...user,
+      locations: resolvedLocations,
+      allowedMaintenanceLevels: user.allowedMaintenanceLevels || []
+    };
+
+    const token = generateMockToken(user.user_id)
+    console.log(`[LOGIN] User ${user.username} logged in with maintenance levels: ${user.allowedMaintenanceLevels?.join(', ') || 'none'}`);
+    res.json({ token, user: userWithResolvedData })
+  } catch (error) {
+    console.error('[LOGIN] Error resolving locations:', error);
+    // Fallback to original user data if resolution fails
+    const token = generateMockToken(user.user_id)
+    res.json({ token, user: { ...user, allowedMaintenanceLevels: user.allowedMaintenanceLevels || [] } })
+  }
 })
 
 // Get current user endpoint
-app.get('/api/auth/me', (req, res) => {
+app.get('/api/auth/me', async (req, res) => {
   const authHeader = req.headers.authorization
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Not authenticated' })
@@ -274,7 +431,23 @@ app.get('/api/auth/me', (req, res) => {
     return res.status(401).json({ error: 'User not found' })
   }
 
-  res.json({ user })
+  try {
+    // Load code cache and resolve location display names
+    const codes = await loadCodeCache();
+    const resolvedLocations = await resolveUserLocations(user.locations, codes);
+
+    const userWithResolvedData = {
+      ...user,
+      locations: resolvedLocations,
+      allowedMaintenanceLevels: user.allowedMaintenanceLevels || []
+    };
+
+    res.json({ user: userWithResolvedData })
+  } catch (error) {
+    console.error('[AUTH/ME] Error resolving locations:', error);
+    // Fallback to original user data if resolution fails
+    res.json({ user: { ...user, allowedMaintenanceLevels: user.allowedMaintenanceLevels || [] } })
+  }
 })
 
 // Global search endpoint - searches across assets, maintenance events, and configurations
@@ -1440,6 +1613,21 @@ app.put('/api/users/:id', async (req, res) => {
     })
   }
 
+  // Determine allowed maintenance levels based on role
+  // ADMIN: Both DEPOT and SHOP
+  // DEPOT_MANAGER: DEPOT only
+  // FIELD_TECHNICIAN: SHOP only
+  // VIEWER: None
+  let allowedMaintenanceLevels: MaintenanceLevel[] = [];
+  if (role === 'ADMIN') {
+    allowedMaintenanceLevels = ['DEPOT', 'SHOP'];
+  } else if (role === 'DEPOT_MANAGER') {
+    allowedMaintenanceLevels = ['DEPOT'];
+  } else if (role === 'FIELD_TECHNICIAN') {
+    allowedMaintenanceLevels = ['SHOP'];
+  }
+  // VIEWER gets no maintenance levels
+
   // Update the user
   const updatedUser = {
     user_id: userId,
@@ -1450,6 +1638,7 @@ app.put('/api/users/:id', async (req, res) => {
     role,
     programs,
     locations,
+    allowedMaintenanceLevels,
   }
 
   mockUsers[userIndex] = updatedUser
@@ -1641,6 +1830,16 @@ app.post('/api/users', async (req, res) => {
     })
   }
 
+  // Determine allowed maintenance levels based on role
+  let newUserAllowedLevels: MaintenanceLevel[] = [];
+  if (role === 'ADMIN') {
+    newUserAllowedLevels = ['DEPOT', 'SHOP'];
+  } else if (role === 'DEPOT_MANAGER') {
+    newUserAllowedLevels = ['DEPOT'];
+  } else if (role === 'FIELD_TECHNICIAN') {
+    newUserAllowedLevels = ['SHOP'];
+  }
+
   // Create the new user
   const newUser = {
     user_id: newUserId,
@@ -1651,6 +1850,7 @@ app.post('/api/users', async (req, res) => {
     role,
     programs,
     locations,
+    allowedMaintenanceLevels: newUserAllowedLevels,
   }
 
   // Add to mock data
@@ -1727,6 +1927,190 @@ app.get('/api/locations', async (req, res) => {
   } catch (error) {
     console.error('[LOCATIONS] Error fetching locations:', error)
     res.status(500).json({ error: 'Failed to fetch locations' })
+  }
+})
+
+// Get locations for a specific program using loc_set table
+// This is the proper way to get program-specific locations from the legacy RIMSS data
+// The loc_set table maps programs to their authorized locations via set_name patterns like 'ACTS_LOC', 'CRIIS_LOC'
+app.get('/api/program/:programId/locations', async (req, res) => {
+  const payload = authenticateRequest(req, res)
+  if (!payload) return
+
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
+  }
+
+  const programId = parseInt(req.params.programId, 10)
+  if (isNaN(programId)) {
+    return res.status(400).json({ error: 'Invalid program ID' })
+  }
+
+  try {
+    // Load code cache for resolving code IDs to readable values
+    const codes = await loadCodeCache()
+
+    // Get the program code to build the loc_set pattern
+    const program = await prisma.program.findUnique({
+      where: { pgm_id: programId },
+      select: { pgm_id: true, pgm_cd: true, pgm_name: true }
+    })
+
+    if (!program) {
+      return res.status(404).json({ error: 'Program not found' })
+    }
+
+    // Build the set_name patterns for this program (e.g., 'ACTS_LOC', 'ACTS_SPARE_LOCATIONS', 'ACTS_DEPOT_LOC')
+    const programCode = program.pgm_cd.toUpperCase()
+    const setNamePatterns = [
+      `${programCode}_LOC`,
+      `${programCode}_SPARE_LOCATIONS`,
+      `${programCode}_DEPOT_LOC`,
+      `${programCode}_NETWORK`,
+    ]
+
+    console.log(`[PROGRAM-LOCATIONS] Looking for loc_set entries with patterns: ${setNamePatterns.join(', ')}`)
+
+    // Query loc_set to get all locations for this program
+    const locSetEntries = await prisma.locSet.findMany({
+      where: {
+        set_name: { in: setNamePatterns },
+        active: true,
+      },
+      include: {
+        location: {
+          select: {
+            loc_id: true,
+            display_name: true,
+            majcom_cd: true,
+            site_cd: true,
+            unit_cd: true,
+            description: true,
+            active: true,
+          }
+        }
+      }
+    })
+
+    // Also try using pgm_id directly if loc_set has it populated
+    const locSetByPgmId = await prisma.locSet.findMany({
+      where: {
+        pgm_id: programId,
+        active: true,
+      },
+      include: {
+        location: {
+          select: {
+            loc_id: true,
+            display_name: true,
+            majcom_cd: true,
+            site_cd: true,
+            unit_cd: true,
+            description: true,
+            active: true,
+          }
+        }
+      }
+    })
+
+    // Combine both approaches and deduplicate by loc_id
+    const allEntries = [...locSetEntries, ...locSetByPgmId]
+    const locationMap = new Map<number, {
+      loc_id: number
+      display_name: string | null
+      majcom_cd: string | null
+      site_cd: string | null
+      unit_cd: string | null
+      description: string | null
+      set_name: string
+    }>()
+
+    // Debug: log code cache status and verify some codes exist
+    console.log(`[PROGRAM-LOCATIONS] Code cache has ${codes.size} entries`)
+    // Test specific code lookups
+    const testCodes = ['743', '24892', '526', '527', '1258', '1369']
+    for (const testCode of testCodes) {
+      const result = codes.get(testCode)
+      if (result) {
+        console.log(`[PROGRAM-LOCATIONS] Code ${testCode} = ${result.code_value} (${result.code_type})`)
+      } else {
+        console.log(`[PROGRAM-LOCATIONS] Code ${testCode} NOT FOUND in cache`)
+      }
+    }
+
+    for (const entry of allEntries) {
+      if (entry.location && entry.location.active) {
+        // Priority for display name:
+        // 1. loc_set.display_name (human-readable name from legacy data like "SHAW AFB")
+        // 2. location.display_name (base name from location table)
+        // 3. location.description (often has meaningful info like "F-16")
+        // 4. Resolve majcom/site/unit codes to readable values (e.g., "ACC/SHAW/4FW")
+        // 5. Fall back to "Location {loc_id}"
+        let displayName = entry.display_name?.trim() || entry.location.display_name?.trim()
+
+        // If no display name, try description
+        if (!displayName && entry.location.description && entry.location.description !== 'NONE') {
+          displayName = entry.location.description.trim()
+        }
+
+        // If still no display name, resolve the code IDs to actual code values
+        if (!displayName) {
+          const majcom = entry.location.majcom_cd ? resolveCodeId(entry.location.majcom_cd, codes) : ''
+          const site = entry.location.site_cd ? resolveCodeId(entry.location.site_cd, codes) : ''
+          const unit = entry.location.unit_cd ? resolveCodeId(entry.location.unit_cd, codes) : ''
+
+          // Debug first few resolutions
+          if (locationMap.size < 3) {
+            console.log(`[PROGRAM-LOCATIONS] Code resolution for loc_id ${entry.location.loc_id}:`)
+            console.log(`  majcom_cd: "${entry.location.majcom_cd}" (len=${entry.location.majcom_cd?.length}) -> "${majcom}"`)
+            console.log(`  site_cd: "${entry.location.site_cd}" (len=${entry.location.site_cd?.length}) -> "${site}"`)
+            console.log(`  unit_cd: "${entry.location.unit_cd}" (len=${entry.location.unit_cd?.length}) -> "${unit}"`)
+          }
+
+          const parts = [majcom, site, unit].filter(Boolean)
+          displayName = parts.length > 0 ? parts.join(' / ') : `Location ${entry.location.loc_id}`
+        }
+
+        if (!locationMap.has(entry.location.loc_id)) {
+          locationMap.set(entry.location.loc_id, {
+            loc_id: entry.location.loc_id,
+            display_name: displayName,
+            majcom_cd: entry.location.majcom_cd,
+            site_cd: entry.location.site_cd,
+            unit_cd: entry.location.unit_cd,
+            description: entry.location.description,
+            set_name: entry.set_name,
+          })
+        }
+      }
+    }
+
+    const locations = Array.from(locationMap.values())
+      .sort((a, b) => (a.display_name || '').localeCompare(b.display_name || ''))
+
+    console.log(`[PROGRAM-LOCATIONS] Found ${locations.length} locations for program ${program.pgm_cd} (ID: ${programId})`)
+
+    // For non-admin users, filter to only their assigned locations
+    let filteredLocations = locations
+    if (user.role !== 'ADMIN') {
+      const userLocationIds = user.locations?.map(l => l.loc_id) || []
+      filteredLocations = locations.filter(loc => userLocationIds.includes(loc.loc_id))
+      console.log(`[PROGRAM-LOCATIONS] Filtered to ${filteredLocations.length} locations for non-admin user`)
+    }
+
+    res.json({
+      program: {
+        pgm_id: program.pgm_id,
+        pgm_cd: program.pgm_cd,
+        pgm_name: program.pgm_name,
+      },
+      locations: filteredLocations,
+      total: filteredLocations.length,
+    })
+  } catch (error) {
+    console.error('[PROGRAM-LOCATIONS] Error fetching program locations:', error)
+    res.status(500).json({ error: 'Failed to fetch program locations' })
   }
 })
 
@@ -9380,7 +9764,8 @@ app.post('/api/pmi', (req, res) => {
 });
 
 // GET /api/assets - List all assets for a program (requires authentication)
-app.get('/api/assets', (req, res) => {
+// Now queries the REAL PostgreSQL database instead of mock data
+app.get('/api/assets', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -9389,163 +9774,263 @@ app.get('/api/assets', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // Get user's program IDs
-  const userProgramIds = user.programs.map(p => p.pgm_id);
+  try {
+    // Load code cache for lookups
+    const codes = await loadCodeCache();
 
-  // Get program filter from query string (required or use default)
-  let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+    // Get user's program IDs
+    const userProgramIds = user.programs.map(p => p.pgm_id);
 
-  // If no program specified, use user's default program
-  if (!programIdFilter) {
-    const defaultProgram = user.programs.find(p => p.is_default);
-    programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
-  }
+    // Get program filter from query string (required or use default)
+    let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
-  // Check if user has access to this program
-  if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this program' });
-  }
+    // If no program specified, use user's default program
+    if (!programIdFilter) {
+      const defaultProgram = user.programs.find(p => p.is_default);
+      programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+    }
 
-  // Get detailed assets from mutable array
-  const allAssets = detailedAssets;
+    // Check if user has access to this program (ADMIN can access all)
+    if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this program' });
+    }
 
-  // Get user's location IDs for authorization check
-  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+    // Get user's location IDs for filtering (non-admin users see only their locations)
+    const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
 
-  // Get location filter from query string (optional)
-  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+    // Get location filter from query string (optional)
+    // location_id=0 means "All Locations" (admin only)
+    const locationIdRaw = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+    const locationIdFilter = locationIdRaw === 0 ? null : locationIdRaw; // Treat 0 as "all locations"
 
-  // If location specified, verify user has access to it
-  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
-    return res.status(403).json({ error: 'Access denied to this location' });
-  }
+    // Get pagination params
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 25, 100);
+    const offset = (page - 1) * limit;
 
-  // Filter by program and only include active assets (exclude soft-deleted)
-  let filteredAssets = allAssets.filter(asset => asset.pgm_id === programIdFilter && asset.active !== false);
-
-  // SECURITY: Filter by location - assets must have Assigned Base (loc_ida) OR Current Base (loc_idc) matching the requested location
-  // If a specific location is requested, filter by that location
-  // If no location specified and user has location restrictions, show assets from all their locations
-  if (locationIdFilter) {
-    // Filter by the specific requested location
-    filteredAssets = filteredAssets.filter(asset => {
-      // Asset is visible if EITHER loc_ida OR loc_idc matches the requested location
-      const matchesAssignedBase = asset.loc_ida === locationIdFilter;
-      const matchesCurrentBase = asset.loc_idc === locationIdFilter;
-      return matchesAssignedBase || matchesCurrentBase;
-    });
-  } else if (userLocationIds.length > 0) {
-    // No specific location requested - filter by all user's locations
-    filteredAssets = filteredAssets.filter(asset => {
-      // Asset is visible if EITHER loc_ida OR loc_idc matches any of the user's locations
-      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
-      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
-      return matchesAssignedBase || matchesCurrentBase;
-    });
-  }
-
-  // Apply optional status filter
-  const statusFilter = req.query.status as string;
-  if (statusFilter) {
-    filteredAssets = filteredAssets.filter(asset => asset.status_cd === statusFilter);
-  }
-
-  // Apply optional search filter (searches serno, partno, part_name)
-  const searchQuery = (req.query.search as string)?.toLowerCase().trim() || null;
-  if (searchQuery) {
-    filteredAssets = filteredAssets.filter(asset =>
-      asset.serno.toLowerCase().includes(searchQuery) ||
-      asset.partno.toLowerCase().includes(searchQuery) ||
-      asset.part_name.toLowerCase().includes(searchQuery)
-    );
-  }
-
-  // Apply sorting
-  const sortBy = (req.query.sort_by as string) || 'serno';
-  const sortOrder = (req.query.sort_order as string) || 'asc';
-
-  // Valid sort columns
-  const validSortColumns = ['serno', 'partno', 'part_name', 'status_cd', 'location', 'eti_hours', 'next_pmi_date'];
-  if (validSortColumns.includes(sortBy)) {
-    filteredAssets.sort((a: AssetDetails, b: AssetDetails) => {
-      let aVal: string | number | null = null;
-      let bVal: string | number | null = null;
-
-      switch (sortBy) {
-        case 'serno':
-          aVal = a.serno.toLowerCase();
-          bVal = b.serno.toLowerCase();
-          break;
-        case 'partno':
-          aVal = a.partno.toLowerCase();
-          bVal = b.partno.toLowerCase();
-          break;
-        case 'part_name':
-          aVal = a.part_name.toLowerCase();
-          bVal = b.part_name.toLowerCase();
-          break;
-        case 'status_cd':
-          aVal = a.status_cd;
-          bVal = b.status_cd;
-          break;
-        case 'location':
-          aVal = a.location.toLowerCase();
-          bVal = b.location.toLowerCase();
-          break;
-        case 'eti_hours':
-          aVal = a.eti_hours ?? 0;
-          bVal = b.eti_hours ?? 0;
-          break;
-        case 'next_pmi_date':
-          aVal = a.next_pmi_date ? new Date(a.next_pmi_date).getTime() : 0;
-          bVal = b.next_pmi_date ? new Date(b.next_pmi_date).getTime() : 0;
-          break;
+    // Build where clause for Prisma query
+    const whereClause: Prisma.AssetWhereInput = {
+      active: true,
+      part: {
+        pgm_id: programIdFilter
       }
+    };
 
-      if (aVal === null || bVal === null) return 0;
+    // Apply location filtering
+    // If specific location requested (not 0), filter by that location
+    // For non-admin users, filter by their assigned locations
+    // location_id=0 or null for ADMIN means show all assets for the program
+    if (locationIdFilter && locationIdFilter > 0) {
+      // Filter by specific requested location (admin loc OR custodial loc)
+      whereClause.OR = [
+        { loc_ida: locationIdFilter },
+        { loc_idc: locationIdFilter }
+      ];
+    } else if (user.role !== 'ADMIN' && userLocationIds.length > 0) {
+      // Non-admin users see only assets at their assigned locations
+      whereClause.OR = [
+        { loc_ida: { in: userLocationIds } },
+        { loc_idc: { in: userLocationIds } }
+      ];
+    }
+    // ADMIN users with location_id=0 or no location filter see all assets for the program
 
-      let comparison = 0;
-      if (typeof aVal === 'string' && typeof bVal === 'string') {
-        comparison = aVal.localeCompare(bVal);
-      } else if (typeof aVal === 'number' && typeof bVal === 'number') {
-        comparison = aVal - bVal;
+    // Apply optional status filter
+    const statusFilter = req.query.status as string;
+    if (statusFilter) {
+      // Merge with existing OR clause if present
+      if (whereClause.OR) {
+        whereClause.AND = [
+          { OR: whereClause.OR },
+          { status_cd: statusFilter }
+        ];
+        delete whereClause.OR;
+      } else {
+        whereClause.status_cd = statusFilter;
       }
+    }
 
-      return sortOrder === 'desc' ? -comparison : comparison;
+    // Apply optional search filter (searches serno, partno via part relation, noun via part relation)
+    const searchQuery = (req.query.search as string)?.trim() || null;
+    if (searchQuery) {
+      const searchConditions = [
+        { serno: { contains: searchQuery, mode: 'insensitive' as const } },
+        { part: { partno: { contains: searchQuery, mode: 'insensitive' as const } } },
+        { part: { noun: { contains: searchQuery, mode: 'insensitive' as const } } },
+      ];
+
+      if (whereClause.AND) {
+        (whereClause.AND as Prisma.AssetWhereInput[]).push({ OR: searchConditions });
+      } else if (whereClause.OR) {
+        whereClause.AND = [
+          { OR: whereClause.OR },
+          { OR: searchConditions }
+        ];
+        delete whereClause.OR;
+      } else {
+        whereClause.OR = searchConditions;
+      }
+    }
+
+    // Determine sort field and order
+    const sortBy = (req.query.sort_by as string) || 'serno';
+    const sortOrder = (req.query.sort_order as string) === 'desc' ? 'desc' : 'asc';
+
+    // Map sort fields to Prisma orderBy
+    let orderBy: Prisma.AssetOrderByWithRelationInput = { serno: sortOrder };
+    switch (sortBy) {
+      case 'serno':
+        orderBy = { serno: sortOrder };
+        break;
+      case 'partno':
+        orderBy = { part: { partno: sortOrder } };
+        break;
+      case 'part_name':
+        orderBy = { part: { noun: sortOrder } };
+        break;
+      case 'status_cd':
+        orderBy = { status_cd: sortOrder };
+        break;
+      case 'eti_hours':
+        orderBy = { eti: sortOrder };
+        break;
+    }
+
+    // Get total count
+    const total = await prisma.asset.count({ where: whereClause });
+
+    // Query assets from database with relations
+    const dbAssets = await prisma.asset.findMany({
+      where: whereClause,
+      include: {
+        part: {
+          select: {
+            partno: true,
+            noun: true,
+            pgm_id: true,
+            program: {
+              select: { pgm_cd: true, pgm_name: true }
+            }
+          }
+        },
+        adminLoc: {
+          select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
+        },
+        custodialLoc: {
+          select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
+        }
+      },
+      orderBy,
+      skip: offset,
+      take: limit,
     });
+
+    // Transform database results to match frontend expected format
+    const assets = dbAssets.map(asset => {
+      // Build location display string - resolve code IDs to actual codes
+      const formatLocation = (loc: { display_name: string; majcom_cd?: string | null; site_cd?: string | null; unit_cd?: string | null } | null) => {
+        if (!loc) return 'Unknown';
+
+        // Resolve the majcom, site, unit IDs to actual codes
+        const majcom = resolveCodeId(loc.majcom_cd, codes);
+        const site = resolveCodeId(loc.site_cd, codes);
+        const unit = resolveCodeId(loc.unit_cd, codes);
+
+        // Build from resolved hierarchy components
+        const parts = [majcom, site, unit].filter(Boolean);
+        if (parts.length > 0) {
+          return parts.join('/');
+        }
+
+        // Fallback to display_name if available and not just IDs
+        if (loc.display_name && !loc.display_name.match(/^\d+\/\d+\/\d+$/)) {
+          return loc.display_name;
+        }
+
+        return 'Unknown';
+      };
+
+      // Resolve the status_cd (which is stored as a code_id) to actual status code
+      const resolvedStatusCd = resolveCodeId(asset.status_cd, codes);
+
+      return {
+        asset_id: asset.asset_id,
+        serno: asset.serno,
+        partno: asset.part?.partno || '',
+        part_name: asset.part?.noun || '',
+        pgm_id: asset.part?.pgm_id || programIdFilter,
+        status_cd: resolvedStatusCd || 'FMC',
+        status_name: getStatusName(resolvedStatusCd),
+        active: asset.active,
+        location: formatLocation(asset.adminLoc) || formatLocation(asset.custodialLoc) || 'Unknown',
+        loc_type: 'depot' as const,
+        in_transit: asset.in_transit || false,
+        bad_actor: asset.bad_actor || false,
+        last_maint_date: null,
+        next_pmi_date: null,
+        eti_hours: asset.eti ? Number(asset.eti) : null,
+        remarks: asset.remarks,
+        uii: asset.uii,
+        mfg_date: asset.mfg_date?.toISOString().split('T')[0] || null,
+        acceptance_date: asset.accept_date?.toISOString().split('T')[0] || null,
+        loc_ida: asset.loc_ida,
+        loc_idc: asset.loc_idc,
+        admin_loc: formatLocation(asset.adminLoc),
+        admin_loc_name: formatLocation(asset.adminLoc),
+        cust_loc: formatLocation(asset.custodialLoc),
+        cust_loc_name: formatLocation(asset.custodialLoc),
+        nha_asset_id: asset.nha_asset_id,
+        carrier: asset.shipper,
+        tracking_number: asset.tcn,
+        ship_date: asset.ship_date?.toISOString().split('T')[0] || null,
+        created_date: asset.ins_date?.toISOString() || new Date().toISOString(),
+        modified_date: asset.chg_date?.toISOString() || null,
+      };
+    });
+
+    // Get program info from database
+    const program = await prisma.program.findUnique({
+      where: { pgm_id: programIdFilter },
+      select: { pgm_id: true, pgm_cd: true, pgm_name: true }
+    });
+
+    console.log(`[ASSETS-DB] List request by ${user.username} (${user.role}) - Program: ${program?.pgm_cd || programIdFilter}, Location filter: ${locationIdFilter || 'none'}, Total: ${total}, Page: ${page}`);
+
+    res.json({
+      assets,
+      pagination: {
+        page,
+        limit,
+        total,
+        total_pages: Math.ceil(total / limit),
+      },
+      program: {
+        pgm_id: programIdFilter,
+        pgm_cd: program?.pgm_cd || 'UNKNOWN',
+        pgm_name: program?.pgm_name || 'Unknown Program',
+      },
+    });
+  } catch (error) {
+    console.error('[ASSETS-DB] Error fetching assets:', error);
+    res.status(500).json({ error: 'Failed to fetch assets from database' });
   }
-
-  // Get pagination params
-  const page = parseInt(req.query.page as string, 10) || 1;
-  const limit = Math.min(parseInt(req.query.limit as string, 10) || 25, 100);
-  const offset = (page - 1) * limit;
-
-  // Calculate total before pagination
-  const total = filteredAssets.length;
-
-  // Apply pagination
-  const paginatedAssets = filteredAssets.slice(offset, offset + limit);
-
-  // Get program info
-  const program = allPrograms.find(p => p.pgm_id === programIdFilter);
-
-  console.log(`[ASSETS] List request by ${user.username} - Program: ${program?.pgm_cd}, Total: ${total}, Page: ${page}`);
-
-  res.json({
-    assets: paginatedAssets,
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: Math.ceil(total / limit),
-    },
-    program: {
-      pgm_id: programIdFilter,
-      pgm_cd: program?.pgm_cd || 'UNKNOWN',
-      pgm_name: program?.pgm_name || 'Unknown Program',
-    },
-  });
 });
+
+// Helper function to get status name from code
+function getStatusName(statusCd: string | null): string {
+  const statusMap: Record<string, string> = {
+    'FMC': 'Fully Mission Capable',
+    'PMC': 'Partially Mission Capable',
+    'PMCM': 'Partially Mission Capable (Maintenance)',
+    'PMCS': 'Partially Mission Capable (Supply)',
+    'PMCB': 'Partially Mission Capable (Both)',
+    'NMCM': 'Not Mission Capable (Maintenance)',
+    'NMCS': 'Not Mission Capable (Supply)',
+    'NMCB': 'Not Mission Capable (Both)',
+    'CNDM': 'Cannot Determine Mission',
+  };
+  return statusMap[statusCd || ''] || statusCd || 'Unknown';
+}
 
 // GET /api/assets/available-for-install - Get assets available for installation/cannibalization
 app.get('/api/assets/available-for-install', (req, res) => {
@@ -9582,7 +10067,7 @@ app.get('/api/assets/available-for-install', (req, res) => {
 });
 
 // GET /api/assets/:id - Get single asset by ID (requires authentication)
-app.get('/api/assets/:id', (req, res) => {
+app.get('/api/assets/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -9593,30 +10078,117 @@ app.get('/api/assets/:id', (req, res) => {
 
   const assetId = parseInt(req.params.id, 10);
 
-  // Get the asset from detailedAssets
-  const asset = detailedAssets.find(a => a.asset_id === assetId);
+  try {
+    // Load code cache for lookups
+    const codes = await loadCodeCache();
 
-  // Return 404 if asset doesn't exist or is deleted (soft delete)
-  if (!asset || !asset.active) {
-    return res.status(404).json({ error: 'Asset not found' });
-  }
+    // Get the asset from database with all related data
+    const asset = await prisma.asset.findUnique({
+      where: { asset_id: assetId },
+      include: {
+        part: {
+          select: {
+            partno: true,
+            noun: true,
+            pgm_id: true,
+            program: {
+              select: { pgm_cd: true, pgm_name: true }
+            }
+          }
+        },
+        adminLoc: {
+          select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
+        },
+        custodialLoc: {
+          select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
+        }
+      }
+    });
 
-  // Check if user has access to this asset's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this asset' });
-  }
-
-  // Get program info for display
-  const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
-
-  res.json({
-    asset: {
-      ...asset,
-      program_cd: program?.pgm_cd || 'UNKNOWN',
-      program_name: program?.pgm_name || 'Unknown Program',
+    // Return 404 if asset doesn't exist or is deleted (soft delete)
+    if (!asset || !asset.active) {
+      return res.status(404).json({ error: 'Asset not found' });
     }
-  });
+
+    // Check if user has access to this asset's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    const assetPgmId = asset.part?.pgm_id;
+    if (assetPgmId && !userProgramIds.includes(assetPgmId) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this asset' });
+    }
+
+    // Helper to format location display - resolve code IDs to actual codes
+    const formatLocation = (loc: { display_name: string; majcom_cd?: string | null; site_cd?: string | null; unit_cd?: string | null } | null) => {
+      if (!loc) return 'Unknown';
+
+      // Resolve the majcom, site, unit IDs to actual codes
+      const majcom = resolveCodeId(loc.majcom_cd, codes);
+      const site = resolveCodeId(loc.site_cd, codes);
+      const unit = resolveCodeId(loc.unit_cd, codes);
+
+      // Build from resolved hierarchy components
+      const parts = [majcom, site, unit].filter(Boolean);
+      if (parts.length > 0) {
+        return parts.join('/');
+      }
+
+      // Fallback to display_name if available and not just IDs
+      if (loc.display_name && !loc.display_name.match(/^\d+\/\d+\/\d+$/)) {
+        return loc.display_name;
+      }
+
+      return 'Unknown';
+    };
+
+    // Resolve the status_cd (which is stored as a code_id) to actual status code
+    const resolvedStatusCd = resolveCodeId(asset.status_cd, codes);
+
+    // Transform to frontend expected format
+    const transformedAsset = {
+      asset_id: asset.asset_id,
+      serno: asset.serno,
+      partno: asset.part?.partno || '',
+      part_name: asset.part?.noun || '',
+      name: asset.part?.noun || '',
+      pgm_id: asset.part?.pgm_id || 1,
+      status_cd: resolvedStatusCd || 'FMC',
+      status_name: getStatusName(resolvedStatusCd),
+      active: asset.active,
+      admin_loc: formatLocation(asset.adminLoc),
+      admin_loc_name: formatLocation(asset.adminLoc),
+      cust_loc: formatLocation(asset.custodialLoc),
+      cust_loc_name: formatLocation(asset.custodialLoc),
+      location: formatLocation(asset.adminLoc) || formatLocation(asset.custodialLoc) || 'Unknown',
+      loc_type: 'depot' as const,
+      in_transit: asset.in_transit || false,
+      bad_actor: asset.bad_actor || false,
+      eti_hours: asset.eti ? Number(asset.eti) : null,
+      remarks: asset.remarks,
+      notes: asset.remarks || '',
+      uii: asset.uii,
+      mfg_date: asset.mfg_date?.toISOString().split('T')[0] || null,
+      acceptance_date: asset.accept_date?.toISOString().split('T')[0] || null,
+      last_maint_date: null,
+      next_pmi_date: null,
+      nha_asset_id: asset.nha_asset_id,
+      carrier: asset.shipper,
+      tracking_number: asset.tcn,
+      ship_date: asset.ship_date?.toISOString().split('T')[0] || null,
+      created_date: asset.ins_date?.toISOString() || new Date().toISOString(),
+      modified_date: asset.chg_date?.toISOString() || null,
+      program_cd: asset.part?.program?.pgm_cd || 'UNKNOWN',
+      program_name: asset.part?.program?.pgm_name || 'Unknown Program',
+    };
+
+    console.log(`[ASSETS-DB] Detail request by ${user.username} for asset ${asset.serno} (ID: ${assetId})`);
+
+    res.json({
+      asset: transformedAsset
+    });
+  } catch (error) {
+    console.error('[ASSETS-DB] Error fetching asset detail:', error);
+    res.status(500).json({ error: 'Failed to fetch asset from database' });
+  }
 });
 
 // GET /api/assets/:id/hierarchy - Get asset NHA/SRA hierarchy (requires authentication)
@@ -11889,7 +12461,8 @@ app.get('/api/parts-orders/:id', (req, res) => {
   });
 });
 
-// Acknowledge parts order (depot manager only)
+// Acknowledge parts order (DEPOT maintenance level only)
+// In legacy RIMSS, only DEPOT (D-level) users could acknowledge orders
 app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
@@ -11899,9 +12472,13 @@ app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // Check role - only depot_manager and admin can acknowledge
-  if (user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Only depot managers can acknowledge parts orders' });
+  // Check maintenance level - only DEPOT level users can acknowledge
+  // ADMIN role bypasses this check
+  const allowedLevels = user.allowedMaintenanceLevels || [];
+  const canAcknowledge = user.role === 'ADMIN' || allowedLevels.includes('DEPOT');
+
+  if (!canAcknowledge) {
+    return res.status(403).json({ error: 'Only DEPOT maintenance level users can acknowledge parts orders. SHOP users can request parts but cannot fulfill them.' });
   }
 
   const orderId = parseInt(req.params.id, 10);
@@ -11940,7 +12517,7 @@ app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
     }
   );
 
-  console.log(`[PARTS] Order #${orderId} acknowledged by ${user.first_name} ${user.last_name} (${user.role})`);
+  console.log(`[PARTS] Order #${orderId} acknowledged by ${user.first_name} ${user.last_name} (${user.role}, levels: ${user.allowedMaintenanceLevels?.join(',') || 'none'})`);
 
   // Return updated order with program info
   const program = allPrograms.find(p => p.pgm_id === order.pgm_id);
@@ -11955,7 +12532,8 @@ app.patch('/api/parts-orders/:id/acknowledge', (req, res) => {
   });
 });
 
-// Fill parts order with replacement spare (depot manager action)
+// Fill parts order with replacement spare (DEPOT maintenance level only)
+// In legacy RIMSS, only DEPOT (D-level) users could fill orders with replacement parts
 app.patch('/api/parts-orders/:id/fill', (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
@@ -11965,9 +12543,13 @@ app.patch('/api/parts-orders/:id/fill', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // Check role - only depot_manager and admin can fill orders
-  if (user.role !== 'DEPOT_MANAGER' && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Only depot managers can fill parts orders' });
+  // Check maintenance level - only DEPOT level users can fill orders
+  // ADMIN role bypasses this check
+  const allowedLevels = user.allowedMaintenanceLevels || [];
+  const canFill = user.role === 'ADMIN' || allowedLevels.includes('DEPOT');
+
+  if (!canFill) {
+    return res.status(403).json({ error: 'Only DEPOT maintenance level users can fill parts orders. SHOP users can request parts but cannot fulfill them.' });
   }
 
   const orderId = parseInt(req.params.id, 10);
@@ -13886,7 +14468,9 @@ app.delete('/api/configurations/:id/software/:swAssocId', (req, res) => {
 });
 
 // GET /api/configurations - List all configurations for a program (requires authentication)
-app.get('/api/configurations', (req, res) => {
+// Now queries the database instead of using mock data
+// Supports location filtering: only shows configs used by assets at the selected location
+app.get('/api/configurations', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -13895,123 +14479,226 @@ app.get('/api/configurations', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // Get user's program IDs
-  const userProgramIds = user.programs.map(p => p.pgm_id);
+  try {
+    // Get user's program IDs
+    const userProgramIds = user.programs.map(p => p.pgm_id);
 
-  // Get program filter from query string (required or use default)
-  let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+    // Get program filter from query string (required or use default)
+    let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
 
-  // If no program specified, use user's default program
-  if (!programIdFilter) {
-    const defaultProgram = user.programs.find(p => p.is_default);
-    programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
-  }
+    // If no program specified, use user's default program
+    if (!programIdFilter) {
+      const defaultProgram = user.programs.find(p => p.is_default);
+      programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+    }
 
-  // Check if user has access to this program
-  if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this program' });
-  }
+    // Check if user has access to this program
+    if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this program' });
+    }
 
-  // Filter configurations by program and active status
-  let filteredConfigs = configurations.filter(c => c.pgm_id === programIdFilter);
+    // Get location filter - 0 or null means "All Locations"
+    const locationIdRaw = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+    const locationIdFilter = locationIdRaw === 0 ? null : locationIdRaw;
 
-  // Apply active filter (default to showing only active)
-  const showInactive = req.query.include_inactive === 'true';
-  if (!showInactive) {
-    filteredConfigs = filteredConfigs.filter(c => c.active);
-  }
+    // Get other filters
+    const showInactive = req.query.include_inactive === 'true';
+    const typeFilter = req.query.type as string | undefined;
+    const sysTypeFilter = req.query.sys_type as string | undefined; // System category: AIRBORNE, ECU, GROUND, SUPPORT EQUIPMENT
+    const searchQuery = (req.query.search as string)?.toLowerCase().trim() || null;
+    const sortBy = (req.query.sort_by as string) || 'cfg_name';
+    const sortOrder = (req.query.sort_order as string) || 'asc';
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 10, 100);
+    const offset = (page - 1) * limit;
 
-  // Apply type filter
-  const typeFilter = req.query.type as string;
-  if (typeFilter) {
-    filteredConfigs = filteredConfigs.filter(c => c.cfg_type === typeFilter);
-  }
+    // Build Prisma where clause
+    const whereClause: Prisma.CfgSetWhereInput = {
+      pgm_id: programIdFilter,
+    };
 
-  // Apply search filter
-  const searchQuery = (req.query.search as string)?.toLowerCase().trim() || null;
-  if (searchQuery) {
-    filteredConfigs = filteredConfigs.filter(c =>
-      c.cfg_name.toLowerCase().includes(searchQuery) ||
-      c.partno?.toLowerCase().includes(searchQuery) ||
-      c.part_name?.toLowerCase().includes(searchQuery) ||
-      c.description?.toLowerCase().includes(searchQuery)
-    );
-  }
+    // Apply active filter
+    if (!showInactive) {
+      whereClause.active = true;
+    }
 
-  // Apply sorting
-  const sortBy = (req.query.sort_by as string) || 'cfg_name';
-  const sortOrder = (req.query.sort_order as string) || 'asc';
+    // Apply type filter
+    if (typeFilter) {
+      whereClause.cfg_type = typeFilter;
+    }
 
-  filteredConfigs.sort((a, b) => {
-    let aVal: string | number = '';
-    let bVal: string | number = '';
+    // Apply system type filter
+    // The sys_type field stores CODE_IDs (numeric) but users may filter by CODE_VALUE (text)
+    // Map common CODE_VALUEs to their CODE_IDs for filtering
+    if (sysTypeFilter) {
+      const sysTypeCodeMap: Record<string, string[]> = {
+        'POD': ['10', 'POD'],
+        'TE': ['17', 'TE'],
+        'SE': ['16', 'SE'],
+        'ECU': ['38725', 'ECU'],
+        'GSS': ['38726', 'GSS'],
+        'IM': ['38727', 'IM'],
+        'CCS': ['1', 'CCS'],
+        'DLG': ['2', 'DLG'],
+        'DS': ['3', 'DS'],
+        'INTERFACE': ['4', 'INTERFACE'],
+        'MRG': ['5', 'MRG'],
+        'NRC': ['6', 'NRC'],
+        'PART': ['7', 'PART'],
+        'PGS': ['8', 'PGS'],
+        'PLT': ['9', 'PLT'],
+        'RAP': ['11', 'RAP'],
+        'REM': ['12', 'REM'],
+        'RR': ['13', 'RR'],
+        'RRU': ['14', 'RRU'],
+        'SC': ['15', 'SC'],
+        'TGS': ['18', 'TGS'],
+        'TIS': ['19', 'TIS'],
+        'UNKN': ['20', 'UNKN'],
+      };
+
+      // Get possible values (CODE_ID and CODE_VALUE) for the filter
+      const filterValues = sysTypeCodeMap[sysTypeFilter.toUpperCase()] || [sysTypeFilter];
+
+      whereClause.part = {
+        sys_type: { in: filterValues },
+      };
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      whereClause.OR = [
+        { cfg_name: { contains: searchQuery, mode: 'insensitive' } },
+        { description: { contains: searchQuery, mode: 'insensitive' } },
+        { part: { partno: { contains: searchQuery, mode: 'insensitive' } } },
+        { part: { noun: { contains: searchQuery, mode: 'insensitive' } } },
+      ];
+    }
+
+    // Apply location filter: only show configs used by assets at this location
+    // For non-admin users or when a specific location is selected
+    if (locationIdFilter && locationIdFilter > 0) {
+      whereClause.assets = {
+        some: {
+          OR: [
+            { loc_ida: locationIdFilter },
+            { loc_idc: locationIdFilter },
+          ],
+          active: true,
+        },
+      };
+    } else if (user.role !== 'ADMIN' && user.locations && user.locations.length > 0) {
+      // Non-admin users can only see configs for their assigned locations
+      const userLocationIds = user.locations.map(l => l.loc_id);
+      whereClause.assets = {
+        some: {
+          OR: [
+            { loc_ida: { in: userLocationIds } },
+            { loc_idc: { in: userLocationIds } },
+          ],
+          active: true,
+        },
+      };
+    }
+    // ADMIN with no location filter sees all configs for the program
+
+    // Build orderBy clause
+    let orderByClause: Prisma.CfgSetOrderByWithRelationInput = { cfg_name: 'asc' };
+    const orderDirection: Prisma.SortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
 
     switch (sortBy) {
       case 'cfg_name':
-        aVal = a.cfg_name.toLowerCase();
-        bVal = b.cfg_name.toLowerCase();
+        orderByClause = { cfg_name: orderDirection };
         break;
       case 'cfg_type':
-        aVal = a.cfg_type.toLowerCase();
-        bVal = b.cfg_type.toLowerCase();
-        break;
-      case 'partno':
-        aVal = (a.partno || '').toLowerCase();
-        bVal = (b.partno || '').toLowerCase();
-        break;
-      case 'bom_item_count':
-        aVal = a.bom_item_count;
-        bVal = b.bom_item_count;
-        break;
-      case 'asset_count':
-        aVal = a.asset_count;
-        bVal = b.asset_count;
+        orderByClause = { cfg_type: orderDirection };
         break;
       case 'ins_date':
-        aVal = new Date(a.ins_date).getTime();
-        bVal = new Date(b.ins_date).getTime();
+        orderByClause = { ins_date: orderDirection };
         break;
+      // Note: partno, bom_item_count, asset_count require computed fields
       default:
-        aVal = a.cfg_name.toLowerCase();
-        bVal = b.cfg_name.toLowerCase();
+        orderByClause = { cfg_name: orderDirection };
     }
 
-    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
-    return 0;
-  });
+    // Get total count for pagination
+    const totalCount = await prisma.cfgSet.count({ where: whereClause });
 
-  // Pagination
-  const page = parseInt(req.query.page as string, 10) || 1;
-  const limit = parseInt(req.query.limit as string, 10) || 10;
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
+    // Query configurations from database
+    const dbConfigs = await prisma.cfgSet.findMany({
+      where: whereClause,
+      include: {
+        part: {
+          select: {
+            partno_id: true,
+            partno: true,
+            noun: true,
+            sys_type: true,
+          },
+        },
+        _count: {
+          select: {
+            cfgLists: { where: { active: true } },
+            assets: { where: { active: true } },
+          },
+        },
+      },
+      orderBy: orderByClause,
+      skip: offset,
+      take: limit,
+    });
 
-  const paginatedConfigs = filteredConfigs.slice(startIndex, endIndex);
+    // Get program info
+    const program = await prisma.program.findUnique({
+      where: { pgm_id: programIdFilter },
+      select: { pgm_id: true, pgm_cd: true, pgm_name: true },
+    });
 
-  // Get program info
-  const program = allPrograms.find(p => p.pgm_id === programIdFilter);
+    // Transform to API response format
+    const configurations = dbConfigs.map(cfg => ({
+      cfg_set_id: cfg.cfg_set_id,
+      cfg_name: cfg.cfg_name,
+      cfg_type: cfg.cfg_type || 'ASSEMBLY',
+      pgm_id: cfg.pgm_id,
+      partno_id: cfg.partno_id,
+      partno: cfg.part?.partno || null,
+      part_name: cfg.part?.noun || null,
+      sys_type: cfg.part?.sys_type || null, // System category: AIRBORNE, ECU, GROUND, SUPPORT EQUIPMENT
+      description: cfg.description,
+      active: cfg.active,
+      ins_by: cfg.ins_by || 'SYSTEM',
+      ins_date: cfg.ins_date.toISOString(),
+      chg_by: cfg.chg_by,
+      chg_date: cfg.chg_date?.toISOString() || null,
+      bom_item_count: cfg._count.cfgLists,
+      asset_count: cfg._count.assets,
+    }));
 
-  console.log(`[CONFIGS] List request by ${user.username} for program ${program?.pgm_cd} - Total: ${filteredConfigs.length}, Page: ${page}`);
+    console.log(`[CONFIGS] Database query by ${user.username} for program ${program?.pgm_cd}, location ${locationIdFilter || 'ALL'}, sys_type ${sysTypeFilter || 'ALL'} - Total: ${totalCount}, Page: ${page}`);
 
-  res.json({
-    configurations: paginatedConfigs,
-    pagination: {
-      page,
-      limit,
-      total: filteredConfigs.length,
-      total_pages: Math.ceil(filteredConfigs.length / limit),
-    },
-    program: {
-      pgm_id: program?.pgm_id || programIdFilter,
-      pgm_cd: program?.pgm_cd || 'UNKNOWN',
-      pgm_name: program?.pgm_name || 'Unknown Program',
-    },
-  });
+    res.json({
+      configurations,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        total_pages: Math.ceil(totalCount / limit),
+      },
+      program: {
+        pgm_id: program?.pgm_id || programIdFilter,
+        pgm_cd: program?.pgm_cd || 'UNKNOWN',
+        pgm_name: program?.pgm_name || 'Unknown Program',
+      },
+    });
+  } catch (error) {
+    console.error('[CONFIGS] Database error:', error);
+    res.status(500).json({ error: 'Failed to fetch configurations from database' });
+  }
 });
 
 // GET /api/configurations/:id - Get single configuration by ID (requires authentication)
-app.get('/api/configurations/:id', (req, res) => {
+// Now queries the database instead of mock data
+app.get('/api/configurations/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -14020,35 +14707,70 @@ app.get('/api/configurations/:id', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  const configId = parseInt(req.params.id, 10);
-  const config = configurations.find(c => c.cfg_set_id === configId);
+  try {
+    const configId = parseInt(req.params.id, 10);
 
-  if (!config) {
-    return res.status(404).json({ error: 'Configuration not found' });
+    // Get configuration from database
+    const config = await prisma.cfgSet.findUnique({
+      where: { cfg_set_id: configId },
+      include: {
+        part: {
+          select: { partno_id: true, partno: true, noun: true },
+        },
+        program: {
+          select: { pgm_id: true, pgm_cd: true, pgm_name: true },
+        },
+        _count: {
+          select: {
+            cfgLists: { where: { active: true } },
+            assets: { where: { active: true } },
+          },
+        },
+      },
+    });
+
+    if (!config) {
+      return res.status(404).json({ error: 'Configuration not found' });
+    }
+
+    // Check if user has access to this configuration's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this configuration' });
+    }
+
+    console.log(`[CONFIGS] Detail request for config ${config.cfg_name} by ${user.username}`);
+
+    res.json({
+      configuration: {
+        cfg_set_id: config.cfg_set_id,
+        cfg_name: config.cfg_name,
+        cfg_type: config.cfg_type || 'ASSEMBLY',
+        pgm_id: config.pgm_id,
+        partno_id: config.partno_id,
+        partno: config.part?.partno || null,
+        part_name: config.part?.noun || null,
+        description: config.description,
+        active: config.active,
+        ins_by: config.ins_by || 'SYSTEM',
+        ins_date: config.ins_date.toISOString(),
+        chg_by: config.chg_by,
+        chg_date: config.chg_date?.toISOString() || null,
+        bom_item_count: config._count.cfgLists,
+        asset_count: config._count.assets,
+        program_cd: config.program.pgm_cd,
+        program_name: config.program.pgm_name,
+      },
+    });
+  } catch (error) {
+    console.error('[CONFIGS] Database error fetching configuration:', error);
+    res.status(500).json({ error: 'Failed to fetch configuration from database' });
   }
-
-  // Check if user has access to this configuration's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this configuration' });
-  }
-
-  // Get program info
-  const program = allPrograms.find(p => p.pgm_id === config.pgm_id);
-
-  console.log(`[CONFIGS] Detail request for config ${config.cfg_name} by ${user.username}`);
-
-  res.json({
-    configuration: {
-      ...config,
-      program_cd: program?.pgm_cd || 'UNKNOWN',
-      program_name: program?.pgm_name || 'Unknown Program',
-    },
-  });
 });
 
 // GET /api/configurations/:id/bom - Get BOM (Bill of Materials) for a configuration (requires authentication)
-app.get('/api/configurations/:id/bom', (req, res) => {
+// Now queries cfg_list from database with part lookups
+app.get('/api/configurations/:id/bom', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -14057,35 +14779,80 @@ app.get('/api/configurations/:id/bom', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  const configId = parseInt(req.params.id, 10);
-  const config = configurations.find(c => c.cfg_set_id === configId);
+  try {
+    const configId = parseInt(req.params.id, 10);
 
-  if (!config) {
-    return res.status(404).json({ error: 'Configuration not found' });
+    // Get configuration from database
+    const config = await prisma.cfgSet.findUnique({
+      where: { cfg_set_id: configId },
+      include: {
+        part: {
+          select: { partno_id: true, partno: true, noun: true },
+        },
+      },
+    });
+
+    if (!config) {
+      return res.status(404).json({ error: 'Configuration not found' });
+    }
+
+    // Check if user has access to this configuration's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this configuration' });
+    }
+
+    // Get BOM items from cfg_list table, sorted by sort_order
+    const dbBomItems = await prisma.cfgList.findMany({
+      where: {
+        cfg_set_id: configId,
+        active: true,
+      },
+      include: {
+        parentPart: {
+          select: { partno_id: true, partno: true, noun: true },
+        },
+        childPart: {
+          select: { partno_id: true, partno: true, noun: true },
+        },
+      },
+      orderBy: { sort_order: 'asc' },
+    });
+
+    // Transform to API response format
+    const bomItems = dbBomItems.map(item => ({
+      list_id: item.list_id,
+      cfg_set_id: item.cfg_set_id,
+      partno_p: item.partno_p,
+      parent_partno: item.parentPart.partno,
+      parent_noun: item.parentPart.noun,
+      partno_c: item.partno_c,
+      child_partno: item.childPart.partno,
+      child_noun: item.childPart.noun,
+      sort_order: item.sort_order,
+      qpa: item.qpa,
+      active: item.active,
+      ins_by: item.ins_by,
+      ins_date: item.ins_date.toISOString(),
+      chg_by: item.chg_by,
+      chg_date: item.chg_date?.toISOString() || null,
+    }));
+
+    console.log(`[CONFIGS] BOM database query for config ${config.cfg_name} by ${user.username} - ${bomItems.length} items`);
+
+    res.json({
+      bom_items: bomItems,
+      total: bomItems.length,
+      configuration: {
+        cfg_set_id: config.cfg_set_id,
+        cfg_name: config.cfg_name,
+        partno: config.part?.partno || null,
+      },
+    });
+  } catch (error) {
+    console.error('[CONFIGS] BOM database error:', error);
+    res.status(500).json({ error: 'Failed to fetch BOM from database' });
   }
-
-  // Check if user has access to this configuration's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this configuration' });
-  }
-
-  // Get BOM items for this configuration, sorted by sort_order
-  const configBomItems = bomItems
-    .filter(bom => bom.cfg_set_id === configId && bom.active)
-    .sort((a, b) => a.sort_order - b.sort_order);
-
-  console.log(`[CONFIGS] BOM request for config ${config.cfg_name} by ${user.username} - ${configBomItems.length} items`);
-
-  res.json({
-    bom_items: configBomItems,
-    total: configBomItems.length,
-    configuration: {
-      cfg_set_id: config.cfg_set_id,
-      cfg_name: config.cfg_name,
-      partno: config.partno,
-    },
-  });
 });
 
 // GET /api/configurations/:id/meters - Get meter tracking requirements for a configuration
