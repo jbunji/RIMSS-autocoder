@@ -209,6 +209,20 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext: () => ({}), // Empty context for now
+    onError: ({ error, path }) => {
+      // Log full error details on server for debugging
+      console.error(`[tRPC Error] ${path}:`, error.message);
+
+      // Remove stack trace from error response to avoid exposing internal paths
+      // This prevents sensitive information like file paths from being sent to clients
+      if (error.stack) {
+        delete (error as unknown as { stack?: string }).stack;
+      }
+      // Also remove any internal data that might contain stack traces
+      if (error.cause && typeof error.cause === 'object' && 'stack' in error.cause) {
+        delete (error.cause as { stack?: string }).stack;
+      }
+    },
   })
 )
 
@@ -9542,6 +9556,154 @@ app.get('/api/dashboard/recent-activity', (req, res) => {
   res.json({
     activities: sortedActivity,
     total: sortedActivity.length,
+  });
+});
+
+// Dashboard: Get maintenance trends data for line chart (requires authentication)
+app.get('/api/dashboard/maintenance-trends', (req, res) => {
+  const payload = authenticateRequest(req, res);
+  if (!payload) return;
+
+  const user = mockUsers.find(u => u.user_id === payload.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
+
+  // Get program filter from query string (optional)
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || [];
+
+  // Get location filter from query string (optional)
+  let locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+
+  // If location specified, verify user has access to it
+  if (locationIdFilter && userLocationIds.length > 0 && !userLocationIds.includes(locationIdFilter)) {
+    return res.status(403).json({ error: 'Access denied to this location' });
+  }
+
+  // Get number of days for the trend data (default 30)
+  const days = Math.min(parseInt(req.query.days as string, 10) || 30, 90);
+
+  // Use persistent maintenance events array
+  const allEvents = maintenanceEvents;
+
+  // Filter by user's accessible programs
+  let filteredEvents = allEvents.filter(event => userProgramIds.includes(event.pgm_id));
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredEvents = filteredEvents.filter(event => event.pgm_id === programIdFilter);
+  }
+
+  // SECURITY: Filter by location
+  if (locationIdFilter || userLocationIds.length > 0) {
+    filteredEvents = filteredEvents.filter(event => {
+      const asset = detailedAssets.find(a => a.asset_id === event.asset_id);
+      if (!asset) return false;
+
+      if (locationIdFilter) {
+        const matchesAssignedBase = asset.loc_ida === locationIdFilter;
+        const matchesCurrentBase = asset.loc_idc === locationIdFilter;
+        return matchesAssignedBase || matchesCurrentBase;
+      } else if (userLocationIds.length > 0) {
+        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida);
+        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc);
+        return matchesAssignedBase || matchesCurrentBase;
+      }
+      return true;
+    });
+  }
+
+  // Generate date range for the past N days
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // End of today
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - days + 1);
+  startDate.setHours(0, 0, 0, 0); // Start of first day
+
+  // Initialize data structure for each day
+  const trendsMap: Map<string, { date: string; created: number; completed: number; inProgress: number }> = new Map();
+
+  // Create entries for each day in the range
+  for (let i = 0; i < days; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
+    trendsMap.set(dateStr, { date: dateStr, created: 0, completed: 0, inProgress: 0 });
+  }
+
+  // Count events created on each day
+  filteredEvents.forEach(event => {
+    const startJobDate = event.start_job;
+    if (startJobDate && trendsMap.has(startJobDate)) {
+      const dayData = trendsMap.get(startJobDate)!;
+      dayData.created += 1;
+    }
+  });
+
+  // Count events completed on each day
+  filteredEvents.forEach(event => {
+    if (event.stop_job && trendsMap.has(event.stop_job)) {
+      const dayData = trendsMap.get(event.stop_job)!;
+      dayData.completed += 1;
+    }
+  });
+
+  // Calculate in-progress count for each day
+  // An event is in-progress on a given day if:
+  // - start_job is on or before that day
+  // - stop_job is null OR stop_job is after that day
+  const sortedDates = Array.from(trendsMap.keys()).sort();
+  sortedDates.forEach(dateStr => {
+    const dateEnd = new Date(dateStr);
+    dateEnd.setHours(23, 59, 59, 999);
+
+    const inProgressCount = filteredEvents.filter(event => {
+      const startJob = new Date(event.start_job);
+      startJob.setHours(0, 0, 0, 0);
+
+      // Event started on or before this day
+      if (startJob > dateEnd) return false;
+
+      // Event is either still open or was closed after this day
+      if (event.stop_job === null) return true;
+
+      const stopJob = new Date(event.stop_job);
+      stopJob.setHours(23, 59, 59, 999);
+      return stopJob >= dateEnd;
+    }).length;
+
+    const dayData = trendsMap.get(dateStr)!;
+    dayData.inProgress = inProgressCount;
+  });
+
+  // Convert map to array sorted by date
+  const trends = Array.from(trendsMap.values()).sort((a, b) =>
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  // Calculate summary statistics
+  const totalCreated = trends.reduce((sum, day) => sum + day.created, 0);
+  const totalCompleted = trends.reduce((sum, day) => sum + day.completed, 0);
+  const currentInProgress = filteredEvents.filter(e => e.status === 'open').length;
+  const avgPerDay = totalCreated / days;
+
+  console.log(`[MAINTENANCE-TRENDS] Request by ${user.username} - Days: ${days}, Created: ${totalCreated}, Completed: ${totalCompleted}, In-Progress: ${currentInProgress}`);
+
+  res.json({
+    trends,
+    summary: {
+      totalCreated,
+      totalCompleted,
+      currentInProgress,
+      avgPerDay: Math.round(avgPerDay * 10) / 10, // Round to 1 decimal
+      days,
+    },
   });
 });
 

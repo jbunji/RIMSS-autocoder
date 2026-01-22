@@ -6,8 +6,20 @@ import { z } from 'zod'
  * This provides type-safe API endpoints
  */
 
-// Initialize tRPC
-const t = initTRPC.create()
+// Initialize tRPC with error formatter to hide stack traces
+// This prevents sensitive internal paths from being exposed to clients
+const t = initTRPC.create({
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        // Remove stack trace to prevent exposing internal file paths
+        stack: undefined,
+      },
+    };
+  },
+})
 
 // Export reusable router and procedure helpers
 export const router = t.router
