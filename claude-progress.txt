@@ -7629,3 +7629,128 @@ verification steps pass.
 
 ================================================================================
 
+
+================================================================================
+[REGRESSION TEST] Wed Jan 21 23:06:34 EST 2026 - Feature #178: Sortie effectiveness codes tracked
+================================================================================
+
+Feature ID: 178
+Category: Sortie
+Name: Sortie effectiveness codes tracked
+Description: Can record effectiveness code for sortie
+Status: ✅ PASSING (verified)
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to sortie edit
+   - Logged in as admin user (John Admin)
+   - Navigated to /sorties page
+   - Clicked Edit button on ACTS-SORTIE-001 sortie
+   - Edit dialog opened successfully
+
+✅ Step 2: Select effectiveness code
+   - Sortie Effect dropdown available with all options:
+     - FMC, PMC, PMCM, PMCS, PMCB, NMCM, NMCS, NMCB
+   - Changed from PMC to NMCM (Not Mission Capable - Maintenance)
+
+✅ Step 3: Save sortie
+   - Clicked 'Save Changes' button
+   - Dialog closed
+   - Table updated to show 'NMCM' for the sortie
+
+✅ Step 4: Verify code persisted
+   - Re-opened Edit dialog for the same sortie
+   - Confirmed 'NMCM - Not Mission Capable (Maintenance)' was selected
+   - Data persisted correctly to database
+
+Technical Quality:
+✅ Zero console errors (related to sortie feature)
+✅ All API calls successful
+✅ UI updates immediately after save
+✅ Data persistence verified
+
+Cleanup:
+- Restored sortie to original value (PMC - Partially Mission Capable)
+
+Screenshots Captured:
+- feature-178-sortie-effectiveness-verified.png
+
+Project Progress: 431/449 features passing (96.0%)
+Session Status: REGRESSION TEST PASSED ✅
+Session Mode: Testing Agent - Regression Testing
+
+[Testing] Feature #178 verified - still passing
+================================================================================
+
+
+================================================================================
+[COMPLETED] Wed Jan 22 05:05:00 EST 2026 - Feature #439 Verification Session
+================================================================================
+
+Feature: Show all configurations for All Locations option
+Category: functional
+Status: ✅ PASSING (verified)
+
+Description:
+When an admin user selects "All Locations" (loc_id=0), the configurations page
+shows ALL configurations for the selected program without location filtering.
+
+Verification Steps Completed:
+
+✅ Step 1: As admin user, select All Locations in navbar
+   - Logged in as admin (John Admin)
+   - Clicked location dropdown
+   - Selected "All Locations" option
+   - Location button now shows "All Locations"
+
+✅ Step 2: Navigate to Configurations page
+   - Clicked Configurations link in sidebar
+   - Switched to CRIIS program (has more data)
+   - Page loaded successfully
+
+✅ Step 3: Verify all configurations for the selected program appear
+   - With All Locations: 152 configurations displayed for CRIIS
+   - Real data from database (legacy dates, real users like GARNTO, ABBOTT)
+   - Table displays all fields correctly
+
+✅ Step 4: Verify the count is higher than when a specific location is selected
+   - All Locations: 152 configurations
+   - NELLIS AFB - 57 FW (specific location): 9 configurations
+   - Confirmed: 152 > 9 (All Locations shows more configs)
+
+✅ Step 5: Verify non-admin users cannot access this option
+   - Field Technician (Bob Field): Location shown as static text, NO dropdown
+   - Depot Manager (Jane Depot): Location shown as static text, NO dropdown
+   - Only ADMIN users have location dropdown with "All Locations" option
+
+Technical Implementation:
+- Frontend: Navbar.tsx adds "All Locations" option (loc_id=0) for ADMIN users only
+- Frontend: authStore.ts handles loc_id=0 as special case for admin
+- Backend: Configurations API skips location filtering when loc_id=0 or not provided
+
+Role-Based Location Access:
+- ADMIN: Has location dropdown with "All Locations" + all program locations
+- DEPOT_MANAGER: Fixed location display (no dropdown)
+- FIELD_TECHNICIAN: Fixed location display (no dropdown)
+- VIEWER: Fixed location display (no dropdown)
+
+Screenshots Captured:
+1. feature-439-all-locations-152-configs.png - Admin with All Locations showing 152 configs
+2. feature-439-specific-location-9-configs.png - NELLIS AFB location showing 9 configs
+3. feature-439-non-admin-no-location-dropdown.png - Field tech has no dropdown
+4. feature-439-depot-mgr-no-location-dropdown.png - Depot manager has no dropdown
+
+Quality Metrics:
+- Console Errors: 0 (401 was from intentional wrong password test)
+- All verification steps passed
+- Security properly enforced (role-based access)
+- UI correctly shows location context
+
+Project Progress: 431/449 features passing (96.0%)
+Session Status: VERIFICATION PASSED ✅
+Session Mode: Single Feature Mode (Feature #439 assigned)
+
+Note: Feature #439 functionality was implemented in previous sessions as part of
+the location filtering feature set. This session verified all requirements are met.
+
+================================================================================
