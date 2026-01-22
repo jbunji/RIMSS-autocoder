@@ -143,14 +143,18 @@ const getSysTypeDisplay = (sysType: string | null): { code: string; description:
   return { code: sysType, description: sysType }
 }
 
-// System category tab definitions (common system types for filtering)
+// System category tab definitions - matching legacy RIMSS system categories
+// These are broader categories that group multiple sys_type values:
+// - AIRBORNE: POD, IM, RAP, PLT (airborne platforms and pod systems)
+// - ECU: Electronic Control Units
+// - GROUND: GSS, Ground-based systems
+// - SUPPORT EQUIPMENT: SE, TE, SC (support, test equipment, shipping containers)
 const systemCategoryTabs = [
   { id: '', label: 'ALL', description: 'All system types' },
-  { id: 'POD', label: 'POD', description: 'Pod systems' },
-  { id: 'TE', label: 'TE', description: 'Test Equipment' },
-  { id: 'SE', label: 'SE', description: 'Support Equipment' },
+  { id: 'AIRBORNE', label: 'AIRBORNE', description: 'Airborne platforms and pod systems' },
   { id: 'ECU', label: 'ECU', description: 'Electronic Control Units' },
-  { id: 'GSS', label: 'GSS', description: 'Ground Support Systems' },
+  { id: 'GROUND', label: 'GROUND', description: 'Ground-based systems' },
+  { id: 'SUPPORT EQUIPMENT', label: 'SUPPORT EQUIPMENT', description: 'Support and test equipment' },
 ] as const
 
 interface Pagination {

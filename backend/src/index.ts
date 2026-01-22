@@ -14531,6 +14531,7 @@ app.get('/api/configurations', async (req, res) => {
     // The sys_type field stores CODE_IDs (numeric) but users may filter by CODE_VALUE (text)
     // Map common CODE_VALUEs to their CODE_IDs for filtering
     if (sysTypeFilter) {
+      // Individual sys_type code mappings (CODE_VALUE -> [CODE_ID, CODE_VALUE])
       const sysTypeCodeMap: Record<string, string[]> = {
         'POD': ['10', 'POD'],
         'TE': ['17', 'TE'],
@@ -14557,8 +14558,20 @@ app.get('/api/configurations', async (req, res) => {
         'UNKN': ['20', 'UNKN'],
       };
 
-      // Get possible values (CODE_ID and CODE_VALUE) for the filter
-      const filterValues = sysTypeCodeMap[sysTypeFilter.toUpperCase()] || [sysTypeFilter];
+      // Category mappings - broader categories that group multiple sys_types
+      // These match the legacy RIMSS system categories
+      const categoryMap: Record<string, string[]> = {
+        // AIRBORNE: Airborne platforms and pod systems
+        'AIRBORNE': ['10', 'POD', '38727', 'IM', '11', 'RAP', '9', 'PLT'],
+        // GROUND: Ground-based support systems
+        'GROUND': ['38726', 'GSS'],
+        // SUPPORT EQUIPMENT: Support, test equipment, shipping containers
+        'SUPPORT EQUIPMENT': ['16', 'SE', '17', 'TE', '15', 'SC'],
+      };
+
+      // Check if filter is a category first, then fall back to individual sys_type
+      const upperFilter = sysTypeFilter.toUpperCase();
+      const filterValues = categoryMap[upperFilter] || sysTypeCodeMap[upperFilter] || [sysTypeFilter];
 
       whereClause.part = {
         sys_type: { in: filterValues },
