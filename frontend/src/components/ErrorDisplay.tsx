@@ -38,7 +38,9 @@ export function ErrorDisplay({ error, onRetry, onDismiss, className = '' }: Erro
         </div>
         <div className="ml-3 flex-1">
           <h3 className="text-sm font-medium text-red-800">
-            {errorObj.type === 'network' ? 'Connection Problem' : 'Error'}
+            {errorObj.type === 'network' ? 'Connection Problem' :
+             errorObj.type === 'database' ? 'Database Error' :
+             errorObj.type === 'server' ? 'Server Error' : 'Error'}
           </h3>
           <div className="mt-2 text-sm text-red-700">
             <p>{errorObj.message}</p>

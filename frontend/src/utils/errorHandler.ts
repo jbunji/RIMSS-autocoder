@@ -5,7 +5,7 @@
 
 export interface UserFriendlyError {
   message: string
-  type: 'network' | 'server' | 'validation' | 'unknown'
+  type: 'network' | 'server' | 'database' | 'validation' | 'unknown'
   canRetry: boolean
   technicalDetails?: string
 }
@@ -31,11 +31,27 @@ export function handleError(error: unknown, context?: string): UserFriendlyError
   if (error instanceof Error) {
     const lowerMessage = error.message.toLowerCase()
 
-    // Network/connection errors
-    if (lowerMessage.includes('network') ||
+    // Database connection errors - check FIRST since they may contain "connection" keyword
+    if (lowerMessage.includes('database') ||
+        lowerMessage.includes('db_connection') ||
+        lowerMessage.includes('db_timeout') ||
+        lowerMessage.includes('db_unavailable') ||
+        lowerMessage.includes('database connection') ||
+        lowerMessage.includes('database server')) {
+      return {
+        message: 'Unable to connect to the database. The database server may be temporarily unavailable. Please try again.',
+        type: 'database',
+        canRetry: true,
+        technicalDetails: error.message,
+      }
+    }
+
+    // Network/connection errors (excluding database-related)
+    if ((lowerMessage.includes('network') ||
         lowerMessage.includes('connection') ||
         lowerMessage.includes('timeout') ||
-        lowerMessage.includes('fetch')) {
+        lowerMessage.includes('fetch')) &&
+        !lowerMessage.includes('database')) {
       return {
         message: 'Network connection lost. Please check your internet connection and try again.',
         type: 'network',
@@ -45,7 +61,7 @@ export function handleError(error: unknown, context?: string): UserFriendlyError
     }
 
     // Server errors (5xx)
-    if (lowerMessage.includes('server error') || lowerMessage.includes('500') || lowerMessage.includes('503')) {
+    if (lowerMessage.includes('server error') || lowerMessage.includes('500') || lowerMessage.includes('503') || lowerMessage.includes('504')) {
       return {
         message: 'The server is experiencing issues. Please try again in a few moments.',
         type: 'server',

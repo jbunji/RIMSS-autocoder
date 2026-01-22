@@ -40,6 +40,7 @@ import SortieReportPage from './pages/SortieReportPage'
 import BadActorReportPage from './pages/BadActorReportPage'
 import TestTimeoutPage from './pages/TestTimeoutPage'
 import TestToastsPage from './pages/TestToastsPage'
+import TestDatabaseErrorPage from './pages/TestDatabaseErrorPage'
 import SearchResultsPage from './pages/SearchResultsPage'
 
 // Placeholder page component for routes not yet implemented
@@ -168,6 +169,7 @@ function App() {
           <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           <Route path="/test-timeout" element={<TestTimeoutPage />} />
           <Route path="/test-toasts" element={<TestToastsPage />} />
+          <Route path="/test-database-error" element={<TestDatabaseErrorPage />} />
           <Route path="/pmi" element={<PMIPage />} />
           <Route path="/pmi/:id" element={<PMIDetailPage />} />
           <Route path="/maintenance/:id" element={<MaintenanceDetailPage />} />
