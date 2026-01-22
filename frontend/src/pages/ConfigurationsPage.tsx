@@ -967,8 +967,8 @@ export default function ConfigurationsPage() {
                 key={tab.id}
                 onClick={() => {
                   setSysTypeFilter(tab.id)
-                  // Reset to page 1 when changing tabs
-                  fetchConfigurations(1)
+                  // Note: Don't call fetchConfigurations here - the useEffect will handle it
+                  // when sysTypeFilter changes and fetchConfigurations is recreated
                 }}
                 className={`
                   whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
