@@ -70,18 +70,26 @@ interface Configuration {
   program_name: string
 }
 
-// BOM Item interface
+// BOM Item interface - matches backend cfg_list response
 interface BOMItem {
   list_id: number
   cfg_set_id: number
-  partno_p: string
-  partno_c: string
-  part_name_c: string
+  partno_p: number           // Parent part ID
+  parent_partno: string      // Parent part number string
+  parent_noun: string        // Parent part name
+  partno_c: number           // Child part ID
+  child_partno: string       // Child part number string
+  child_noun: string         // Child part name
   sort_order: number
   qpa: number
   active: boolean
-  nha_partno_c: string | null  // NHA (Next Higher Assembly) - parent part in hierarchy
-  is_sra: boolean  // Is this a Sub-Replaceable Assembly (has an NHA parent)?
+  ins_by: string | null
+  ins_date: string
+  chg_by: string | null
+  chg_date: string | null
+  // Legacy fields for backwards compatibility (used in hierarchy/NHA features)
+  nha_partno_c?: string | null  // NHA (Next Higher Assembly) - parent part in hierarchy
+  is_sra?: boolean  // Is this a Sub-Replaceable Assembly (has an NHA parent)?
 }
 
 // BOM Response interface (matches backend response)
@@ -475,7 +483,7 @@ export default function ConfigurationDetailPage() {
       await fetchConfiguration()
 
       // Show success message and close modal
-      setSuccessMessage(`Part "${itemToDelete.partno_c}" removed from BOM successfully`)
+      setSuccessMessage(`Part "${itemToDelete.child_partno}" removed from BOM successfully`)
       closeDeleteModal()
 
       // Clear success message after 3 seconds
@@ -859,47 +867,54 @@ export default function ConfigurationDetailPage() {
     // Create a map of part numbers to tree nodes
     const nodeMap = new Map<string, TreeNode>()
 
-    // First pass: create all nodes
+    // First pass: create all nodes using child_partno
     bomData.bom_items.forEach((item) => {
       const node: TreeNode = {
         id: `bom-${item.list_id}`,
-        partno: item.partno_c,
-        name: item.part_name_c,
+        partno: item.child_partno,
+        name: item.child_noun,
         qpa: item.qpa,
         list_id: item.list_id,
         children: [],
       }
-      nodeMap.set(item.partno_c, node)
+      nodeMap.set(item.child_partno, node)
     })
 
-    // Second pass: build hierarchy
+    // Second pass: build hierarchy using parent_partno
     bomData.bom_items.forEach((item) => {
-      const node = nodeMap.get(item.partno_c)
+      const node = nodeMap.get(item.child_partno)
       if (!node) return
 
-      if (item.nha_partno_c) {
-        // This item has a parent within the BOM
-        const parentNode = nodeMap.get(item.nha_partno_c)
+      // If this item's parent is not the root configuration part,
+      // try to find its parent within the BOM
+      if (item.parent_partno !== configuration.partno) {
+        const parentNode = nodeMap.get(item.parent_partno)
         if (parentNode) {
           parentNode.children.push(node)
         } else {
-          // Parent not found, attach to root
+          // Parent not found in BOM, attach to root
           rootNode.children.push(node)
         }
       } else {
-        // No parent, attach directly to root
+        // Parent is the root config part, attach directly to root
         rootNode.children.push(node)
       }
     })
 
-    // Sort children by sort_order at each level
-    const sortChildren = (node: TreeNode) => {
+    // Sort children by sort_order at each level (with cycle detection)
+    const sortChildren = (node: TreeNode, visited: Set<string> = new Set()) => {
+      if (visited.has(node.id)) {
+        console.warn('Circular reference detected in BOM hierarchy for node:', node.id)
+        return
+      }
+      visited.add(node.id)
+
       node.children.sort((a, b) => {
         const itemA = bomData.bom_items.find(i => i.list_id === a.list_id)
         const itemB = bomData.bom_items.find(i => i.list_id === b.list_id)
         return (itemA?.sort_order || 0) - (itemB?.sort_order || 0)
       })
-      node.children.forEach(sortChildren)
+      node.children.forEach(child => sortChildren(child, visited))
     }
     sortChildren(rootNode)
 
@@ -1386,16 +1401,16 @@ export default function ConfigurationDetailPage() {
                       <thead className="bg-gray-50">
                         <tr>
                           <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:pl-6">
-                            #
+                            Sort
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                            Part Number
+                            Child Part (P/N)
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                            Part Name
+                            Child Name
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                            NHA (Parent)
+                            Parent Part (P/N)
                           </th>
                           <th scope="col" className="px-3 py-3.5 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
                             QPA
@@ -1409,23 +1424,23 @@ export default function ConfigurationDetailPage() {
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {bomData.bom_items.map((item, index) => {
-                          // Find NHA parent name if exists
+                          // Find NHA parent name if exists (using child_partno for matching)
                           const nhaParent = item.nha_partno_c
-                            ? bomData.bom_items.find(b => b.partno_c === item.nha_partno_c)
+                            ? bomData.bom_items.find(b => b.child_partno === item.nha_partno_c)
                             : null;
 
                           return (
                             <tr key={item.list_id} className={`hover:bg-gray-50 ${item.is_sra ? 'bg-gray-50' : ''}`}>
                               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6">
-                                {index + 1}
+                                {item.sort_order}
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm">
                                 <div className="flex items-center">
                                   {item.is_sra && (
                                     <ArrowUturnRightIcon className="h-4 w-4 text-gray-400 mr-2" title="Sub-Replaceable Assembly (SRA)" />
                                   )}
-                                  <span className="font-mono text-gray-900">{item.partno_c}</span>
-                                  {!item.is_sra && !item.nha_partno_c && bomData.bom_items.some(b => b.nha_partno_c === item.partno_c) && (
+                                  <span className="font-mono text-gray-900">{item.child_partno}</span>
+                                  {!item.is_sra && !item.nha_partno_c && bomData.bom_items.some(b => b.nha_partno_c === item.child_partno) && (
                                     <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200" title="Next Higher Assembly - has child parts">
                                       NHA
                                     </span>
@@ -1433,21 +1448,19 @@ export default function ConfigurationDetailPage() {
                                 </div>
                               </td>
                               <td className="px-3 py-4 text-sm text-gray-900">
-                                {item.part_name_c}
+                                {item.child_noun}
                               </td>
                               <td className="px-3 py-4 text-sm">
-                                {item.nha_partno_c ? (
+                                {item.parent_partno !== bomData.configuration.partno ? (
                                   <div className="flex items-center text-gray-600">
                                     <ChevronRightIcon className="h-3 w-3 text-gray-400 mr-1" />
-                                    <span className="font-mono text-xs">{item.nha_partno_c}</span>
-                                    {nhaParent && (
-                                      <span className="ml-1 text-xs text-gray-400 truncate max-w-[100px]" title={nhaParent.part_name_c}>
-                                        ({nhaParent.part_name_c})
-                                      </span>
-                                    )}
+                                    <span className="font-mono text-xs">{item.parent_partno}</span>
+                                    <span className="ml-1 text-xs text-gray-400 truncate max-w-[100px]" title={item.parent_noun}>
+                                      ({item.parent_noun})
+                                    </span>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-400 text-xs">—</span>
+                                  <span className="text-gray-400 text-xs">— (Top Level)</span>
                                 )}
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
@@ -1872,20 +1885,24 @@ export default function ConfigurationDetailPage() {
                       <span className="text-gray-500">NHA Assemblies:</span>
                       <span className="ml-2 font-medium text-gray-900">
                         {bomData.bom_items.filter(item =>
-                          bomData.bom_items.some(other => other.nha_partno_c === item.partno_c)
+                          bomData.bom_items.some(other => other.parent_partno === item.child_partno)
                         ).length}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-500">SRA Parts:</span>
+                      <span className="text-gray-500">Child Parts:</span>
                       <span className="ml-2 font-medium text-gray-900">
-                        {bomData.bom_items.filter(item => item.is_sra).length}
+                        {bomData.bom_items.filter(item =>
+                          item.parent_partno !== bomData.configuration?.partno
+                        ).length}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-500">Top-Level Parts:</span>
                       <span className="ml-2 font-medium text-gray-900">
-                        {bomData.bom_items.filter(item => !item.nha_partno_c).length}
+                        {bomData.bom_items.filter(item =>
+                          item.parent_partno === bomData.configuration?.partno
+                        ).length}
                       </span>
                     </div>
                   </div>
@@ -1950,10 +1967,10 @@ export default function ConfigurationDetailPage() {
                   {itemToDelete && (
                     <div className="mt-4 bg-gray-50 rounded-md p-4">
                       <p className="text-sm text-gray-700">
-                        <span className="font-medium">Part Number:</span> {itemToDelete.partno_c}
+                        <span className="font-medium">Part Number:</span> {itemToDelete.child_partno}
                       </p>
                       <p className="text-sm text-gray-700">
-                        <span className="font-medium">Part Name:</span> {itemToDelete.part_name_c}
+                        <span className="font-medium">Part Name:</span> {itemToDelete.child_noun}
                       </p>
                       <p className="text-sm text-gray-700">
                         <span className="font-medium">Quantity Per Assembly:</span> {itemToDelete.qpa}
@@ -2214,8 +2231,8 @@ export default function ConfigurationDetailPage() {
                           >
                             <option value="">-- No Parent (Top-level part) --</option>
                             {bomData?.bom_items?.map((item) => (
-                              <option key={item.list_id} value={item.partno_c}>
-                                {item.partno_c} - {item.part_name_c}
+                              <option key={item.list_id} value={item.child_partno}>
+                                {item.child_partno} - {item.child_noun}
                               </option>
                             ))}
                           </select>
