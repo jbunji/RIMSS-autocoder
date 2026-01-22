@@ -14616,8 +14616,14 @@ app.get('/api/configurations', async (req, res) => {
     // ADMIN with no location filter sees all configs for the program
 
     // Build orderBy clause
-    let orderByClause: Prisma.CfgSetOrderByWithRelationInput = { cfg_name: 'asc' };
     const orderDirection: Prisma.SortOrder = sortOrder === 'desc' ? 'desc' : 'asc';
+
+    // Determine if we need post-query sorting (for computed fields like counts)
+    // Prisma doesn't support orderBy on _count relations with filters directly
+    // So we handle those with post-query sorting
+    let needsPostSort = false;
+    let postSortField: string | null = null;
+    let orderByClause: Prisma.CfgSetOrderByWithRelationInput | Prisma.CfgSetOrderByWithRelationInput[] = { cfg_name: 'asc' };
 
     switch (sortBy) {
       case 'cfg_name':
@@ -14629,7 +14635,20 @@ app.get('/api/configurations', async (req, res) => {
       case 'ins_date':
         orderByClause = { ins_date: orderDirection };
         break;
-      // Note: partno, bom_item_count, asset_count require computed fields
+      case 'partno':
+        // Sort by related part's partno field
+        orderByClause = { part: { partno: orderDirection } };
+        break;
+      case 'bom_item_count':
+      case 'asset_count':
+        // For count-based sorting, we need to:
+        // 1. Fetch all matching records (within a reasonable limit)
+        // 2. Sort in memory
+        // This is a trade-off due to Prisma limitations with filtered _count ordering
+        needsPostSort = true;
+        postSortField = sortBy;
+        orderByClause = { cfg_name: 'asc' }; // Default order for initial fetch
+        break;
       default:
         orderByClause = { cfg_name: orderDirection };
     }
@@ -14638,28 +14657,71 @@ app.get('/api/configurations', async (req, res) => {
     const totalCount = await prisma.cfgSet.count({ where: whereClause });
 
     // Query configurations from database
-    const dbConfigs = await prisma.cfgSet.findMany({
-      where: whereClause,
-      include: {
-        part: {
-          select: {
-            partno_id: true,
-            partno: true,
-            noun: true,
-            sys_type: true,
+    let dbConfigs;
+
+    if (needsPostSort) {
+      // For count-based sorting, fetch all matching records then sort and paginate in memory
+      // This is necessary because Prisma can't ORDER BY _count with WHERE clauses on relations
+      const allConfigs = await prisma.cfgSet.findMany({
+        where: whereClause,
+        include: {
+          part: {
+            select: {
+              partno_id: true,
+              partno: true,
+              noun: true,
+              sys_type: true,
+            },
+          },
+          _count: {
+            select: {
+              cfgLists: { where: { active: true } },
+              assets: { where: { active: true } },
+            },
           },
         },
-        _count: {
-          select: {
-            cfgLists: { where: { active: true } },
-            assets: { where: { active: true } },
+      });
+
+      // Sort in memory by the count field
+      allConfigs.sort((a, b) => {
+        let aVal: number, bVal: number;
+        if (postSortField === 'bom_item_count') {
+          aVal = a._count.cfgLists;
+          bVal = b._count.cfgLists;
+        } else {
+          aVal = a._count.assets;
+          bVal = b._count.assets;
+        }
+        return orderDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      });
+
+      // Apply pagination
+      dbConfigs = allConfigs.slice(offset, offset + limit);
+    } else {
+      // Standard database-level sorting with pagination
+      dbConfigs = await prisma.cfgSet.findMany({
+        where: whereClause,
+        include: {
+          part: {
+            select: {
+              partno_id: true,
+              partno: true,
+              noun: true,
+              sys_type: true,
+            },
+          },
+          _count: {
+            select: {
+              cfgLists: { where: { active: true } },
+              assets: { where: { active: true } },
+            },
           },
         },
-      },
-      orderBy: orderByClause,
-      skip: offset,
-      take: limit,
-    });
+        orderBy: orderByClause,
+        skip: offset,
+        take: limit,
+      });
+    }
 
     // Get program info
     const program = await prisma.program.findUnique({
