@@ -489,16 +489,20 @@ export default function ConfigurationsPage() {
     }
 
     // Prepare table data
-    const tableData = configurations.map(config => [
-      config.cfg_name,
-      config.cfg_type,
-      config.partno || '-',
-      config.sys_type || '-',
-      config.bom_item_count.toString(),
-      config.asset_count.toString(),
-      config.active ? 'Yes' : 'No',
-      formatDate(config.ins_date)
-    ])
+    const tableData = configurations.map(config => {
+      // Convert sys_type CODE_ID to readable code (e.g., "10" -> "POD")
+      const sysTypeDisplay = getSysTypeDisplay(config.sys_type)
+      return [
+        config.cfg_name,
+        config.cfg_type,
+        config.partno || '-',
+        sysTypeDisplay ? sysTypeDisplay.code : '-',
+        config.bom_item_count.toString(),
+        config.asset_count.toString(),
+        config.active ? 'Yes' : 'No',
+        formatDate(config.ins_date)
+      ]
+    })
 
     // Add header to first page
     addCuiHeader()
@@ -576,18 +580,22 @@ export default function ConfigurationsPage() {
     const headerRow = ['Configuration Name', 'Type', 'Part Number', 'System Type', 'Description', 'BOM Items', 'Assets', 'Active', 'Created', 'Created By']
 
     // Data rows
-    const dataRows = configurations.map(config => [
-      config.cfg_name,
-      config.cfg_type,
-      config.partno || '',
-      config.sys_type || '',
-      config.description || '',
-      config.bom_item_count,
-      config.asset_count,
-      config.active ? 'Yes' : 'No',
-      config.ins_date ? formatDate(config.ins_date) : '',
-      config.ins_by
-    ])
+    const dataRows = configurations.map(config => {
+      // Convert sys_type CODE_ID to readable code (e.g., "10" -> "POD")
+      const sysTypeDisplay = getSysTypeDisplay(config.sys_type)
+      return [
+        config.cfg_name,
+        config.cfg_type,
+        config.partno || '',
+        sysTypeDisplay ? sysTypeDisplay.code : '',
+        config.description || '',
+        config.bom_item_count,
+        config.asset_count,
+        config.active ? 'Yes' : 'No',
+        config.ins_date ? formatDate(config.ins_date) : '',
+        config.ins_by
+      ]
+    })
 
     // CUI footer row
     const cuiFooterRow = ['CUI - CONTROLLED UNCLASSIFIED INFORMATION']
