@@ -90,6 +90,8 @@ interface BOMItem {
   // Legacy fields for backwards compatibility (used in hierarchy/NHA features)
   nha_partno_c?: string | null  // NHA (Next Higher Assembly) - parent part in hierarchy
   is_sra?: boolean  // Is this a Sub-Replaceable Assembly (has an NHA parent)?
+  // Error handling flag for orphaned part references
+  has_missing_references?: boolean  // True if parent or child part reference is missing
 }
 
 // BOM Response interface (matches backend response)
@@ -1430,16 +1432,21 @@ export default function ConfigurationDetailPage() {
                             : null;
 
                           return (
-                            <tr key={item.list_id} className={`hover:bg-gray-50 ${item.is_sra ? 'bg-gray-50' : ''}`}>
+                            <tr key={item.list_id} className={`hover:bg-gray-50 ${item.is_sra ? 'bg-gray-50' : ''} ${item.has_missing_references ? 'bg-yellow-50' : ''}`}>
                               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-6">
-                                {item.sort_order}
+                                <div className="flex items-center gap-1">
+                                  {item.has_missing_references && (
+                                    <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500" title="Part reference missing - data may be incomplete" />
+                                  )}
+                                  {item.sort_order}
+                                </div>
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm">
                                 <div className="flex items-center">
                                   {item.is_sra && (
                                     <ArrowUturnRightIcon className="h-4 w-4 text-gray-400 mr-2" title="Sub-Replaceable Assembly (SRA)" />
                                   )}
-                                  <span className="font-mono text-gray-900">{item.child_partno}</span>
+                                  <span className={`font-mono ${item.has_missing_references ? 'text-yellow-700' : 'text-gray-900'}`}>{item.child_partno}</span>
                                   {!item.is_sra && !item.nha_partno_c && bomData.bom_items.some(b => b.nha_partno_c === item.child_partno) && (
                                     <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200" title="Next Higher Assembly - has child parts">
                                       NHA
@@ -1448,7 +1455,7 @@ export default function ConfigurationDetailPage() {
                                 </div>
                               </td>
                               <td className="px-3 py-4 text-sm text-gray-900">
-                                {item.child_noun}
+                                <span className={item.has_missing_references ? 'text-yellow-700 italic' : ''}>{item.child_noun}</span>
                               </td>
                               <td className="px-3 py-4 text-sm">
                                 {item.parent_partno !== bomData.configuration.partno ? (

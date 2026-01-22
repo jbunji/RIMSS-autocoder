@@ -10268,7 +10268,7 @@ app.get('/api/assets/:id/hierarchy', (req, res) => {
 });
 
 // GET /api/assets/:id/history - Get asset change history (requires authentication)
-app.get('/api/assets/:id/history', (req, res) => {
+app.get('/api/assets/:id/history', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -10278,31 +10278,55 @@ app.get('/api/assets/:id/history', (req, res) => {
   }
 
   const assetId = parseInt(req.params.id, 10);
-  const asset = mockAssets.find(a => a.asset_id === assetId);
 
-  if (!asset) {
-    return res.status(404).json({ error: 'Asset not found' });
+  try {
+    // First try to find asset in mockAssets (in-memory)
+    let asset = mockAssets.find(a => a.asset_id === assetId);
+    let assetSerno = asset?.serno;
+    let assetPgmId = asset?.pgm_id;
+
+    // If not found in mockAssets, try database
+    if (!asset) {
+      const dbAsset = await prisma.asset.findUnique({
+        where: { asset_id: assetId },
+        include: {
+          part: {
+            select: { pgm_id: true }
+          }
+        }
+      });
+
+      if (!dbAsset || !dbAsset.active) {
+        return res.status(404).json({ error: 'Asset not found' });
+      }
+
+      assetSerno = dbAsset.serno;
+      assetPgmId = dbAsset.part?.pgm_id || 1;
+    }
+
+    // Check if user has access to this asset's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (assetPgmId && !userProgramIds.includes(assetPgmId) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this asset' });
+    }
+
+    // Get history entries for this asset, sorted by timestamp descending (most recent first)
+    const history = assetHistory
+      .filter(h => h.asset_id === assetId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    console.log(`[ASSETS] History request by ${user.username} for asset ${assetSerno} (ID: ${assetId}) - ${history.length} entries`);
+
+    res.json({
+      asset_id: assetId,
+      serno: assetSerno,
+      history,
+      total: history.length,
+    });
+  } catch (error) {
+    console.error('[ASSETS] Error fetching asset history:', error);
+    return res.status(500).json({ error: 'Failed to fetch asset history' });
   }
-
-  // Check if user has access to this asset's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this asset' });
-  }
-
-  // Get history entries for this asset, sorted by timestamp descending (most recent first)
-  const history = assetHistory
-    .filter(h => h.asset_id === assetId)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-  console.log(`[ASSETS] History request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${history.length} entries`);
-
-  res.json({
-    asset_id: assetId,
-    serno: asset.serno,
-    history,
-    total: history.length,
-  });
 });
 
 // GET /api/assets/:id/eti-history - Get ETI (Elapsed Time Indicator) history for an asset
@@ -16958,6 +16982,75 @@ app.get('/api/test/slow', (req, res) => {
       timestamp: new Date().toISOString(),
     });
   }, delayMs);
+});
+
+// Test endpoint for database error simulation (Feature #447)
+// This endpoint simulates a database connection failure to test error handling
+app.get('/api/test/database-error', (req, res) => {
+  // Optional delay before error (simulates timeout + failure)
+  const delayMs = parseInt(req.query.delay as string) || 0;
+  const errorType = req.query.type as string || 'connection';
+
+  console.log(`[TEST] Database error simulation: type=${errorType}, delay=${delayMs}ms`);
+
+  const sendError = () => {
+    switch (errorType) {
+      case 'connection':
+        res.status(503).json({
+          error: 'Database connection failed. The database server is not responding.',
+          code: 'DB_CONNECTION_ERROR',
+          canRetry: true,
+          timestamp: new Date().toISOString(),
+        });
+        break;
+      case 'timeout':
+        res.status(504).json({
+          error: 'Database query timed out. Please try again.',
+          code: 'DB_TIMEOUT',
+          canRetry: true,
+          timestamp: new Date().toISOString(),
+        });
+        break;
+      case 'unavailable':
+        res.status(503).json({
+          error: 'Database service temporarily unavailable. Please try again later.',
+          code: 'DB_UNAVAILABLE',
+          canRetry: true,
+          timestamp: new Date().toISOString(),
+        });
+        break;
+      default:
+        res.status(500).json({
+          error: 'An unexpected database error occurred.',
+          code: 'DB_UNKNOWN_ERROR',
+          canRetry: true,
+          timestamp: new Date().toISOString(),
+        });
+    }
+  };
+
+  if (delayMs > 0) {
+    setTimeout(sendError, delayMs);
+  } else {
+    sendError();
+  }
+});
+
+// Test endpoint for simulating working database after errors (recovery testing)
+app.get('/api/test/database-success', (req, res) => {
+  console.log('[TEST] Database success simulation (recovery test)');
+  res.json({
+    message: 'Database connection successful',
+    status: 'connected',
+    timestamp: new Date().toISOString(),
+    data: {
+      items: [
+        { id: 1, name: 'Test Record 1' },
+        { id: 2, name: 'Test Record 2' },
+        { id: 3, name: 'Test Record 3' },
+      ]
+    }
+  });
 });
 
 // Start server
