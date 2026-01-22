@@ -1,4 +1,66 @@
 ================================================================================
+[VERIFIED] Wed Jan 22 2026 - Feature #217 Verification Session
+================================================================================
+
+Feature: Inventory report generates
+Category: Reports
+Status: ✅ PASSING (already marked as passing, verified working)
+
+Description:
+Inventory report by system type works - generates comprehensive inventory status
+report grouped by system type.
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to reports
+   - Navigated to /reports
+   - Reports page displayed with available report types
+
+✅ Step 2: Select Inventory report
+   - Clicked on "Inventory Report" card
+   - Navigated to /reports/inventory
+
+✅ Step 3: Select system type
+   - Switched program from ACTS (no data) to CRIIS (has data)
+   - Report shows data grouped BY system type (not filtered by single type)
+
+✅ Step 4: Generate report
+   - Report generates automatically when page loads
+   - Shows summary with Total Assets: 10, System Types: 5
+
+✅ Step 5: Verify data displays
+   - Data displays correctly for all assets
+   - Each system type section shows:
+     - Asset count and status breakdown
+     - Detailed table with Serial Number, Part Number, Part Name, Status, Location, Location Type
+
+✅ Step 6: Verify grouped by system type
+   - Camera/Optical Systems: 2 assets (FMC: 1, NMCM: 1)
+   - Communication Systems: 2 assets (PMC: 1, CNDM: 1)
+   - Navigation Systems: 1 asset (FMC: 1)
+   - Radar Systems: 2 assets (NMCS: 1, FMC: 1)
+   - Sensor Systems: 3 assets (FMC: 2, PMC: 1)
+
+Additional Verification:
+✅ Export PDF works - downloaded CUI-Inventory-Report-20260122.pdf
+✅ Zero console errors
+✅ UI is polished with status badges and location type labels
+
+Technical Quality:
+- Report properly reads from database
+- System types are correctly resolved
+- Status codes use Air Force standard terminology
+- CUI markings present in export
+
+Screenshot: feature-217-inventory-report-by-system-type.png
+
+Project Progress: 449/449 features passing (100% COMPLETE!)
+Session Status: VERIFICATION SUCCESSFUL ✅
+Session Mode: Single Feature Mode (Feature #217 assigned)
+
+================================================================================
+
+================================================================================
 [COMPLETED] Wed Jan 22 2026 - Feature #426 ECU Filter Race Condition Fix
 ================================================================================
 
@@ -9252,3 +9314,151 @@ Session Mode: Single Feature Mode (Feature #431 assigned)
 Git Commit: 772d15f - Feature #431: System type included in PDF export - VERIFIED
 
 ================================================================================
+
+================================================================================
+[Testing] Wed Jan 21 23:41:01 EST 2026 - Feature #217 Regression Test
+================================================================================
+
+Feature: Inventory report generates
+Category: Reports
+Status: ✅ VERIFIED PASSING
+
+Description:
+Inventory report by system type works.
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to reports
+   - Navigated to /reports page successfully
+
+✅ Step 2: Select Inventory report
+   - Clicked on Inventory Report card
+   - Navigated to /reports/inventory
+
+✅ Step 3: Select system type
+   - Report displays all system types automatically grouped
+   - 5 system types shown: Camera/Optical, Communication, Navigation, Radar, Sensor
+
+✅ Step 4: Generate report
+   - Report auto-generates on page load
+   - Uses currentProgramId from auth store
+
+✅ Step 5: Verify data displays
+   - Total Assets: 10
+   - System Types: 5
+   - All asset details visible in expandable sections
+
+✅ Step 6: Verify grouped by system type
+   - Camera/Optical Systems: 2 assets (1 FMC, 1 NMCM)
+   - Communication Systems: 2 assets (1 PMC, 1 CNDM)
+   - Navigation Systems: 1 asset (1 FMC)
+   - Radar Systems: 2 assets (1 NMCS, 1 FMC)
+   - Sensor Systems: 3 assets (2 FMC, 1 PMC)
+
+Technical Notes:
+- The feature was already working correctly in the codebase
+- Initial test showed 'ACTS' with 0 assets because that was the user's default program
+- After switching to CRIIS via program dropdown, report correctly refreshed
+- The code already uses currentProgramId from auth store
+
+Quality Checks:
+✅ Zero console errors
+✅ All verification steps passed
+✅ Data correctly grouped by system type
+✅ Status breakdowns accurate
+✅ Program context properly respected
+
+Screenshot: feature-217-inventory-report-fixed.png
+
+Result: REGRESSION TEST PASSED ✅
+
+
+================================================================================
+[REGRESSION TEST] Wed Jan 21 23:41:09 EST 2026 - Feature #398: Parts orders filter by location
+================================================================================
+
+Feature ID: 398
+Category: functional
+Name: Parts orders filter by location
+Description: Parts orders are filtered based on the requesting/fulfilling location
+
+Status: ✅ PASSING (verified)
+
+Verification Steps Completed:
+
+✅ Step 1: Log in as user with specific location
+   - Logged in as field_tech (Bob Field) - Location: Langley AFB (loc_id: 24)
+   - Logged in as depot_mgr (Jane Depot) - Location: Shaw AFB (loc_id: 41)
+
+✅ Step 2: View parts orders
+   - Navigated to Parts Ordered page for each user
+   - Bob Field (field_tech): 1 order visible
+   - Jane Depot (depot_mgr): 2 orders visible
+
+✅ Step 3: Verify only orders involving user locations are shown
+   - Bob Field sees order #6 (Gyroscope Stabilizer) where requesting_loc_id=24 matches his location
+   - Jane Depot sees:
+     * Order #6 (Gyroscope Stabilizer) where fulfilling_loc_id=41 matches her depot location
+     * Order #3 (Laser Diode Module) where requesting_loc_id=41 matches her location
+   - Orders NOT matching user locations are correctly hidden
+
+Technical Details:
+- Location filtering implemented at lines 12364-12369 in backend/src/index.ts
+- Filter shows orders where EITHER requesting OR fulfilling location matches user's locations
+- This ensures field techs see orders they requested, depot managers see orders to fulfill
+
+Quality Checks:
+✅ Zero console errors
+✅ All verification steps passed
+✅ Location-based security filtering working correctly
+✅ Different users see appropriate data based on their assigned locations
+
+Screenshots Captured:
+- feature-398-field-tech-orders.png - Bob Field sees 1 order for his location
+- feature-398-depot-mgr-orders.png - Jane Depot sees 2 orders for her depot location
+
+Session Status: REGRESSION TEST PASSED ✅
+Session Mode: Testing Agent - Regression Testing
+
+[Testing] Feature #398 verified - still passing
+================================================================================
+
+
+================================================================================
+[Testing] Wed Jan 21 23:41:36 EST 2026 - Feature #303 Regression Test
+================================================================================
+
+Feature: Date sorting works across months
+Category: Temporal
+Status: ✅ STILL PASSING
+
+Verification Steps Completed:
+
+✅ Step 1: Records spanning different dates exist
+   - Parts Ordered page has 9 orders spanning Jan 6 to Jan 20, 2026
+
+✅ Step 2: Sort by date ascending
+   - Clicked "Order Date" column header
+   - Dates sorted from oldest to newest: Jan 6 → Jan 11 → Jan 13 → Jan 14 → Jan 16 → Jan 18 → Jan 19 → Jan 20
+   - Up-arrow indicator displayed
+
+✅ Step 3: Verify correct order
+   - All dates in proper chronological ascending order
+
+✅ Step 4: Sort descending and verify
+   - Clicked "Order Date" column header again
+   - Dates sorted from newest to oldest: Jan 20 → Jan 19 → Jan 18 → Jan 16 → Jan 14 → Jan 13 → Jan 11 → Jan 6
+   - Down-arrow indicator displayed
+
+Quality Checks:
+- Zero console errors
+- Sort direction indicator changes correctly
+- Data order verified visually
+
+Screenshots:
+- feature-303-date-sorting-descending.png - Dates sorted newest to oldest
+- feature-303-date-sorting-ascending.png - Dates sorted oldest to newest
+
+Result: REGRESSION TEST PASSED ✅
+
+[Testing] Feature #303 verified - still passing
