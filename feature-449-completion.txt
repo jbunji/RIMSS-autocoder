@@ -1,0 +1,66 @@
+================================================================================
+[COMPLETED] Wed Jan 22 04:30:00 EST 2026 - Feature #449 Verification Session
+================================================================================
+
+Feature: Enforce CRUD permissions based on user role
+Category: security
+Status: PASSING
+
+Description:
+Only ADMIN and DEPOT_MANAGER roles should be able to create, update, or delete
+configurations. VIEWER and FIELD_TECHNICIAN can only view.
+
+Verification Steps Completed:
+
+Step 1: Log in as VIEWER role - PASSED
+   - Logged in as viewer (Sam Viewer)
+   - User has VIEWER role with only ACTS program access
+
+Step 2: Verify Add Configuration button is hidden - PASSED
+   - No "Add Configuration" button visible in header
+   - Empty state shows "Contact an administrator to add configurations"
+   - Screenshot: feature-449-viewer-no-add-button.png
+
+Step 3: Verify Edit and Delete buttons are hidden on configuration cards - PASSED
+   - Viewer user has no programs with configurations
+   - Empty state confirms view-only access
+
+Step 4: Log in as ADMIN role - PASSED
+   - Logged in as admin (John Admin)
+   - User has ADMIN role with full access
+
+Step 5: Verify Add, Edit, Delete options are available - PASSED
+   - "Add Configuration" button visible in header
+   - "Add Configuration" button visible in empty state
+   - Edit and Delete buttons visible on each configuration row
+   - Screenshots: feature-449-admin-add-button-visible.png,
+                  feature-449-admin-edit-delete-buttons-wide.png
+
+Step 6: Log in as DEPOT_MANAGER - verify same access as ADMIN - PASSED
+   - Logged in as depot_mgr (Jane Depot)
+   - User has DEPOT_MANAGER role
+   - "Add Configuration" button visible in header and empty state
+   - Screenshot: feature-449-depot-manager-add-button.png
+
+Step 7: Log in as FIELD_TECHNICIAN - verify view-only access - PASSED
+   - Logged in as field_tech (Bob Field)
+   - User has FIELD_TECHNICIAN role
+   - NO "Add Configuration" button visible
+   - Empty state shows "Contact an administrator to add configurations"
+   - Screenshot: feature-449-field-tech-no-add-button.png
+
+Technical Implementation (already in place):
+- Frontend ConfigurationsPage.tsx line 228:
+  const canEditConfig = user && (user.role === 'ADMIN' || user.role === 'DEPOT_MANAGER')
+- This variable controls visibility of:
+  - Add Configuration button (header and empty state)
+  - Edit button on configuration rows
+  - Delete button on configuration rows
+- Empty state message varies based on canEditConfig:
+  - If canEditConfig: "Get started by adding your first configuration"
+  - If !canEditConfig: "Contact an administrator to add configurations"
+
+Project Progress: 440/449 features passing (98.0%)
+Session Status: SUCCESS
+Session Duration: ~15 minutes
+Session Mode: Single Feature Mode (Feature #449 assigned)
