@@ -8694,8 +8694,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
-      requesting_loc_id: 394, // Bob Field's location
-      fulfilling_loc_id: 154, // Depot location
+      requesting_loc_id: 24, // Bob Field's location (Langley AFB - 1 FW)
+      fulfilling_loc_id: 41, // Depot location (Shaw AFB - 20 FW)
       asset_sn: 'CRIIS-006',
       asset_name: 'Radar Unit 01',
       job_no: 'MX-2024-002',
@@ -8732,8 +8732,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'shipped',
       requestor_id: 3,
       requestor_name: 'Bob Field',
-      requesting_loc_id: 394, // Bob Field's location
-      fulfilling_loc_id: 154, // Depot location
+      requesting_loc_id: 24, // Bob Field's location (Langley AFB - 1 FW)
+      fulfilling_loc_id: 41, // Depot location (Shaw AFB - 20 FW)
       asset_sn: null,
       asset_name: null,
       job_no: null,
@@ -8771,8 +8771,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
-      requesting_loc_id: 154, // Jane Depot's location
-      fulfilling_loc_id: 154, // Same depot location
+      requesting_loc_id: 41, // Jane Depot's location (Shaw AFB - 20 FW)
+      fulfilling_loc_id: 41, // Same depot location (Shaw AFB - 20 FW)
       asset_sn: 'ACTS-005',
       asset_name: 'Laser System',
       job_no: 'MX-2024-006',
@@ -8809,8 +8809,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'acknowledged',
       requestor_id: 3,
       requestor_name: 'Bob Field',
-      requesting_loc_id: 394, // Bob Field's location
-      fulfilling_loc_id: 154, // Depot location
+      requesting_loc_id: 24, // Bob Field's location (Langley AFB - 1 FW)
+      fulfilling_loc_id: 41, // Depot location (Shaw AFB - 20 FW)
       asset_sn: null,
       asset_name: null,
       job_no: null,
@@ -8848,8 +8848,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'shipped',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
-      requesting_loc_id: 154, // Jane Depot's location
-      fulfilling_loc_id: 154, // Same depot location
+      requesting_loc_id: 41, // Jane Depot's location (Shaw AFB - 20 FW)
+      fulfilling_loc_id: 41, // Same depot location (Shaw AFB - 20 FW)
       asset_sn: 'ARDS-004',
       asset_name: 'Reconnaissance Camera',
       job_no: 'MX-2024-007',
@@ -8887,8 +8887,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
-      requesting_loc_id: 394, // Bob Field's location
-      fulfilling_loc_id: 154, // Depot location
+      requesting_loc_id: 24, // Bob Field's location (Langley AFB - 1 FW)
+      fulfilling_loc_id: 41, // Depot location (Shaw AFB - 20 FW)
       asset_sn: 'ACTS-003',
       asset_name: 'Targeting System B',
       job_no: 'MX-2024-005',
@@ -8926,8 +8926,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'acknowledged',
       requestor_id: 2,
       requestor_name: 'Jane Depot',
-      requesting_loc_id: 154, // Jane Depot's location
-      fulfilling_loc_id: 154, // Same depot location
+      requesting_loc_id: 41, // Jane Depot's location (Shaw AFB - 20 FW)
+      fulfilling_loc_id: 41, // Same depot location (Shaw AFB - 20 FW)
       asset_sn: '236-002',
       asset_name: 'Special Unit 001',
       job_no: 'MX-2024-010',
@@ -8965,8 +8965,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'received',
       requestor_id: 3,
       requestor_name: 'Bob Field',
-      requesting_loc_id: 394, // Bob Field's location
-      fulfilling_loc_id: 154, // Depot location
+      requesting_loc_id: 24, // Bob Field's location (Langley AFB - 1 FW)
+      fulfilling_loc_id: 41, // Depot location (Shaw AFB - 20 FW)
       asset_sn: null,
       asset_name: null,
       job_no: null,
@@ -9004,8 +9004,8 @@ function initializePartsOrders(): PartsOrder[] {
       status: 'pending',
       requestor_id: 3,
       requestor_name: 'Bob Field',
-      requesting_loc_id: 394, // Bob Field's location
-      fulfilling_loc_id: 154, // Depot location
+      requesting_loc_id: 24, // Bob Field's location (Langley AFB - 1 FW)
+      fulfilling_loc_id: 41, // Depot location (Shaw AFB - 20 FW)
       asset_sn: 'CRIIS-005',
       asset_name: 'Camera System X',
       job_no: 'MX-2024-001',
@@ -11107,7 +11107,7 @@ app.put('/api/assets/:id', async (req, res) => {
     oldValues.ship_date = detailedAsset.ship_date;
   }
 
-  const { partno, serno, name, status_cd, status_reason, admin_loc, cust_loc, notes, active, bad_actor, in_transit, carrier, tracking_number, ship_date } = req.body;
+  const { partno, serno, name, uii, status_cd, status_reason, admin_loc, cust_loc, notes, active, bad_actor, in_transit, carrier, tracking_number, ship_date } = req.body;
 
   // Track changes for audit log
   const changes: string[] = [];
@@ -11141,6 +11141,15 @@ app.put('/api/assets/:id', async (req, res) => {
     changes.push(`Name: ${asset.name} → ${name}`);
     historyChanges.push({ field: 'name', field_label: 'Name', old_value: asset.name, new_value: name || `${asset.partno} - ${asset.serno}` });
     asset.name = name || `${asset.partno} - ${asset.serno}`;
+  }
+
+  // Handle UII (Unique Item Identifier) field
+  if (uii !== undefined && detailedAsset && uii !== detailedAsset.uii) {
+    const oldUii = detailedAsset.uii || '(not assigned)';
+    const newUii = uii || '(not assigned)';
+    changes.push(`UII: ${oldUii} → ${newUii}`);
+    historyChanges.push({ field: 'uii', field_label: 'UII (Unique Item Identifier)', old_value: oldUii, new_value: newUii });
+    detailedAsset.uii = uii || null;
   }
 
   if (status_cd !== undefined && status_cd !== asset.status_cd) {

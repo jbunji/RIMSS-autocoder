@@ -912,6 +912,7 @@ export default function AssetDetailPage() {
           serno: editForm.serno,
           partno: editForm.partno,
           name: editForm.name,
+          uii: editForm.uii,
           status_cd: editForm.status_cd,
           status_reason: statusReason || undefined,
           admin_loc: editForm.admin_loc,
@@ -1349,9 +1350,19 @@ export default function AssetDetailPage() {
               {/* UII - Unique Item Identifier */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-500">UII (Unique Item Identifier)</label>
-                <p className="mt-1 text-gray-900 font-mono text-sm">
-                  {asset.uii || <span className="text-gray-400 italic">Not assigned</span>}
-                </p>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editForm.uii || ''}
+                    onChange={(e) => handleInputChange('uii', e.target.value)}
+                    placeholder="Enter UII value..."
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm font-mono"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-900 font-mono text-sm">
+                    {asset.uii || <span className="text-gray-400 italic">Not assigned</span>}
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -1139,20 +1139,62 @@ export default function AssetsPage() {
                           <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </button>
-                      {/* Page numbers */}
-                      {Array.from({ length: pagination.total_pages }, (_, i) => i + 1).map((pageNum) => (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                            pageNum === pagination.page
-                              ? 'z-10 bg-primary-50 border-primary-500 text-primary-600'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      ))}
+                      {/* Smart pagination with ellipsis */}
+                      {(() => {
+                        const totalPages = pagination.total_pages;
+                        const currentPage = pagination.page;
+                        const pages: (number | 'ellipsis')[] = [];
+
+                        if (totalPages <= 7) {
+                          // Show all pages if 7 or fewer
+                          for (let i = 1; i <= totalPages; i++) pages.push(i);
+                        } else {
+                          // Always show first page
+                          pages.push(1);
+
+                          if (currentPage > 3) {
+                            pages.push('ellipsis');
+                          }
+
+                          // Pages around current
+                          const start = Math.max(2, currentPage - 1);
+                          const end = Math.min(totalPages - 1, currentPage + 1);
+
+                          for (let i = start; i <= end; i++) {
+                            if (!pages.includes(i)) pages.push(i);
+                          }
+
+                          if (currentPage < totalPages - 2) {
+                            pages.push('ellipsis');
+                          }
+
+                          // Always show last page
+                          if (!pages.includes(totalPages)) pages.push(totalPages);
+                        }
+
+                        return pages.map((pageNum, idx) => (
+                          pageNum === 'ellipsis' ? (
+                            <span
+                              key={`ellipsis-${idx}`}
+                              className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                            >
+                              ...
+                            </span>
+                          ) : (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                pageNum === currentPage
+                                  ? 'z-10 bg-primary-50 border-primary-500 text-primary-600'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          )
+                        ));
+                      })()}
                       <button
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page === pagination.total_pages}

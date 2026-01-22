@@ -147,7 +147,7 @@ function getTrackingUrl(trackingNumber: string): { url: string; carrier: string 
 export default function PartsOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { token, user } = useAuthStore()
+  const { token, user, canFulfillOrders } = useAuthStore()
   const [order, setOrder] = useState<PartsOrder | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -397,9 +397,21 @@ export default function PartsOrderDetailPage() {
     }
   }
 
-  const canAcknowledge = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'pending'
-  const canFill = user && (user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'acknowledged'
+  // Permission checks based on maintenance level (SHOP/DEPOT)
+  // DEPOT users (D-level) can: ACKNOWLEDGE, FILL (select replacement part, enter shipping info)
+  // SHOP users (I-level) can: REQUEST parts, RECEIVE parts
+  // ADMIN users can do everything regardless of maintenance level
+  const isDepotLevel = canFulfillOrders() // DEPOT maintenance level or ADMIN
+
+  // ACKNOWLEDGE and FILL require DEPOT maintenance level (or ADMIN)
+  const canAcknowledge = user && isDepotLevel && order?.status === 'pending'
+  const canFill = user && isDepotLevel && order?.status === 'acknowledged'
+
+  // RECEIVE can be done by anyone who can view the order (typically the requestor or depot)
+  // In legacy system, both SHOP and DEPOT could receive
   const canReceive = user && (user.role === 'FIELD_TECHNICIAN' || user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN') && order?.status === 'shipped'
+
+  // PQDR flagging can be done by anyone with maintenance permissions
   const canTogglePqdr = user && (user.role === 'FIELD_TECHNICIAN' || user.role === 'DEPOT_MANAGER' || user.role === 'ADMIN')
 
   if (loading) {

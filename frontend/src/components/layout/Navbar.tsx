@@ -10,28 +10,129 @@ import {
   BellIcon,
   MapPinIcon,
   MagnifyingGlassIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
-import { useAuthStore } from '../../stores/authStore'
+import { useAuthStore, MaintenanceLevel } from '../../stores/authStore'
 
 interface NavbarProps {
   onMenuClick: () => void
   sidebarOpen: boolean
 }
 
+// Location type for program-specific locations from API
+interface ProgramLocation {
+  loc_id: number
+  display_name: string | null
+  majcom_cd: string | null
+  site_cd: string | null
+  unit_cd: string | null
+  description: string | null
+  set_name?: string
+}
+
 export default function Navbar({ onMenuClick }: NavbarProps) {
   const navigate = useNavigate()
-  const { user, logout, currentProgramId, setCurrentProgram, currentLocationId, setCurrentLocation, token } = useAuthStore()
+  const {
+    user,
+    logout,
+    currentProgramId,
+    setCurrentProgram,
+    currentLocationId,
+    setCurrentLocation,
+    currentMaintenanceLevel,
+    setCurrentMaintenanceLevel,
+    token
+  } = useAuthStore()
   const [unreadCount, setUnreadCount] = useState<number>(0)
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [programLocations, setProgramLocations] = useState<ProgramLocation[]>([])
+  const [locationsLoading, setLocationsLoading] = useState<boolean>(false)
 
   // Get current program from user's programs
   const currentProgram = user?.programs?.find(p => p.pgm_id === currentProgramId)
   const availablePrograms = user?.programs || []
 
-  // Get current location from user's locations
-  const currentLocation = user?.locations?.find(l => l.loc_id === currentLocationId)
-  // Filter locations by current program - only show locations valid for the selected program
-  const availableLocations = user?.locations?.filter(l => l.pgm_id === currentProgramId) || []
+  // Get current location from program-specific locations (fetched from API)
+  // Fall back to user's locations if no program locations loaded yet
+  // Special case: loc_id=0 means "All Locations" for admin users
+  const currentLocation = currentLocationId === 0
+    ? { loc_id: 0, display_name: 'All Locations', is_default: true }
+    : (programLocations.find(l => l.loc_id === currentLocationId)
+       || user?.locations?.find(l => l.loc_id === currentLocationId))
+
+  // Use program-specific locations if available, otherwise fall back to user's locations
+  // The API already resolves code IDs to readable names, so display_name should be set
+  // For ADMIN users, add an "All Locations" option at the top to see all assets
+  const baseLocations = programLocations.length > 0
+    ? programLocations.map(loc => ({
+        loc_id: loc.loc_id,
+        display_name: loc.display_name || `Location ${loc.loc_id}`,
+        is_default: currentLocationId === loc.loc_id,
+      }))
+    : (user?.locations || [])
+
+  // Add "All Locations" option for ADMIN users to see all assets across locations
+  const availableLocations = user?.role === 'ADMIN' && baseLocations.length > 0
+    ? [
+        { loc_id: 0, display_name: 'All Locations', is_default: currentLocationId === 0 || !currentLocationId },
+        ...baseLocations
+      ]
+    : baseLocations
+
+  // Get available maintenance levels for this user
+  const availableMaintenanceLevels = user?.allowedMaintenanceLevels || []
+
+  // Fetch program-specific locations when program changes
+  useEffect(() => {
+    const fetchProgramLocations = async () => {
+      if (!token || !currentProgramId) {
+        setProgramLocations([])
+        return
+      }
+
+      setLocationsLoading(true)
+      try {
+        const response = await fetch(`http://localhost:3001/api/program/${currentProgramId}/locations`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setProgramLocations(data.locations || [])
+
+          // For ADMIN users, default to "All Locations" (loc_id=0) to see all program assets
+          // For non-admin users, select the first available location
+          const locationIds = (data.locations || []).map((l: ProgramLocation) => l.loc_id)
+          const isAdmin = user?.role === 'ADMIN'
+
+          if (isAdmin) {
+            // Admin users default to "All Locations" (0) unless they have a specific location selected
+            if (currentLocationId !== 0 && !locationIds.includes(currentLocationId)) {
+              setCurrentLocation(0) // "All Locations"
+            }
+          } else if (currentLocationId && !locationIds.includes(currentLocationId) && data.locations?.length > 0) {
+            // Non-admin: Auto-select first location for the new program
+            setCurrentLocation(data.locations[0].loc_id)
+          } else if (!currentLocationId && data.locations?.length > 0) {
+            // No location selected yet, select first one
+            setCurrentLocation(data.locations[0].loc_id)
+          }
+        } else {
+          console.error('Failed to fetch program locations:', response.status)
+          setProgramLocations([])
+        }
+      } catch (error) {
+        console.error('Failed to fetch program locations:', error)
+        setProgramLocations([])
+      } finally {
+        setLocationsLoading(false)
+      }
+    }
+
+    fetchProgramLocations()
+  }, [token, currentProgramId, currentLocationId, setCurrentLocation])
 
   // Fetch unread notification count
   useEffect(() => {
@@ -96,21 +197,17 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
   const handleProgramChange = (programId: number) => {
     setCurrentProgram(programId)
-
-    // When switching programs, check if current location is valid for the new program
-    // If not, switch to the first valid location for the new program
-    const locationsForNewProgram = user?.locations?.filter(l => l.pgm_id === programId) || []
-    const currentLocationIsValid = locationsForNewProgram.some(l => l.loc_id === currentLocationId)
-
-    if (!currentLocationIsValid && locationsForNewProgram.length > 0) {
-      // Find the default location for this program, or use the first one
-      const defaultLocation = locationsForNewProgram.find(l => l.is_default) || locationsForNewProgram[0]
-      setCurrentLocation(defaultLocation.loc_id)
-    }
+    // Clear program locations so we fetch fresh ones for the new program
+    setProgramLocations([])
+    // The useEffect will automatically fetch locations for the new program
   }
 
   const handleLocationChange = (locationId: number) => {
     setCurrentLocation(locationId)
+  }
+
+  const handleMaintenanceLevelChange = (level: MaintenanceLevel) => {
+    setCurrentMaintenanceLevel(level)
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -121,8 +218,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
   }
 
   return (
-    <nav className="bg-primary-800 shadow-lg overflow-x-hidden">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-full overflow-x-hidden">
+    <nav className="bg-primary-800 shadow-lg overflow-visible">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-full overflow-visible">
         <div className="flex h-16 items-center justify-between gap-2">
           {/* Left side - Menu button and logo */}
           <div className="flex items-center flex-shrink-0 min-w-0">
@@ -178,8 +275,14 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
               )}
             </Link>
 
-            {/* Location Display/Selector */}
-            {availableLocations.length > 0 && (
+            {/* Location Display/Selector - Shows locations for selected program */}
+            {locationsLoading ? (
+              // Loading state
+              <div className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-white min-h-[44px]">
+                <MapPinIcon className="h-5 w-5 sm:mr-1.5 flex-shrink-0 animate-pulse" aria-hidden="true" />
+                <span className="hidden sm:inline ml-1 text-gray-300">Loading...</span>
+              </div>
+            ) : availableLocations.length > 0 ? (
               availableLocations.length > 1 ? (
                 // Multiple locations - show dropdown selector
                 <Menu as="div" className="relative">
@@ -199,7 +302,10 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <Menu.Items className="absolute right-0 z-[100] mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-96 overflow-y-auto">
+                      <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+                        {availableLocations.length} location{availableLocations.length !== 1 ? 's' : ''} for {currentProgram?.pgm_cd || 'this program'}
+                      </div>
                       {availableLocations.map((location) => (
                         <Menu.Item key={location.loc_id}>
                           {({ active }) => (
@@ -213,11 +319,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                             >
                               <div className="flex items-center">
                                 <MapPinIcon className="h-4 w-4 mr-2 flex-shrink-0" aria-hidden="true" />
-                                <span className="font-medium">{location.display_name}</span>
+                                <span className="font-medium truncate">{location.display_name}</span>
                               </div>
-                              {location.is_default && (
-                                <div className="text-xs text-gray-500 ml-6">Default location</div>
-                              )}
                             </button>
                           )}
                         </Menu.Item>
@@ -231,6 +334,69 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                   <MapPinIcon className="h-5 w-5 sm:mr-1.5 flex-shrink-0" aria-hidden="true" />
                   <span className="hidden xl:inline">Location:</span>
                   <span className="hidden sm:inline ml-1 font-semibold truncate max-w-[80px] md:max-w-[120px]">{currentLocation?.display_name || 'None'}</span>
+                </div>
+              )
+            ) : (
+              // No locations available for this program
+              <div className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-yellow-200 min-h-[44px]" title="No locations configured for this program">
+                <MapPinIcon className="h-5 w-5 sm:mr-1.5 flex-shrink-0" aria-hidden="true" />
+                <span className="hidden sm:inline ml-1">No Locations</span>
+              </div>
+            )}
+
+            {/* Maintenance Level Selector (SHOP/DEPOT) */}
+            {availableMaintenanceLevels.length > 0 && (
+              availableMaintenanceLevels.length > 1 ? (
+                // Multiple levels available - show dropdown selector
+                <Menu as="div" className="relative">
+                  <Menu.Button className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-800 min-h-[44px]">
+                    <WrenchScrewdriverIcon className="h-5 w-5 sm:mr-1.5 flex-shrink-0" aria-hidden="true" />
+                    <span className="hidden sm:inline ml-1 font-semibold">{currentMaintenanceLevel || 'Select'}</span>
+                    <ChevronDownIcon className="ml-1 sm:ml-2 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                  </Menu.Button>
+
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 z-[100] mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      {availableMaintenanceLevels.map((level) => (
+                        <Menu.Item key={level}>
+                          {({ active }) => (
+                            <button
+                              onClick={() => handleMaintenanceLevelChange(level)}
+                              className={`${
+                                active ? 'bg-gray-100' : ''
+                              } ${
+                                currentMaintenanceLevel === level ? 'bg-primary-50 text-primary-800' : 'text-gray-700'
+                              } block w-full px-4 py-2 text-left text-sm`}
+                            >
+                              <div className="flex items-center">
+                                <WrenchScrewdriverIcon className="h-4 w-4 mr-2 flex-shrink-0" aria-hidden="true" />
+                                <div>
+                                  <span className="font-medium">{level}</span>
+                                  <p className="text-xs text-gray-500">
+                                    {level === 'SHOP' ? 'I-level maintenance (request parts)' : 'D-level maintenance (fulfill orders)'}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          )}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
+              ) : (
+                // Single level - show static display (no dropdown)
+                <div className="flex items-center rounded-md bg-primary-700 px-2 sm:px-3 py-2.5 text-sm font-medium text-white min-h-[44px]">
+                  <WrenchScrewdriverIcon className="h-5 w-5 sm:mr-1.5 flex-shrink-0" aria-hidden="true" />
+                  <span className="hidden sm:inline ml-1 font-semibold">{currentMaintenanceLevel || 'N/A'}</span>
                 </div>
               )
             )}
@@ -253,7 +419,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <Menu.Items className="absolute right-0 z-[100] mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                     {availablePrograms.map((program) => (
                       <Menu.Item key={program.pgm_id}>
                         {({ active }) => (
@@ -293,7 +459,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <Menu.Items className="absolute right-0 z-[100] mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">

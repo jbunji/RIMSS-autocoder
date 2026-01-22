@@ -35,16 +35,15 @@ interface InventoryReportData {
 }
 
 export default function InventoryReportPage() {
-  const { token, user } = useAuthStore()
+  const { token, user, currentProgramId } = useAuthStore()
   const [reportData, setReportData] = useState<InventoryReportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [expandedSystems, setExpandedSystems] = useState<Set<string>>(new Set())
-  const [selectedProgram, setSelectedProgram] = useState<number | null>(null)
 
   useEffect(() => {
     fetchInventoryReport()
-  }, [selectedProgram])
+  }, [currentProgramId])
 
   const fetchInventoryReport = async () => {
     setLoading(true)
@@ -52,8 +51,8 @@ export default function InventoryReportPage() {
 
     try {
       const params = new URLSearchParams()
-      if (selectedProgram) {
-        params.append('program_id', selectedProgram.toString())
+      if (currentProgramId) {
+        params.append('program_id', currentProgramId.toString())
       }
 
       const url = `http://localhost:3001/api/reports/inventory${params.toString() ? '?' + params.toString() : ''}`

@@ -21,8 +21,8 @@ export default function Layout() {
         CUI - Controlled Unclassified Information
       </div>
 
-      {/* Fixed Navbar */}
-      <div className="fixed top-7 left-0 right-0 z-40 overflow-x-hidden">
+      {/* Fixed Navbar - z-[60] ensures dropdowns appear above main content, overflow-visible for dropdown menus */}
+      <div className="fixed top-7 left-0 right-0 z-[60]">
         <Navbar
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           sidebarOpen={sidebarOpen}
