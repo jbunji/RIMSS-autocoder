@@ -20,6 +20,7 @@ import {
   DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import EmptyConfigurationsIllustration from '../components/illustrations/EmptyConfigurationsIllustration'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
@@ -1089,13 +1090,13 @@ export default function ConfigurationsPage() {
             </div>
           </div>
         ) : configurations.length === 0 ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Cog6ToothIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <div className="flex items-center justify-center py-12 px-4">
+            <div className="text-center max-w-md">
               {/* Differentiate between search with no results vs no configurations for program/location */}
               {debouncedSearch ? (
                 // Search query returned no results
                 <>
+                  <Cog6ToothIcon className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-4 text-sm font-medium text-gray-900">No matching configurations</h3>
                   <p className="mt-1 text-sm text-gray-500">
                     No configurations match your search "{debouncedSearch}"
@@ -1114,6 +1115,7 @@ export default function ConfigurationsPage() {
               ) : typeFilter || sysTypeFilter ? (
                 // Filters applied but no results
                 <>
+                  <Cog6ToothIcon className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-4 text-sm font-medium text-gray-900">No configurations match your filters</h3>
                   <p className="mt-1 text-sm text-gray-500">
                     No configurations found for the selected filters
@@ -1135,10 +1137,12 @@ export default function ConfigurationsPage() {
                   </button>
                 </>
               ) : (
-                // No configurations exist for this program/location combination
+                // No configurations exist for this program/location combination - Show SVG illustration
                 <>
-                  <h3 className="mt-4 text-sm font-medium text-gray-900">No configurations available</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                  {/* SVG Illustration for empty state */}
+                  <EmptyConfigurationsIllustration className="mx-auto w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56" />
+                  <h3 className="mt-6 text-lg font-medium text-gray-900">No configurations yet</h3>
+                  <p className="mt-2 text-sm text-gray-500">
                     {currentLocationId && currentLocationId !== 0
                       ? `No configurations exist for this program and location combination.`
                       : `No configurations have been created for ${program?.pgm_name || 'this program'} yet.`
@@ -1146,21 +1150,21 @@ export default function ConfigurationsPage() {
                   </p>
                   {canEditConfig && (
                     <>
-                      <p className="mt-1 text-xs text-gray-400">
-                        Get started by adding your first configuration
+                      <p className="mt-2 text-sm text-gray-400">
+                        Get started by creating your first configuration
                       </p>
                       <button
                         type="button"
                         onClick={openCreateModal}
-                        className="mt-4 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                        className="mt-6 inline-flex items-center px-4 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                       >
-                        <PlusIcon className="mr-1.5 h-4 w-4" />
-                        Add Configuration
+                        <PlusIcon className="mr-2 h-5 w-5" />
+                        Create First Configuration
                       </button>
                     </>
                   )}
                   {!canEditConfig && (
-                    <p className="mt-2 text-xs text-gray-400">
+                    <p className="mt-4 text-sm text-gray-400">
                       Contact an administrator to add configurations
                     </p>
                   )}
