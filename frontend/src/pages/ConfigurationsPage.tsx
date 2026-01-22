@@ -1084,8 +1084,80 @@ export default function ConfigurationsPage() {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <Cog6ToothIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-500">No configurations found</p>
-              <p className="text-xs text-gray-400">Try adjusting your filters</p>
+              {/* Differentiate between search with no results vs no configurations for program/location */}
+              {debouncedSearch ? (
+                // Search query returned no results
+                <>
+                  <h3 className="mt-4 text-sm font-medium text-gray-900">No matching configurations</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    No configurations match your search "{debouncedSearch}"
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    Try a different search term or clear your search
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="mt-4 inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  >
+                    Clear search
+                  </button>
+                </>
+              ) : typeFilter || sysTypeFilter ? (
+                // Filters applied but no results
+                <>
+                  <h3 className="mt-4 text-sm font-medium text-gray-900">No configurations match your filters</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    No configurations found for the selected filters
+                    {typeFilter && ` (Type: ${typeFilter})`}
+                    {sysTypeFilter && ` (System: ${sysTypeFilter})`}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    Try changing the system category tab or configuration type
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTypeFilter('')
+                      setSysTypeFilter('')
+                    }}
+                    className="mt-4 inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  >
+                    Clear filters
+                  </button>
+                </>
+              ) : (
+                // No configurations exist for this program/location combination
+                <>
+                  <h3 className="mt-4 text-sm font-medium text-gray-900">No configurations available</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {currentLocationId && currentLocationId !== 0
+                      ? `No configurations exist for this program and location combination.`
+                      : `No configurations have been created for ${program?.pgm_name || 'this program'} yet.`
+                    }
+                  </p>
+                  {canEditConfig && (
+                    <>
+                      <p className="mt-1 text-xs text-gray-400">
+                        Get started by adding your first configuration
+                      </p>
+                      <button
+                        type="button"
+                        onClick={openCreateModal}
+                        className="mt-4 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                      >
+                        <PlusIcon className="mr-1.5 h-4 w-4" />
+                        Add Configuration
+                      </button>
+                    </>
+                  )}
+                  {!canEditConfig && (
+                    <p className="mt-2 text-xs text-gray-400">
+                      Contact an administrator to add configurations
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </div>
         ) : (
