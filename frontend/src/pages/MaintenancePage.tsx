@@ -24,6 +24,7 @@ import {
   PencilIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '../stores/authStore'
+import EmptyMaintenanceIllustration from '../components/EmptyMaintenanceIllustration'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
@@ -3710,11 +3711,15 @@ export default function MaintenancePage() {
 
     if (events.length === 0) {
       return (
-        <div className="bg-white shadow rounded-lg p-8 text-center">
-          <WrenchScrewdriverIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">
-            {activeTab === 0 ? 'No open maintenance events found.' : 'No closed maintenance events found.'}
-          </p>
+        <div className="bg-white shadow rounded-lg p-8">
+          <EmptyMaintenanceIllustration
+            title={activeTab === 0 ? 'No open maintenance jobs' : 'No closed maintenance jobs'}
+            subtitle={activeTab === 0
+              ? 'All systems operational - nothing requires attention at the moment'
+              : 'No completed maintenance records match your current filters'}
+            size="md"
+            className="py-4"
+          />
         </div>
       )
     }
@@ -3967,9 +3972,13 @@ export default function MaintenancePage() {
 
     if (events.length === 0) {
       return (
-        <div className="bg-white shadow rounded-lg p-8 text-center">
-          <WrenchScrewdriverIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">No open maintenance events found.</p>
+        <div className="bg-white shadow rounded-lg p-8">
+          <EmptyMaintenanceIllustration
+            title="No open maintenance jobs"
+            subtitle="All systems operational - nothing requires attention at the moment"
+            size="md"
+            className="py-4"
+          />
         </div>
       )
     }
