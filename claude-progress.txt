@@ -1,4 +1,300 @@
 ================================================================================
+[COMPLETED] Wed Jan 22 2026 - Feature #453: Add SVG illustration to empty search results
+================================================================================
+
+Feature: Add SVG illustration to empty search results
+Category: style
+Status: ✅ PASSING
+
+Description:
+When a search query returns no results anywhere in the application, display a
+helpful SVG illustration (such as a magnifying glass with an X or empty search
+results icon) to provide visual feedback that the search found nothing, making
+the empty state more user-friendly.
+
+Implementation Summary:
+
+1. Created new component: EmptySearchIllustration.tsx
+   - SVG illustration featuring a magnifying glass with an X mark
+   - Background circle for visual context
+   - Handle with grip lines for realistic detail
+   - Decorative dots and dashed search path lines
+   - Supports three sizes: 'sm', 'md', 'lg'
+   - Customizable title and subtitle props
+
+2. Updated SearchResultsPage.tsx:
+   - Imported EmptySearchIllustration component
+   - Replaced basic MagnifyingGlassIcon with new SVG illustration
+   - Added contextual message that includes the search query
+   - Improved responsive padding for different screen sizes
+
+Verification Steps Completed:
+
+✅ Step 1: Use the global search or any search functionality
+   - Used global search in navigation bar
+
+✅ Step 2: Enter a query that returns no results
+   - Searched for "ZZZZNONEXISTENT99999"
+   - Search returned 0 results (0 assets, 0 events, 0 configurations)
+
+✅ Step 3: Verify an SVG illustration appears alongside the no results text
+   - SVG magnifying glass with X mark displayed correctly
+   - Title: "No results found"
+   - Subtitle includes the search query for context
+
+✅ Step 4: Test multiple search areas to ensure consistency
+   - Tested global search (SearchResultsPage) ✓
+   - Assets page filter uses its own EmptyAssetsIllustration ✓
+   - Configurations page uses EmptyConfigurationsIllustration ✓
+   - Maintenance page uses EmptyMaintenanceIllustration ✓
+
+✅ Step 5: Confirm the illustration is not shown when results exist
+   - Illustration only appears when totalResults === 0
+   - When results exist, the normal results display is shown
+
+✅ Step 6: Check that the illustration maintains quality at different sizes
+   - Mobile (375x667): SVG scales properly, looks crisp
+   - Tablet (768x1024): SVG centered, good visual balance
+   - Desktop (1280x720): Full-size illustration with good detail
+
+Technical Quality:
+✅ Zero console errors
+✅ All verification steps passed
+✅ Responsive design working on all screen sizes
+✅ SVG maintains quality at different sizes
+✅ Contextual message includes search query
+
+Files Created:
+- frontend/src/components/EmptySearchIllustration.tsx (new)
+
+Files Modified:
+- frontend/src/pages/SearchResultsPage.tsx (import + empty state)
+
+Screenshots Captured:
+- feature-453-empty-search-illustration.png
+- feature-453-assets-filter-no-results.png
+- feature-453-mobile-view.png
+- feature-453-tablet-view.png
+
+Git Commit: 6ee641f - Feature #453: Add SVG illustration to empty search results
+
+Project Progress: 452/471 features passing (95.9%)
+Session Status: SUCCESS ✅
+Session Duration: ~25 minutes
+Session Mode: Single Feature Mode (Feature #453 assigned)
+
+================================================================================
+
+================================================================================
+[COMPLETED] Wed Jan 22 2026 - Feature #452: Add SVG illustration to empty maintenance page
+================================================================================
+
+Feature: Add SVG illustration to empty maintenance page
+Category: style
+Status: ✅ PASSING
+
+Description:
+Show a friendly graphic illustration when no maintenance jobs exist or match
+current filters. The SVG should depict something relevant like a wrench with
+a checkmark or a calm maintenance bay, conveying that there is nothing
+requiring attention at the moment.
+
+Implementation Summary:
+
+1. Created new component: EmptyMaintenanceIllustration.tsx
+   - SVG illustration featuring a wrench with a green checkmark
+   - Maintenance bay floor grid pattern for context
+   - Decorative sparkles indicating clean/clear status
+   - Supports three sizes: 'sm', 'md', 'lg'
+   - Customizable title and subtitle props
+
+2. Updated MaintenancePage.tsx:
+   - Imported EmptyMaintenanceIllustration component
+   - Replaced simple icon + text empty states with new illustration
+   - Updated both List view and Grouped view empty states
+   - Different messages for Backlog vs History tabs:
+     * Backlog: "No open maintenance jobs" / "All systems operational"
+     * History: "No closed maintenance jobs" / "No completed records match filters"
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to the Maintenance page
+   - Navigated to http://localhost:5173/maintenance
+   - Page loaded successfully
+
+✅ Step 2: Filter to show no results or ensure no maintenance jobs exist
+   - ACTS program has 0 maintenance jobs (Open: 0, Closed: 0)
+   - Empty state displayed correctly
+
+✅ Step 3: Confirm an SVG illustration displays with the empty state message
+   - SVG illustration visible with wrench and green checkmark
+   - Title: "No open maintenance jobs"
+   - Subtitle: "All systems operational - nothing requires attention at the moment"
+
+✅ Step 4: Verify the illustration is appropriately themed for maintenance context
+   - Wrench represents maintenance tools
+   - Green checkmark indicates "all clear" / "nothing to fix"
+   - Gray/muted color scheme is professional and non-intrusive
+
+✅ Step 5: Test that the illustration scales properly on different devices
+   - Mobile (375x667): ✅ Scales properly, illustration visible
+   - Tablet (768x1024): ✅ Scales properly, full illustration with text
+   - Desktop (1280x720): ✅ Scales properly, optimal display
+
+✅ Step 6: Confirm the illustration does not interfere with page layout
+   - Illustration contained within card container
+   - No overflow or layout issues
+   - History tab also shows illustration correctly
+   - Grouped view empty state works properly
+
+Technical Quality:
+✅ Zero console errors
+✅ All verification steps passed
+✅ Responsive across all device sizes
+✅ Consistent with existing EmptyAssetsIllustration pattern
+✅ Proper accessibility (aria-hidden on decorative SVG)
+
+Files Created/Modified:
+- frontend/src/components/EmptyMaintenanceIllustration.tsx (new)
+- frontend/src/pages/MaintenancePage.tsx (modified)
+
+Screenshots Captured:
+- feature-452-empty-maintenance-backlog.png
+- feature-452-empty-maintenance-illustration.png
+- feature-452-history-tab-full.png
+- feature-452-mobile-full-illustration.png
+- feature-452-tablet-view.png
+- feature-452-grouped-view-empty.png
+
+Git Commit: 9f0123d - Feature #452: Add SVG illustration to empty maintenance page - VERIFIED
+
+Project Progress: 450/471 features passing (95.5%)
+Session Status: SUCCESS ✅
+Session Duration: ~20 minutes
+Session Mode: Single Feature Mode (Feature #452 assigned)
+
+================================================================================
+
+================================================================================
+[VERIFIED] Wed Jan 22 2026 - Feature #89 Asset UII Field Supported
+================================================================================
+
+Feature: Asset UII field supported
+Category: Asset Management
+Status: ✅ PASSING
+
+Description:
+Unique Item Identifier (UII) can be recorded for assets. The UII field is a
+military tracking identifier used to uniquely identify defense assets.
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to asset edit
+   - Navigated to /assets page
+   - Selected asset with FMC status (ID 719626, Serial: SMC6N0J7KK2K)
+   - Clicked "View" then "Edit Asset" to enter edit mode
+
+✅ Step 2: Enter UII value
+   - Located the "UII (Unique Item Identifier)" field in the edit form
+   - Entered value: "TEST-UII-89-FEATURE"
+
+✅ Step 3: Save asset
+   - Clicked "Save Changes" button
+   - Received success message: "Asset updated successfully!"
+   - UII value saved to PostgreSQL database via Prisma ORM
+
+✅ Step 4: Verify UII persisted and displayed
+   - Refreshed the page (navigated to /assets/719626)
+   - UII field shows "TEST-UII-89-FEATURE" - value persisted correctly
+   - Last Modified timestamp updated to confirm database update
+
+Technical Details:
+- UII field defined in Prisma schema (schema.prisma line 249): uii String? @db.VarChar(50)
+- Frontend UI implemented in AssetDetailPage.tsx (lines 1350-1365)
+- Backend PUT /api/assets/:id endpoint handles database assets
+- Prisma.asset.update() used to persist UII to database
+
+Screenshot: feature-89-uii-verification.png
+
+Session Status: VERIFICATION SUCCESSFUL ✅
+Session Mode: Single Feature Mode (Feature #89 assigned)
+
+================================================================================
+
+================================================================================
+[REGRESSION TEST] Wed Jan 22 2026 - Feature #182 Regression Test Session
+================================================================================
+
+Feature: Sortie import duplicate handling
+Category: Sortie
+Status: ✅ PASSING (verified working - no regression)
+
+Description:
+Import handles duplicate records appropriately - system detects duplicate Mission IDs
+and provides options to Skip, Update, or Create Anyway.
+
+Verification Steps Completed:
+
+✅ Step 1: Import sorties from Excel
+   - Created test Excel file with 2 records:
+     - CRIIS-SORTIE-001 (DUPLICATE - exists in system)
+     - CRIIS-SORTIE-005 (NEW - does not exist)
+   - Uploaded file via Import button
+   - Preview showed both records parsed correctly
+
+✅ Step 2: Attempt to import same file again
+   - System detected duplicate Mission ID "CRIIS-SORTIE-001"
+   - HTTP 409 Conflict status triggered duplicate handling UI
+
+✅ Step 3: Verify duplicate handling options
+   - "Duplicate Mission IDs Found (1)" warning displayed
+   - Side-by-side comparison of existing vs import data shown:
+     - Existing: Date 2026-01-17, Effect Full Mission Capable, Range A
+     - Import: Date 2026-01-22, Effect FMC, Range X
+   - Three action options displayed:
+     1. Skip Duplicates - Ignore duplicate rows and import only new records
+     2. Update Existing - Update existing records with new data from import
+     3. Create Anyway - Create new records even with duplicate mission IDs (not recommended)
+
+✅ Step 4: Verify skip or update behavior works
+   - Selected "Skip Duplicates" option
+   - Clicked "Import with Selected Action"
+   - Success message: "Successfully imported 1 sortie(s), skipped 1"
+   - New record CRIIS-SORTIE-005 appeared in table (5 sorties now, was 4)
+   - Existing CRIIS-SORTIE-001 unchanged (still shows Jan 16, 2026, Range A)
+
+Technical Details:
+- Frontend: SortiesPage.tsx with importDuplicates state and duplicateAction handling
+- Backend: Returns 409 Conflict with duplicates array when Mission IDs already exist
+- Frontend presents clean UI for choosing how to handle duplicates
+- Skip behavior correctly imports only new records
+
+Screenshot: feature-182-skip-duplicates-success.png
+
+================================================================================
+[REGRESSION TEST] Wed Jan 22 2026 - Feature #89 Regression Test Session
+================================================================================
+
+Feature: Asset UII field supported
+Category: Asset
+Status: ✅ PASSING (fixed regression and verified working)
+
+Description:
+Unique Item Identifier (UII) can be recorded and edited on assets.
+
+Regression Found & Fixed:
+- UII field was displayed but NOT editable in edit mode
+- Was showing as read-only <p> element instead of <input>
+- Fixed by:
+  1. Frontend: Made UII field editable when in edit mode (AssetDetailPage.tsx)
+  2. Frontend: Added uii to save request body
+  3. Backend: Added uii handling in PUT /api/assets/:id endpoint
+
+Verification:
+- API test confirmed UII update works
+- Browser test confirmed editable UII input field displays in edit mode
+
+================================================================================
 [VERIFIED] Wed Jan 22 2026 - Feature #217 Verification Session
 ================================================================================
 
@@ -9462,3 +9758,350 @@ Screenshots:
 Result: REGRESSION TEST PASSED ✅
 
 [Testing] Feature #303 verified - still passing
+
+================================================================================
+[REGRESSION TEST] Wed Jan 21 23:45:41 EST 2026 - Feature #98: User can create configuration set
+================================================================================
+
+Feature ID: 98
+Category: Configuration
+Name: User can create configuration set
+Description: Configuration set can be created with valid data
+
+REGRESSION FOUND AND FIXED!
+
+Root Cause Analysis:
+- The POST /api/configurations endpoint was storing new configurations
+  in an in-memory array (configurations.push(newConfig))
+- The GET /api/configurations endpoint reads from the database via Prisma
+- This mismatch caused newly created configs to return 201 Created
+  but not appear in subsequent list queries
+
+Fix Applied:
+- Converted POST /api/configurations to async function
+- Now uses prisma.cfgSet.create() to persist to database
+- Duplicate check uses prisma.cfgSet.findFirst() instead of in-memory search
+- Properly retrieves part info if partno_id is provided
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to Add Configuration form
+   - Logged in as admin
+   - Switched to CRIIS program
+   - Clicked Add Configuration button
+   - Modal opened correctly
+
+✅ Step 2: Enter config name
+   - Entered "Feature 98 Test Config"
+
+✅ Step 3: Select config type
+   - Selected "System - A full system configuration"
+
+✅ Step 4: Select part number
+   - Skipped (optional field)
+
+✅ Step 5: Submit form
+   - Clicked "Create Configuration" button
+   - API returned 201 Created
+
+✅ Step 6: Verify config appears in list
+   - Configuration count changed from 152 to 153
+   - Search for "Feature 98" found the new configuration
+   - Shows: Type=SYSTEM, Created=Jan 21, 2026 by admin
+
+Technical Quality:
+✅ Zero console errors
+✅ All verification steps passed
+✅ Data now persisted to database
+✅ Configuration appears in list after creation
+
+Screenshots Captured:
+- feature-98-configurations-page.png - Initial configurations page
+- feature-98-config-created.png - Search showing newly created config
+
+Git Commit: c87fc61 - Fix Feature #98: Configuration creation now persists to database
+
+Project Progress: Feature marked as passing after fix
+Session Status: REGRESSION FIXED ✅
+Session Mode: Testing Agent - Regression Testing
+
+[Testing] Feature #98 regression fixed and verified
+================================================================================
+
+================================================================================
+[COMPLETED] Wed Jan 22 2026 - Feature #451: Add SVG illustration to empty assets page
+================================================================================
+
+Feature: Add SVG illustration to empty assets page
+Category: style
+Status: ✅ PASSING
+
+Description:
+Display a friendly SVG illustration when no assets match the current filters
+or when the assets list is empty. The illustration should be a simple graphic
+(such as an empty box or aircraft silhouette with a question mark) that provides
+visual feedback and helps users understand no results were found.
+
+Implementation Summary:
+
+1. Created EmptyAssetsIllustration component (frontend/src/components/EmptyAssetsIllustration.tsx):
+   - SVG illustration featuring an aircraft silhouette with a question mark
+   - Configurable size prop (sm/md/lg)
+   - Customizable title and subtitle text
+   - Responsive design with flexible container
+   - Gray color scheme matching the overall UI
+
+2. Updated AssetsPage.tsx:
+   - Imported EmptyAssetsIllustration component
+   - Replaced basic inline SVG with new illustration component
+   - Added contextual messages based on filter state:
+     * With filters: "No assets match your current filters. Try adjusting your search criteria or clearing filters."
+     * Without filters: "There are no assets in this program yet. Add your first asset to get started."
+   - Improved padding for responsive layout (py-12 px-4 sm:py-16 md:py-20)
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to the Assets page
+   - Navigated to http://localhost:5173/assets
+   - Switched to ACTS program (which has 0 assets)
+   - SVG illustration displayed correctly
+
+✅ Step 2: Apply filters that result in no matching assets
+   - Switched to CRIIS program (899,053 assets)
+   - Entered search filter "ZZZZNONEXISTENT99999"
+   - No results returned (0 total assets)
+   - SVG illustration appeared with filter-specific message
+
+✅ Step 3: Verify an SVG illustration appears with the no results message
+   - Illustration shows aircraft silhouette with question mark
+   - "No assets found" heading displayed
+   - Contextual subtitle message displayed
+   - Screenshots captured: feature-451-empty-assets-illustration.png, feature-451-empty-with-filters.png
+
+✅ Step 4: Clear filters and verify normal asset display returns
+   - Cleared search filter
+   - Asset table reappeared with 899,053 assets
+   - Pagination working correctly
+
+✅ Step 5: Test with an empty database to confirm illustration shows
+   - ACTS program has 0 assets (empty state)
+   - Illustration displays correctly with "Add your first asset to get started" message
+
+✅ Step 6: Check responsive behavior on mobile and tablet views
+   - Mobile (375x667): Illustration displays properly, scrollable
+   - Tablet (768x1024): Illustration centered, fully visible
+   - Desktop (1280x720): Illustration displays in original verification
+   - Screenshots: feature-451-mobile-view.png, feature-451-tablet-view.png
+
+Technical Quality:
+✅ Zero console errors
+✅ All verification steps passed
+✅ Responsive design working on all screen sizes
+✅ Contextual messages based on filter state
+✅ Clean SVG illustration matching UI style
+
+Files Created:
+- frontend/src/components/EmptyAssetsIllustration.tsx (new)
+
+Files Modified:
+- frontend/src/pages/AssetsPage.tsx (import + empty state)
+
+Screenshots Captured:
+- feature-451-empty-assets-illustration.png
+- feature-451-empty-with-filters.png
+- feature-451-mobile-view.png
+- feature-451-mobile-view-scrolled.png
+- feature-451-tablet-view.png
+
+Git Commit: aa3ce6c - Feature #451: Add SVG illustration to empty assets page
+
+Project Progress: 450/471 features passing (95.5%)
+Session Status: SUCCESS ✅
+Session Duration: ~20 minutes
+Session Mode: Single Feature Mode (Feature #451 assigned)
+
+================================================================================
+
+================================================================================
+[COMPLETED] Wed Jan 22 2026 - Feature #450: Add SVG illustration to empty configurations page
+================================================================================
+
+Feature: Add SVG illustration to empty configurations page
+Category: style
+Status: ✅ PASSING
+
+Description:
+When no configurations exist in the system, display a friendly SVG illustration
+alongside the empty state message. The illustration should be a simple, professional
+graphic (such as a settings gear with a plus sign or empty folder icon) that visually
+communicates 'no configurations yet' and encourages users to create their first
+configuration.
+
+Implementation Summary:
+
+1. Created new illustration component:
+   - frontend/src/components/illustrations/EmptyConfigurationsIllustration.tsx
+   - Professional gear/cog design with green plus sign badge
+   - SVG includes gradient backgrounds, decorative elements, and soft shadows
+   - Color scheme uses indigo/purple (matching app theme) with green accent
+   - Includes decorative smaller gears and dashed connection lines
+
+2. Updated ConfigurationsPage.tsx:
+   - Imported the new illustration component
+   - Replaced simple Cog6ToothIcon with full SVG illustration for true empty state
+   - Kept simple icon for search/filter empty states (different scenarios)
+   - Added responsive sizing classes: w-40 (mobile), sm:w-48 (tablet), md:w-56 (desktop)
+   - Enhanced empty state messaging and CTA button styling
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to the Configurations page
+   - Navigated to http://localhost:5173/configurations
+   - Page loaded successfully with ACTS program selected
+
+✅ Step 2: Ensure no configurations exist (or filter to show none)
+   - ACTS program has 0 configurations
+   - Empty state triggered correctly
+
+✅ Step 3: Verify an SVG illustration is displayed above/beside the empty state message
+   - Professional gear illustration with green plus sign badge displayed
+   - Illustration positioned above the "No configurations yet" heading
+   - Clear visual communication of "add configuration" concept
+
+✅ Step 4: Confirm the illustration is properly sized and centered
+   - Illustration centered horizontally in container
+   - Proper spacing between illustration and text
+   - Size appropriate for content area
+
+✅ Step 5: Check that the illustration renders correctly on different screen sizes
+   - Mobile (375x667): Illustration scales to w-40 h-40, properly centered
+   - Tablet (768x1024): Illustration scales to w-48 h-48, good proportion
+   - Desktop (1280x720): Illustration scales to w-56 h-56, optimal display
+
+✅ Step 6: Verify the illustration does not distort or pixelate
+   - SVG renders crisp at all viewport sizes
+   - No pixelation or distortion observed
+   - Vector graphics maintain quality at any resolution
+
+Technical Quality:
+✅ Zero console errors
+✅ All verification steps passed
+✅ Responsive design working across breakpoints
+✅ Professional appearance matching app design language
+✅ Accessible with aria-label on SVG
+
+Screenshots Captured:
+- feature-450-empty-state-desktop.png - Initial desktop view
+- feature-450-empty-state-full.png - Full empty state view
+- feature-450-empty-state-mobile.png - Mobile viewport (scrolled to content)
+- feature-450-empty-state-mobile-scrolled.png - Mobile view of illustration
+- feature-450-empty-state-tablet.png - Tablet viewport view
+- feature-450-final-desktop.png - Final verification screenshot
+
+Git Commit: 64717c8 - Feature #450: Add SVG illustration to empty configurations page
+
+Project Progress: 450/471 features passing (95.5%)
+Session Status: SUCCESS ✅
+Session Duration: ~20 minutes
+Session Mode: Single Feature Mode (Feature #450 assigned)
+
+================================================================================
+
+================================================================================
+[REGRESSION TEST] Thu Jan 22 10:23:03 EST 2026 - Feature #308: Rapid navigation no stale data
+================================================================================
+
+Feature ID: 308
+Category: Concurrency
+Name: Rapid navigation no stale data
+Description: Quick page changes show correct data
+
+RESULT: ✅ STILL PASSING
+
+Verification Steps Completed:
+
+✅ Step 1: Navigate to asset A detail
+   - Navigated to asset OWEC9C159 (ID: 850739)
+   - Data displayed: S/N OWEC9C159, P/N MB052A-32, Base ACC/NELLIS AFB/57 FW
+
+✅ Step 2: Quickly navigate to asset B
+   - Immediately navigated to asset SMC6N0J7KK2K (ID: 719626)
+   - Navigation completed without delays
+
+✅ Step 3: Verify asset B data shown
+   - Serial Number: SMC6N0J7KK2K ✓
+   - Part Number: WD2005FBYZ ✓
+   - Name: RADS PRIMARY HD WD2T ✓
+   - Status: FMC (Fully Mission Capable) ✓
+   - UII: TEST-UII-89-FEATURE ✓
+
+✅ Step 4: Verify no asset A data visible
+   - No "OWEC9C159" visible ✓
+   - No "MB052A-32" visible ✓
+   - No "850739" visible ✓
+   - All displayed data is from Asset B
+
+Additional Testing:
+- Tested rapid URL navigation (direct URL changes)
+- Tested navigation via Back to Assets button and clicking different rows
+- Both methods correctly show new asset data without stale data
+
+Quality Checks:
+- Console errors: Only non-critical 404s for /hierarchy endpoint (pre-existing, unrelated)
+- Data integrity: All fields show correct asset data
+- URL accuracy: URL correctly reflects current asset ID
+
+Screenshots Captured:
+- feature-308-asset-b-detail.png - Asset B after navigation from A
+- feature-308-rapid-navigation-verified.png - Final verification
+
+Result: REGRESSION TEST PASSED ✅
+No regressions found - feature still working correctly
+
+Session Status: SUCCESS
+Session Mode: Testing Agent - Regression Testing
+
+[Testing] Feature #308 verified - still passing
+
+================================================================================
+[COMPLETED] Thu Jan 22 2026 - Testing Agent: Feature #257 Regression Fix
+================================================================================
+
+Feature: 500 errors dont expose stack traces
+Category: Error Handling
+Status: ✅ REGRESSION FIXED
+
+Regression Found:
+- tRPC error responses were exposing full stack traces
+- Internal file paths like '/Users/.../backend/node_modules/...' were visible to clients
+- Security concern: exposing server internals
+
+Fix Applied:
+1. Updated backend/src/trpc.ts:
+   - Added errorFormatter to initTRPC.create() configuration
+   - Sets stack field to undefined in error responses
+
+2. Updated backend/src/index.ts:
+   - Added onError handler to tRPC Express middleware
+   - Logs errors server-side for debugging
+   - Removes stack traces from client responses
+
+Verification:
+✅ Step 1: Trigger server error condition - Made API calls to invalid endpoints
+✅ Step 2: Verify generic error message shown - Messages like 'No procedure on path' displayed
+✅ Step 3: Verify no stack trace visible - hasStackTrace: false in response
+✅ Step 4: Verify no internal paths exposed - No file paths in error response
+
+Before Fix Response (showed stack):
+  { "stack": "TRPCError: No query-procedure...\n    at file:///Users/.../backend/node_modules/..." }
+
+After Fix Response (no stack):
+  { "error": { "message": "No query-procedure on path...", "code": -32004, "data": { "code": "NOT_FOUND", "httpStatus": 404, "path": "..." } } }
+
+Git Commit: 2f42583 - Fix Feature #257: Server errors no longer expose stack traces
+
+Session Status: REGRESSION FIXED ✅
+Session Mode: Testing Agent - Regression Testing
+
+[Testing] Feature #257 regression fixed and verified
+================================================================================
