@@ -252,6 +252,41 @@ function getPartsStatusLabel(status: PartsOrder['status']): { label: string; col
   }
 }
 
+// Get widget card border color based on status
+function getPMIWidgetBorderColor(pmiData: PMIData | null): string {
+  if (!pmiData || pmiData.pmi.length === 0) return 'border-l-4 border-gray-200'
+  const overdueCount = pmiData.summary.overdue + pmiData.summary.red
+  if (overdueCount > 0) return 'border-l-4 border-red-500'
+  if (pmiData.summary.yellow > 0) return 'border-l-4 border-yellow-500'
+  return 'border-l-4 border-green-500'
+}
+
+function getMaintenanceWidgetBorderColor(maintenanceData: MaintenanceData | null): string {
+  if (!maintenanceData || maintenanceData.events.length === 0) return 'border-l-4 border-gray-200'
+  if (maintenanceData.summary.critical > 0) return 'border-l-4 border-red-500'
+  if (maintenanceData.summary.urgent > 0) return 'border-l-4 border-orange-500'
+  return 'border-l-4 border-blue-500'
+}
+
+function getPartsWidgetBorderColor(partsData: PartsData | null): string {
+  if (!partsData || partsData.orders.length === 0) return 'border-l-4 border-gray-200'
+  if (partsData.summary.critical > 0) return 'border-l-4 border-red-500'
+  if (partsData.summary.urgent > 0) return 'border-l-4 border-orange-500'
+  return 'border-l-4 border-yellow-500'
+}
+
+function getAssetStatusWidgetBorderColor(assetData: AssetStatusData | null): string {
+  if (!assetData) return 'border-l-4 border-gray-200'
+  const nmcCount = assetData.status_summary.filter(s => s.status_cd.startsWith('NMC')).reduce((sum, s) => sum + s.count, 0)
+  const pmcCount = assetData.status_summary.filter(s => s.status_cd.startsWith('PMC')).reduce((sum, s) => sum + s.count, 0)
+  const fmcCount = assetData.status_summary.find(s => s.status_cd === 'FMC')?.count || 0
+
+  if (nmcCount > 0) return 'border-l-4 border-red-500'
+  if (pmcCount > 0) return 'border-l-4 border-yellow-500'
+  if (fmcCount > 0) return 'border-l-4 border-green-500'
+  return 'border-l-4 border-gray-200'
+}
+
 // Format order date for display
 function formatOrderDate(dateString: string): string {
   const orderDate = new Date(dateString)
@@ -740,7 +775,7 @@ export default function DashboardPage() {
       {/* Dashboard widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         {/* Asset Status Summary Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+        <div className={`bg-gradient-to-br from-blue-50 via-white to-blue-50 shadow rounded-lg p-4 sm:p-6 border border-blue-100 ${getAssetStatusWidgetBorderColor(assetStatus)}`}>
           <h3 className="text-sm font-medium text-gray-500 mb-4">Asset Status Summary</h3>
 
           {loading ? (
@@ -797,7 +832,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Asset Status Pie Chart Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+        <div className="bg-gradient-to-br from-sky-50 via-white to-sky-50 shadow rounded-lg p-4 sm:p-6 border border-sky-100">
           <h3 className="text-sm font-medium text-gray-500 mb-4">Asset Status Distribution</h3>
 
           {loading ? (
@@ -821,7 +856,7 @@ export default function DashboardPage() {
         </div>
 
         {/* PMI Due Soon Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+        <div className={`bg-gradient-to-br from-red-50 via-white to-yellow-50 shadow rounded-lg p-4 sm:p-6 border border-red-100 ${getPMIWidgetBorderColor(pmiData)}`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">PMI Due Soon</h3>
             {pmiData && (
@@ -912,7 +947,7 @@ export default function DashboardPage() {
         </div>
 
         {/* PMI Calendar Heat Map Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
+        <div className="bg-gradient-to-br from-green-50 via-white to-green-50 shadow rounded-lg p-4 sm:p-6 md:col-span-2 border border-green-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">PMI Due Calendar - 90 Day View</h3>
             {pmiData && (
@@ -943,7 +978,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Open Maintenance Jobs Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+        <div className={`bg-gradient-to-br from-orange-50 via-white to-orange-50 shadow rounded-lg p-4 sm:p-6 border border-orange-100 ${getMaintenanceWidgetBorderColor(maintenanceData)}`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Open Maintenance Jobs</h3>
             {maintenanceData && (
@@ -1038,7 +1073,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Parts Awaiting Action Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+        <div className={`bg-gradient-to-br from-purple-50 via-white to-purple-50 shadow rounded-lg p-4 sm:p-6 border border-purple-100 ${getPartsWidgetBorderColor(partsData)}`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Parts Awaiting Action</h3>
             {partsData && (
@@ -1132,7 +1167,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Parts Awaiting Action Bar Chart Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
+        <div className="bg-gradient-to-br from-indigo-50 via-white to-indigo-50 shadow rounded-lg p-4 sm:p-6 md:col-span-2 border border-indigo-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Parts Awaiting Action - Breakdown by Priority</h3>
             {partsData && (
@@ -1163,7 +1198,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Maintenance Trends Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
+        <div className="bg-gradient-to-br from-emerald-50 via-white to-emerald-50 shadow rounded-lg p-4 sm:p-6 md:col-span-2 border border-emerald-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Maintenance Trends</h3>
             {maintenanceTrendsData && (
@@ -1197,7 +1232,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity Feed Widget */}
-        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
+        <div className="bg-gradient-to-br from-teal-50 via-white to-teal-50 shadow rounded-lg p-4 sm:p-6 md:col-span-2 border border-teal-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-500">Recent Activity</h3>
             {activityData && (
