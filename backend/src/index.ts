@@ -4585,6 +4585,10 @@ interface MaintenanceEvent {
   pqdr?: boolean; // Product Quality Deficiency Report flag
   created_by_id?: number;
   created_by_name?: string;
+  // Progress tracking fields (calculated from repairs)
+  total_repairs?: number; // Total number of repairs for this event
+  closed_repairs?: number; // Number of closed repairs
+  progress_percentage?: number; // Completion percentage (0-100)
   created_at?: string;
 }
 
