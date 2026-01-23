@@ -3178,6 +3178,8 @@ app.get('/api/pmi/due-soon', async (req, res) => {
     },
   });
 
+  console.log(`[PMI-DEBUG] Found ${dbPMIs.length} PMI records in database`);
+
   // Transform database records to PMI format
   const allPMI = dbPMIs.map(pmi => {
     const daysUntilDue = pmi.next_due_date

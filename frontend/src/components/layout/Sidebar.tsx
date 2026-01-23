@@ -47,15 +47,17 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const { user } = useAuthStore()
   const isAdmin = user?.role === 'ADMIN'
   const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
-    `group flex items-center px-3 py-3 min-h-[44px] text-sm font-medium rounded-md transition-colors ${
+    `group flex items-center px-3 py-3 min-h-[44px] text-sm font-medium rounded-md transition-all duration-200 ease-in-out ${
       isActive
-        ? 'bg-primary-100 text-primary-800'
-        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+        ? 'bg-primary-100 text-primary-800 shadow-sm'
+        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm hover:-translate-y-0.5'
     }`
 
   const iconClasses = (isActive: boolean) =>
-    `mr-3 h-5 w-5 flex-shrink-0 transition-colors ${
-      isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500'
+    `mr-3 h-5 w-5 flex-shrink-0 transition-all duration-200 ease-in-out ${
+      isActive
+        ? 'text-primary-600 scale-110'
+        : 'text-gray-400 group-hover:text-gray-500 group-hover:scale-110'
     }`
 
   const SidebarContent = () => (
