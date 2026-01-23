@@ -203,7 +203,7 @@ export default function ProgramLocationsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Programs List */}
-        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="bg-white shadow rounded-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Programs</h2>
             <p className="text-sm text-gray-600 mt-1">Select a program to manage its locations</p>
@@ -241,7 +241,7 @@ export default function ProgramLocationsPage() {
         </div>
 
         {/* Assigned Locations */}
-        <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div className="bg-white shadow rounded-lg border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">

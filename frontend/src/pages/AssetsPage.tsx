@@ -25,6 +25,7 @@ import { formatLocationHierarchical, compareLocations } from '../utils/locationF
 import type { Location as LocationType } from '../utils/locationFormatter'
 import EmptyAssetsIllustration from '../components/EmptyAssetsIllustration'
 import AddAssetWizard from '../components/AddAssetWizard'
+import IconAnimation from '../components/IconAnimation'
 
 // Reference data interfaces
 type Location = LocationType
@@ -820,7 +821,9 @@ export default function AssetsPage() {
             className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Export to PDF with CUI markings"
           >
-            <DocumentArrowDownIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+            <IconAnimation type="scale">
+              <DocumentArrowDownIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+            </IconAnimation>
             Export PDF
           </button>
           <button
@@ -830,9 +833,11 @@ export default function AssetsPage() {
             className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Export to Excel with CUI markings"
           >
-            <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
+            <IconAnimation type="scale">
+              <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </IconAnimation>
             Export Excel
           </button>
           {canCreateAsset && (
@@ -841,7 +846,9 @@ export default function AssetsPage() {
               onClick={openModal}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
-              <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              <IconAnimation type="bounce">
+                <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              </IconAnimation>
               Add Asset
             </button>
           )}
@@ -903,9 +910,11 @@ export default function AssetsPage() {
               onClick={() => refetchAssets()}
               className="inline-flex items-center px-4 py-3 min-h-[44px] border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
-              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              <IconAnimation type="pulse">
+                <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </IconAnimation>
               Refresh
             </button>
           </div>
@@ -1053,7 +1062,9 @@ export default function AssetsPage() {
                               className="text-red-600 hover:text-red-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
                               title="Delete asset"
                             >
-                              <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                              <IconAnimation type="scale">
+                                <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                              </IconAnimation>
                               <span className="sr-only">Delete {asset.serno}</span>
                             </button>
                           )}

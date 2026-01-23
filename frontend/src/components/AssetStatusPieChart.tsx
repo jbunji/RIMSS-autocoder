@@ -89,7 +89,7 @@ const CustomTooltip = ({
   if (active && payload && payload.length) {
     const data = payload[0].payload
     return (
-      <div className="bg-white shadow-lg rounded-lg p-3 border border-gray-200">
+      <div className="bg-white shadow rounded-lg p-3 border border-gray-200">
         <div className="flex items-center space-x-2">
           <span
             className="w-3 h-3 rounded-full"

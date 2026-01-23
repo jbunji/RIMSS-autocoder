@@ -49,6 +49,25 @@ export default {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'monospace'],
       },
+      keyframes: {
+        'icon-bounce': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-25%)' },
+        },
+        'icon-pulse': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.1)', opacity: '0.8' },
+        },
+        'icon-scale': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(0.85)' },
+        },
+      },
+      animation: {
+        'icon-bounce': 'icon-bounce 150ms ease-in-out',
+        'icon-pulse': 'icon-pulse 150ms ease-in-out',
+        'icon-scale': 'icon-scale 150ms ease-in-out',
+      },
     },
   },
   plugins: [],

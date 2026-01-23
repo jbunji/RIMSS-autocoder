@@ -530,7 +530,7 @@ export default function PartsOrderedReportPage() {
       </div>
 
       {/* Date Range Filter */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
         {/* Quick Filters */}
         <div className="mb-4 flex gap-2">
           <button
@@ -586,7 +586,7 @@ export default function PartsOrderedReportPage() {
       {summary && (
         <div className="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* Total Orders */}
-          <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -603,7 +603,7 @@ export default function PartsOrderedReportPage() {
           </div>
 
           {/* PQDR Orders */}
-          <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-red-200">
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-red-200">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -620,7 +620,7 @@ export default function PartsOrderedReportPage() {
           </div>
 
           {/* Pending Orders */}
-          <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-yellow-200">
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-yellow-200">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -639,7 +639,7 @@ export default function PartsOrderedReportPage() {
           </div>
 
           {/* Total Value */}
-          <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-green-200">
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-green-200">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -661,7 +661,7 @@ export default function PartsOrderedReportPage() {
 
       {/* Status Breakdown */}
       {summary && (
-        <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Status Breakdown</h3>
           <div className="flex flex-wrap gap-2">
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColors.pending.bg} ${statusColors.pending.text}`}>
@@ -697,7 +697,7 @@ export default function PartsOrderedReportPage() {
       )}
 
       {/* Orders Table */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
