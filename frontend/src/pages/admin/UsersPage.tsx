@@ -612,8 +612,9 @@ export default function UsersPage() {
       )}
 
       {/* Users Table */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="bg-white shadow sm:rounded-lg">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -651,7 +652,7 @@ export default function UsersPage() {
               </tr>
             ) : (
               users.map((user) => (
-                <tr key={user.user_id}>
+                <tr key={user.user_id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
@@ -724,6 +725,7 @@ export default function UsersPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Add User Modal */}
