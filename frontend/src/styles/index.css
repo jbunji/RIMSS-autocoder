@@ -36,6 +36,22 @@
     background-size: 24px 24px;
     background-position: -1px -1px;
   }
+
+  /* Page transition animations */
+  .page-transition-enter {
+    animation: pageFadeIn 250ms ease-out forwards;
+  }
+
+  @keyframes pageFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* Component styles */

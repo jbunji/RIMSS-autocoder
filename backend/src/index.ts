@@ -10458,6 +10458,7 @@ app.get('/api/assets/:id', async (req, res) => {
       acceptance_date: asset.accept_date?.toISOString().split('T')[0] || null,
       last_maint_date: null,
       next_pmi_date: null,
+      next_ndi_date: asset.next_ndi_date?.toISOString().split('T')[0] || null,
       nha_asset_id: asset.nha_asset_id,
       carrier: asset.shipper,
       tracking_number: asset.tcn,
@@ -16101,7 +16102,7 @@ app.put('/api/configurations/:id/bom/:itemId', (req, res) => {
 });
 
 // DELETE /api/configurations/:id/bom/:itemId - Remove a part from configuration BOM
-app.delete('/api/configurations/:id/bom/:itemId', (req, res) => {
+app.delete('/api/configurations/:id/bom/:itemId', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -16122,37 +16123,65 @@ app.delete('/api/configurations/:id/bom/:itemId', (req, res) => {
     return res.status(400).json({ error: 'Invalid configuration ID or item ID' });
   }
 
-  // Find the configuration
-  const config = configurations.find(c => c.cfg_set_id === configId);
-  if (!config) {
-    return res.status(404).json({ error: 'Configuration not found' });
+  try {
+    // Find the configuration
+    const config = await prisma.cfgSet.findUnique({
+      where: { cfg_set_id: configId },
+      include: { program: true },
+    });
+
+    if (!config) {
+      return res.status(404).json({ error: 'Configuration not found' });
+    }
+
+    // Check if user has access to this program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this configuration' });
+    }
+
+    // Find the BOM item
+    const bomItem = await prisma.cfgList.findUnique({
+      where: { list_id: itemId },
+      include: {
+        childPart: {
+          select: { partno: true, noun: true },
+        },
+      },
+    });
+
+    if (!bomItem || bomItem.cfg_set_id !== configId) {
+      return res.status(404).json({ error: 'BOM item not found' });
+    }
+
+    // Remove the item
+    await prisma.cfgList.delete({
+      where: { list_id: itemId },
+    });
+
+    // Get updated BOM count
+    const bomCount = await prisma.cfgList.count({
+      where: { cfg_set_id: configId },
+    });
+
+    console.log(`[BOM] Removed part "${bomItem.childPart?.partno || bomItem.partno_c}" from config "${config.cfg_name}" (ID: ${configId}) by ${user.username}`);
+
+    res.json({
+      message: 'Part removed from BOM successfully',
+      removed_item: {
+        list_id: bomItem.list_id,
+        cfg_set_id: bomItem.cfg_set_id,
+        partno_c: bomItem.childPart?.partno || bomItem.partno_c,
+        part_name_c: bomItem.childPart?.noun || bomItem.part_name_c,
+        sort_order: bomItem.sort_order,
+        qpa: bomItem.qpa,
+      },
+      bom_item_count: bomCount,
+    });
+  } catch (error) {
+    console.error('[BOM] Error removing BOM item:', error);
+    res.status(500).json({ error: 'Failed to remove part from BOM' });
   }
-
-  // Check if user has access to this program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(config.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this configuration' });
-  }
-
-  // Find the BOM item
-  const itemIndex = bomItems.findIndex(item => item.list_id === itemId && item.cfg_set_id === configId);
-  if (itemIndex === -1) {
-    return res.status(404).json({ error: 'BOM item not found' });
-  }
-
-  // Remove the item
-  const removedItem = bomItems.splice(itemIndex, 1)[0];
-
-  // Update configuration bom_item_count
-  config.bom_item_count = bomItems.filter(b => b.cfg_set_id === configId).length;
-
-  console.log(`[BOM] Removed part "${removedItem.partno_c}" from config "${config.cfg_name}" (ID: ${configId}) by ${user.username}`);
-
-  res.json({
-    message: 'Part removed from BOM successfully',
-    removed_item: removedItem,
-    bom_item_count: config.bom_item_count,
-  });
 });
 
 // ============================================
