@@ -20,6 +20,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/authStore'
 import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { SkeletonTable } from '../components/skeleton'
 import { useToast } from '../hooks/useToast'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -962,11 +963,8 @@ export default function AssetsPage() {
       {/* Assets Table */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="flex flex-col items-center">
-              <LoadingSpinner size="md" className="text-primary-600" />
-              <p className="mt-2 text-sm text-gray-500">Loading assets...</p>
-            </div>
+          <div className="p-4">
+            <SkeletonTable rows={10} columns={8} showHeader={true} />
           </div>
         ) : assets.length === 0 ? (
           <div className="flex items-center justify-center py-12 px-4 sm:py-16 md:py-20">

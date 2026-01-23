@@ -13,6 +13,7 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
 } from '@heroicons/react/24/outline'
+import { SkeletonTable } from '../components/skeleton'
 
 interface PMIRecord {
   pmi_id: number
@@ -352,9 +353,7 @@ export default function PMIPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
+        <SkeletonTable rows={10} columns={8} showHeader={true} />
       </div>
     )
   }

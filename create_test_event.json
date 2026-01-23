@@ -1,0 +1,10 @@
+{
+  "asset_id": 1,
+  "discrepancy": "Test event for file upload error handling",
+  "event_type": "Standard",
+  "priority": "Routine",
+  "date_in": "2026-01-22",
+  "etic": null,
+  "location_id": null,
+  "sortie_id": null
+}

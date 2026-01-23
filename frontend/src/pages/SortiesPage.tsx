@@ -15,6 +15,7 @@ import {
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
 import { Dialog } from '@headlessui/react'
 import { useAuthStore } from '../stores/authStore'
+import { SkeletonTable } from '../components/skeleton'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -878,11 +879,8 @@ export default function SortiesPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading sorties...</p>
-        </div>
+      <div className="p-6">
+        <SkeletonTable rows={10} columns={9} showHeader={true} />
       </div>
     )
   }

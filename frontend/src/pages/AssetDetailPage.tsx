@@ -38,6 +38,7 @@ interface Asset {
   cycles_count?: number | null  // Cycles count (for assets that track cycles)
   last_maint_date?: string | null
   next_pmi_date?: string | null
+  next_ndi_date?: string | null  // Next Non-Destructive Inspection date
   location?: string
   loc_type?: 'depot' | 'field'
   in_transit?: boolean
@@ -376,7 +377,7 @@ export default function AssetDetailPage() {
     const editableFields: (keyof Asset)[] = [
       'serno', 'partno', 'name', 'status_cd', 'active', 'bad_actor',
       'admin_loc', 'cust_loc', 'in_transit', 'carrier', 'tracking_number',
-      'ship_date', 'notes'
+      'ship_date', 'next_ndi_date', 'notes'
     ]
 
     return editableFields.some(field => {
@@ -924,6 +925,7 @@ export default function AssetDetailPage() {
           carrier: editForm.carrier,
           tracking_number: editForm.tracking_number,
           ship_date: editForm.ship_date,
+          next_ndi_date: editForm.next_ndi_date,
         }),
       })
 
@@ -1064,6 +1066,55 @@ export default function AssetDetailPage() {
       hour: '2-digit',
       minute: '2-digit',
     })
+  }
+
+  // Get NDI status info for alerts
+  const getNDIStatusInfo = (nextNDIDate: string | null | undefined) => {
+    if (!nextNDIDate) {
+      return null
+    }
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const ndiDate = new Date(nextNDIDate)
+    ndiDate.setHours(0, 0, 0, 0)
+    const daysUntilDue = Math.ceil((ndiDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysUntilDue < 0) {
+      return {
+        level: 'overdue',
+        label: 'OVERDUE',
+        days: Math.abs(daysUntilDue),
+        bg: 'bg-red-50',
+        text: 'text-red-800',
+        border: 'border-red-200',
+        iconBg: 'bg-red-100',
+        iconColor: 'text-red-600'
+      }
+    } else if (daysUntilDue <= 7) {
+      return {
+        level: 'urgent',
+        label: 'Due Soon',
+        days: daysUntilDue,
+        bg: 'bg-yellow-50',
+        text: 'text-yellow-800',
+        border: 'border-yellow-200',
+        iconBg: 'bg-yellow-100',
+        iconColor: 'text-yellow-600'
+      }
+    } else if (daysUntilDue <= 30) {
+      return {
+        level: 'upcoming',
+        label: 'Upcoming',
+        days: daysUntilDue,
+        bg: 'bg-blue-50',
+        text: 'text-blue-800',
+        border: 'border-blue-200',
+        iconBg: 'bg-blue-100',
+        iconColor: 'text-blue-600'
+      }
+    }
+    return null
   }
 
   // Get action type badge
@@ -1215,6 +1266,41 @@ export default function AssetDetailPage() {
           </div>
         </div>
       )}
+
+      {/* NDI Alert */}
+      {asset && (() => {
+        const ndiStatus = getNDIStatusInfo(asset.next_ndi_date)
+        if (!ndiStatus) return null
+
+        return (
+          <div className={`mb-6 ${ndiStatus.bg} border ${ndiStatus.border} rounded-lg p-4`}>
+            <div className="flex">
+              <div className={`flex-shrink-0 ${ndiStatus.iconBg} rounded-full p-1`}>
+                <svg className="h-5 w-5 ${ndiStatus.iconColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className={`text-sm font-medium ${ndiStatus.text}`}>
+                  Non-Destructive Inspection {ndiStatus.label}
+                </h3>
+                <div className="mt-1 text-sm text-gray-700">
+                  {ndiStatus.level === 'overdue' ? (
+                    <p>NDI was due {ndiStatus.days} day{ndiStatus.days !== 1 ? 's' : ''} ago. Schedule immediately.</p>
+                  ) : ndiStatus.level === 'urgent' ? (
+                    <p>NDI due in {ndiStatus.days} day{ndiStatus.days !== 1 ? 's' : ''}. Schedule soon.</p>
+                  ) : (
+                    <p>NDI due in {ndiStatus.days} days. Plan ahead.</p>
+                  )}
+                  <p className="mt-1 text-xs text-gray-600">
+                    Due Date: {formatDate(asset.next_ndi_date!)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Tabs */}
       <div className="mb-6 border-b border-gray-200">
@@ -1387,6 +1473,23 @@ export default function AssetDetailPage() {
                 <p className="mt-1 text-gray-900">
                   {asset.acceptance_date ? formatDate(asset.acceptance_date) : <span className="text-gray-400 italic">Not specified</span>}
                 </p>
+              </div>
+
+              {/* Next NDI Date - EDITABLE */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500">Next NDI Due</label>
+                {isEditing ? (
+                  <input
+                    type="date"
+                    value={editForm.next_ndi_date || ''}
+                    onChange={(e) => handleInputChange('next_ndi_date', e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-900">
+                    {asset.next_ndi_date ? formatDate(asset.next_ndi_date) : <span className="text-gray-400 italic">Not scheduled</span>}
+                  </p>
+                )}
               </div>
 
               {/* Meter Tracking */}
