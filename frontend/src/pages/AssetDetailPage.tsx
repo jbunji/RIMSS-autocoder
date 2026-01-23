@@ -7,6 +7,7 @@ import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import { UnsavedChangesDialog } from '../components/UnsavedChangesDialog'
 import { formatLocationHierarchical, compareLocations } from '../utils/locationFormatter'
 import type { Location as LocationType } from '../utils/locationFormatter'
+import StatusTimeline, { extractStatusChanges } from '../components/StatusTimeline'
 
 // Asset interface matching backend response
 interface Asset {
@@ -507,10 +508,10 @@ export default function AssetDetailPage() {
     fetchSorties()
   }, [token, id])
 
-  // Fetch history when History tab is selected
+  // Fetch history when History or Details tab is selected (needed for status timeline)
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!token || !id || activeTab !== 'history') return
+      if (!token || !id || (activeTab !== 'history' && activeTab !== 'details')) return
 
       setHistoryLoading(true)
       setHistoryError(null)
@@ -2015,6 +2016,17 @@ export default function AssetDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Status Timeline */}
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <h2 className="text-lg font-medium text-gray-900">Status History</h2>
+            <p className="mt-1 text-sm text-gray-500">Timeline of status changes for this asset</p>
+          </div>
+          <StatusTimeline
+            statusChanges={extractStatusChanges(history)}
+            currentStatus={asset.status_cd}
+            currentStatusName={asset.status_name || asset.status_cd}
+          />
 
           {/* Metadata */}
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
