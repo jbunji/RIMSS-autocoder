@@ -153,7 +153,7 @@ export default function SortieDetailPage() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
         <div className="text-red-600 mb-4">{error}</div>
         <button
           onClick={() => navigate('/sorties')}
@@ -167,7 +167,7 @@ export default function SortieDetailPage() {
 
   if (!sortie) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
         <div className="text-gray-500 mb-4">Sortie not found</div>
         <button
           onClick={() => navigate('/sorties')}
@@ -195,7 +195,7 @@ export default function SortieDetailPage() {
       </div>
 
       {/* Sortie Details Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="bg-white rounded-xl shadow border border-gray-200">
         <div className="border-b border-gray-200 p-6">
           <div className="flex items-start justify-between">
             <div>
@@ -279,7 +279,7 @@ export default function SortieDetailPage() {
       </div>
 
       {/* Linked Maintenance Events Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="bg-white rounded-xl shadow border border-gray-200">
         <div className="border-b border-gray-200 p-6">
           <div className="flex items-center gap-2">
             <WrenchScrewdriverIcon className="h-5 w-5 text-gray-400" />

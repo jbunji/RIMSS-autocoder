@@ -946,7 +946,7 @@ export default function SortiesPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
         <div className="space-y-4">
           {/* Search bar */}
           <div className="relative">
@@ -1078,7 +1078,7 @@ export default function SortiesPage() {
       </div>
 
       {/* Sorties Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

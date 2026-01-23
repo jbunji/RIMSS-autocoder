@@ -92,7 +92,7 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="bg-white shadow-md rounded-lg p-8">
+            <div className="bg-white shadow rounded-lg p-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
                 Sign In
               </h2>

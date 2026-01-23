@@ -580,7 +580,7 @@ export default function PartsOrderedPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <div className="mb-6 bg-white p-4 rounded-lg shadow border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -721,7 +721,7 @@ export default function PartsOrderedPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

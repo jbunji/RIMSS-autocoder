@@ -52,7 +52,7 @@ export default function TestTimeoutPage() {
           </p>
         </div>
 
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <div className="bg-white shadow rounded-lg p-6 mb-6">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

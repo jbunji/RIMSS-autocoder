@@ -110,7 +110,7 @@ export function ToastContainer({
               leaveTo="opacity-0"
             >
               <div
-                className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg ${bgColor} shadow-lg ring-1 ring-black ring-opacity-5 border-l-4 ${borderColor}`}
+                className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg ${bgColor} shadow ring-1 ring-black ring-opacity-5 border-l-4 ${borderColor}`}
               >
                 <div className="p-4">
                   <div className="flex items-start">
