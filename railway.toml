@@ -1,0 +1,35 @@
+# =============================================================================
+# RIMSS Railway Configuration
+# =============================================================================
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "deployment/Dockerfile"
+
+# =============================================================================
+# Deployment Settings
+# =============================================================================
+
+[deploy]
+# Health check endpoint
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+# Number of seconds to wait before health check
+startCommand = "node dist/index.js"
+# Restart policy (ON_FAILURE, ALWAYS, NEVER)
+restartPolicyType = "ON_FAILURE"
+
+# =============================================================================
+# Environment Variables (Defaults - override in Railway Dashboard)
+# =============================================================================
+
+[variables]
+NODE_ENV = "production"
+PORT = "8080"
+
+# =============================================================================
+# Railway Service Configuration
+# =============================================================================
+
+# Note: DATABASE_URL should be set via Railway dashboard using the
+# database reference feature (Variables tab → {{database}} dropdown)

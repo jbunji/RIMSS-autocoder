@@ -2138,13 +2138,19 @@ app.get('/api/program/:programId/locations', async (req, res) => {
         // 5. Fall back to "Location {loc_id}"
         let displayName = entry.display_name?.trim() || entry.location.display_name?.trim()
 
-        // If no display name, try description
-        if (!displayName && entry.location.description && entry.location.description !== 'NONE') {
-          displayName = entry.location.description.trim()
+        // Check if display_name looks like unresolved code IDs (pattern: "123/456/789")
+        // If so, we should resolve them to human-readable names
+        const looksLikeUnresolvedCodes = displayName && /^\d+\/\d+\/\d+$/.test(displayName)
+
+        // If no display name or it looks like unresolved code IDs, try description or resolve codes
+        if (!displayName) {
+          if (entry.location.description && entry.location.description !== 'NONE') {
+            displayName = entry.location.description.trim()
+          }
         }
 
-        // If still no display name, resolve the code IDs to actual code values
-        if (!displayName) {
+        // If display_name looks like unresolved codes OR we still don't have a good name, resolve the code IDs
+        if (looksLikeUnresolvedCodes || !displayName) {
           const majcom = entry.location.majcom_cd ? resolveCodeId(entry.location.majcom_cd, codes) : ''
           const site = entry.location.site_cd ? resolveCodeId(entry.location.site_cd, codes) : ''
           const unit = entry.location.unit_cd ? resolveCodeId(entry.location.unit_cd, codes) : ''
@@ -2155,10 +2161,19 @@ app.get('/api/program/:programId/locations', async (req, res) => {
             console.log(`  majcom_cd: "${entry.location.majcom_cd}" (len=${entry.location.majcom_cd?.length}) -> "${majcom}"`)
             console.log(`  site_cd: "${entry.location.site_cd}" (len=${entry.location.site_cd?.length}) -> "${site}"`)
             console.log(`  unit_cd: "${entry.location.unit_cd}" (len=${entry.location.unit_cd?.length}) -> "${unit}"`)
+            console.log(`  Previous display_name: "${displayName}"`)
           }
 
           const parts = [majcom, site, unit].filter(Boolean)
-          displayName = parts.length > 0 ? parts.join(' / ') : `Location ${entry.location.loc_id}`
+          const resolvedName = parts.length > 0 ? parts.join(' / ') : `Location ${entry.location.loc_id}`
+
+          // Only use resolved name if we actually got meaningful values (not just the same numbers)
+          // If resolution didn't help, keep the original or use description
+          if (looksLikeUnresolvedCodes && resolvedName && !resolvedName.match(/^\d+\/\d+\/\d+$/)) {
+            displayName = resolvedName
+          } else if (!displayName) {
+            displayName = resolvedName
+          }
         }
 
         if (!locationMap.has(entry.location.loc_id)) {
