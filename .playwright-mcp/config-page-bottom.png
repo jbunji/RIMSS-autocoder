@@ -1,0 +1,226 @@
+### Page state
+- Page URL: http://localhost:5173/configurations
+- Page Title: RIMSS - RAMPOD Inventory & Maintenance System Software
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e28]:
+    - link "Skip to main content" [ref=e1589] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e30]: CUI - Controlled Unclassified Information
+    - navigation [ref=e32]:
+      - generic [ref=e34]:
+        - generic [ref=e36]:
+          - generic [ref=e37]: RIMSS
+          - generic [ref=e38]: RAMPOD Inventory & Maintenance System Software
+        - generic [ref=e41]:
+          - generic:
+            - img
+          - searchbox "Global search" [ref=e1590]
+        - generic [ref=e43]:
+          - link "View notifications" [ref=e1591] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e45]
+            - generic [ref=e47]: "7"
+          - 'button "Location: All Locations" [ref=e1593] [cursor=pointer]':
+            - img [ref=e1594]
+            - generic [ref=e1597]: "Location:"
+            - generic [ref=e1598]: All Locations
+            - img [ref=e1599]
+          - button "DEPOT" [ref=e1601] [cursor=pointer]:
+            - img [ref=e59]
+            - generic [ref=e61]: DEPOT
+            - img [ref=e62]
+          - 'button "Program: CRIIS" [ref=e1602] [cursor=pointer]':
+            - generic [ref=e66]: "Program:"
+            - generic [ref=e67]: CRIIS
+            - img [ref=e68]
+          - button "John Admin" [ref=e1603] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e74]: John Admin
+            - img [ref=e75]
+    - generic [ref=e1604]:
+      - navigation [ref=e1605]:
+        - generic [ref=e1606]:
+          - link "Dashboard" [ref=e1607] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e1608]
+            - text: Dashboard
+          - link "Assets" [ref=e1610] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e1611]
+            - text: Assets
+          - link "Configurations" [ref=e1613] [cursor=pointer]:
+            - /url: /configurations
+            - img [ref=e1614]
+            - text: Configurations
+          - link "Maintenance" [ref=e1617] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e1618]
+            - text: Maintenance
+          - link "Sorties" [ref=e1620] [cursor=pointer]:
+            - /url: /sorties
+            - img [ref=e1621]
+            - text: Sorties
+          - link "Spares" [ref=e1623] [cursor=pointer]:
+            - /url: /spares
+            - img [ref=e1624]
+            - text: Spares
+          - link "Parts Ordered" [ref=e1626] [cursor=pointer]:
+            - /url: /parts-ordered
+            - img [ref=e1627]
+            - text: Parts Ordered
+          - link "Software" [ref=e1629] [cursor=pointer]:
+            - /url: /software
+            - img [ref=e1630]
+            - text: Software
+          - link "Notifications" [ref=e1632] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e1633]
+            - text: Notifications
+          - link "Reports" [ref=e1635] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e1636]
+            - text: Reports
+        - generic [ref=e1638]:
+          - paragraph [ref=e1639]: Administration
+          - link "Admin" [ref=e1640] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e1641]
+            - text: Admin
+          - link "Users" [ref=e1643] [cursor=pointer]:
+            - /url: /admin/users
+            - img [ref=e1644]
+            - text: Users
+      - paragraph [ref=e1647]: RIMSS v0.1.0
+    - main [ref=e124]:
+      - generic [ref=e1463]:
+        - generic [ref=e1464]:
+          - generic [ref=e1465]:
+            - heading "Configurations" [level=1] [ref=e1648]
+            - paragraph [ref=e1467]: Viewing configurations for CRIIS - CRIIS Program
+          - generic [ref=e1468]:
+            - generic [ref=e1469]: 2 configurations
+            - button "Export PDF" [ref=e1649] [cursor=pointer]:
+              - img [ref=e1471]
+              - text: Export PDF
+            - button "Export Excel" [ref=e1650] [cursor=pointer]:
+              - img [ref=e1474]
+              - text: Export Excel
+            - button "Add Configuration" [ref=e1651] [cursor=pointer]:
+              - img [ref=e1477]
+              - text: Add Configuration
+        - generic [ref=e1479]:
+          - navigation "System Category Tabs" [ref=e1652]:
+            - button "ALL" [ref=e1653] [cursor=pointer]
+            - button "AIRBORNE" [ref=e1654] [cursor=pointer]
+            - button "ECU" [ref=e1655] [cursor=pointer]
+            - button "GROUND" [ref=e1656] [cursor=pointer]
+            - button "SUPPORT EQUIPMENT" [ref=e1657] [cursor=pointer]
+          - paragraph [ref=e1488]: Showing all system types
+        - generic [ref=e1490]:
+          - generic [ref=e1491]:
+            - generic [ref=e1492]: Search
+            - generic [ref=e1493]:
+              - generic:
+                - img
+              - textbox "Search" [ref=e1658]:
+                - /placeholder: Search by name, P/N, or description...
+          - generic [ref=e1495]:
+            - generic [ref=e1496]: Configuration Type
+            - combobox "Configuration Type" [active] [ref=e1659]:
+              - option "All Types" [selected]
+              - option "System"
+              - option "Assembly"
+              - option "Component"
+          - button "Refresh" [ref=e1660] [cursor=pointer]:
+            - img [ref=e1500]
+            - text: Refresh
+        - table [ref=e1661]:
+          - rowgroup [ref=e1662]:
+            - row "Configuration Name Type Part Number System Type BOM Items Assets Created Actions" [ref=e1663]:
+              - columnheader "Configuration Name" [ref=e1664]:
+                - button "Configuration Name" [ref=e1665] [cursor=pointer]:
+                  - text: Configuration Name
+                  - img [ref=e1667]
+              - columnheader "Type" [ref=e1669]:
+                - button "Type" [ref=e1670] [cursor=pointer]:
+                  - text: Type
+                  - img [ref=e1672]
+              - columnheader "Part Number" [ref=e1674]:
+                - button "Part Number" [ref=e1675] [cursor=pointer]:
+                  - text: Part Number
+                  - img [ref=e1677]
+              - columnheader "System Type" [ref=e1679]
+              - columnheader "BOM Items" [ref=e1680]:
+                - button "BOM Items" [ref=e1681] [cursor=pointer]:
+                  - text: BOM Items
+                  - img [ref=e1683]
+              - columnheader "Assets" [ref=e1685]:
+                - button "Assets" [ref=e1686] [cursor=pointer]:
+                  - text: Assets
+                  - img [ref=e1688]
+              - columnheader "Created" [ref=e1690]:
+                - button "Created" [ref=e1691] [cursor=pointer]:
+                  - text: Created
+                  - img [ref=e1693]
+              - columnheader "Actions" [ref=e1695]:
+                - generic [ref=e1696]: Actions
+          - rowgroup [ref=e1697]:
+            - row "BENCH MANUAL (BENCH) CONFIGURATION MANUAL - - 0 3 Jun 7, 2010 by ABBOTT Edit Delete View" [ref=e1698] [cursor=pointer]:
+              - cell "BENCH MANUAL (BENCH) CONFIGURATION" [ref=e1699]:
+                - generic [ref=e1700]: BENCH
+                - generic "MANUAL (BENCH) CONFIGURATION" [ref=e1701]
+              - cell "MANUAL" [ref=e1702]:
+                - generic [ref=e1703]:
+                  - img [ref=e1704]
+                  - text: MANUAL
+              - cell "-" [ref=e1707]:
+                - generic [ref=e1708]: "-"
+              - cell "-" [ref=e1709]
+              - cell "0" [ref=e1710]:
+                - generic [ref=e1711]: "0"
+              - cell "3" [ref=e1712]:
+                - generic [ref=e1713]: "3"
+              - cell "Jun 7, 2010 by ABBOTT" [ref=e1714]:
+                - generic [ref=e1715]: Jun 7, 2010
+                - generic [ref=e1716]: by ABBOTT
+              - cell "Edit Delete View" [ref=e1717]:
+                - button "Edit" [ref=e1718]:
+                  - img [ref=e1719]
+                  - text: Edit
+                - button "Delete" [ref=e1721]:
+                  - img [ref=e1722]
+                  - text: Delete
+                - button "View" [ref=e1724]
+            - row "V-IAIS V-IAIS CONFIGURATION V-IAIS 2215000-203 V-IAIS TE 395 153 Mar 3, 2015 by ABBOTT Edit Delete View" [ref=e1725] [cursor=pointer]:
+              - cell "V-IAIS V-IAIS CONFIGURATION" [ref=e1726]:
+                - generic [ref=e1727]: V-IAIS
+                - generic "V-IAIS CONFIGURATION" [ref=e1728]
+              - cell "V-IAIS" [ref=e1729]:
+                - generic [ref=e1730]:
+                  - img [ref=e1731]
+                  - text: V-IAIS
+              - cell "2215000-203 V-IAIS" [ref=e1734]:
+                - generic [ref=e1735]: 2215000-203
+                - generic [ref=e1736]: V-IAIS
+              - cell "TE" [ref=e1737]:
+                - generic "Test Equipment" [ref=e1738]: TE
+              - cell "395" [ref=e1739]:
+                - generic [ref=e1740]: "395"
+              - cell "153" [ref=e1741]:
+                - generic [ref=e1742]: "153"
+              - cell "Mar 3, 2015 by ABBOTT" [ref=e1743]:
+                - generic [ref=e1744]: Mar 3, 2015
+                - generic [ref=e1745]: by ABBOTT
+              - cell "Edit Delete View" [ref=e1746]:
+                - button "Edit" [ref=e1747]:
+                  - img [ref=e1748]
+                  - text: Edit
+                - button "Delete" [ref=e1750]:
+                  - img [ref=e1751]
+                  - text: Delete
+                - button "View" [ref=e1753]
+    - contentinfo [ref=e1461]: CUI - Controlled Unclassified Information
+  - generic [ref=e1462]: "5"
+```

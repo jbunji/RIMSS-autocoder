@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef } from 'react'
-import { Transition } from '@headlessui/react'
+import { Transition, TransitionChild } from '@headlessui/react'
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -91,26 +91,34 @@ export function ToastContainer({
   return (
     <div
       aria-live="assertive"
-      className="pointer-events-none fixed inset-0 z-50 flex items-start px-4 py-6 sm:items-start sm:p-6"
+      className="pointer-events-none fixed right-0 top-0 z-50 flex max-h-screen w-full flex-col items-end justify-start space-y-4 p-4 sm:p-6"
     >
-      <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-        {toasts.map((toast) => {
-          const { icon: Icon, bgColor, textColor, iconColor, borderColor } = config[toast.type]
+      {toasts.map((toast, index) => {
+        const { icon: Icon, bgColor, textColor, iconColor, borderColor } = config[toast.type]
 
-          return (
-            <Transition
-              key={toast.id}
-              show={true}
-              as={Fragment}
-              enter="transform ease-out duration-300 transition"
-              enterFrom="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-              enterTo="translate-y-0 opacity-100 sm:translate-x-0"
-              leave="transition ease-in duration-100"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
+        return (
+          <Transition
+            key={toast.id}
+            show={true}
+            as={Fragment}
+            enter="transform ease-out duration-300 transition-all"
+            enterFrom="translate-x-full opacity-0 scale-95"
+            enterTo="translate-x-0 opacity-100 scale-100"
+            leave="transition ease-in duration-200 transition-all"
+            leaveFrom="translate-x-0 opacity-100 scale-100"
+            leaveTo="translate-x-full opacity-0 scale-95"
+          >
+            <div
+              className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg ${bgColor} shadow-lg ring-1 ring-black ring-opacity-5 border-l-4 ${borderColor} backdrop-blur-sm`}
             >
-              <div
-                className={`pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg ${bgColor} shadow ring-1 ring-black ring-opacity-5 border-l-4 ${borderColor}`}
+              <TransitionChild
+                as={Fragment}
+                enter="transition-opacity duration-300"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="transition-opacity duration-200"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
               >
                 <div className="p-4">
                   <div className="flex items-start">
@@ -124,7 +132,7 @@ export function ToastContainer({
                       <div className="ml-4 flex flex-shrink-0">
                         <button
                           type="button"
-                          className={`inline-flex rounded-md ${bgColor} ${textColor} hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                          className={`inline-flex rounded-md ${bgColor} ${textColor} hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-opacity duration-150`}
                           onClick={() => onDismiss(toast.id)}
                         >
                           <span className="sr-only">Close</span>
@@ -134,11 +142,11 @@ export function ToastContainer({
                     )}
                   </div>
                 </div>
-              </div>
-            </Transition>
-          )
-        })}
-      </div>
+              </TransitionChild>
+            </div>
+          </Transition>
+        )
+      })}
     </div>
   )
 }

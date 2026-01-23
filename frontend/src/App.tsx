@@ -14,6 +14,7 @@ import SettingsPage from './pages/admin/SettingsPage'
 import ProgramLocationsPage from './pages/admin/ProgramLocationsPage'
 import LocationsPage from './pages/admin/LocationsPage'
 import LocationDetailPage from './pages/admin/LocationDetailPage'
+import CodeManagementPage from './pages/admin/CodeManagementPage'
 import ProfilePage from './pages/ProfilePage'
 import PMIDetailPage from './pages/PMIDetailPage'
 import PMIPage from './pages/PMIPage'
@@ -162,6 +163,11 @@ function App() {
           <Route path="/admin/locations/:id" element={
             <ProtectedRoute requiredRoles={['ADMIN']}>
               <LocationDetailPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/codes" element={
+            <ProtectedRoute requiredRoles={['ADMIN']}>
+              <CodeManagementPage />
             </ProtectedRoute>
           } />
 

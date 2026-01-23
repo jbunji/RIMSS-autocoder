@@ -2480,6 +2480,330 @@ app.get('/api/audit-logs', async (req, res) => {
   }
 })
 
+// ============================================================================
+// CODE MANAGEMENT (Admin only)
+// ============================================================================
+
+// Get all code values (admin only)
+app.get('/api/admin/codes', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const { code_type, active } = req.query
+
+    const where: any = {}
+    if (code_type) where.code_type = code_type as string
+    if (active !== undefined) where.active = active === 'true'
+
+    const codes = await prisma.code.findMany({
+      where,
+      orderBy: [
+        { code_type: 'asc' },
+        { sort_order: 'asc' },
+        { code_value: 'asc' },
+      ],
+    })
+
+    console.log(`[CODE-MGMT] Fetched ${codes.length} codes${code_type ? ` for type ${code_type}` : ''}`)
+    res.json({ codes })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error fetching codes:', error)
+    res.status(500).json({ error: 'Failed to fetch codes' })
+  }
+})
+
+// Get code types (admin only)
+app.get('/api/admin/code-types', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const codeTypes = await prisma.code.findMany({
+      select: {
+        code_type: true,
+      },
+      distinct: ['code_type'],
+      orderBy: {
+        code_type: 'asc',
+      },
+    })
+
+    console.log(`[CODE-MGMT] Fetched ${codeTypes.length} code types`)
+    res.json({ code_types: codeTypes.map(c => c.code_type) })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error fetching code types:', error)
+    res.status(500).json({ error: 'Failed to fetch code types' })
+  }
+})
+
+// Get a single code value (admin only)
+app.get('/api/admin/codes/:id', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const codeId = parseInt(req.params.id, 10)
+
+    const code = await prisma.code.findUnique({
+      where: { code_id: codeId },
+    })
+
+    if (!code) {
+      return res.status(404).json({ error: 'Code not found' })
+    }
+
+    console.log(`[CODE-MGMT] Fetched code ${codeId}`)
+    res.json({ code })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error fetching code:', error)
+    res.status(500).json({ error: 'Failed to fetch code' })
+  }
+})
+
+// Create a new code value (admin only)
+app.post('/api/admin/codes', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const { code_type, code_value, description, active = true, sort_order = 0 } = req.body
+
+    // Validation
+    if (!code_type || !code_value) {
+      return res.status(400).json({ error: 'code_type and code_value are required' })
+    }
+
+    if (typeof code_type !== 'string' || code_type.length > 50) {
+      return res.status(400).json({ error: 'code_type must be a string (max 50 characters)' })
+    }
+
+    if (typeof code_value !== 'string' || code_value.length > 50) {
+      return res.status(400).json({ error: 'code_value must be a string (max 50 characters)' })
+    }
+
+    const user = req.user as { user_id: number; username: string }
+
+    // Check if code already exists
+    const existing = await prisma.code.findUnique({
+      where: {
+        code_type_code_value: {
+          code_type,
+          code_value,
+        },
+      },
+    })
+
+    if (existing) {
+      return res.status(409).json({ error: 'Code with this type and value already exists' })
+    }
+
+    // Create the code
+    const code = await prisma.code.create({
+      data: {
+        code_type,
+        code_value,
+        description: description || null,
+        active,
+        sort_order,
+        ins_by: user.username,
+      },
+    })
+
+    console.log(`[CODE-MGMT] Created code ${code_type}/${code_value} (ID: ${code.code_id})`)
+
+    res.status(201).json({
+      message: 'Code created successfully',
+      code,
+    })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error creating code:', error)
+    res.status(500).json({ error: 'Failed to create code' })
+  }
+})
+
+// Update a code value (admin only)
+app.put('/api/admin/codes/:id', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const codeId = parseInt(req.params.id, 10)
+    const { code_value, description, active, sort_order } = req.body
+
+    // Check if code exists
+    const existing = await prisma.code.findUnique({
+      where: { code_id: codeId },
+    })
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Code not found' })
+    }
+
+    const user = req.user as { user_id: number; username: string }
+
+    // Build update data
+    const updateData: any = {
+      chg_by: user.username,
+      chg_date: new Date(),
+    }
+
+    if (code_value !== undefined) {
+      if (typeof code_value !== 'string' || code_value.length > 50) {
+        return res.status(400).json({ error: 'code_value must be a string (max 50 characters)' })
+      }
+      updateData.code_value = code_value
+    }
+
+    if (description !== undefined) {
+      updateData.description = description
+    }
+
+    if (active !== undefined) {
+      updateData.active = active
+    }
+
+    if (sort_order !== undefined) {
+      updateData.sort_order = sort_order
+    }
+
+    // Update the code
+    const code = await prisma.code.update({
+      where: { code_id: codeId },
+      data: updateData,
+    })
+
+    console.log(`[CODE-MGMT] Updated code ${existing.code_type}/${code_value || existing.code_value} (ID: ${codeId})`)
+
+    res.json({
+      message: 'Code updated successfully',
+      code,
+    })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error updating code:', error)
+    res.status(500).json({ error: 'Failed to update code' })
+  }
+})
+
+// Deactivate a code value (soft delete) - admin only
+app.patch('/api/admin/codes/:id/deactivate', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const codeId = parseInt(req.params.id, 10)
+
+    // Check if code exists
+    const existing = await prisma.code.findUnique({
+      where: { code_id: codeId },
+    })
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Code not found' })
+    }
+
+    if (!existing.active) {
+      return res.status(400).json({ error: 'Code is already deactivated' })
+    }
+
+    const user = req.user as { user_id: number; username: string }
+
+    // Soft delete by setting active to false
+    const code = await prisma.code.update({
+      where: { code_id: codeId },
+      data: {
+        active: false,
+        chg_by: user.username,
+        chg_date: new Date(),
+      },
+    })
+
+    console.log(`[CODE-MGMT] Deactivated code ${existing.code_type}/${existing.code_value} (ID: ${codeId})`)
+
+    res.json({
+      message: 'Code deactivated successfully',
+      code,
+    })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error deactivating code:', error)
+    res.status(500).json({ error: 'Failed to deactivate code' })
+  }
+})
+
+// Reactivate a code value - admin only
+app.patch('/api/admin/codes/:id/activate', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const codeId = parseInt(req.params.id, 10)
+
+    // Check if code exists
+    const existing = await prisma.code.findUnique({
+      where: { code_id: codeId },
+    })
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Code not found' })
+    }
+
+    if (existing.active) {
+      return res.status(400).json({ error: 'Code is already active' })
+    }
+
+    const user = req.user as { user_id: number; username: string }
+
+    // Reactivate the code
+    const code = await prisma.code.update({
+      where: { code_id: codeId },
+      data: {
+        active: true,
+        chg_by: user.username,
+        chg_date: new Date(),
+      },
+    })
+
+    console.log(`[CODE-MGMT] Reactivated code ${existing.code_type}/${existing.code_value} (ID: ${codeId})`)
+
+    res.json({
+      message: 'Code reactivated successfully',
+      code,
+    })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error reactivating code:', error)
+    res.status(500).json({ error: 'Failed to reactivate code' })
+  }
+})
+
+// Delete a code value (hard delete) - admin only
+app.delete('/api/admin/codes/:id', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  try {
+    const codeId = parseInt(req.params.id, 10)
+
+    // Check if code exists
+    const existing = await prisma.code.findUnique({
+      where: { code_id: codeId },
+    })
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Code not found' })
+    }
+
+    // Delete the code
+    await prisma.code.delete({
+      where: { code_id: codeId },
+    })
+
+    console.log(`[CODE-MGMT] Deleted code ${existing.code_type}/${existing.code_value} (ID: ${codeId})`)
+
+    res.json({
+      message: 'Code deleted successfully',
+    })
+  } catch (error) {
+    console.error('[CODE-MGMT] Error deleting code:', error)
+    res.status(500).json({ error: 'Failed to delete code' })
+  }
+})
+
+// ============================================================================
+// END CODE MANAGEMENT
+// ============================================================================
+
 // System Settings: Get all settings (admin only)
 app.get('/api/settings', async (req, res) => {
   if (!requireAdmin(req, res)) return
