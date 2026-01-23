@@ -11048,7 +11048,7 @@ app.post('/api/assets/:id/replace-meter', (req, res) => {
 
 // GET /api/assets/:id/meter-history - Get ETM (Engineering Time Meters) history for an asset
 // Returns all meter in/out readings from maintenance repairs
-app.get('/api/assets/:id/meter-history', (req, res) => {
+app.get('/api/assets/:id/meter-history', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -11058,30 +11058,121 @@ app.get('/api/assets/:id/meter-history', (req, res) => {
   }
 
   const assetId = parseInt(req.params.id, 10);
-  const asset = detailedAssets.find(a => a.asset_id === assetId);
 
+  // First try to find asset in detailedAssets (in-memory sample data)
+  let asset = detailedAssets.find(a => a.asset_id === assetId);
+
+  // If not found in detailedAssets, try database
+  let dbAsset = null;
   if (!asset) {
-    return res.status(404).json({ error: 'Asset not found' });
-  }
+    dbAsset = await prisma.asset.findUnique({
+      where: { asset_id: assetId },
+      include: {
+        part: {
+          select: {
+            pgm_id: true
+          }
+        }
+      }
+    });
 
-  // Check if user has access to this asset's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this asset' });
+    if (!dbAsset || !dbAsset.active) {
+      return res.status(404).json({ error: 'Asset not found' });
+    }
+
+    // Check if user has access to this asset's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(dbAsset.part.pgm_id) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this asset' });
+    }
+  } else {
+    // Check if user has access to this asset's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this asset' });
+    }
   }
 
   // Get all repairs for this asset that have meter readings
-  const assetRepairs = repairs
+  // First check in-memory repairs (for detailedAssets)
+  let assetRepairs = repairs
     .filter(r => r.asset_id === assetId && (r.eti_in !== null || r.eti_out !== null))
-    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+    .map(r => ({
+      ...r,
+      isFromMemory: true
+    }));
 
-  // Get maintenance events for additional context
-  const eventIds = assetRepairs.map(r => r.event_id);
+  // If asset is from database, also query database repairs
+  if (dbAsset) {
+    try {
+      const dbRepairs = await prisma.repair.findMany({
+        where: {
+          asset_id: assetId,
+          OR: [
+            { eti_in: { not: null } },
+            { eti_out: { not: null } }
+          ]
+        },
+        include: {
+          event: {
+            select: {
+              job_no: true
+            }
+          }
+        },
+        orderBy: {
+          start_date: 'desc'
+        }
+      });
+
+      // Merge database repairs with in-memory repairs
+      const dbRepairsFormatted = dbRepairs.map(r => ({
+        repair_id: r.repair_id,
+        event_id: r.event_id,
+        asset_id: r.asset_id,
+        job_no: r.event?.job_no || null,
+        start_date: r.start_date.toISOString(),
+        stop_date: r.stop_date ? r.stop_date.toISOString() : null,
+        type_maint: r.type_maint,
+        shop_status: r.shop_status,
+        eti_in: r.eti_in,
+        eti_out: r.eti_out,
+        eti_delta: r.eti_delta,
+        narrative: r.narrative,
+        created_by_name: r.tech_name || 'Unknown',
+        created_at: r.created_at.toISOString(),
+        isFromMemory: false
+      }));
+
+      // Combine and deduplicate by repair_id
+      const allRepairs = [...assetRepairs, ...dbRepairsFormatted];
+      const repairMap = new Map();
+
+      allRepairs.forEach(r => {
+        if (!repairMap.has(r.repair_id)) {
+          repairMap.set(r.repair_id, r);
+        }
+      });
+
+      assetRepairs = Array.from(repairMap.values())
+        .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+    } catch (error) {
+      console.error('[METER] Error fetching repairs from database:', error);
+    }
+  }
+
+  // Get maintenance events for additional context (only for in-memory repairs)
+  const eventIds = assetRepairs.filter(r => r.isFromMemory).map(r => r.event_id);
   const relatedEvents = maintenanceEvents.filter(e => eventIds.includes(e.event_id));
 
   // Build meter history entries with event context
   const meterHistory = assetRepairs.map(repair => {
-    const event = relatedEvents.find(e => e.event_id === repair.event_id);
+    // For in-memory repairs, get event from maintenanceEvents array
+    // For database repairs, event data is already included
+    const event = repair.isFromMemory
+      ? relatedEvents.find(e => e.event_id === repair.event_id)
+      : { job_no: repair.job_no };
+
     return {
       repair_id: repair.repair_id,
       event_id: repair.event_id,
@@ -11099,12 +11190,15 @@ app.get('/api/assets/:id/meter-history', (req, res) => {
     };
   });
 
-  console.log(`[METER] History request by ${user.username} for asset ${asset.serno} (ID: ${assetId}) - ${meterHistory.length} entries`);
+  const serno = asset?.serno || dbAsset?.serno || 'Unknown';
+  const etiHours = asset?.eti_hours || dbAsset?.eti_hours || 0;
+
+  console.log(`[METER] History request by ${user.username} for asset ${serno} (ID: ${assetId}) - ${meterHistory.length} entries`);
 
   res.json({
     asset_id: assetId,
-    serno: asset.serno,
-    current_eti_hours: asset.eti_hours,
+    serno: serno,
+    current_eti_hours: etiHours,
     meter_history: meterHistory,
     total: meterHistory.length,
   });
