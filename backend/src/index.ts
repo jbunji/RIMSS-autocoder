@@ -1355,6 +1355,20 @@ function requireAdmin(req: express.Request, res: express.Response): boolean {
   return true
 }
 
+// Check if user is admin and return the user object
+function requireAdminAndGetUser(req: express.Request, res: express.Response): { user_id: number; username: string } | null {
+  const payload = authenticateRequest(req, res)
+  if (!payload) return null
+
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user || user.role !== 'ADMIN') {
+    res.status(403).json({ error: 'Admin access required' })
+    return null
+  }
+
+  return user
+}
+
 // Helper function to get client IP address
 function getClientIP(req: express.Request): string {
   // Check X-Forwarded-For header (if behind proxy)
@@ -2682,7 +2696,8 @@ app.put('/api/admin/codes/:id', async (req, res) => {
 
 // Deactivate a code value (soft delete) - admin only
 app.patch('/api/admin/codes/:id/deactivate', async (req, res) => {
-  if (!requireAdmin(req, res)) return
+  const user = requireAdminAndGetUser(req, res)
+  if (!user) return
 
   try {
     const codeId = parseInt(req.params.id, 10)
@@ -2699,8 +2714,6 @@ app.patch('/api/admin/codes/:id/deactivate', async (req, res) => {
     if (!existing.active) {
       return res.status(400).json({ error: 'Code is already deactivated' })
     }
-
-    const user = req.user as { user_id: number; username: string }
 
     // Soft delete by setting active to false
     const code = await prisma.code.update({
@@ -2726,7 +2739,8 @@ app.patch('/api/admin/codes/:id/deactivate', async (req, res) => {
 
 // Reactivate a code value - admin only
 app.patch('/api/admin/codes/:id/activate', async (req, res) => {
-  if (!requireAdmin(req, res)) return
+  const user = requireAdminAndGetUser(req, res)
+  if (!user) return
 
   try {
     const codeId = parseInt(req.params.id, 10)
@@ -2743,8 +2757,6 @@ app.patch('/api/admin/codes/:id/activate', async (req, res) => {
     if (existing.active) {
       return res.status(400).json({ error: 'Code is already active' })
     }
-
-    const user = req.user as { user_id: number; username: string }
 
     // Reactivate the code
     const code = await prisma.code.update({
