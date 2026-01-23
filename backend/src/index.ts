@@ -6178,7 +6178,7 @@ app.get('/api/events/:id', (req, res) => {
 
 // Create new maintenance event (requires authentication)
 // Roles: ADMIN, DEPOT_MANAGER, FIELD_TECHNICIAN can create events
-app.post('/api/events', (req, res) => {
+app.post('/api/events', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6225,15 +6225,26 @@ app.post('/api/events', (req, res) => {
     return res.status(400).json({ error: 'Date in is required' });
   }
 
-  // Find the asset
-  const asset = mockAssets.find(a => a.asset_id === parseInt(asset_id, 10));
+  // Find the asset from DATABASE (not mockAssets array)
+  const asset = await prisma.asset.findUnique({
+    where: { asset_id: parseInt(asset_id, 10) },
+    include: {
+      part: {
+        select: {
+          pgm_id: true
+        }
+      }
+    }
+  });
+
   if (!asset) {
     return res.status(404).json({ error: 'Asset not found' });
   }
 
   // Check user has access to the asset's program
+  const assetProgramId = asset.part?.pgm_id || asset.pgm_id;
   const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(asset.pgm_id)) {
+  if (!userProgramIds.includes(assetProgramId)) {
     return res.status(403).json({ error: 'Access denied to this asset\'s program' });
   }
 
@@ -6255,18 +6266,21 @@ app.post('/api/events', (req, res) => {
       return res.status(400).json({ error: 'Selected sortie not found' });
     }
     // Verify sortie belongs to same program as asset
-    if (sortie.pgm_id !== asset.pgm_id) {
+    if (sortie.pgm_id !== assetProgramId) {
       return res.status(400).json({ error: 'Sortie must belong to the same program as the asset' });
     }
     validSortieId = sortie.sortie_id;
   }
+
+  // Get asset name from part.noun if available, otherwise use serno
+  const assetName = asset.part?.noun || asset.serno || 'Unknown';
 
   // Create the new maintenance event
   const newEvent: MaintenanceEvent = {
     event_id: newEventId,
     asset_id: asset.asset_id,
     asset_sn: asset.serno,
-    asset_name: asset.name,
+    asset_name: assetName,
     job_no: newJobNo,
     discrepancy: discrepancy.trim(),
     start_job: start_job,
@@ -6274,7 +6288,7 @@ app.post('/api/events', (req, res) => {
     event_type: event_type,
     priority: priority || 'Routine',
     status: 'open',
-    pgm_id: asset.pgm_id,
+    pgm_id: assetProgramId,
     location: eventLocation,
     loc_id: eventLocationId,
     etic: etic || null,

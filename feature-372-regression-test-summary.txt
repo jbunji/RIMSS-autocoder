@@ -1,0 +1,105 @@
+================================================================================
+REGRESSION TEST SUMMARY - Feature #372
+Maintenance event full CRUD workflow
+Date: Thu Jan 22 22:30 EST 2026
+================================================================================
+
+Feature: #372 - Maintenance event full CRUD workflow
+Category: Workflow
+Status: ❌ REGRESSION FOUND
+
+Description:
+Complete maintenance event lifecycle from creation through closure
+
+Regression Details:
+--------------------
+
+ISSUE: POST /api/events returns "Asset not found" error
+
+ROOT CAUSE:
+The POST /api/events endpoint (line 6217 in backend/src/index.ts) uses a
+hardcoded mockAssets array instead of querying the PostgreSQL database.
+
+Code location:
+  File: backend/src/index.ts
+  Line: 6217
+  Current code: const asset = mockAssets.find(a => a.asset_id === parseInt(asset_id, 10));
+  Should be: const asset = await prisma.asset.findUnique({ where: { asset_id: parseInt(asset_id, 10) } });
+
+Evidence:
+---------
+1. GET /api/assets successfully returns asset TEST-PMI-HEATMAP-001 (ID: 907793)
+   from the database
+2. POST /api/events with asset_id 907793 returns 404 "Asset not found"
+3. The backend logs show NO POST request to /api/events (the route returns 404
+   before any logging)
+4. The GET /api/assets endpoint correctly uses prisma.asset.findMany()
+5. The POST /api/events endpoint incorrectly uses mockAssets.find()
+
+Impact:
+-------
+- Users cannot create maintenance events
+- This breaks the complete CRUD workflow for maintenance events
+- Feature #372 cannot complete Step 1: "Create new maintenance event with
+  all required fields"
+
+Steps to Reproduce:
+-------------------
+1. Login as admin (or any user with create event permissions)
+2. Navigate to Maintenance page
+3. Click "New Event" button
+4. Select asset "TEST-PMI-HEATMAP-001 - (FMC)" (asset_id: 907793)
+5. Fill in discrepancy description
+6. Click "Create Event"
+7. Error appears: "Asset not found"
+
+Required Fix:
+-------------
+File: backend/src/index.ts
+Location: Line 6217 (inside app.post('/api/events') handler)
+
+BEFORE:
+  const asset = mockAssets.find(a => a.asset_id === parseInt(asset_id, 10));
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+AFTER:
+  const asset = await prisma.asset.findUnique({
+    where: { asset_id: parseInt(asset_id, 10) }
+  });
+  if (!asset) {
+    return res.status(404).json({ error: 'Asset not found' });
+  }
+
+Additional Changes:
+-------------------
+The POST /api/events handler is an async function but the function declaration
+doesn't use the async keyword. This needs to be added:
+
+BEFORE:
+  app.post('/api/events', (req, res) => {
+
+AFTER:
+  app.post('/api/events', async (req, res) => {
+
+Testing Notes:
+--------------
+- Backend restart did not resolve the issue
+- The issue is in the code logic, not a server startup problem
+- GET requests to /api/events work fine (they use the database)
+- Only POST requests are broken
+
+Feature Status:
+---------------
+Feature #372 is marked as FAILING due to this regression.
+This regression blocks all 12 verification steps.
+
+Next Steps:
+-----------
+1. Fix the POST /api/events endpoint to use prisma instead of mockAssets
+2. Add async keyword to the route handler
+3. Test the complete workflow through all 12 steps
+4. Re-mark feature as passing after fix is verified
+
+================================================================================

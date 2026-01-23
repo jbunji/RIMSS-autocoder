@@ -1,0 +1,41 @@
+================================================================================
+[REGRESSION TEST] Thu Jan 22 22:30 EST 2026 - Feature #372: Maintenance event full CRUD workflow
+================================================================================
+
+RESULT: ❌ REGRESSION FOUND
+
+Feature: Maintenance event full CRUD workflow
+Category: Workflow
+
+Issue: POST /api/events endpoint returns "Asset not found" error
+
+Root Cause:
+The POST /api/events endpoint uses mockAssets array instead of querying the
+PostgreSQL database. Asset ID 907793 exists in the database but the endpoint
+fails to find it because it's searching a hardcoded mock array.
+
+Location:
+  File: backend/src/index.ts
+  Line: 6217
+  Code: const asset = mockAssets.find(a => a.asset_id === parseInt(asset_id, 10));
+
+Required Fix:
+  Change to: await prisma.asset.findUnique({ where: { asset_id: parseInt(asset_id, 10) } });
+  Also add 'async' keyword to the route handler
+
+Impact:
+  - Blocks Step 1: Create new maintenance event
+  - Blocks all 12 verification steps
+  - Complete CRUD workflow non-functional
+
+Evidence:
+  - GET /api/assets returns asset 907793 from database ✓
+  - POST /api/events with asset_id 907793 returns 404 ✗
+  - Console shows 404 Not Found for POST /api/events
+  - Frontend displays "Asset not found" error in dialog
+
+Documentation:
+  Full details in: feature-372-regression-test-summary.txt
+
+Feature Status: FAILING - Regression confirmed
+================================================================================
