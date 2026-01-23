@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Dialog, Transition } from '@headlessui/react'
 import {
@@ -14,11 +12,9 @@ import {
   ChevronDownIcon,
   ChevronUpDownIcon,
   DocumentArrowDownIcon,
-  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/authStore'
-import { useUnsavedChangesWarning } from '../hooks/useUnsavedChangesWarning'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { SkeletonTable } from '../components/skeleton'
 import { useToast } from '../hooks/useToast'
@@ -27,8 +23,8 @@ import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
 import { formatLocationHierarchical, compareLocations } from '../utils/locationFormatter'
 import type { Location as LocationType } from '../utils/locationFormatter'
-import LocationSelect from '../components/LocationSelect'
 import EmptyAssetsIllustration from '../components/EmptyAssetsIllustration'
+import AddAssetWizard from '../components/AddAssetWizard'
 
 // Reference data interfaces
 type Location = LocationType
@@ -39,7 +35,7 @@ interface AssetStatus {
   description: string
 }
 
-// Zod schema for asset creation
+// Zod schema for asset creation (for type reference)
 const createAssetSchema = z.object({
   partno: z.string()
     .trim()
@@ -135,7 +131,6 @@ export default function AssetsPage() {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [modalError, setModalError] = useState<string | null>(null)
 
   // Delete confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -158,29 +153,6 @@ export default function AssetsPage() {
   type SortOrder = 'asc' | 'desc'
   const [sortBy, setSortBy] = useState<SortColumn>('serno')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
-
-  // Form setup
-  const {
-    register,
-    handleSubmit,
-    reset,
-    control,
-    formState: { errors, isSubmitting, isDirty },
-  } = useForm<CreateAssetFormData>({
-    resolver: zodResolver(createAssetSchema),
-    defaultValues: {
-      partno: '',
-      serno: '',
-      name: '',
-      status_cd: 'FMC', // Default to Fully Mission Capable
-      admin_loc: '', // Will be set dynamically after locations load
-      cust_loc: '', // Will be set dynamically after locations load
-      notes: '',
-    },
-  })
-
-  // Warn user about unsaved changes on page refresh/close
-  useUnsavedChangesWarning(isDirty && isModalOpen)
 
   // Handler to update search query and URL
   const handleSearchChange = (value: string) => {
@@ -283,13 +255,12 @@ export default function AssetsPage() {
     onSuccess: (result) => {
       showSuccess(`Asset "${result.asset.serno}" created successfully!`)
       setIsModalOpen(false)
-      reset()
       setCurrentPage(1) // Reset to first page
       // Invalidate and refetch assets
       queryClient.invalidateQueries({ queryKey: ['assets'] })
     },
     onError: (error: Error) => {
-      setModalError(error.message)
+      showError(error.message)
     },
   })
 
@@ -401,21 +372,16 @@ export default function AssetsPage() {
 
   // Handle form submission using React Query mutation
   const onSubmit = async (data: CreateAssetFormData) => {
-    setModalError(null)
     createAssetMutation.mutate(data)
   }
 
   // Modal handlers
   const openModal = () => {
-    reset()
-    setModalError(null)
     setIsModalOpen(true)
   }
 
   const closeModal = () => {
     setIsModalOpen(false)
-    reset()
-    setModalError(null)
   }
 
   // Delete modal handlers
@@ -1252,286 +1218,17 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* Add Asset Modal */}
-      <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={closeModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all flex flex-col max-h-[90vh]">
-                  {/* Fixed Header */}
-                  <div className="px-6 pt-6 pb-4 border-b border-gray-200">
-                    <Dialog.Title
-                      as="h3"
-                      className="text-lg font-medium leading-6 text-gray-900 flex items-center"
-                    >
-                      <CubeIcon className="h-6 w-6 mr-2 text-primary-600" />
-                      Add New Asset
-                    </Dialog.Title>
-
-                    <button
-                      type="button"
-                      className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
-                      onClick={closeModal}
-                    >
-                      <XMarkIcon className="h-6 w-6" />
-                    </button>
-                  </div>
-
-                  {/* Scrollable Content */}
-                  <div className="px-6 py-4 overflow-y-auto flex-1">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" id="add-asset-form">
-                    {/* Error display inside modal */}
-                    {modalError && (
-                      <div className="rounded-md bg-red-50 p-3">
-                        <p className="text-sm text-red-800">{modalError}</p>
-                      </div>
-                    )}
-
-                    {/* Part Number */}
-                    <div>
-                      <label htmlFor="partno" className="block text-sm font-medium text-gray-700">
-                        Part Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="partno"
-                        {...register('partno')}
-                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                          errors.partno
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
-                        }`}
-                        placeholder="PN-SENSOR-A"
-                        aria-invalid={errors.partno ? 'true' : 'false'}
-                        aria-describedby={errors.partno ? 'partno-error' : undefined}
-                      />
-                      {errors.partno && (
-                        <p id="partno-error" className="mt-1 text-sm text-red-600" role="alert">{errors.partno.message}</p>
-                      )}
-                    </div>
-
-                    {/* Serial Number */}
-                    <div>
-                      <label htmlFor="serno" className="block text-sm font-medium text-gray-700">
-                        Serial Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="serno"
-                        {...register('serno')}
-                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                          errors.serno
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
-                        }`}
-                        placeholder="CRIIS-011"
-                        aria-invalid={errors.serno ? 'true' : 'false'}
-                        aria-describedby={errors.serno ? 'serno-error' : undefined}
-                      />
-                      {errors.serno && (
-                        <p id="serno-error" className="mt-1 text-sm text-red-600" role="alert">{errors.serno.message}</p>
-                      )}
-                    </div>
-
-                    {/* Asset Name (optional) */}
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                        Asset Name <span className="text-gray-400">(optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        {...register('name')}
-                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                          errors.name
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
-                        }`}
-                        placeholder="Sensor Unit A-3"
-                        aria-invalid={errors.name ? 'true' : 'false'}
-                        aria-describedby={errors.name ? 'name-error' : undefined}
-                      />
-                      {errors.name && (
-                        <p id="name-error" className="mt-1 text-sm text-red-600" role="alert">{errors.name.message}</p>
-                      )}
-                      <p className="mt-1 text-xs text-gray-500">
-                        If not provided, a name will be generated from the part and serial number.
-                      </p>
-                    </div>
-
-                    {/* Status */}
-                    <div>
-                      <label htmlFor="status_cd" className="block text-sm font-medium text-gray-700">
-                        Status <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        id="status_cd"
-                        {...register('status_cd')}
-                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                          errors.status_cd
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
-                        }`}
-                        aria-invalid={errors.status_cd ? 'true' : 'false'}
-                        aria-describedby={errors.status_cd ? 'status_cd-error' : undefined}
-                      >
-                        <option value="">Select a status...</option>
-                        {assetStatuses.map((status) => (
-                          <option key={status.status_cd} value={status.status_cd}>
-                            {status.status_cd} - {status.status_name}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.status_cd && (
-                        <p id="status_cd-error" className="mt-1 text-sm text-red-600" role="alert">{errors.status_cd.message}</p>
-                      )}
-                    </div>
-
-                    {/* Assigned Base */}
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-sm font-medium text-gray-700">
-                          Assigned Base <span className="text-red-500">*</span>
-                        </span>
-                        <QuestionMarkCircleIcon
-                          className="h-4 w-4 text-gray-400 cursor-help"
-                          title="Assigned Base indicates which organization owns this asset"
-                        />
-                      </div>
-                      <Controller
-                        name="admin_loc"
-                        control={control}
-                        render={({ field }) => (
-                          <LocationSelect
-                            value={field.value}
-                            onChange={field.onChange}
-                            locations={adminLocations.sort(compareLocations)}
-                            majcoms={majcoms}
-                            label=""
-                            required={true}
-                            error={errors.admin_loc?.message}
-                            id="admin_loc"
-                            placeholder="Select assigned base..."
-                          />
-                        )}
-                      />
-                    </div>
-
-                    {/* Current Base */}
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-sm font-medium text-gray-700">
-                          Current Base <span className="text-red-500">*</span>
-                        </span>
-                        <QuestionMarkCircleIcon
-                          className="h-4 w-4 text-gray-400 cursor-help"
-                          title="Current Base indicates where this asset is physically located"
-                        />
-                      </div>
-                      <Controller
-                        name="cust_loc"
-                        control={control}
-                        render={({ field }) => (
-                          <LocationSelect
-                            value={field.value}
-                            onChange={field.onChange}
-                            locations={custodialLocations.sort(compareLocations)}
-                            majcoms={majcoms}
-                            label=""
-                            required={true}
-                            error={errors.cust_loc?.message}
-                            id="cust_loc"
-                            placeholder="Select current base..."
-                          />
-                        )}
-                      />
-                    </div>
-
-                    {/* Notes */}
-                    <div>
-                      <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-                        Notes <span className="text-gray-400">(optional)</span>
-                      </label>
-                      <textarea
-                        id="notes"
-                        rows={3}
-                        {...register('notes')}
-                        className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
-                          errors.notes
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
-                        }`}
-                        placeholder="Any additional notes about this asset..."
-                        aria-invalid={errors.notes ? 'true' : 'false'}
-                        aria-describedby={errors.notes ? 'notes-error' : undefined}
-                      />
-                      {errors.notes && (
-                        <p id="notes-error" className="mt-1 text-sm text-red-600" role="alert">{errors.notes.message}</p>
-                      )}
-                    </div>
-
-                    </form>
-                  </div>
-
-                  {/* Fixed Footer */}
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => reset()}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                    >
-                      Reset
-                    </button>
-                    <button
-                      type="submit"
-                      form="add-asset-form"
-                      disabled={isSubmitting}
-                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <LoadingSpinner size="sm" className="mr-2 text-white" />
-                          Creating...
-                        </>
-                      ) : (
-                        'Create Asset'
-                      )}
-                    </button>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
+      {/* Add Asset Wizard - Multi-step form with step indicator */}
+      <AddAssetWizard
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubmit={onSubmit}
+        adminLocations={adminLocations}
+        custodialLocations={custodialLocations}
+        assetStatuses={assetStatuses}
+        majcoms={majcoms}
+        isLoading={createAssetMutation.isPending}
+      />
 
       {/* Delete Confirmation Modal */}
       <Transition appear show={isDeleteModalOpen} as={Fragment}>

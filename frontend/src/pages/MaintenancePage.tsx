@@ -45,6 +45,10 @@ interface MaintenanceEvent {
   pgm_id: number
   location: string
   pqdr?: boolean // Product Quality Deficiency Report flag
+  // Progress tracking fields
+  total_repairs?: number
+  closed_repairs?: number
+  progress_percentage?: number
 }
 
 interface Pagination {
@@ -151,6 +155,51 @@ const statusColors: Record<string, { bg: string; text: string; border: string }>
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
+}
+
+// Progress bar color based on completion percentage
+function getProgressColor(percentage: number): { bg: string; fill: string; text: string } {
+  if (percentage >= 76) {
+    return { bg: 'bg-green-100', fill: 'bg-green-500', text: 'text-green-700' }
+  } else if (percentage >= 26) {
+    return { bg: 'bg-amber-100', fill: 'bg-amber-500', text: 'text-amber-700' }
+  } else {
+    return { bg: 'bg-red-100', fill: 'bg-red-500', text: 'text-red-700' }
+  }
+}
+
+// Progress bar component
+interface ProgressBarProps {
+  percentage: number
+  totalRepairs: number
+  closedRepairs: number
+}
+
+function ProgressBar({ percentage, totalRepairs, closedRepairs }: ProgressBarProps) {
+  const colors = getProgressColor(percentage)
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-gray-500">
+          {closedRepairs} of {totalRepairs} {totalRepairs === 1 ? 'repair' : 'repairs'} closed
+        </span>
+        <span className={`text-xs font-semibold ${colors.text}`}>
+          {percentage}%
+        </span>
+      </div>
+      <div className={`w-full h-2 ${colors.bg} rounded-full overflow-hidden`}>
+        <div
+          className={`h-full ${colors.fill} transition-all duration-300 ease-out`}
+          style={{ width: `${percentage}%` }}
+          role="progressbar"
+          aria-valuenow={percentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        />
+      </div>
+    </div>
+  )
 }
 
 export default function MaintenancePage() {
@@ -1355,6 +1404,9 @@ export default function MaintenancePage() {
     // Prepare table data
     const tableData = events.map(event => {
       const daysOpen = calculateDaysOpen(event.start_job, event.stop_job)
+      const progressText = event.total_repairs !== undefined && event.total_repairs > 0
+        ? `${event.progress_percentage}% (${event.closed_repairs}/${event.total_repairs})`
+        : 'No repairs'
       return [
         event.job_no + (event.pqdr ? ' (PQDR)' : ''),
         event.asset_sn,
@@ -1365,6 +1417,7 @@ export default function MaintenancePage() {
         event.location,
         formatDateForExport(event.start_job),
         `${daysOpen} day${daysOpen !== 1 ? 's' : ''}`,
+        progressText,
         event.status.toUpperCase()
       ]
     })
@@ -1385,7 +1438,7 @@ export default function MaintenancePage() {
     // Generate table with autoTable
     autoTable(doc, {
       startY: startY,
-      head: [['Job #', 'Serial #', 'Asset Name', 'Discrepancy', 'Type', 'Priority', 'Base Location', 'Date In', 'Duration', 'Status']],
+      head: [['Job #', 'Serial #', 'Asset Name', 'Discrepancy', 'Type', 'Priority', 'Base Location', 'Date In', 'Duration', 'Progress', 'Status']],
       body: tableData,
       theme: 'striped',
       headStyles: {
@@ -1461,7 +1514,7 @@ export default function MaintenancePage() {
     const filterRow = filters.length > 0 ? [`Filters: ${filters.join(', ')}`] : []
 
     // Table header row
-    const headerRow = ['Job Number', 'Serial Number', 'Asset Name', 'Discrepancy', 'Event Type', 'Priority', 'Status', 'Base Location', 'Date In (ZULU)', 'Date Out (ZULU)', 'Days Open/Duration', 'PQDR Flag']
+    const headerRow = ['Job Number', 'Serial Number', 'Asset Name', 'Discrepancy', 'Event Type', 'Priority', 'Status', 'Base Location', 'Date In (ZULU)', 'Date Out (ZULU)', 'Days Open/Duration', 'Progress', 'PQDR Flag']
 
     // Data rows
     const dataRows = events.map(event => {
@@ -1482,6 +1535,9 @@ export default function MaintenancePage() {
         dateInZulu,
         dateOutZulu,
         `${daysOpen} day${daysOpen !== 1 ? 's' : ''}`,
+        event.total_repairs !== undefined && event.total_repairs > 0
+          ? `${event.progress_percentage}% (${event.closed_repairs}/${event.total_repairs} repairs)`
+          : 'No repairs',
         event.pqdr ? 'Yes' : 'No'
       ]
     })
@@ -1521,6 +1577,7 @@ export default function MaintenancePage() {
       { wch: 22 },  // Date In (ZULU)
       { wch: 22 },  // Date Out (ZULU)
       { wch: 15 },  // Days Open/Duration
+      { wch: 30 },  // Progress
       { wch: 10 },  // PQDR Flag
     ]
 
@@ -3756,6 +3813,9 @@ export default function MaintenancePage() {
                   Days {activeTab === 0 ? 'Open' : 'Duration'}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Progress
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 {canDeleteEvent && (
@@ -3837,6 +3897,17 @@ export default function MaintenancePage() {
                       )}>
                         {daysOpen} {daysOpen === 1 ? 'day' : 'days'}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 min-w-[180px]">
+                      {event.total_repairs !== undefined && event.total_repairs > 0 ? (
+                        <ProgressBar
+                          percentage={event.progress_percentage || 0}
+                          totalRepairs={event.total_repairs}
+                          closedRepairs={event.closed_repairs || 0}
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-400">No repairs</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={classNames(

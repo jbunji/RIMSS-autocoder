@@ -5769,6 +5769,21 @@ app.get('/api/events', (req, res) => {
   const offset = (page - 1) * limit;
   const paginatedEvents = filteredEvents.slice(offset, offset + limit);
 
+  // Calculate progress for each event based on repairs
+  const eventsWithProgress = paginatedEvents.map(event => {
+    const eventRepairs = repairs.filter(r => r.event_id === event.event_id);
+    const totalRepairs = eventRepairs.length;
+    const closedRepairs = eventRepairs.filter(r => r.shop_status === 'closed').length;
+    const progressPercentage = totalRepairs > 0 ? Math.round((closedRepairs / totalRepairs) * 100) : 0;
+
+    return {
+      ...event,
+      total_repairs: totalRepairs,
+      closed_repairs: closedRepairs,
+      progress_percentage: progressPercentage,
+    };
+  });
+
   // Calculate summary counts
   const summary = {
     open: filteredEvents.filter(e => e.status === 'open').length,
@@ -5787,7 +5802,7 @@ app.get('/api/events', (req, res) => {
   console.log(`[EVENTS] List request by ${user.username} - Total: ${total}, Open: ${summary.open}, Closed: ${summary.closed}`);
 
   res.json({
-    events: paginatedEvents,
+    events: eventsWithProgress,
     pagination: {
       page,
       limit,
@@ -9842,6 +9857,7 @@ interface AssetDetails {
   serno: string;
   partno: string;
   part_name: string;
+  sys_type: string;  // System type (e.g., "Camera System", "Targeting System")
   pgm_id: number;
   status_cd: string;
   status_name: string;
@@ -11389,6 +11405,26 @@ app.put('/api/assets/:id', async (req, res) => {
 
       const { uii, next_ndi_date } = req.body;
 
+      // Capture old values for history logging
+      const oldUii = dbAsset.uii || '(not assigned)';
+      const oldNdiDate = dbAsset.next_ndi_date ? dbAsset.next_ndi_date.toISOString().split('T')[0] : '(not assigned)';
+      const newUii = (uii !== undefined) ? (uii || '(not assigned)') : oldUii;
+      const newNdiDate = (next_ndi_date !== undefined) ? (next_ndi_date || '(not assigned)') : oldNdiDate;
+
+      // Build history changes array
+      const historyChanges: AssetHistoryChange[] = [];
+      const changes: string[] = [];
+
+      if (uii !== undefined && uii !== dbAsset.uii) {
+        changes.push(`UII: ${oldUii} → ${newUii}`);
+        historyChanges.push({ field: 'uii', field_label: 'UII (Unique Item Identifier)', old_value: oldUii, new_value: newUii });
+      }
+
+      if (next_ndi_date !== undefined && next_ndi_date !== (dbAsset.next_ndi_date?.toISOString().split('T')[0] || null)) {
+        changes.push(`Next NDI Date: ${oldNdiDate} → ${newNdiDate}`);
+        historyChanges.push({ field: 'next_ndi_date', field_label: 'Next NDI Date', old_value: oldNdiDate, new_value: newNdiDate });
+      }
+
       // Update the asset in database (UII and next_ndi_date)
       const updatedAsset = await prisma.asset.update({
         where: { asset_id: assetId },
@@ -11399,6 +11435,17 @@ app.put('/api/assets/:id', async (req, res) => {
           chg_by: user.username
         }
       });
+
+      // Log to asset history if there were changes
+      if (historyChanges.length > 0) {
+        addAssetHistory(
+          assetId,
+          user,
+          'update',
+          historyChanges,
+          `Updated asset ${dbAsset.serno}: ${changes.join('; ')}`
+        );
+      }
 
       console.log(`[ASSETS] Database asset updated by ${user.username}: ID ${assetId}, UII: ${uii}, NDI: ${next_ndi_date}`);
 
@@ -17210,8 +17257,9 @@ app.get('/api/reports/pmi-schedule', (req, res) => {
         // Find the asset for this PMI
         const asset = detailedAssets.find(a => a.asset_id === pmi.asset_id);
         if (!asset) return false;
-        // Include PMI if asset is at any of the user's locations
-        return userLocationIds.includes(asset.loc_ida) || userLocationIds.includes(asset.loc_idc);
+        // Include PMI if asset is at any of the user's locations (handle null values)
+        return (asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)) ||
+               (asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc));
       });
     }
 
@@ -17298,7 +17346,8 @@ app.get('/api/reports/bad-actors', (req, res) => {
     // Apply location filtering for non-admin users
     if (!isAdmin && userLocationIds.length > 0) {
       badActors = badActors.filter(asset =>
-        userLocationIds.includes(asset.loc_ida) || userLocationIds.includes(asset.loc_idc)
+        (asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)) ||
+        (asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc))
       );
     }
 
@@ -17314,9 +17363,9 @@ app.get('/api/reports/bad-actors', (req, res) => {
 
       // Find most recent event
       const sortedEvents = assetEvents.sort((a, b) =>
-        new Date(b.open_date).getTime() - new Date(a.open_date).getTime()
+        new Date(b.start_job).getTime() - new Date(a.start_job).getTime()
       );
-      const lastFailureDate = sortedEvents[0]?.open_date || null;
+      const lastFailureDate = sortedEvents[0]?.start_job || null;
 
       // Get program info
       const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
@@ -17326,7 +17375,7 @@ app.get('/api/reports/bad-actors', (req, res) => {
         serno: asset.serno,
         partno: asset.partno,
         part_name: asset.part_name,
-        system_type: asset.system_type || 'Unknown',
+        system_type: asset.sys_type,
         status_cd: asset.status_cd,
         status_name: asset.status_name,
         location: asset.location,
@@ -17445,7 +17494,7 @@ app.get('/api/test/database-error', (req, res) => {
 });
 
 // Test endpoint for simulating working database after errors (recovery testing)
-app.get('/api/test/database-success', (req, res) => {
+app.get('/api/test/database-success', (_req, res) => {
   console.log('[TEST] Database success simulation (recovery test)');
   res.json({
     message: 'Database connection successful',

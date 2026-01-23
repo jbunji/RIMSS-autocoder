@@ -9,7 +9,7 @@ import { z } from 'zod'
 // Initialize tRPC with error formatter to hide stack traces
 // This prevents sensitive internal paths from being exposed to clients
 const t = initTRPC.create({
-  errorFormatter({ shape, error }) {
+  errorFormatter({ shape }) {
     return {
       ...shape,
       data: {

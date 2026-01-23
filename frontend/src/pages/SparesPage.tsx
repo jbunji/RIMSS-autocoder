@@ -1028,7 +1028,7 @@ export default function SparesPage() {
       )}
 
       {/* Filters and Actions */}
-      <div className="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+      <div className="mb-4 bg-white p-4 rounded-lg shadow border border-gray-200">
         <div className="flex items-end justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
@@ -1193,7 +1193,7 @@ export default function SparesPage() {
 
       {/* Spares Table */}
       {!loading && !error && (
-        <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
           {/* Table Header with Count */}
           <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
             <p className="text-sm text-gray-700">
