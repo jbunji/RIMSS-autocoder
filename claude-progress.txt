@@ -10723,3 +10723,100 @@ Git Commit: c9a30e2
 Session Status: REGRESSION FIXED ✅
 Progress: 458/472 features passing (97.0%)
 
+
+
+================================================================================
+[COMPLETED] Thu Jan 22 2026 - Feature #461: Add loading skeleton animations
+================================================================================
+Feature: Add loading skeleton animations
+Category: style
+Status: ✅ PASSING
+
+Implementation Summary:
+Created a comprehensive skeleton components library to replace traditional spinner
+loading indicators throughout the application. Skeleton loaders mimic the shape
+of the content being loaded (cards, table rows, text blocks) with a subtle
+shimmer animation, providing better perceived performance and layout stability.
+
+Skeleton Components Created:
+1. SkeletonBase.tsx - Base component with shimmer animation effect
+2. SkeletonText.tsx - Text line placeholders with varying widths
+3. SkeletonCard.tsx - Card placeholder with avatar/footer options
+4. SkeletonTable.tsx - Table row/column placeholders with header support
+5. SkeletonDashboardWidget.tsx - Dashboard widget skeletons with chart option
+6. SkeletonList.tsx - List item placeholders with icon support
+7. index.ts - Central export file for all skeleton components
+
+Pages Updated with Skeleton Loaders:
+- AssetsPage: Table skeleton (10 rows, 8 columns)
+- ConfigurationsPage: Table skeleton (10 rows, 7 columns)
+- PMIPage: Table skeleton (10 rows, 8 columns)
+- SortiesPage: Table skeleton (10 rows, 9 columns)
+- PartsOrderedPage: Table skeleton (10 rows, 8 columns)
+
+Key Features:
+✅ Smooth shimmer animation using CSS gradient background
+✅ Animation timing: 1.5s infinite loop
+✅ Shape-aware skeletons that mimic actual content structure
+✅ Staggered animation delays for visual flow
+✅ No layout shift when content loads
+✅ Better perceived performance vs traditional spinners
+✅ Zero JavaScript console errors
+
+Verification:
+✅ Step 1: Trigger data loading on various pages - Tested navigation to Assets, Configurations, PMI pages
+✅ Step 2: Verify skeleton placeholders appear instead of spinners - Confirmed skeleton components render
+✅ Step 3: Confirm skeletons match the shape of expected content - Table rows match column count
+✅ Step 4: Check for smooth shimmer/pulse animation - CSS gradient animation working
+✅ Step 5: Verify skeletons transition smoothly to actual content - Seamless transition
+✅ Step 6: Test on slow network conditions - Components properly handle loading states
+✅ Step 7: Ensure skeletons do not cause layout shift - Fixed-height containers used
+✅ Step 8: Check consistency across different content types - Consistent styling applied
+
+Git Commit: a459166 - Implement Feature #461: Add loading skeleton animations
+
+Files Modified:
+- frontend/src/components/skeleton/ (NEW DIRECTORY)
+  - SkeletonBase.tsx (NEW)
+  - SkeletonCard.tsx (NEW)
+  - SkeletonDashboardWidget.tsx (NEW)
+  - SkeletonList.tsx (NEW)
+  - SkeletonTable.tsx (NEW)
+  - SkeletonText.tsx (NEW)
+  - index.ts (NEW)
+- frontend/src/pages/AssetsPage.tsx (MODIFIED - added SkeletonTable import)
+- frontend/src/pages/ConfigurationsPage.tsx (MODIFIED - added SkeletonTable import)
+- frontend/src/pages/PMIPage.tsx (MODIFIED - added SkeletonTable import)
+- frontend/src/pages/SortiesPage.tsx (MODIFIED - added SkeletonTable import)
+- frontend/src/pages/PartsOrderedPage.tsx (MODIFIED - added SkeletonTable import)
+
+Session Status: SUCCESS ✅
+Feature #461 is COMPLETE and PASSING
+
+================================================================================
+
+[REGRESSION TEST] Thu Jan 22 21:15:44 EST 2026 - Feature #91: Asset NDI date tracking
+Status: REGRESSION FIXED ✅
+
+Issue Found:
+- NDI date field existed in database schema but was not implemented in UI
+- Users could not view or edit the next_ndi_date for assets
+
+Fix Applied:
+- Backend: Added next_ndi_date to AssetDetails interface
+- Backend: Added update handling for next_ndi_date field
+- Frontend: Added next_ndi_date to Asset interface
+- Frontend: Added NDI date display in Manufacturing & Tracking section
+- Frontend: Added NDI date input in edit mode
+- Frontend: Added next_ndi_date to editable fields tracking
+
+Files Modified:
+- backend/src/index.ts (interface, update logic, mock data)
+- frontend/src/pages/AssetDetailPage.tsx (display and edit form)
+
+Verification:
+- NDI date field displays on asset detail page
+- NDI date is editable via date picker
+- Changes are tracked and saved to backend
+Feature #91 is now PASSING ✅
+
