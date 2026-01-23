@@ -1910,7 +1910,7 @@ app.get('/api/locations', async (req, res) => {
 
         // Query to get distinct locations that have assets from the specified programs
         // Use Prisma.sql to properly handle the array parameter
-        const locationsFromAssets = await prisma.$queryRaw<Array<{loc_id: number, display_name: string, majcom_cd: string | null, site_cd: string | null, unit_cd: string | null, description: string | null}>>`
+        const rawLocationsFromAssets = await prisma.$queryRaw<Array<{loc_id: number, display_name: string | null, majcom_cd: string | null, site_cd: string | null, unit_cd: string | null, description: string | null}>>`
           SELECT DISTINCT
             l.loc_id,
             l.display_name,
@@ -1931,13 +1931,44 @@ app.get('/api/locations', async (req, res) => {
           ORDER BY l.display_name ASC;
         `
 
+        // Load code cache to resolve display names
+        const codes = await loadCodeCache()
+
+        // Resolve display names for locations that don't have them
+        const locationsFromAssets = rawLocationsFromAssets.map(loc => {
+          let displayName = loc.display_name?.trim()
+
+          // If no display name, try description
+          if (!displayName && loc.description && loc.description !== 'NONE') {
+            displayName = loc.description.trim()
+          }
+
+          // If still no display name, resolve the code IDs to actual code values
+          if (!displayName) {
+            const majcom = loc.majcom_cd ? resolveCodeId(loc.majcom_cd, codes) : ''
+            const site = loc.site_cd ? resolveCodeId(loc.site_cd, codes) : ''
+            const unit = loc.unit_cd ? resolveCodeId(loc.unit_cd, codes) : ''
+
+            const parts = [majcom, site, unit].filter(Boolean)
+            displayName = parts.length > 0 ? parts.join(' - ') : `Location ${loc.loc_id}`
+          }
+
+          return {
+            ...loc,
+            display_name: displayName,
+          }
+        })
+
+        // Sort by display name after resolving
+        locationsFromAssets.sort((a, b) => (a.display_name || '').localeCompare(b.display_name || ''))
+
         console.log(`[LOCATIONS] Found ${locationsFromAssets.length} locations for programs ${programIds.join(', ')}`)
         return res.json({ locations: locationsFromAssets })
       }
     }
 
     // Default: return all active locations (no program filter)
-    const locations = await prisma.location.findMany({
+    const rawLocations = await prisma.location.findMany({
       where: { active: true },
       select: {
         loc_id: true,
@@ -1947,8 +1978,38 @@ app.get('/api/locations', async (req, res) => {
         unit_cd: true,
         description: true,
       },
-      orderBy: { display_name: 'asc' },
     })
+
+    // Load code cache to resolve display names
+    const codes = await loadCodeCache()
+
+    // Resolve display names for locations that don't have them
+    const locations = rawLocations.map(loc => {
+      let displayName = loc.display_name?.trim()
+
+      // If no display name, try description
+      if (!displayName && loc.description && loc.description !== 'NONE') {
+        displayName = loc.description.trim()
+      }
+
+      // If still no display name, resolve the code IDs to actual code values
+      if (!displayName) {
+        const majcom = loc.majcom_cd ? resolveCodeId(loc.majcom_cd, codes) : ''
+        const site = loc.site_cd ? resolveCodeId(loc.site_cd, codes) : ''
+        const unit = loc.unit_cd ? resolveCodeId(loc.unit_cd, codes) : ''
+
+        const parts = [majcom, site, unit].filter(Boolean)
+        displayName = parts.length > 0 ? parts.join(' - ') : `Location ${loc.loc_id}`
+      }
+
+      return {
+        ...loc,
+        display_name: displayName,
+      }
+    })
+
+    // Sort by display name after resolving
+    locations.sort((a, b) => (a.display_name || '').localeCompare(b.display_name || ''))
 
     console.log(`[LOCATIONS] Returning all ${locations.length} active locations (no program filter)`)
     res.json({ locations })
