@@ -28,6 +28,14 @@
   .font-code {
     font-family: 'JetBrains Mono', monospace;
   }
+
+  /* Subtle dot grid pattern for main content area */
+  .bg-subtle-pattern {
+    background-color: #f9fafb; /* gray-50 */
+    background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+  }
 }
 
 /* Component styles */
