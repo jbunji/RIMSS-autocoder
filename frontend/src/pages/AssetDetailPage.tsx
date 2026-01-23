@@ -2277,7 +2277,7 @@ export default function AssetDetailPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {meterHistory.map((entry) => (
-                    <tr key={entry.repair_id} className="hover:bg-gray-50">
+                    <tr key={entry.repair_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(entry.start_date).toLocaleDateString('en-US', {
                           year: 'numeric',
@@ -2726,7 +2726,7 @@ export default function AssetDetailPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {softwareAssociations.map((assoc) => (
-                    <tr key={assoc.assoc_id} className="hover:bg-gray-50">
+                    <tr key={assoc.assoc_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{assoc.sw_name}</div>
                       </td>

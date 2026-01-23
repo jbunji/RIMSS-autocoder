@@ -448,7 +448,7 @@ export default function SoftwarePage() {
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {filteredAndSortedSoftware.map((sw) => (
-                  <tr key={sw.sw_id} className="hover:bg-gray-50">
+                  <tr key={sw.sw_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
                       {sw.sw_number}
                     </td>

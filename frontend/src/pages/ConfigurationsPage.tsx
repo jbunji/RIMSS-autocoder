@@ -1208,7 +1208,7 @@ export default function ConfigurationsPage() {
                   {configurations.map((config) => (
                     <tr
                       key={config.cfg_set_id}
-                      className="hover:bg-gray-50"
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">

@@ -578,7 +578,7 @@ export default function PMIScheduleReportPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {reportData.grouped_by_status.overdue.map((pmi) => (
-                      <tr key={pmi.pmi_id} className="hover:bg-gray-50">
+                      <tr key={pmi.pmi_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{pmi.asset_sn}</div>
                           <div className="text-sm text-gray-500">{pmi.asset_name}</div>
@@ -658,7 +658,7 @@ export default function PMIScheduleReportPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {reportData.grouped_by_status.due_soon.map((pmi) => (
-                      <tr key={pmi.pmi_id} className="hover:bg-gray-50">
+                      <tr key={pmi.pmi_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{pmi.asset_sn}</div>
                           <div className="text-sm text-gray-500">{pmi.asset_name}</div>
@@ -738,7 +738,7 @@ export default function PMIScheduleReportPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {reportData.grouped_by_status.upcoming.map((pmi) => (
-                      <tr key={pmi.pmi_id} className="hover:bg-gray-50">
+                      <tr key={pmi.pmi_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{pmi.asset_sn}</div>
                           <div className="text-sm text-gray-500">{pmi.asset_name}</div>
@@ -818,7 +818,7 @@ export default function PMIScheduleReportPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {reportData.grouped_by_status.completed.map((pmi) => (
-                      <tr key={pmi.pmi_id} className="hover:bg-gray-50">
+                      <tr key={pmi.pmi_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{pmi.asset_sn}</div>
                           <div className="text-sm text-gray-500">{pmi.asset_name}</div>

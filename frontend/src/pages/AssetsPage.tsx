@@ -1019,7 +1019,7 @@ export default function AssetsPage() {
                   {assets.map((asset) => (
                     <tr
                       key={asset.asset_id}
-                      className={`hover:bg-gray-50 ${asset.bad_actor ? 'bg-red-50' : ''}`}
+                      className={`hover:bg-gray-50 cursor-pointer transition-colors ${asset.bad_actor ? 'bg-red-50 hover:bg-red-100' : ''}`}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center">

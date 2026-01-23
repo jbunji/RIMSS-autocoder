@@ -739,7 +739,7 @@ export default function PartsOrderedReportPage() {
                 orders.map((order) => (
                   <tr
                     key={order.order_id}
-                    className={`${order.pqdr ? 'bg-red-50' : ''}`}
+                    className={`${order.pqdr ? 'bg-red-50' : ''} hover:bg-gray-50 transition-colors`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center space-x-2">

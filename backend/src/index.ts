@@ -3128,7 +3128,7 @@ function generateMockPMIData(): PMIRecord[] {
 }
 
 // Get PMI due soon endpoint (with optional program filtering)
-app.get('/api/pmi/due-soon', (req, res) => {
+app.get('/api/pmi/due-soon', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -3163,16 +3163,39 @@ app.get('/api/pmi/due-soon', (req, res) => {
   // Get overdue_only filter from query string (optional) - shows only overdue PMIs
   const overdueOnlyFilter = req.query.overdue_only === 'true';
 
-  // Generate fresh PMI data, including custom records and overrides
-  const generatedPMI = generateMockPMIData();
-  const customPMIIds = new Set(customPMIRecords.map(p => p.pmi_id));
-  const filteredGeneratedPMI = generatedPMI.filter(p => !customPMIIds.has(p.pmi_id));
-  const allPMI = [...filteredGeneratedPMI, ...customPMIRecords].map(pmi => {
-    const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
+  // Fetch real PMI data from database
+  const dbPMIs = await prisma.assetInspection.findMany({
+    where: {
+      complete_date: null, // Only incomplete PMIs
+      next_due_date: { gte: new Date('2025-01-01') }, // PMIs due in the future
+    },
+    include: {
+      asset: {
+        include: {
+          part: true, // Include part to get pgm_id
+        },
+      },
+    },
+  });
+
+  // Transform database records to PMI format
+  const allPMI = dbPMIs.map(pmi => {
+    const daysUntilDue = pmi.next_due_date
+      ? Math.ceil((new Date(pmi.next_due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      : 999;
+
     return {
-      ...pmi,
+      pmi_id: pmi.hist_id,
+      asset_id: pmi.asset_id,
+      asset_sn: pmi.asset?.serno || 'Unknown',
+      asset_name: pmi.asset?.part?.noun || 'Unknown Asset',
+      pmi_type: pmi.pmi_type || 'PMI',
+      wuc_cd: pmi.wuc_cd || '',
+      next_due_date: pmi.next_due_date?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
       days_until_due: daysUntilDue,
-      status: pmi.completed_date ? 'completed' as const : getPMIStatus(daysUntilDue),
+      completed_date: pmi.complete_date?.toISOString().split('T')[0] || null,
+      pgm_id: pmi.asset?.part?.pgm_id || 1,
+      status: pmi.complete_date ? 'completed' as const : getPMIStatus(daysUntilDue),
     };
   });
 
@@ -3184,11 +3207,13 @@ app.get('/api/pmi/due-soon', (req, res) => {
     filteredPMI = filteredPMI.filter(pmi => pmi.pgm_id === programIdFilter);
   }
 
-  // SECURITY: Filter by location - join with assets to check loc_ida/loc_idc
-  if (locationIdFilter || userLocationIds.length > 0) {
+  // SECURITY: Filter by location - use real asset data from database
+  // ADMIN role bypasses location filtering to see all PMIs for their programs
+  if (user.role !== 'ADMIN' && (locationIdFilter || userLocationIds.length > 0)) {
     filteredPMI = filteredPMI.filter(pmi => {
-      const asset = detailedAssets.find(a => a.asset_id === pmi.asset_id);
-      if (!asset) return false; // PMI without asset shouldn't happen, but be defensive
+      // Asset location data is already included from the database query
+      const asset = pmi.asset; // Use the asset from the PMI record
+      if (!asset) return false;
 
       if (locationIdFilter) {
         // Filter by specific location

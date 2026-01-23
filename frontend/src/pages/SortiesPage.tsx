@@ -1122,7 +1122,7 @@ export default function SortiesPage() {
                 sorties.map((sortie) => (
                   <tr
                     key={sortie.sortie_id}
-                    className="hover:bg-gray-50 cursor-pointer"
+                    className="hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => navigate(`/sorties/${sortie.sortie_id}`)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

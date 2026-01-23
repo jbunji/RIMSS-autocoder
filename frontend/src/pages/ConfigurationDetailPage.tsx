@@ -1588,7 +1588,7 @@ export default function ConfigurationDetailPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {softwareData.software.map((sw) => (
-                        <tr key={sw.cfg_sw_id} className="hover:bg-gray-50">
+                        <tr key={sw.cfg_sw_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <span className="font-mono font-medium text-gray-900">{sw.sw_number}</span>
                           </td>
@@ -1724,7 +1724,7 @@ export default function ConfigurationDetailPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {meterData.meters.map((meter) => (
-                        <tr key={meter.cfg_meter_id} className="hover:bg-gray-50">
+                        <tr key={meter.cfg_meter_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 uppercase">
                               {meter.meter_type}

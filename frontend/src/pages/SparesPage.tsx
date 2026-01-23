@@ -1293,7 +1293,7 @@ export default function SparesPage() {
                   </tr>
                 ) : (
                   spares.map((spare) => (
-                    <tr key={spare.asset_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/assets/${spare.asset_id}`)}>
+                    <tr key={spare.asset_id} className="hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => navigate(`/assets/${spare.asset_id}`)}>
                       {canEditSpare && !showDeleted && (
                         <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <input

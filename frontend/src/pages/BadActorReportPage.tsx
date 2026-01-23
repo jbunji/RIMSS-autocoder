@@ -310,7 +310,7 @@ export default function BadActorReportPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {reportData.bad_actors.map((badActor) => (
-                    <tr key={badActor.asset_id} className="hover:bg-gray-50">
+                    <tr key={badActor.asset_id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div>

@@ -10306,3 +10306,132 @@ Feature Status: PASSING ✅
 Progress: 453/471 tests passing (96.2%)
 
 ================================================================================
+
+================================================================================
+[REGRESSION TEST] Thu Jan 22 2026 - Feature #56: Dashboard renders for authenticated user
+================================================================================
+Feature: Dashboard page loads after login
+Category: Dashboard
+Status: ✅ PASSING (No regression found)
+
+Verification Steps:
+✅ Step 1: Log in as valid user
+   - Logged in as admin (admin/admin123)
+   - Authentication successful
+
+✅ Step 2: Verify redirect to dashboard
+   - Automatically redirected to http://localhost:5173/dashboard
+   - URL correctly shows /dashboard route
+
+✅ Step 3: Verify dashboard layout renders
+   - Header with RIMSS branding and navigation displayed
+   - Sidebar with all navigation links visible
+   - Welcome message: "Welcome, John Admin"
+   - User role indicator: "You are logged in as ADMIN"
+   - Program indicator: "Current Program: Advanced Targeting Capability System"
+   - Quick navigation buttons rendered
+   - All dashboard widgets displayed:
+     * Asset Status Summary
+     * Asset Status Distribution (pie chart)
+     * PMI Due Soon
+     * Open Maintenance Jobs
+     - Parts Awaiting Action (list + bar chart)
+     - Maintenance Trends (line chart)
+     * Recent Activity feed
+
+✅ Step 4: Verify no console errors
+   - Zero JavaScript console errors
+   - Only React Router future flag warnings (library-level, not application issues)
+   - Token refresh manager functioning correctly
+
+Quality Checks:
+- Layout rendering: ✅ Correct
+- All widgets visible: ✅ Yes
+- Navigation functional: ✅ Yes
+- User info displayed: ✅ Correct
+- Responsive design: ✅ Working
+- No visual bugs: ✅ Confirmed
+- Charts rendering: ✅ All charts display correctly
+
+Screenshot: feature-56-dashboard-verified.png
+
+Session Status: SUCCESS ✅
+Feature #56 is STILL PASSING - No regression detected
+
+Progress: 455/471 features passing (96.6%)
+================================================================================
+[Testing] Feature #436 verified - still passing - Part numbers correctly resolved to readable names with nouns
+
+[REGRESSION TEST] Thu Jan 22 19:56:26 EST 2026 - Feature #288: Tables scroll horizontally on mobile
+================================================================================
+
+Feature ID: 288
+Category: Responsive
+Name: Tables scroll horizontally on mobile
+Description: Wide tables scroll on narrow screens
+
+RESULT: ✅ REGRESSION FIXED AND VERIFIED
+
+Issue Found:
+- Tables were NOT scrolling horizontally on mobile (375px viewport)
+- Actions buttons were off-screen (position: 808px, viewport: 375px)
+- Table container had 'overflow-hidden' class preventing scroll
+
+Root Cause:
+- In frontend/src/pages/admin/UsersPage.tsx line 615
+- Table wrapper div had className="bg-white shadow overflow-hidden sm:rounded-lg"
+- The 'overflow-hidden' prevented horizontal scrolling
+
+Fix Applied:
+- Wrapped table in additional div with 'overflow-x-auto' class
+- Changed structure to enable horizontal scrolling while preserving styling
+- Outer div: "bg-white shadow sm:rounded-lg"
+- Inner div: "overflow-x-auto"
+
+Verification Steps Completed:
+
+✅ Step 1: Set viewport to 375px
+   - Viewport resized to mobile size (375x667)
+
+✅ Step 2: Navigate to page with wide table
+   - Navigated to /admin/users
+   - Table loaded with 5 users displayed
+
+✅ Step 3: Verify table scrolls horizontally
+   - Table width: 849px
+   - Container width: 343px
+   - Container overflow-x: 'auto' ✓
+   - Scrolled horizontally 506px to right edge ✓
+
+✅ Step 4: Verify all columns accessible
+   - Actions buttons initially off-screen (808px)
+   - After scroll: buttons fully visible (287-303px) ✓
+   - Edit button clicked successfully ✓
+   - Modal opened confirming buttons work ✓
+
+Quality Checks:
+- Console errors: None (only expected React DevTools warnings)
+- Visual appearance: Table scrolls smoothly on mobile
+- All columns accessible: Yes (User, Username, Role, Programs, Status, Actions)
+- User can interact with all elements: Yes
+
+Before Fix:
+  - containerOverflowX: 'hidden'
+  - Actions buttons at 808px (off-screen)
+  - Could not access last 2 columns
+
+After Fix:
+  - containerOverflowX: 'auto'
+  - Table scrolls to show all columns
+  - Actions buttons fully accessible and clickable
+
+Git Commit: 7cf5fa2 - Fix Feature #288: Tables scroll horizontally on mobile
+
+Files Modified:
+- frontend/src/pages/admin/UsersPage.tsx (MODIFIED - added overflow-x-auto wrapper)
+
+Session Status: REGRESSION FIXED ✅
+Session Mode: Testing Agent - Regression Testing
+
+[Testing] Feature #288 regression fixed and verified
+

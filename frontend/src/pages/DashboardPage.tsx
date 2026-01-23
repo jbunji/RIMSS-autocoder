@@ -6,6 +6,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import AssetStatusPieChart from '../components/AssetStatusPieChart'
 import MaintenanceTrendsChart from '../components/MaintenanceTrendsChart'
 import PartsAwaitingActionBarChart from '../components/PartsAwaitingActionBarChart'
+import PMICalendarHeatMap from '../components/PMICalendarHeatMap'
 
 interface StatusItem {
   status_cd: string
@@ -670,7 +671,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-6">
         <button
           onClick={() => navigate('/assets')}
-          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-blue-50 hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-blue-200"
+          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-blue-50 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer border border-transparent hover:border-blue-200"
           aria-label="Navigate to Assets"
         >
           <svg className="h-8 w-8 text-blue-600 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -681,7 +682,7 @@ export default function DashboardPage() {
 
         <button
           onClick={() => navigate('/maintenance')}
-          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-orange-50 hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-orange-200"
+          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-orange-50 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer border border-transparent hover:border-orange-200"
           aria-label="Navigate to Maintenance"
         >
           <svg className="h-8 w-8 text-orange-600 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -692,7 +693,7 @@ export default function DashboardPage() {
 
         <button
           onClick={() => navigate('/configurations')}
-          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-gray-50 hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-gray-200"
+          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-gray-50 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer border border-transparent hover:border-gray-200"
           aria-label="Navigate to Configurations"
         >
           <svg className="h-8 w-8 text-gray-600 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -704,7 +705,7 @@ export default function DashboardPage() {
 
         <button
           onClick={() => navigate('/sorties')}
-          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-sky-50 hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-sky-200"
+          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-sky-50 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer border border-transparent hover:border-sky-200"
           aria-label="Navigate to Sorties"
         >
           <svg className="h-8 w-8 text-sky-600 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -715,7 +716,7 @@ export default function DashboardPage() {
 
         <button
           onClick={() => navigate('/spares')}
-          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-green-50 hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-green-200"
+          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-green-50 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer border border-transparent hover:border-green-200"
           aria-label="Navigate to Spares"
         >
           <svg className="h-8 w-8 text-green-600 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -726,7 +727,7 @@ export default function DashboardPage() {
 
         <button
           onClick={() => navigate('/parts-ordered')}
-          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-purple-50 hover:shadow-md transition-all cursor-pointer border border-transparent hover:border-purple-200"
+          className="flex flex-col items-center justify-center p-4 bg-white shadow rounded-lg hover:bg-purple-50 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer border border-transparent hover:border-purple-200"
           aria-label="Navigate to Parts Ordered"
         >
           <svg className="h-8 w-8 text-purple-600 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -906,6 +907,37 @@ export default function DashboardPage() {
                   Due after 30 days
                 </span>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* PMI Calendar Heat Map Widget */}
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500">PMI Due Calendar - 90 Day View</h3>
+            {pmiData && (
+              <span className="text-xs text-gray-400">
+                {pmiData.summary.total} PMIs scheduled
+              </span>
+            )}
+          </div>
+
+          {pmiLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : pmiError ? (
+            <ErrorDisplay
+              error={pmiError}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setPmiError(null)}
+            />
+          ) : pmiData && pmiData.summary.total > 0 ? (
+            <PMICalendarHeatMap pmiData={pmiData} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No PMIs scheduled</p>
+              <p className="text-xs text-gray-300 mt-1">Calendar will appear here when PMIs are due</p>
             </div>
           )}
         </div>
