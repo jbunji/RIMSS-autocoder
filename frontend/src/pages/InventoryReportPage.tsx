@@ -416,7 +416,7 @@ export default function InventoryReportPage() {
           <div className="bg-purple-50 rounded-lg p-4">
             <div className="text-sm font-medium text-purple-600">Generated</div>
             <div className="mt-1 text-sm font-semibold text-purple-900">
-              {new Date(reportData.generated_at).toLocaleString()}
+              {new Date(reportData.generated_at).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z')}
             </div>
           </div>
         </div>
