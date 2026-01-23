@@ -2816,7 +2816,7 @@ app.delete('/api/program-locations/:programId/locations/:locationId', async (req
 })
 
 // Dashboard: Get asset status summary (requires authentication)
-app.get('/api/dashboard/asset-status', (req, res) => {
+app.get('/api/dashboard/asset-status', async (req, res) => {
   const payload = authenticateRequest(req, res)
   if (!payload) return
 
@@ -2849,62 +2849,78 @@ app.get('/api/dashboard/asset-status', (req, res) => {
     return res.status(403).json({ error: 'Access denied to this location' })
   }
 
-  // Get assets for the selected program (using detailedAssets to get current state including deletions)
-  let programAssets = detailedAssets.filter(a => a.pgm_id === programId && a.active !== false)
-
-  // SECURITY: Filter by location - assets must have Assigned Base (loc_ida) OR Current Base (loc_idc) matching the requested location
-  if (locationIdFilter) {
-    // Filter by the specific requested location
-    programAssets = programAssets.filter(asset => {
-      const matchesAssignedBase = asset.loc_ida === locationIdFilter
-      const matchesCurrentBase = asset.loc_idc === locationIdFilter
-      return matchesAssignedBase || matchesCurrentBase
-    })
-  } else if (userLocationIds.length > 0) {
-    // No specific location requested - filter by all user's locations
-    programAssets = programAssets.filter(asset => {
-      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
-      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
-      return matchesAssignedBase || matchesCurrentBase
-    })
-  }
-
-  // Count assets by status
-  const statusCounts: Record<string, number> = {
-    FMC: 0,
-    PMC: 0,
-    NMCM: 0,
-    NMCS: 0,
-    CNDM: 0,
-  }
-
-  programAssets.forEach(asset => {
-    if (statusCounts.hasOwnProperty(asset.status_cd)) {
-      statusCounts[asset.status_cd]++
+  try {
+    // Query assets from database using Prisma - group by status_cd
+    // Note: Asset doesn't have direct pgm_id - it's via part.pgm_id relation
+    const whereClause: Prisma.AssetWhereInput = {
+      part: {
+        pgm_id: programId,
+      },
+      active: true,
     }
-  })
 
-  // Build response with status details
-  const statusSummary = assetStatusCodes.map(status => ({
-    status_cd: status.status_cd,
-    status_name: status.status_name,
-    description: status.description,
-    count: statusCounts[status.status_cd] || 0,
-  }))
+    // Apply location filter if specified
+    if (locationIdFilter) {
+      whereClause.OR = [
+        { loc_ida: locationIdFilter },
+        { loc_idc: locationIdFilter },
+      ]
+    }
 
-  const totalAssets = programAssets.length
+    // Get total count
+    const totalAssets = await prisma.asset.count({ where: whereClause })
 
-  // Calculate mission capability rate (FMC + PMC as capable)
-  const missionCapable = statusCounts.FMC + statusCounts.PMC
-  const missionCapabilityRate = totalAssets > 0 ? Math.round((missionCapable / totalAssets) * 100) : 0
+    // Get status counts grouped by status_cd
+    const statusGroups = await prisma.asset.groupBy({
+      by: ['status_cd'],
+      where: whereClause,
+      _count: {
+        status_cd: true,
+      },
+    })
 
-  res.json({
-    program_id: programId,
-    program_cd: allPrograms.find(p => p.pgm_id === programId)?.pgm_cd || 'UNKNOWN',
-    total_assets: totalAssets,
-    mission_capability_rate: missionCapabilityRate,
-    status_summary: statusSummary,
-  })
+    // Build status counts map
+    const statusCounts: Record<string, number> = {
+      FMC: 0,
+      PMC: 0,
+      PMCM: 0,
+      PMCS: 0,
+      PMCB: 0,
+      NMCM: 0,
+      NMCS: 0,
+      NMCB: 0,
+      CNDM: 0,
+    }
+
+    statusGroups.forEach(group => {
+      if (group.status_cd && statusCounts.hasOwnProperty(group.status_cd)) {
+        statusCounts[group.status_cd] = group._count.status_cd
+      }
+    })
+
+    // Build response with status details
+    const statusSummary = assetStatusCodes.map(status => ({
+      status_cd: status.status_cd,
+      status_name: status.status_name,
+      description: status.description,
+      count: statusCounts[status.status_cd] || 0,
+    }))
+
+    // Calculate mission capability rate (FMC + PMC + PMCM + PMCS + PMCB as capable)
+    const missionCapable = statusCounts.FMC + statusCounts.PMC + statusCounts.PMCM + statusCounts.PMCS + statusCounts.PMCB
+    const missionCapabilityRate = totalAssets > 0 ? Math.round((missionCapable / totalAssets) * 100) : 0
+
+    res.json({
+      program_id: programId,
+      program_cd: allPrograms.find(p => p.pgm_id === programId)?.pgm_cd || 'UNKNOWN',
+      total_assets: totalAssets,
+      mission_capability_rate: missionCapabilityRate,
+      status_summary: statusSummary,
+    })
+  } catch (error) {
+    console.error('[Dashboard] Error fetching asset status:', error)
+    res.status(500).json({ error: 'Failed to fetch asset status' })
+  }
 })
 
 // Mock PMI data for testing
@@ -4288,8 +4304,8 @@ const tctoAssetCompletionData: Map<number, TCTOAssetCompletionData[]> = new Map(
 let tctoRecords: TCTORecord[] = [];
 let tctoNextId = 6; // Start after mock data IDs
 
-// Initialize TCTO data
-function initializeTCTOData(): void {
+// Initialize TCTO data - async to query real asset IDs from database
+async function initializeTCTOData(): Promise<void> {
   const today = new Date();
   const addDays = (days: number): string => {
     const date = new Date(today);
@@ -4297,147 +4313,229 @@ function initializeTCTOData(): void {
     return date.toISOString().split('T')[0];
   };
 
-  tctoRecords = [
-    // CRIIS program TCTOs
-    {
-      tcto_id: 1,
-      tcto_no: 'TCTO-2024-001',
-      title: 'Sensor Firmware Update v2.3.1',
-      effective_date: addDays(-30),
-      compliance_deadline: addDays(15),
-      pgm_id: 1,
-      status: 'open',
-      priority: 'Urgent',
-      affected_assets: [1, 2, 3], // CRIIS-001, CRIIS-002, CRIIS-003
-      compliant_assets: [1], // CRIIS-001 is compliant
-      description: 'Critical firmware update addressing sensor calibration drift issue. All affected sensor units must be updated before deadline.',
-      created_by_id: 1,
-      created_by_name: 'John Admin',
-      created_at: addDays(-30),
-    },
-    {
-      tcto_id: 2,
-      tcto_no: 'TCTO-2024-002',
-      title: 'Communication System Software Patch',
-      effective_date: addDays(-45),
-      compliance_deadline: addDays(-5), // Overdue
-      pgm_id: 1,
-      status: 'open',
-      priority: 'Critical',
-      affected_assets: [8, 9, 10], // CRIIS-008, CRIIS-009, CRIIS-010
-      compliant_assets: [], // None compliant yet
-      description: 'Mandatory software patch to address communication security vulnerability CVE-2024-1234.',
-      created_by_id: 1,
-      created_by_name: 'John Admin',
-      created_at: addDays(-45),
-    },
-    {
-      tcto_id: 3,
-      tcto_no: 'TCTO-2024-003',
-      title: 'Radar Unit Calibration Procedure Update',
-      effective_date: addDays(-60),
-      compliance_deadline: addDays(-30),
-      pgm_id: 1,
-      status: 'closed',
-      priority: 'Routine',
-      affected_assets: [6, 7], // CRIIS-006, CRIIS-007
-      compliant_assets: [6, 7], // All compliant
-      description: 'Updated calibration procedure for improved accuracy in high-altitude operations.',
-      created_by_id: 1,
-      created_by_name: 'John Admin',
-      created_at: addDays(-60),
-    },
-    // ACTS program TCTOs
-    {
-      tcto_id: 4,
-      tcto_no: 'TCTO-2024-004',
-      title: 'Targeting System Optics Alignment',
-      effective_date: addDays(-20),
-      compliance_deadline: addDays(30),
-      pgm_id: 2,
-      status: 'open',
-      priority: 'Urgent',
-      affected_assets: [11, 12, 13], // ACTS-001, ACTS-002, ACTS-003
-      compliant_assets: [11], // ACTS-001 compliant
-      description: 'Realignment procedure for targeting optics to correct parallax error identified in field reports.',
-      created_by_id: 2,
-      created_by_name: 'Jane Depot',
-      created_at: addDays(-20),
-    },
-    // ARDS program TCTOs
-    {
-      tcto_id: 5,
-      tcto_no: 'TCTO-2024-005',
-      title: 'Data Processing Unit Memory Upgrade',
-      effective_date: addDays(-10),
-      compliance_deadline: addDays(60),
-      pgm_id: 3,
-      status: 'open',
-      priority: 'Routine',
-      affected_assets: [17, 18, 19], // ARDS-001, ARDS-002, ARDS-003
-      compliant_assets: [],
-      description: 'Memory module replacement to support new data processing algorithms in software update 3.0.',
-      created_by_id: 2,
-      created_by_name: 'Jane Depot',
-      created_at: addDays(-10),
-    },
-  ];
+  try {
+    // Query real asset IDs from the database for each program
+    // CRIIS = pgm_id 1, ACTS = pgm_id 2, ARDS = pgm_id 3
 
-  // Initialize completion data with some repairs linked to TCTOs
-  // TCTO-2024-001: CRIIS-001 and CRIIS-002 are compliant (with linked repairs for testing)
-  tctoAssetCompletionData.set(1, [
-    {
-      asset_id: 1, // CRIIS-001
-      is_compliant: true,
-      completion_date: addDays(-1),
-      linked_repair_id: null, // No repair linked for CRIIS-001
-      completed_by: 'John Admin',
-      completed_at: addDays(-1),
-    },
-    {
-      asset_id: 2, // CRIIS-002
-      is_compliant: true,
-      completion_date: addDays(-1),
-      linked_repair_id: 1, // Linked to repair #1 from MX-2024-001
-      completed_by: 'Bob Field',
-      completed_at: addDays(-1),
-    },
-    {
-      asset_id: 3, // CRIIS-003
-      is_compliant: true,
-      completion_date: addDays(-1),
-      linked_repair_id: null,
-      completed_by: 'Jane Depot',
-      completed_at: addDays(-1),
-    },
-  ]);
+    // Get assets for CRIIS (program 1)
+    const criisAssets = await prisma.asset.findMany({
+      where: {
+        part: {
+          pgm_id: 1
+        }
+      },
+      select: { asset_id: true },
+      take: 10,
+      orderBy: { asset_id: 'asc' }
+    });
 
-  // Update compliant_assets to match completion data
-  tctoRecords[0].compliant_assets = [1, 2, 3];
+    // Get assets for ACTS (program 2)
+    const actsAssets = await prisma.asset.findMany({
+      where: {
+        part: {
+          pgm_id: 2
+        }
+      },
+      select: { asset_id: true },
+      take: 5,
+      orderBy: { asset_id: 'asc' }
+    });
 
-  // TCTO-2024-003: Both assets compliant (completed TCTO)
-  tctoAssetCompletionData.set(3, [
-    {
-      asset_id: 6, // CRIIS-006
-      is_compliant: true,
-      completion_date: addDays(-30),
-      linked_repair_id: null,
-      completed_by: 'Jane Depot',
-      completed_at: addDays(-30),
-    },
-    {
-      asset_id: 7, // CRIIS-007
-      is_compliant: true,
-      completion_date: addDays(-30),
-      linked_repair_id: null,
-      completed_by: 'Jane Depot',
-      completed_at: addDays(-30),
-    },
-  ]);
+    // Get assets for ARDS (program 3)
+    const ardsAssets = await prisma.asset.findMany({
+      where: {
+        part: {
+          pgm_id: 3
+        }
+      },
+      select: { asset_id: true },
+      take: 5,
+      orderBy: { asset_id: 'asc' }
+    });
+
+    // Extract asset IDs (use empty arrays if no assets found)
+    const criisIds = criisAssets.map(a => a.asset_id);
+    const actsIds = actsAssets.map(a => a.asset_id);
+    const ardsIds = ardsAssets.map(a => a.asset_id);
+
+    console.log(`[TCTO] Initializing with real asset IDs - CRIIS: ${criisIds.length}, ACTS: ${actsIds.length}, ARDS: ${ardsIds.length}`);
+
+    // Only create TCTO records for programs that have assets
+    const records: TCTORecord[] = [];
+    let nextId = 1;
+
+    // CRIIS program TCTOs (only if CRIIS has assets)
+    if (criisIds.length >= 3) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-001',
+        title: 'Sensor Firmware Update v2.3.1',
+        effective_date: addDays(-30),
+        compliance_deadline: addDays(15),
+        pgm_id: 1,
+        status: 'open',
+        priority: 'Urgent',
+        affected_assets: criisIds.slice(0, 3), // First 3 CRIIS assets
+        compliant_assets: [criisIds[0]], // First asset is compliant
+        description: 'Critical firmware update addressing sensor calibration drift issue. All affected sensor units must be updated before deadline.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-30),
+      });
+    }
+
+    if (criisIds.length >= 6) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-002',
+        title: 'Communication System Software Patch',
+        effective_date: addDays(-45),
+        compliance_deadline: addDays(-5), // Overdue
+        pgm_id: 1,
+        status: 'open',
+        priority: 'Critical',
+        affected_assets: criisIds.slice(3, 6), // Assets 4-6
+        compliant_assets: [], // None compliant yet
+        description: 'Mandatory software patch to address communication security vulnerability CVE-2024-1234.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-45),
+      });
+    }
+
+    if (criisIds.length >= 8) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-003',
+        title: 'Radar Unit Calibration Procedure Update',
+        effective_date: addDays(-60),
+        compliance_deadline: addDays(-30),
+        pgm_id: 1,
+        status: 'closed',
+        priority: 'Routine',
+        affected_assets: criisIds.slice(6, 8), // Assets 7-8
+        compliant_assets: criisIds.slice(6, 8), // All compliant
+        description: 'Updated calibration procedure for improved accuracy in high-altitude operations.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-60),
+      });
+    }
+
+    // ACTS program TCTOs (only if ACTS has assets)
+    if (actsIds.length >= 3) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-004',
+        title: 'Targeting System Optics Alignment',
+        effective_date: addDays(-20),
+        compliance_deadline: addDays(30),
+        pgm_id: 2,
+        status: 'open',
+        priority: 'Urgent',
+        affected_assets: actsIds.slice(0, 3), // First 3 ACTS assets
+        compliant_assets: [actsIds[0]], // First asset compliant
+        description: 'Realignment procedure for targeting optics to correct parallax error identified in field reports.',
+        created_by_id: 2,
+        created_by_name: 'Jane Depot',
+        created_at: addDays(-20),
+      });
+    }
+
+    // ARDS program TCTOs (only if ARDS has assets)
+    if (ardsIds.length >= 3) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-005',
+        title: 'Data Processing Unit Memory Upgrade',
+        effective_date: addDays(-10),
+        compliance_deadline: addDays(60),
+        pgm_id: 3,
+        status: 'open',
+        priority: 'Routine',
+        affected_assets: ardsIds.slice(0, 3), // First 3 ARDS assets
+        compliant_assets: [],
+        description: 'Memory module replacement to support new data processing algorithms in software update 3.0.',
+        created_by_id: 2,
+        created_by_name: 'Jane Depot',
+        created_at: addDays(-10),
+      });
+    }
+
+    tctoRecords = records;
+    tctoNextId = nextId;
+
+    // Initialize completion data for TCTOs with real asset IDs
+    // For TCTO-2024-001 (first CRIIS TCTO): mark first 3 assets as compliant
+    if (criisIds.length >= 3 && tctoRecords.length > 0) {
+      const tcto1 = tctoRecords.find(t => t.tcto_no === 'TCTO-2024-001');
+      if (tcto1) {
+        tctoAssetCompletionData.set(tcto1.tcto_id, [
+          {
+            asset_id: criisIds[0],
+            is_compliant: true,
+            completion_date: addDays(-1),
+            linked_repair_id: null,
+            completed_by: 'John Admin',
+            completed_at: addDays(-1),
+          },
+          {
+            asset_id: criisIds[1],
+            is_compliant: true,
+            completion_date: addDays(-1),
+            linked_repair_id: null,
+            completed_by: 'Bob Field',
+            completed_at: addDays(-1),
+          },
+          {
+            asset_id: criisIds[2],
+            is_compliant: true,
+            completion_date: addDays(-1),
+            linked_repair_id: null,
+            completed_by: 'Jane Depot',
+            completed_at: addDays(-1),
+          },
+        ]);
+        // Update compliant_assets to match completion data
+        tcto1.compliant_assets = criisIds.slice(0, 3);
+      }
+    }
+
+    // For TCTO-2024-003 (closed CRIIS TCTO): all assets compliant
+    if (criisIds.length >= 8) {
+      const tcto3 = tctoRecords.find(t => t.tcto_no === 'TCTO-2024-003');
+      if (tcto3) {
+        tctoAssetCompletionData.set(tcto3.tcto_id, [
+          {
+            asset_id: criisIds[6],
+            is_compliant: true,
+            completion_date: addDays(-30),
+            linked_repair_id: null,
+            completed_by: 'Jane Depot',
+            completed_at: addDays(-30),
+          },
+          {
+            asset_id: criisIds[7],
+            is_compliant: true,
+            completion_date: addDays(-30),
+            linked_repair_id: null,
+            completed_by: 'Jane Depot',
+            completed_at: addDays(-30),
+          },
+        ]);
+      }
+    }
+
+    console.log(`[TCTO] Initialized ${tctoRecords.length} TCTO records with real asset IDs`);
+  } catch (error) {
+    console.error('[TCTO] Failed to initialize TCTO data with real assets:', error);
+    // Fall back to empty records
+    tctoRecords = [];
+  }
 }
 
-// Initialize TCTO data on startup
-initializeTCTOData();
+// Initialize TCTO data on startup (async - will complete after server starts)
+initializeTCTOData().catch(err => console.error('[TCTO] Initialization failed:', err));
 
 // Mock Maintenance Events data
 interface MaintenanceEvent {
@@ -17305,3 +17403,4 @@ app.listen(PORT, () => {
 })
 
 export default app
+

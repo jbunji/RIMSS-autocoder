@@ -17,7 +17,7 @@ export default function Layout() {
       </a>
 
       {/* CUI Banner Header */}
-      <div className="bg-cui-bg text-cui-text text-center text-sm py-1 font-medium z-50 relative">
+      <div className="fixed top-0 left-0 right-0 bg-cui-bg text-cui-text text-center text-sm py-1 font-medium z-[70]">
         CUI - Controlled Unclassified Information
       </div>
 
@@ -42,7 +42,7 @@ export default function Layout() {
       </div>
 
       {/* CUI Banner Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-cui-bg text-cui-text text-center text-sm py-1 font-medium z-50">
+      <footer className="fixed bottom-0 left-0 right-0 bg-cui-bg text-cui-text text-center text-sm py-1 font-medium z-[70]">
         CUI - Controlled Unclassified Information
       </footer>
     </div>

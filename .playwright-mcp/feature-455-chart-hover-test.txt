@@ -1,0 +1,370 @@
+### Page state
+- Page URL: http://localhost:5173/dashboard
+- Page Title: RIMSS - RAMPOD Inventory & Maintenance System Software
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e26]:
+    - link "Skip to main content" [ref=e27] [cursor=pointer]:
+      - /url: "#main-content"
+    - generic [ref=e28]: CUI - Controlled Unclassified Information
+    - navigation [ref=e30]:
+      - generic [ref=e32]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: RIMSS
+          - generic [ref=e36]: RAMPOD Inventory & Maintenance System Software
+        - generic [ref=e39]:
+          - generic:
+            - img
+          - searchbox "Global search" [ref=e40]
+        - generic [ref=e41]:
+          - link "View notifications" [ref=e42] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e43]
+            - generic [ref=e45]: "7"
+          - 'button "Location: 743/1329/1427" [ref=e47] [cursor=pointer]':
+            - img [ref=e48]
+            - generic [ref=e51]: "Location:"
+            - generic [ref=e52]: 743/1329/1427
+            - img [ref=e53]
+          - button "DEPOT" [ref=e56] [cursor=pointer]:
+            - img [ref=e57]
+            - generic [ref=e59]: DEPOT
+            - img [ref=e60]
+          - 'button "Program: ACTS" [ref=e63] [cursor=pointer]':
+            - generic [ref=e64]: "Program:"
+            - generic [ref=e65]: ACTS
+            - img [ref=e66]
+          - button "John Admin" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - generic [ref=e72]: John Admin
+            - img [ref=e73]
+    - generic [ref=e77]:
+      - navigation [ref=e78]:
+        - generic [ref=e79]:
+          - link "Dashboard" [ref=e80] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e81]
+            - text: Dashboard
+          - link "Assets" [ref=e83] [cursor=pointer]:
+            - /url: /assets
+            - img [ref=e84]
+            - text: Assets
+          - link "Configurations" [ref=e86] [cursor=pointer]:
+            - /url: /configurations
+            - img [ref=e87]
+            - text: Configurations
+          - link "Maintenance" [ref=e90] [cursor=pointer]:
+            - /url: /maintenance
+            - img [ref=e91]
+            - text: Maintenance
+          - link "Sorties" [ref=e93] [cursor=pointer]:
+            - /url: /sorties
+            - img [ref=e94]
+            - text: Sorties
+          - link "Spares" [ref=e96] [cursor=pointer]:
+            - /url: /spares
+            - img [ref=e97]
+            - text: Spares
+          - link "Parts Ordered" [ref=e99] [cursor=pointer]:
+            - /url: /parts-ordered
+            - img [ref=e100]
+            - text: Parts Ordered
+          - link "Software" [ref=e102] [cursor=pointer]:
+            - /url: /software
+            - img [ref=e103]
+            - text: Software
+          - link "Notifications" [ref=e105] [cursor=pointer]:
+            - /url: /notifications
+            - img [ref=e106]
+            - text: Notifications
+          - link "Reports" [ref=e108] [cursor=pointer]:
+            - /url: /reports
+            - img [ref=e109]
+            - text: Reports
+        - generic [ref=e111]:
+          - paragraph [ref=e112]: Administration
+          - link "Admin" [ref=e113] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e114]
+            - text: Admin
+          - link "Users" [ref=e116] [cursor=pointer]:
+            - /url: /admin/users
+            - img [ref=e117]
+            - text: Users
+      - paragraph [ref=e120]: RIMSS v0.1.0
+    - main [ref=e122]:
+      - generic [ref=e124]:
+        - generic [ref=e125]:
+          - heading "Dashboard" [level=1] [ref=e126]
+          - generic [ref=e127]:
+            - generic [ref=e128]: "Last updated: Just now"
+            - button "Refresh dashboard data" [ref=e129] [cursor=pointer]:
+              - img [ref=e130]
+              - text: Refresh
+        - generic [ref=e132]:
+          - heading "Welcome, John Admin" [level=2] [ref=e133]
+          - paragraph [ref=e134]: You are logged in as ADMIN
+          - paragraph [ref=e135]: "Current Program: Advanced Targeting Capability System"
+        - generic [ref=e136]:
+          - button "Navigate to Assets" [ref=e137] [cursor=pointer]:
+            - img [ref=e138]
+            - generic [ref=e140]: Assets
+          - button "Navigate to Maintenance" [ref=e141] [cursor=pointer]:
+            - img [ref=e142]
+            - generic [ref=e144]: Maintenance
+          - button "Navigate to Configurations" [ref=e145] [cursor=pointer]:
+            - img [ref=e146]
+            - generic [ref=e149]: Configurations
+          - button "Navigate to Sorties" [ref=e150] [cursor=pointer]:
+            - img [ref=e151]
+            - generic [ref=e153]: Sorties
+          - button "Navigate to Spares" [ref=e154] [cursor=pointer]:
+            - img [ref=e155]
+            - generic [ref=e157]: Spares
+          - button "Navigate to Parts Ordered" [ref=e158] [cursor=pointer]:
+            - img [ref=e159]
+            - generic [ref=e161]: Parts Ordered
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - heading "Asset Status Summary" [level=3] [ref=e164]
+            - generic [ref=e165]:
+              - generic [ref=e166]:
+                - generic [ref=e167]:
+                  - paragraph [ref=e168]: Total Assets
+                  - paragraph [ref=e169]: "0"
+                - generic [ref=e170]:
+                  - paragraph [ref=e171]: Mission Capability Rate
+                  - paragraph [ref=e172]: 0%
+              - generic [ref=e173]:
+                - generic "Asset is fully operational and mission ready" [ref=e174]:
+                  - paragraph [ref=e175]: FMC
+                  - paragraph [ref=e176]: "0"
+                - generic "Asset can perform some but not all mission types" [ref=e177]:
+                  - paragraph [ref=e178]: PMC
+                  - paragraph [ref=e179]: "0"
+                - generic "Asset partially capable, limited by maintenance" [ref=e180]:
+                  - paragraph [ref=e181]: PMCM
+                  - paragraph [ref=e182]: "0"
+                - generic "Asset partially capable, limited by parts/supplies" [ref=e183]:
+                  - paragraph [ref=e184]: PMCS
+                  - paragraph [ref=e185]: "0"
+                - generic "Asset partially capable, limited by both maintenance and supply" [ref=e186]:
+                  - paragraph [ref=e187]: PMCB
+                  - paragraph [ref=e188]: "0"
+                - generic "Asset is down due to maintenance requirements" [ref=e189]:
+                  - paragraph [ref=e190]: NMCM
+                  - paragraph [ref=e191]: "0"
+                - generic "Asset is down awaiting parts/supplies" [ref=e192]:
+                  - paragraph [ref=e193]: NMCS
+                  - paragraph [ref=e194]: "0"
+                - generic "Asset is down due to both maintenance and supply issues" [ref=e195]:
+                  - paragraph [ref=e196]: NMCB
+                  - paragraph [ref=e197]: "0"
+              - paragraph [ref=e198]: "Data for program: ACTS"
+          - generic [ref=e199]:
+            - heading "Asset Status Distribution" [level=3] [ref=e200]
+            - generic [ref=e201]:
+              - img [ref=e202]
+              - paragraph [ref=e205]: No asset data available
+          - generic [ref=e206]:
+            - generic [ref=e207]:
+              - heading "PMI Due Soon" [level=3] [ref=e208]
+              - generic [ref=e209]:
+                - generic [ref=e212]: "0"
+                - generic [ref=e215]: "0"
+                - generic [ref=e218]: "0"
+            - generic [ref=e219]:
+              - paragraph [ref=e220]: No PMI items due soon
+              - paragraph [ref=e221]: All inspections are on schedule
+          - generic [ref=e222]:
+            - generic [ref=e223]:
+              - heading "Open Maintenance Jobs" [level=3] [ref=e224]
+              - generic [ref=e225]:
+                - generic [ref=e228]: "0"
+                - generic [ref=e231]: "0"
+                - generic [ref=e234]: "0"
+            - generic [ref=e235]:
+              - paragraph [ref=e236]: No open maintenance jobs
+              - paragraph [ref=e237]: All jobs are closed
+          - generic [ref=e238]:
+            - generic [ref=e239]:
+              - heading "Parts Awaiting Action" [level=3] [ref=e240]
+              - generic [ref=e241]:
+                - generic [ref=e244]: 1 pending
+                - generic [ref=e247]: 1 ack
+            - generic [ref=e248]:
+              - button "View parts order for Laser Diode Module" [ref=e249] [cursor=pointer]:
+                - generic [ref=e250]:
+                  - generic [ref=e251]:
+                    - paragraph [ref=e254]: Laser Diode Module
+                    - paragraph [ref=e255]: "For: Laser System"
+                    - paragraph [ref=e256]: PN-DIODE-003
+                  - generic [ref=e257]:
+                    - paragraph [ref=e258]: Acknowledged
+                    - paragraph [ref=e259]: "Qty: 1"
+                    - paragraph [ref=e260]: Jan 15
+              - button "View parts order for Gyroscope Stabilizer" [ref=e261] [cursor=pointer]:
+                - generic [ref=e262]:
+                  - generic [ref=e263]:
+                    - paragraph [ref=e266]: Gyroscope Stabilizer
+                    - paragraph [ref=e267]: "For: Targeting System B"
+                    - paragraph [ref=e268]: PN-GYRO-006
+                  - generic [ref=e269]:
+                    - paragraph [ref=e270]: Pending
+                    - paragraph [ref=e271]: "Qty: 1"
+                    - paragraph [ref=e272]: 2 days ago
+            - generic [ref=e274]:
+              - generic [ref=e275]:
+                - generic [ref=e276]: Critical (2)
+                - generic [ref=e278]: Urgent (0)
+                - generic [ref=e280]: Routine (0)
+              - generic [ref=e282]: "Total: 2"
+          - generic [ref=e283]:
+            - generic [ref=e284]:
+              - heading "Parts Awaiting Action - Breakdown by Priority" [level=3] [ref=e285]
+              - generic [ref=e286]: 2 parts requiring attention
+            - generic [ref=e287]:
+              - generic [ref=e288]:
+                - generic [ref=e289]:
+                  - paragraph [ref=e290]: Critical
+                  - paragraph [ref=e291]: "2"
+                - generic [ref=e292]:
+                  - paragraph [ref=e293]: Urgent
+                  - paragraph [ref=e294]: "0"
+                - generic [ref=e295]:
+                  - paragraph [ref=e296]: Routine
+                  - paragraph [ref=e297]: "0"
+                - generic [ref=e298]:
+                  - paragraph [ref=e299]: Total
+                  - paragraph [ref=e300]: "2"
+              - generic [ref=e303]:
+                - img [ref=e304]:
+                  - generic [ref=e309]:
+                    - generic [ref=e311]: Pending
+                    - generic [ref=e313]: Acknowledged
+                  - generic [ref=e315]:
+                    - generic [ref=e317]: "0"
+                    - generic [ref=e319]: "1"
+                    - generic [ref=e321]: "2"
+                - generic [ref=e329]:
+                  - generic [ref=e332]: Critical
+                  - generic [ref=e335]: Urgent
+                  - generic [ref=e338]: Routine
+              - generic [ref=e340]:
+                - generic [ref=e341]: Critical priority
+                - generic [ref=e343]: Urgent priority
+                - generic [ref=e345]: Routine priority
+          - generic [ref=e347]:
+            - generic [ref=e348]:
+              - heading "Maintenance Trends" [level=3] [ref=e349]
+              - generic [ref=e350]: 0 jobs in last 30 days
+            - generic [ref=e351]:
+              - generic [ref=e352]:
+                - generic [ref=e353]:
+                  - paragraph [ref=e354]: Created
+                  - paragraph [ref=e355]: "0"
+                - generic [ref=e356]:
+                  - paragraph [ref=e357]: Completed
+                  - paragraph [ref=e358]: "0"
+                - generic [ref=e359]:
+                  - paragraph [ref=e360]: In Progress
+                  - paragraph [ref=e361]: "0"
+                - generic [ref=e362]:
+                  - paragraph [ref=e363]: Avg/Day
+                  - paragraph [ref=e364]: "0"
+              - generic [ref=e367]:
+                - img [ref=e368]:
+                  - generic [ref=e373]:
+                    - generic [ref=e375]: Dec 23
+                    - generic [ref=e377]: Dec 28
+                    - generic [ref=e379]: Jan 2
+                    - generic [ref=e381]: Jan 7
+                    - generic [ref=e383]: Jan 12
+                    - generic [ref=e385]: Jan 17
+                  - generic [ref=e387]:
+                    - generic [ref=e389]: "0"
+                    - generic [ref=e391]: "2"
+                    - generic [ref=e393]: "5"
+                - generic [ref=e491]:
+                  - generic [ref=e494]: Created
+                  - generic [ref=e497]: Completed
+                  - generic [ref=e500]: In Progress
+              - paragraph [ref=e501]: Last 30 days
+          - generic [ref=e502]:
+            - generic [ref=e503]:
+              - heading "Recent Activity" [level=3] [ref=e504]
+              - generic [ref=e505]: 7 recent activities
+            - generic [ref=e506]:
+              - generic [ref=e507]:
+                - generic [ref=e508]: ↔
+                - generic [ref=e509]:
+                  - paragraph [ref=e510]: Acknowledged parts order for Laser Diode Module
+                  - generic [ref=e511]:
+                    - generic [ref=e512]: Jane Depot
+                    - generic [ref=e513]: •
+                    - generic [ref=e514]: 12m ago
+              - generic [ref=e515]:
+                - generic [ref=e516]: 📦
+                - generic [ref=e517]:
+                  - paragraph [ref=e518]: Ordered 4x Lithium Battery Pack for Camera System X
+                  - generic [ref=e519]:
+                    - generic [ref=e520]: Bob Field
+                    - generic [ref=e521]: •
+                    - generic [ref=e522]: 25m ago
+              - generic [ref=e523]:
+                - generic [ref=e524]: ~
+                - generic [ref=e525]:
+                  - paragraph [ref=e526]: Updated user account test_user - changed role to VIEWER
+                  - generic [ref=e527]:
+                    - generic [ref=e528]: John Admin
+                    - generic [ref=e529]: •
+                    - generic [ref=e530]: 45m ago
+              - generic [ref=e531]:
+                - generic [ref=e532]: +
+                - generic [ref=e533]:
+                  - paragraph [ref=e534]: Created new user account new_technician with role FIELD_TECHNICIAN
+                  - generic [ref=e535]:
+                    - generic [ref=e536]: John Admin
+                    - generic [ref=e537]: •
+                    - generic [ref=e538]: 3h ago
+              - generic [ref=e539]:
+                - generic [ref=e540]: ↔
+                - generic [ref=e541]:
+                  - paragraph [ref=e542]: Shipped parts order - Optical Lens Kit (FDX-2024-123456789)
+                  - generic [ref=e543]:
+                    - generic [ref=e544]: Jane Depot
+                    - generic [ref=e545]: •
+                    - generic [ref=e546]: 5h ago
+              - generic [ref=e547]:
+                - generic [ref=e548]: 📦
+                - generic [ref=e549]:
+                  - paragraph [ref=e550]: Ordered 2x Power Supply Unit 24V for Radar Unit 01
+                  - generic [ref=e551]:
+                    - generic [ref=e552]: Bob Field
+                    - generic [ref=e553]: •
+                    - generic [ref=e554]: 7h ago
+              - generic [ref=e555]:
+                - generic [ref=e556]: →
+                - generic [ref=e557]:
+                  - paragraph [ref=e558]: User logged in from 192.168.1.100
+                  - generic [ref=e559]:
+                    - generic [ref=e560]: John Admin
+                    - generic [ref=e561]: •
+                    - generic [ref=e562]: 10h ago
+            - generic [ref=e564]:
+              - generic [ref=e565]:
+                - generic [ref=e566]: +
+                - text: Created
+              - generic [ref=e567]:
+                - generic [ref=e568]: ~
+                - text: Updated
+              - generic [ref=e569]:
+                - generic [ref=e570]: ↔
+                - text: Status
+              - generic [ref=e571]:
+                - generic [ref=e572]: ✓
+                - text: Completed
+    - contentinfo [ref=e573]: CUI - Controlled Unclassified Information
+  - generic [ref=e574]: "5"
+```

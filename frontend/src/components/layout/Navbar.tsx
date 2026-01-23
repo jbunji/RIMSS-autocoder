@@ -221,18 +221,19 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     <nav className="bg-primary-800 shadow-lg overflow-visible">
       <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-full overflow-visible">
         <div className="flex h-16 items-center justify-between gap-2">
-          {/* Left side - Menu button and logo */}
+          {/* Left side - Menu button (mobile only) and logo */}
           <div className="flex items-center flex-shrink-0 min-w-0">
+            {/* Hamburger menu - only shown on mobile/tablet, hidden on desktop (lg+) where sidebar is always visible */}
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md p-2.5 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white min-h-[44px] min-w-[44px]"
+              className="lg:hidden inline-flex items-center justify-center rounded-md p-2.5 text-gray-200 hover:bg-primary-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white min-h-[44px] min-w-[44px]"
               onClick={onMenuClick}
               aria-label="Toggle sidebar"
             >
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
             </button>
 
-            <div className="ml-4 flex items-center">
+            <div className="lg:ml-0 ml-4 flex items-center">
               <span className="text-white font-bold text-xl tracking-tight">RIMSS</span>
               <span className="ml-2 text-gray-300 text-sm hidden sm:block">
                 RAMPOD Inventory & Maintenance System Software

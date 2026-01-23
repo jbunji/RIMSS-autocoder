@@ -177,8 +177,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-64 lg:flex-col">
-        {/* Sidebar component for desktop */}
-        <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-gray-200 pt-16">
+        {/* Sidebar component for desktop - pt-[calc(1.75rem+4rem)] accounts for fixed CUI banner (1.75rem) + navbar height (4rem) */}
+        <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-gray-200 pt-[calc(1.75rem+4rem)]">
           <SidebarContent />
         </div>
       </div>

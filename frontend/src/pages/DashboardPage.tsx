@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { handleError, UserFriendlyError } from '../utils/errorHandler'
 import { ErrorDisplay } from '../components/ErrorDisplay'
+import AssetStatusPieChart from '../components/AssetStatusPieChart'
+import MaintenanceTrendsChart from '../components/MaintenanceTrendsChart'
+import PartsAwaitingActionBarChart from '../components/PartsAwaitingActionBarChart'
 
 interface StatusItem {
   status_cd: string
@@ -130,6 +133,27 @@ interface ActivityLogEntry {
 interface ActivityData {
   activities: ActivityLogEntry[]
   total: number
+}
+
+// Maintenance Trends interfaces
+interface TrendDataPoint {
+  date: string
+  created: number
+  completed: number
+  inProgress: number
+}
+
+interface TrendsSummary {
+  totalCreated: number
+  totalCompleted: number
+  currentInProgress: number
+  avgPerDay: number
+  days: number
+}
+
+interface MaintenanceTrendsData {
+  trends: TrendDataPoint[]
+  summary: TrendsSummary
 }
 
 // Status code colors and styling (aligned with AFI 21-103)
@@ -297,11 +321,14 @@ export default function DashboardPage() {
   const [partsLoading, setPartsLoading] = useState(true)
   const [activityData, setActivityData] = useState<ActivityData | null>(null)
   const [activityLoading, setActivityLoading] = useState(true)
+  const [maintenanceTrendsData, setMaintenanceTrendsData] = useState<MaintenanceTrendsData | null>(null)
+  const [maintenanceTrendsLoading, setMaintenanceTrendsLoading] = useState(true)
   const [error, setError] = useState<UserFriendlyError | null>(null)
   const [pmiError, setPmiError] = useState<UserFriendlyError | null>(null)
   const [maintenanceError, setMaintenanceError] = useState<UserFriendlyError | null>(null)
   const [partsError, setPartsError] = useState<UserFriendlyError | null>(null)
   const [activityError, setActivityError] = useState<UserFriendlyError | null>(null)
+  const [maintenanceTrendsError, setMaintenanceTrendsError] = useState<UserFriendlyError | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshCount, setRefreshCount] = useState(0) // Used to trigger re-fetches
@@ -512,14 +539,52 @@ export default function DashboardPage() {
     fetchActivityData()
   }, [token, currentLocationId, refreshCount])
 
+  // Fetch maintenance trends data
+  useEffect(() => {
+    const fetchMaintenanceTrendsData = async () => {
+      if (!token) return
+
+      setMaintenanceTrendsLoading(true)
+      setMaintenanceTrendsError(null)
+
+      try {
+        const params = new URLSearchParams()
+        params.append('days', '30')
+        if (currentProgramId) params.append('program_id', currentProgramId.toString())
+        if (currentLocationId) params.append('location_id', currentLocationId.toString())
+
+        const url = `http://localhost:3001/api/dashboard/maintenance-trends?${params.toString()}`
+
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch maintenance trends data')
+        }
+
+        const data = await response.json()
+        setMaintenanceTrendsData(data)
+      } catch (err) {
+        setMaintenanceTrendsError(handleError(err, 'loading maintenance trends'))
+      } finally {
+        setMaintenanceTrendsLoading(false)
+      }
+    }
+
+    fetchMaintenanceTrendsData()
+  }, [token, currentProgramId, currentLocationId, refreshCount])
+
   // Track when all data has finished loading to update lastUpdated and clear refreshing state
   useEffect(() => {
-    const allLoaded = !loading && !pmiLoading && !maintenanceLoading && !partsLoading && !activityLoading
+    const allLoaded = !loading && !pmiLoading && !maintenanceLoading && !partsLoading && !activityLoading && !maintenanceTrendsLoading
     if (allLoaded) {
       setLastUpdated(new Date())
       setIsRefreshing(false)
     }
-  }, [loading, pmiLoading, maintenanceLoading, partsLoading, activityLoading])
+  }, [loading, pmiLoading, maintenanceLoading, partsLoading, activityLoading, maintenanceTrendsLoading])
 
   // Handle PMI item click
   const handlePMIClick = (pmiId: number) => {
@@ -725,6 +790,30 @@ export default function DashboardPage() {
                 Data for program: {assetStatus.program_cd}
               </p>
             </div>
+          ) : (
+            <p className="text-gray-400 py-4">No data available</p>
+          )}
+        </div>
+
+        {/* Asset Status Pie Chart Widget */}
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+          <h3 className="text-sm font-medium text-gray-500 mb-4">Asset Status Distribution</h3>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : error ? (
+            <ErrorDisplay
+              error={error}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setError(null)}
+            />
+          ) : assetStatus ? (
+            <AssetStatusPieChart
+              statusSummary={assetStatus.status_summary}
+              totalAssets={assetStatus.total_assets}
+            />
           ) : (
             <p className="text-gray-400 py-4">No data available</p>
           )}
@@ -1006,6 +1095,71 @@ export default function DashboardPage() {
                   Total: {partsData.summary.total}
                 </span>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Parts Awaiting Action Bar Chart Widget */}
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500">Parts Awaiting Action - Breakdown by Priority</h3>
+            {partsData && (
+              <span className="text-xs text-gray-400">
+                {partsData.summary.total} parts requiring attention
+              </span>
+            )}
+          </div>
+
+          {partsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : partsError ? (
+            <ErrorDisplay
+              error={partsError}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setPartsError(null)}
+            />
+          ) : partsData ? (
+            <PartsAwaitingActionBarChart partsData={partsData} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No parts data available</p>
+              <p className="text-xs text-gray-300 mt-1">Chart will appear here when parts are ordered</p>
+            </div>
+          )}
+        </div>
+
+        {/* Maintenance Trends Widget */}
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 md:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-500">Maintenance Trends</h3>
+            {maintenanceTrendsData && (
+              <span className="text-xs text-gray-400">
+                {maintenanceTrendsData.summary.totalCreated} jobs in last {maintenanceTrendsData.summary.days} days
+              </span>
+            )}
+          </div>
+
+          {maintenanceTrendsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : maintenanceTrendsError ? (
+            <ErrorDisplay
+              error={maintenanceTrendsError}
+              onRetry={() => setRefreshCount(prev => prev + 1)}
+              onDismiss={() => setMaintenanceTrendsError(null)}
+            />
+          ) : maintenanceTrendsData ? (
+            <MaintenanceTrendsChart
+              trends={maintenanceTrendsData.trends}
+              summary={maintenanceTrendsData.summary}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400">No maintenance data available</p>
+              <p className="text-xs text-gray-300 mt-1">Trends will appear here once maintenance jobs are logged</p>
             </div>
           )}
         </div>
