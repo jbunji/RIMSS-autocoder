@@ -75,43 +75,48 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 // Middleware
+// In production, when frontend is served from /public, we need permissive CORS
+const isProduction = process.env.NODE_ENV === 'production'
+
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true)
+  origin: isProduction
+    ? true // Allow all origins in production (same-origin + any proxy)
+    : (origin, callback) => {
+      // Development: strict CORS for localhost
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:5175',
+        'http://localhost:5176',
+        'http://localhost:5177',
+        'http://localhost:5178',
+        'http://localhost:5179',
+        'http://localhost:5180',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'http://127.0.0.1:5175',
+        'http://127.0.0.1:5176',
+        'http://127.0.0.1:5177',
+        'http://127.0.0.1:5178',
+        'http://127.0.0.1:5179',
+        'http://127.0.0.1:5180',
+      ]
 
-    // Allow localhost on common development ports
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      'http://localhost:5176',
-      'http://localhost:5177',
-      'http://localhost:5178',
-      'http://localhost:5179',
-      'http://localhost:5180',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-      'http://127.0.0.1:5175',
-      'http://127.0.0.1:5176',
-      'http://127.0.0.1:5177',
-      'http://127.0.0.1:5178',
-      'http://127.0.0.1:5179',
-      'http://127.0.0.1:5180',
-    ]
+      // Allow FRONTEND_URL from env if set
+      const frontendUrl = process.env.FRONTEND_URL
+      if (frontendUrl && !allowedOrigins.includes(frontendUrl)) {
+        allowedOrigins.push(frontendUrl)
+      }
 
-    // Also allow FRONTEND_URL from env if set
-    const frontendUrl = process.env.FRONTEND_URL
-    if (frontendUrl && !allowedOrigins.includes(frontendUrl)) {
-      allowedOrigins.push(frontendUrl)
-    }
+      // Allow requests with no origin (same-origin, curl, etc.)
+      if (!origin) return callback(null, true)
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
   credentials: true,
 }))
 app.use(express.json())
