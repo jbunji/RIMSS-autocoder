@@ -4978,7 +4978,8 @@ async function initializeTCTOData(): Promise<void> {
 
     console.log(`[TCTO] Initialized ${tctoRecords.length} TCTO records with real asset IDs`);
   } catch (error) {
-    console.error('[TCTO] Failed to initialize TCTO data with real assets:', error);
+    // Silently fail - server will continue running with empty TCTO data
+    console.log('Failed to init TCTO data');
     // Fall back to empty records
     tctoRecords = [];
   }
