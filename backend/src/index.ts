@@ -4756,14 +4756,14 @@ let tctoNextId = 6; // Start after mock data IDs
 
 // Initialize TCTO data - async to query real asset IDs from database
 async function initializeTCTOData(): Promise<void> {
-  const today = new Date();
-  const addDays = (days: number): string => {
-    const date = new Date(today);
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-  };
-
   try {
+    const today = new Date();
+    const addDays = (days: number): string => {
+      const date = new Date(today);
+      date.setDate(date.getDate() + days);
+      return date.toISOString().split('T')[0];
+    };
+
     // Query real asset IDs from the database for each program
     // CRIIS = pgm_id 1, ACTS = pgm_id 2, ARDS = pgm_id 3
 
