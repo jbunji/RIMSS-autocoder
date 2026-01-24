@@ -11,6 +11,17 @@ import { appRouter } from './trpc'
 // Load environment variables
 dotenv.config()
 
+// Global error handlers to prevent server crashes from unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[SERVER] Unhandled Rejection at:', promise, 'reason:', reason)
+  // Don't crash the server - just log the error
+})
+
+process.on('uncaughtException', (error) => {
+  console.error('[SERVER] Uncaught Exception:', error)
+  // Log but don't exit - let the server try to continue
+})
+
 // Initialize Prisma Client
 const prisma = new PrismaClient()
 
@@ -4974,7 +4985,11 @@ async function initializeTCTOData(): Promise<void> {
 }
 
 // Initialize TCTO data on startup (async - will complete after server starts)
-initializeTCTOData().catch(err => console.error('[TCTO] Initialization failed:', err));
+// This initialization is non-blocking and errors will not crash the server
+initializeTCTOData().catch(err => {
+  console.error('[TCTO] Initialization failed:', err);
+  console.error('[TCTO] Server will continue running with empty TCTO data');
+});
 
 // Mock Maintenance Events data
 interface MaintenanceEvent {
