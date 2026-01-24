@@ -119,6 +119,9 @@ app.use(express.json())
 // Serve static files from uploads directory
 app.use('/uploads', express.static(UPLOADS_DIR))
 
+// Serve static frontend files from public directory (frontend build)
+app.use(express.static(path.join(__dirname, '../public')))
+
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
   res.json({
@@ -18044,6 +18047,12 @@ app.get('/api/test/database-success', (_req, res) => {
       ]
     }
   });
+});
+
+// Catch-all route: serve index.html for any unknown requests (for React Router)
+// This must be after all API routes
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Start server
