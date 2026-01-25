@@ -126,37 +126,38 @@ export default function SortiesPage() {
     setError(null)
 
     try {
-      const url = new URL('/api/sorties')
+      const params = new URLSearchParams()
 
       // Apply program filter
       if (currentProgramId) {
-        url.searchParams.append('program_id', currentProgramId.toString())
+        params.append('program_id', currentProgramId.toString())
       }
 
       // Apply search filter
       if (searchQuery.trim()) {
-        url.searchParams.append('search', searchQuery.trim())
+        params.append('search', searchQuery.trim())
       }
 
       // Apply date range filters
       if (startDate) {
-        url.searchParams.append('start_date', startDate)
+        params.append('start_date', startDate)
       }
       if (endDate) {
-        url.searchParams.append('end_date', endDate)
+        params.append('end_date', endDate)
       }
 
       // Apply tail number filter
       if (tailNumberFilter.trim()) {
-        url.searchParams.append('tail_number', tailNumberFilter.trim())
+        params.append('tail_number', tailNumberFilter.trim())
       }
 
       // Apply effectiveness filter
       if (effectivenessFilter) {
-        url.searchParams.append('sortie_effect', effectivenessFilter)
+        params.append('sortie_effect', effectivenessFilter)
       }
 
-      const response = await fetch(url.toString(), {
+      const queryString = params.toString()
+      const response = await fetch(`/api/sorties${queryString ? '?' + queryString : ''}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -193,10 +194,10 @@ export default function SortiesPage() {
 
     setAssetsLoading(true)
     try {
-      const url = new URL('/api/assets')
-      url.searchParams.append('program_id', currentProgramId.toString())
+      const params = new URLSearchParams()
+      params.append('program_id', currentProgramId.toString())
 
-      const response = await fetch(url.toString(), {
+      const response = await fetch(`/api/assets?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

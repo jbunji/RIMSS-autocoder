@@ -46,23 +46,24 @@ export default function AuditLogsPage() {
   const fetchAuditLogs = async () => {
     try {
       setLoading(true)
-      const url = new URL('/api/audit-logs')
+      const params = new URLSearchParams()
       if (tableFilter) {
-        url.searchParams.append('table_name', tableFilter)
+        params.append('table_name', tableFilter)
       }
       if (userFilter) {
-        url.searchParams.append('user_id', userFilter)
+        params.append('user_id', userFilter)
       }
       if (actionFilter) {
-        url.searchParams.append('action', actionFilter)
+        params.append('action', actionFilter)
       }
       if (startDate) {
-        url.searchParams.append('start_date', startDate)
+        params.append('start_date', startDate)
       }
       if (endDate) {
-        url.searchParams.append('end_date', endDate)
+        params.append('end_date', endDate)
       }
-      const response = await fetch(url.toString(), {
+      const queryString = params.toString()
+      const response = await fetch(`/api/audit-logs${queryString ? '?' + queryString : ''}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
