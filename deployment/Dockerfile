@@ -55,8 +55,9 @@ RUN pnpm build
 # -----------------------------------------------------------------------------
 FROM node:20-slim AS production
 
-# Install dumb-init for proper signal handling and wget for healthcheck
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init wget && \
+# Install dumb-init, wget, and OpenSSL for Prisma
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    dumb-init wget openssl libssl3 ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
