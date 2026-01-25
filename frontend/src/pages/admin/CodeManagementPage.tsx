@@ -52,7 +52,7 @@ export default function CodeManagementPage() {
 
   const loadCodeTypes = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/admin/code-types', {
+      const response = await fetch('/api/admin/code-types', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -75,7 +75,7 @@ export default function CodeManagementPage() {
       if (showInactive) params.append('active', 'false')
       else params.append('active', 'true')
 
-      const response = await fetch(`http://localhost:3001/api/admin/codes?${params}`, {
+      const response = await fetch(`/api/admin/codes?${params}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -97,7 +97,7 @@ export default function CodeManagementPage() {
 
   const handleCreateCode = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/admin/codes', {
+      const response = await fetch('/api/admin/codes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ export default function CodeManagementPage() {
     if (!editingCode) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/codes/${editingCode.code_id}`, {
+      const response = await fetch(`/api/admin/codes/${editingCode.code_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ export default function CodeManagementPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/codes/${code.code_id}/deactivate`, {
+      const response = await fetch(`/api/admin/codes/${code.code_id}/deactivate`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -183,7 +183,7 @@ export default function CodeManagementPage() {
 
   const handleReactivateCode = async (code: Code) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/codes/${code.code_id}/activate`, {
+      const response = await fetch(`/api/admin/codes/${code.code_id}/activate`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -209,7 +209,7 @@ export default function CodeManagementPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/codes/${code.code_id}`, {
+      const response = await fetch(`/api/admin/codes/${code.code_id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

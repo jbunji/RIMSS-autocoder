@@ -29,7 +29,7 @@ export default function SettingsPage() {
   const fetchSettings = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:3001/api/settings', {
+      const response = await fetch('/api/settings', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -60,7 +60,7 @@ export default function SettingsPage() {
     try {
       setSavingSettings(prev => ({ ...prev, [varName]: true }))
 
-      const response = await fetch(`http://localhost:3001/api/settings/${varName}`, {
+      const response = await fetch(`/api/settings/${varName}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

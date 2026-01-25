@@ -19,7 +19,7 @@ export default function TestTimeoutPage() {
 
     try {
       const data = await fetchWithErrorHandling(
-        `http://localhost:3001/api/test/slow?delay=${delaySeconds * 1000}`,
+        `/api/test/slow?delay=${delaySeconds * 1000}`,
         {
           headers: {
             'Content-Type': 'application/json',

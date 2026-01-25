@@ -30,7 +30,7 @@ export default function LocationAddModal({ isOpen, onClose, onSuccess }: Locatio
     setError(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/admin/locations', {
+      const response = await fetch('/api/admin/locations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

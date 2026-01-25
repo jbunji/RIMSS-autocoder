@@ -161,7 +161,7 @@ export default function PMIPage() {
     setError(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/pmi', {
+      const response = await fetch('/api/pmi', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -187,7 +187,7 @@ export default function PMIPage() {
     setLoadingAssets(true)
 
     try {
-      const response = await fetch('http://localhost:3001/api/assets', {
+      const response = await fetch('/api/assets', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -238,7 +238,7 @@ export default function PMIPage() {
     setAddSuccess(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/pmi', {
+      const response = await fetch('/api/pmi', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -315,7 +315,7 @@ export default function PMIPage() {
     setEditSuccess(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/pmi/${selectedPMI.pmi_id}`, {
+      const response = await fetch(`/api/pmi/${selectedPMI.pmi_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -208,7 +208,7 @@ export default function AssetsPage() {
       params.append('sort_by', sortBy)
       params.append('sort_order', sortOrder)
 
-      const response = await fetch(`http://localhost:3001/api/assets?${params.toString()}`, {
+      const response = await fetch(`/api/assets?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -234,7 +234,7 @@ export default function AssetsPage() {
   // React Query: Create asset mutation
   const createAssetMutation = useMutation({
     mutationFn: async (data: CreateAssetFormData) => {
-      const response = await fetch('http://localhost:3001/api/assets', {
+      const response = await fetch('/api/assets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -268,7 +268,7 @@ export default function AssetsPage() {
   // React Query: Delete asset mutation (soft delete)
   const deleteAssetMutation = useMutation({
     mutationFn: async (assetId: number) => {
-      const response = await fetch(`http://localhost:3001/api/assets/${assetId}`, {
+      const response = await fetch(`/api/assets/${assetId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -298,7 +298,7 @@ export default function AssetsPage() {
   // React Query: Permanent delete asset mutation
   const permanentDeleteAssetMutation = useMutation({
     mutationFn: async (assetId: number) => {
-      const response = await fetch(`http://localhost:3001/api/assets/${assetId}/permanent`, {
+      const response = await fetch(`/api/assets/${assetId}/permanent`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -331,13 +331,13 @@ export default function AssetsPage() {
 
     try {
       // FEATURE #409: Pass program_id to filter locations by program-location mapping
-      const locUrl = `http://localhost:3001/api/reference/locations?program_id=${currentProgramId}`
+      const locUrl = `/api/reference/locations?program_id=${currentProgramId}`
 
       const [locResponse, statusResponse] = await Promise.all([
         fetch(locUrl, {
           headers: { 'Authorization': `Bearer ${token}` },
         }),
-        fetch('http://localhost:3001/api/reference/asset-statuses', {
+        fetch('/api/reference/asset-statuses', {
           headers: { 'Authorization': `Bearer ${token}` },
         }),
       ])
@@ -451,7 +451,7 @@ export default function AssetsPage() {
       params.append('sort_by', sortBy)
       params.append('sort_order', sortOrder)
 
-      const response = await fetch(`http://localhost:3001/api/assets?${params.toString()}`, {
+      const response = await fetch(`/api/assets?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -631,7 +631,7 @@ export default function AssetsPage() {
       params.append('sort_by', sortBy)
       params.append('sort_order', sortOrder)
 
-      const response = await fetch(`http://localhost:3001/api/assets?${params.toString()}`, {
+      const response = await fetch(`/api/assets?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

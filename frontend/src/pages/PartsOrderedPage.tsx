@@ -113,7 +113,7 @@ export default function PartsOrderedPage() {
       if (startDate) params.append('start_date', startDate)
       if (endDate) params.append('end_date', endDate)
 
-      const response = await fetch(`http://localhost:3001/api/parts-orders?${params}`, {
+      const response = await fetch(`/api/parts-orders?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

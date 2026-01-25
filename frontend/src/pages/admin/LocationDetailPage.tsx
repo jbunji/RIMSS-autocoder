@@ -44,7 +44,7 @@ export default function LocationDetailPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`http://localhost:3001/api/admin/locations/${id}`, {
+      const response = await fetch(`/api/admin/locations/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

@@ -55,7 +55,7 @@ export default function InventoryReportPage() {
         params.append('program_id', currentProgramId.toString())
       }
 
-      const url = `http://localhost:3001/api/reports/inventory${params.toString() ? '?' + params.toString() : ''}`
+      const url = `/api/reports/inventory${params.toString() ? '?' + params.toString() : ''}`
 
       const response = await fetch(url, {
         headers: {

@@ -487,7 +487,7 @@ export default function MaintenancePage() {
         params.append('date_to', dateToFilter)
       }
 
-      const response = await fetch(`http://localhost:3001/api/events?${params.toString()}`, {
+      const response = await fetch(`/api/events?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -546,7 +546,7 @@ export default function MaintenancePage() {
         params.append('program_id', currentProgramId.toString())
       }
 
-      const response = await fetch(`http://localhost:3001/api/assets?${params.toString()}`, {
+      const response = await fetch(`/api/assets?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -577,7 +577,7 @@ export default function MaintenancePage() {
         params.append('program_id', currentProgramId.toString())
       }
 
-      const response = await fetch(`http://localhost:3001/api/sorties?${params.toString()}`, {
+      const response = await fetch(`/api/sorties?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -624,7 +624,7 @@ export default function MaintenancePage() {
         params.append('overdue_only', 'true')
       }
 
-      const response = await fetch(`http://localhost:3001/api/pmi/due-soon?${params.toString()}`, {
+      const response = await fetch(`/api/pmi/due-soon?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -675,7 +675,7 @@ export default function MaintenancePage() {
         params.append('status', tctoStatusFilter)
       }
 
-      const response = await fetch(`http://localhost:3001/api/tcto?${params.toString()}`, {
+      const response = await fetch(`/api/tcto?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -746,7 +746,7 @@ export default function MaintenancePage() {
     setEditTCTOSuccess(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/tcto/${tctoToEdit.tcto_id}`, {
+      const response = await fetch(`/api/tcto/${tctoToEdit.tcto_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -817,7 +817,7 @@ export default function MaintenancePage() {
     setDeleteTCTOError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/tcto/${tctoToDelete.tcto_id}`, {
+      const response = await fetch(`/api/tcto/${tctoToDelete.tcto_id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -944,7 +944,7 @@ export default function MaintenancePage() {
     setNewPMIError(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/pmi', {
+      const response = await fetch('/api/pmi', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1038,7 +1038,7 @@ export default function MaintenancePage() {
     setNewTCTOError(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/tcto', {
+      const response = await fetch('/api/tcto', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1128,7 +1128,7 @@ export default function MaintenancePage() {
     setNewEventFieldErrors({})
 
     try {
-      const response = await fetch('http://localhost:3001/api/events', {
+      const response = await fetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1192,7 +1192,7 @@ export default function MaintenancePage() {
     setDeleteError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${eventToDelete.event_id}`, {
+      const response = await fetch(`/api/events/${eventToDelete.event_id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

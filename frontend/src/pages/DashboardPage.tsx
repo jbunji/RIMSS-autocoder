@@ -404,7 +404,7 @@ export default function DashboardPage() {
         if (currentProgramId) params.append('program_id', currentProgramId.toString())
         if (currentLocationId) params.append('location_id', currentLocationId.toString())
 
-        const url = `http://localhost:3001/api/dashboard/asset-status${params.toString() ? '?' + params.toString() : ''}`
+        const url = `/api/dashboard/asset-status${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -441,7 +441,7 @@ export default function DashboardPage() {
         if (currentProgramId) params.append('program_id', currentProgramId.toString())
         if (currentLocationId) params.append('location_id', currentLocationId.toString())
 
-        const url = `http://localhost:3001/api/pmi/due-soon${params.toString() ? '?' + params.toString() : ''}`
+        const url = `/api/pmi/due-soon${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -478,7 +478,7 @@ export default function DashboardPage() {
         if (currentProgramId) params.append('program_id', currentProgramId.toString())
         if (currentLocationId) params.append('location_id', currentLocationId.toString())
 
-        const url = `http://localhost:3001/api/dashboard/open-maintenance-jobs${params.toString() ? '?' + params.toString() : ''}`
+        const url = `/api/dashboard/open-maintenance-jobs${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -515,7 +515,7 @@ export default function DashboardPage() {
         if (currentProgramId) params.append('program_id', currentProgramId.toString())
         if (currentLocationId) params.append('location_id', currentLocationId.toString())
 
-        const url = `http://localhost:3001/api/dashboard/parts-awaiting-action${params.toString() ? '?' + params.toString() : ''}`
+        const url = `/api/dashboard/parts-awaiting-action${params.toString() ? '?' + params.toString() : ''}`
 
         const response = await fetch(url, {
           headers: {
@@ -552,7 +552,7 @@ export default function DashboardPage() {
         params.append('limit', '10')
         if (currentLocationId) params.append('location_id', currentLocationId.toString())
 
-        const url = `http://localhost:3001/api/dashboard/recent-activity?${params.toString()}`
+        const url = `/api/dashboard/recent-activity?${params.toString()}`
 
         const response = await fetch(url, {
           headers: {
@@ -590,7 +590,7 @@ export default function DashboardPage() {
         if (currentProgramId) params.append('program_id', currentProgramId.toString())
         if (currentLocationId) params.append('location_id', currentLocationId.toString())
 
-        const url = `http://localhost:3001/api/dashboard/maintenance-trends?${params.toString()}`
+        const url = `/api/dashboard/maintenance-trends?${params.toString()}`
 
         const response = await fetch(url, {
           headers: {

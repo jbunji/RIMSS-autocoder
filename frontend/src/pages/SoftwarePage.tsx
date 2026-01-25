@@ -88,7 +88,7 @@ export default function SoftwarePage() {
         params.append('type', typeFilter)
       }
 
-      const url = `http://localhost:3001/api/software${params.toString() ? '?' + params.toString() : ''}`
+      const url = `/api/software${params.toString() ? '?' + params.toString() : ''}`
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -187,7 +187,7 @@ export default function SoftwarePage() {
     setSaveError(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/software', {
+      const response = await fetch('/api/software', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -247,7 +247,7 @@ export default function SoftwarePage() {
     setSaveError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/software/${editingSoftware.sw_id}`, {
+      const response = await fetch(`/api/software/${editingSoftware.sw_id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

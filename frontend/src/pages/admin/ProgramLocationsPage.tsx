@@ -49,7 +49,7 @@ export default function ProgramLocationsPage() {
       setLoading(true)
 
       // Fetch programs with their locations
-      const programsResponse = await fetch('http://localhost:3001/api/program-locations', {
+      const programsResponse = await fetch('/api/program-locations', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -63,7 +63,7 @@ export default function ProgramLocationsPage() {
       setPrograms(programsData.programs)
 
       // Fetch all available locations
-      const locationsResponse = await fetch('http://localhost:3001/api/locations', {
+      const locationsResponse = await fetch('/api/locations', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -98,7 +98,7 @@ export default function ProgramLocationsPage() {
     try {
       setIsAddingLocation(true)
 
-      const response = await fetch(`http://localhost:3001/api/program-locations/${selectedProgram.pgm_id}/locations`, {
+      const response = await fetch(`/api/program-locations/${selectedProgram.pgm_id}/locations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ export default function ProgramLocationsPage() {
     try {
       setIsDeletingLocation(locationId)
 
-      const response = await fetch(`http://localhost:3001/api/program-locations/${selectedProgram.pgm_id}/locations/${locationId}`, {
+      const response = await fetch(`/api/program-locations/${selectedProgram.pgm_id}/locations/${locationId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

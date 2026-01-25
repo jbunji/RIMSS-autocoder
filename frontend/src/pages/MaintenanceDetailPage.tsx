@@ -711,7 +711,7 @@ export default function MaintenanceDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${id}`, {
+      const response = await fetch(`/api/events/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -743,7 +743,7 @@ export default function MaintenanceDetailPage() {
     setRepairsLoading(true)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${id}/repairs`, {
+      const response = await fetch(`/api/events/${id}/repairs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -771,7 +771,7 @@ export default function MaintenanceDetailPage() {
     setAttachmentsLoading(true)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${id}/attachments`, {
+      const response = await fetch(`/api/events/${id}/attachments`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -798,7 +798,7 @@ export default function MaintenanceDetailPage() {
     setLoadingInstalledParts(prev => new Set(prev).add(repairId))
 
     try {
-      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}/installed-parts`, {
+      const response = await fetch(`/api/repairs/${repairId}/installed-parts`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -843,7 +843,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/events/${id}/available-assets?search=${encodeURIComponent(query)}&limit=10`,
+        `/api/events/${id}/available-assets?search=${encodeURIComponent(query)}&limit=10`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -908,7 +908,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/repairs/${addInstalledPartRepair.repair_id}/installed-parts`,
+        `/api/repairs/${addInstalledPartRepair.repair_id}/installed-parts`,
         {
           method: 'POST',
           headers: {
@@ -952,7 +952,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/installed-parts/${installedPart.installed_part_id}`,
+        `/api/installed-parts/${installedPart.installed_part_id}`,
         {
           method: 'DELETE',
           headers: {
@@ -983,7 +983,7 @@ export default function MaintenanceDetailPage() {
     setLoadingRemovedParts(prev => new Set(prev).add(repairId))
 
     try {
-      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}/removed-parts`, {
+      const response = await fetch(`/api/repairs/${repairId}/removed-parts`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1027,7 +1027,7 @@ export default function MaintenanceDetailPage() {
     setLoadingLabor(prev => new Set(prev).add(repairId))
 
     try {
-      const response = await fetch(`http://localhost:3001/api/repairs/${repairId}/labor`, {
+      const response = await fetch(`/api/repairs/${repairId}/labor`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1072,7 +1072,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/events/${id}/removable-assets?search=${encodeURIComponent(query)}&limit=10`,
+        `/api/events/${id}/removable-assets?search=${encodeURIComponent(query)}&limit=10`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1139,7 +1139,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/repairs/${addRemovedPartRepair.repair_id}/removed-parts`,
+        `/api/repairs/${addRemovedPartRepair.repair_id}/removed-parts`,
         {
           method: 'POST',
           headers: {
@@ -1185,7 +1185,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/removed-parts/${removedPart.removed_part_id}`,
+        `/api/removed-parts/${removedPart.removed_part_id}`,
         {
           method: 'DELETE',
           headers: {
@@ -1251,7 +1251,7 @@ export default function MaintenanceDetailPage() {
     setRequestPartsError(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/parts-orders', {
+      const response = await fetch('/api/parts-orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1370,7 +1370,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/repairs/${addLaborRepair.repair_id}/labor`,
+        `/api/repairs/${addLaborRepair.repair_id}/labor`,
         {
           method: 'POST',
           headers: {
@@ -1442,7 +1442,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/labor/${deletingLabor.labor_id}`,
+        `/api/labor/${deletingLabor.labor_id}`,
         {
           method: 'DELETE',
           headers: {
@@ -1565,7 +1565,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/labor/${editLaborRecord.labor_id}`,
+        `/api/labor/${editLaborRecord.labor_id}`,
         {
           method: 'PUT',
           headers: {
@@ -1619,7 +1619,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/labor/${laborId}/parts`,
+        `/api/labor/${laborId}/parts`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1703,7 +1703,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/labor/${addLaborPartLabor.labor_id}/parts`,
+        `/api/labor/${addLaborPartLabor.labor_id}/parts`,
         {
           method: 'POST',
           headers: {
@@ -1752,7 +1752,7 @@ export default function MaintenanceDetailPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/labor-parts/${part.labor_part_id}`,
+        `/api/labor-parts/${part.labor_part_id}`,
         {
           method: 'DELETE',
           headers: {
@@ -1811,7 +1811,7 @@ export default function MaintenanceDetailPage() {
         setUploadProgress(prev => Math.min(prev + 10, 90))
       }, 100)
 
-      const response = await fetch(`http://localhost:3001/api/events/${id}/attachments`, {
+      const response = await fetch(`/api/events/${id}/attachments`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1886,7 +1886,7 @@ export default function MaintenanceDetailPage() {
     setDownloadingAttachmentId(attachment.attachment_id)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/attachments/${attachment.attachment_id}/download`, {
+      const response = await fetch(`/api/attachments/${attachment.attachment_id}/download`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1919,7 +1919,7 @@ export default function MaintenanceDetailPage() {
     setDeletingAttachmentId(attachmentId)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/attachments/${attachmentId}`, {
+      const response = await fetch(`/api/attachments/${attachmentId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1963,7 +1963,7 @@ export default function MaintenanceDetailPage() {
       const params = new URLSearchParams()
       params.append('program_id', event.pgm_id.toString())
 
-      const response = await fetch(`http://localhost:3001/api/sorties?${params.toString()}`, {
+      const response = await fetch(`/api/sorties?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1990,7 +1990,7 @@ export default function MaintenanceDetailPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/sorties/${event.sortie_id}`, {
+      const response = await fetch(`/api/sorties/${event.sortie_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -2075,7 +2075,7 @@ export default function MaintenanceDetailPage() {
     setCloseRepairError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/repairs/${closingRepair.repair_id}`, {
+      const response = await fetch(`/api/repairs/${closingRepair.repair_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -2115,7 +2115,7 @@ export default function MaintenanceDetailPage() {
     if (!token) return
     setDonorAssetsLoading(true)
     try {
-      const response = await fetch('http://localhost:3001/api/assets/available-for-install', {
+      const response = await fetch('/api/assets/available-for-install', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -2204,7 +2204,7 @@ export default function MaintenanceDetailPage() {
     setAddRepairError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${event.event_id}/repairs`, {
+      const response = await fetch(`/api/events/${event.event_id}/repairs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2253,7 +2253,7 @@ export default function MaintenanceDetailPage() {
     if (!token) return
     setEditDonorAssetsLoading(true)
     try {
-      const response = await fetch('http://localhost:3001/api/assets/available-for-install', {
+      const response = await fetch('/api/assets/available-for-install', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -2348,7 +2348,7 @@ export default function MaintenanceDetailPage() {
     setEditRepairError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/repairs/${editingRepair.repair_id}`, {
+      const response = await fetch(`/api/repairs/${editingRepair.repair_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -2415,7 +2415,7 @@ export default function MaintenanceDetailPage() {
     setDeleteRepairError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/repairs/${deletingRepair.repair_id}`, {
+      const response = await fetch(`/api/repairs/${deletingRepair.repair_id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -2466,7 +2466,7 @@ export default function MaintenanceDetailPage() {
     setCloseEventError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${event.event_id}/close`, {
+      const response = await fetch(`/api/events/${event.event_id}/close`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2562,7 +2562,7 @@ export default function MaintenanceDetailPage() {
     setEditError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/events/${event.event_id}`, {
+      const response = await fetch(`/api/events/${event.event_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

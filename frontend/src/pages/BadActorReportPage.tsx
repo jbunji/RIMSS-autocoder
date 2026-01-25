@@ -61,7 +61,7 @@ export default function BadActorReportPage() {
     setError('')
 
     try {
-      const response = await fetch('http://localhost:3001/api/reports/bad-actors', {
+      const response = await fetch('/api/reports/bad-actors', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

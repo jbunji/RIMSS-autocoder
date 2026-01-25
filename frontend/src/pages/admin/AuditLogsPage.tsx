@@ -46,7 +46,7 @@ export default function AuditLogsPage() {
   const fetchAuditLogs = async () => {
     try {
       setLoading(true)
-      const url = new URL('http://localhost:3001/api/audit-logs')
+      const url = new URL('/api/audit-logs')
       if (tableFilter) {
         url.searchParams.append('table_name', tableFilter)
       }
@@ -85,7 +85,7 @@ export default function AuditLogsPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch('/api/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

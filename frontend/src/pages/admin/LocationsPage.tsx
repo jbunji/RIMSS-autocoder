@@ -88,7 +88,7 @@ export default function LocationsPage() {
       params.append('page', pagination.page.toString())
       params.append('limit', pagination.limit.toString())
 
-      const response = await fetch(`http://localhost:3001/api/admin/locations?${params.toString()}`, {
+      const response = await fetch(`/api/admin/locations?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -137,7 +137,7 @@ export default function LocationsPage() {
   const handleToggleActive = async (location: Location) => {
     setToggleLoading(location.loc_id)
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/locations/${location.loc_id}`, {
+      const response = await fetch(`/api/admin/locations/${location.loc_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

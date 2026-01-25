@@ -143,7 +143,7 @@ export default function TCTODetailPage() {
       setError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/tcto/${id}`, {
+        const response = await fetch(`/api/tcto/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -179,7 +179,7 @@ export default function TCTODetailPage() {
 
     setLoadingRepairs(true)
     try {
-      const response = await fetch(`http://localhost:3001/api/tcto/${id}/assets/${assetId}/repairs`, {
+      const response = await fetch(`/api/tcto/${id}/assets/${assetId}/repairs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -240,7 +240,7 @@ export default function TCTODetailPage() {
         body.linked_repair_id = linkedRepairIdValue
       }
 
-      const response = await fetch(`http://localhost:3001/api/tcto/${id}/compliance`, {
+      const response = await fetch(`/api/tcto/${id}/compliance`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

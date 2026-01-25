@@ -318,7 +318,7 @@ export default function ConfigurationsPage() {
       params.append('sort_by', sortBy)
       params.append('sort_order', sortOrder)
 
-      const response = await fetch(`http://localhost:3001/api/configurations?${params.toString()}`, {
+      const response = await fetch(`/api/configurations?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -357,7 +357,7 @@ export default function ConfigurationsPage() {
         params.append('program_id', currentProgramId.toString())
       }
 
-      const response = await fetch(`http://localhost:3001/api/reference/parts?${params}`, {
+      const response = await fetch(`/api/reference/parts?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -766,7 +766,7 @@ export default function ConfigurationsPage() {
       // Find the selected part to get its details
       const selectedPart = availableParts.find(p => p.partno_id.toString() === data.partno_id)
 
-      const response = await fetch('http://localhost:3001/api/configurations', {
+      const response = await fetch('/api/configurations', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -826,7 +826,7 @@ export default function ConfigurationsPage() {
     setModalError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${configToEdit.cfg_set_id}`, {
+      const response = await fetch(`/api/configurations/${configToEdit.cfg_set_id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -882,7 +882,7 @@ export default function ConfigurationsPage() {
     setDeleteError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${configToDelete.cfg_set_id}`, {
+      const response = await fetch(`/api/configurations/${configToDelete.cfg_set_id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

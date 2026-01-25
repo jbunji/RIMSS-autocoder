@@ -417,7 +417,7 @@ export default function AssetDetailPage() {
       setError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}`, {
+        const response = await fetch(`/api/assets/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -454,7 +454,7 @@ export default function AssetDetailPage() {
       setHierarchyLoading(true)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}/hierarchy`, {
+        const response = await fetch(`/api/assets/${id}/hierarchy`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -483,7 +483,7 @@ export default function AssetDetailPage() {
       setSortiesError(null)
 
       try {
-        const response = await fetch('http://localhost:3001/api/sorties', {
+        const response = await fetch('/api/sorties', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -517,7 +517,7 @@ export default function AssetDetailPage() {
       setHistoryError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}/history`, {
+        const response = await fetch(`/api/assets/${id}/history`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -548,7 +548,7 @@ export default function AssetDetailPage() {
       setEtiHistoryError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}/eti-history`, {
+        const response = await fetch(`/api/assets/${id}/eti-history`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -579,7 +579,7 @@ export default function AssetDetailPage() {
       setMeterHistoryError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}/meter-history`, {
+        const response = await fetch(`/api/assets/${id}/meter-history`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -610,7 +610,7 @@ export default function AssetDetailPage() {
       setMaintenanceEventsError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}/events`, {
+        const response = await fetch(`/api/assets/${id}/events`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -642,7 +642,7 @@ export default function AssetDetailPage() {
       setPmiHistoryError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}/pmi-history`, {
+        const response = await fetch(`/api/assets/${id}/pmi-history`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -674,7 +674,7 @@ export default function AssetDetailPage() {
       setSoftwareError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+        const response = await fetch(`/api/assets/${id}/software`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -702,7 +702,7 @@ export default function AssetDetailPage() {
       if (!token || !asset) return
 
       try {
-        const response = await fetch(`http://localhost:3001/api/reference/software-versions?program_id=${asset.pgm_id}`, {
+        const response = await fetch(`/api/reference/software-versions?program_id=${asset.pgm_id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -732,7 +732,7 @@ export default function AssetDetailPage() {
     try {
       const meterType = etiUpdateForm.meter_type || asset.meter_type || 'hours'
 
-      const response = await fetch(`http://localhost:3001/api/assets/${id}/meter`, {
+      const response = await fetch(`/api/assets/${id}/meter`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -794,7 +794,7 @@ export default function AssetDetailPage() {
     setMeterReplacementSuccess(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${id}/replace-meter`, {
+      const response = await fetch(`/api/assets/${id}/replace-meter`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -847,7 +847,7 @@ export default function AssetDetailPage() {
 
       try {
         // Fetch statuses
-        const statusesRes = await fetch('http://localhost:3001/api/reference/asset-statuses', {
+        const statusesRes = await fetch('/api/reference/asset-statuses', {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (statusesRes.ok) {
@@ -856,7 +856,7 @@ export default function AssetDetailPage() {
         }
 
         // Fetch locations
-        const locationsRes = await fetch('http://localhost:3001/api/reference/locations', {
+        const locationsRes = await fetch('/api/reference/locations', {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (locationsRes.ok) {
@@ -904,7 +904,7 @@ export default function AssetDetailPage() {
     setSaveSuccess(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${id}`, {
+      const response = await fetch(`/api/assets/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -960,7 +960,7 @@ export default function AssetDetailPage() {
     setAddSoftwareError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+      const response = await fetch(`/api/assets/${id}/software`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -976,7 +976,7 @@ export default function AssetDetailPage() {
       }
 
       // Refresh software associations list
-      const listResponse = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+      const listResponse = await fetch(`/api/assets/${id}/software`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -1009,7 +1009,7 @@ export default function AssetDetailPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${id}/software/${assocId}`, {
+      const response = await fetch(`/api/assets/${id}/software/${assocId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1023,7 +1023,7 @@ export default function AssetDetailPage() {
       }
 
       // Refresh software associations list
-      const listResponse = await fetch(`http://localhost:3001/api/assets/${id}/software`, {
+      const listResponse = await fetch(`/api/assets/${id}/software`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

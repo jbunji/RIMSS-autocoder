@@ -206,7 +206,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch('/api/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -233,7 +233,7 @@ export default function UsersPage() {
         ? `?program_ids=${programIds.join(',')}`
         : ''
 
-      const response = await fetch(`http://localhost:3001/api/locations${queryParams}`, {
+      const response = await fetch(`/api/locations${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -339,7 +339,7 @@ export default function UsersPage() {
   const onSubmit = async (data: CreateUserFormData) => {
     try {
       setError(null)
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch('/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -448,7 +448,7 @@ export default function UsersPage() {
     try {
       setIsDeleting(true)
       setError(null)
-      const response = await fetch(`http://localhost:3001/api/users/${deletingUser.user_id}`, {
+      const response = await fetch(`/api/users/${deletingUser.user_id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -512,7 +512,7 @@ export default function UsersPage() {
         payload.admin_password = data.admin_password
       }
 
-      const response = await fetch(`http://localhost:3001/api/users/${editingUser.user_id}`, {
+      const response = await fetch(`/api/users/${editingUser.user_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -84,7 +84,7 @@ export default function NotificationsPage() {
         return;
       }
 
-      const response = await fetch('http://localhost:3001/api/notifications', {
+      const response = await fetch('/api/notifications', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -116,7 +116,7 @@ export default function NotificationsPage() {
         stop_date: formData.stop_date ? new Date(formData.stop_date).toISOString() : null,
       };
 
-      const response = await fetch('http://localhost:3001/api/notifications', {
+      const response = await fetch('/api/notifications', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:3001/api/notifications/${msgId}/acknowledge`, {
+      const response = await fetch(`/api/notifications/${msgId}/acknowledge`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

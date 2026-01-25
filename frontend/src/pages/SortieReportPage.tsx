@@ -82,7 +82,7 @@ export default function SortieReportPage() {
       params.append('end_date', endDate)
       params.append('limit', '1000') // Get all sorties in date range
 
-      const url = `http://localhost:3001/api/sorties?${params.toString()}`
+      const url = `/api/sorties?${params.toString()}`
 
       const response = await fetch(url, {
         headers: {

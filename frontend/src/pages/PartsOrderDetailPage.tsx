@@ -176,7 +176,7 @@ export default function PartsOrderDetailPage() {
       setError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/parts-orders/${id}`, {
+        const response = await fetch(`/api/parts-orders/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -211,7 +211,7 @@ export default function PartsOrderDetailPage() {
       setLoadingHistory(true)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/history`, {
+        const response = await fetch(`/api/parts-orders/${id}/history`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -241,7 +241,7 @@ export default function PartsOrderDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/acknowledge`, {
+      const response = await fetch(`/api/parts-orders/${id}/acknowledge`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -271,7 +271,7 @@ export default function PartsOrderDetailPage() {
 
     try {
       const params = new URLSearchParams({ search: query })
-      const response = await fetch(`http://localhost:3001/api/spares?${params}`, {
+      const response = await fetch(`/api/spares?${params}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -301,7 +301,7 @@ export default function PartsOrderDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/fill`, {
+      const response = await fetch(`/api/parts-orders/${id}/fill`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -345,7 +345,7 @@ export default function PartsOrderDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/deliver`, {
+      const response = await fetch(`/api/parts-orders/${id}/deliver`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -374,7 +374,7 @@ export default function PartsOrderDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/parts-orders/${id}/pqdr`, {
+      const response = await fetch(`/api/parts-orders/${id}/pqdr`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,

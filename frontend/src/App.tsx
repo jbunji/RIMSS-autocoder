@@ -66,7 +66,7 @@ function App() {
       }
 
       try {
-        const response = await fetch('http://localhost:3001/api/auth/me', {
+        const response = await fetch('/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

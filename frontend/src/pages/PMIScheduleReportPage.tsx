@@ -65,7 +65,7 @@ export default function PMIScheduleReportPage() {
   const fetchReport = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:3001/api/reports/pmi-schedule', {
+      const response = await fetch('/api/reports/pmi-schedule', {
         credentials: 'include',
       })
 

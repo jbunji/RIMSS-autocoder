@@ -26,8 +26,8 @@ export default function TestDatabaseErrorPage() {
     try {
       // If recovery mode is on and this is a retry (request > 1), use success endpoint
       const url = simulateRecovery && currentRequest > 1
-        ? 'http://localhost:3001/api/test/database-success'
-        : `http://localhost:3001/api/test/database-error?type=${errorType}&delay=${delayMs}`
+        ? '/api/test/database-success'
+        : `/api/test/database-error?type=${errorType}&delay=${delayMs}`
 
       console.log(`[Test] Request #${currentRequest} - ${url}`)
 

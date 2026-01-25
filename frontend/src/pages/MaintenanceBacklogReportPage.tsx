@@ -57,7 +57,7 @@ export default function MaintenanceBacklogReportPage() {
       setLoading(true)
 
       // Fetch open maintenance events
-      const response = await fetch('http://localhost:3001/api/events?status=open&limit=1000', {
+      const response = await fetch('/api/events?status=open&limit=1000', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

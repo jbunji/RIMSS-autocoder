@@ -80,7 +80,7 @@ export default function PMIDetailPage() {
       setError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/pmi/${id}`, {
+        const response = await fetch(`/api/pmi/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -114,7 +114,7 @@ export default function PMIDetailPage() {
 
     setLoadingEvents(true)
     try {
-      const response = await fetch('http://localhost:3001/api/events?status=open&limit=50', {
+      const response = await fetch('/api/events?status=open&limit=50', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -146,7 +146,7 @@ export default function PMIDetailPage() {
     setCompleteError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/pmi/${id}/complete`, {
+      const response = await fetch(`/api/pmi/${id}/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -192,7 +192,7 @@ export default function PMIDetailPage() {
     setEditError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/pmi/${id}`, {
+      const response = await fetch(`/api/pmi/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

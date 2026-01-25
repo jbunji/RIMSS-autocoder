@@ -59,7 +59,7 @@ export default function LocationEditModal({ isOpen, onClose, location, onSuccess
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/admin/locations/${location.loc_id}`, {
+      const response = await fetch(`/api/admin/locations/${location.loc_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

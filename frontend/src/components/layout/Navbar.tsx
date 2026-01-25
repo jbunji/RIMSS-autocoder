@@ -92,7 +92,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
       setLocationsLoading(true)
       try {
-        const response = await fetch(`http://localhost:3001/api/program/${currentProgramId}/locations`, {
+        const response = await fetch(`/api/program/${currentProgramId}/locations`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -140,7 +140,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
       if (!token) return
 
       try {
-        const response = await fetch('http://localhost:3001/api/notifications/unread-count', {
+        const response = await fetch('/api/notifications/unread-count', {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -177,7 +177,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     try {
       // Call backend logout endpoint to invalidate token
       if (token) {
-        await fetch('http://localhost:3001/api/auth/logout', {
+        await fetch('/api/auth/logout', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

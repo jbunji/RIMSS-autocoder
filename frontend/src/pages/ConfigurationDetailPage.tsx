@@ -303,7 +303,7 @@ export default function ConfigurationDetailPage() {
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}`, {
+      const response = await fetch(`/api/configurations/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -333,7 +333,7 @@ export default function ConfigurationDetailPage() {
     setBomError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/bom`, {
+      const response = await fetch(`/api/configurations/${id}/bom`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -363,7 +363,7 @@ export default function ConfigurationDetailPage() {
     setSoftwareError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/software`, {
+      const response = await fetch(`/api/configurations/${id}/software`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -393,7 +393,7 @@ export default function ConfigurationDetailPage() {
     setMeterError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/meters`, {
+      const response = await fetch(`/api/configurations/${id}/meters`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -420,7 +420,7 @@ export default function ConfigurationDetailPage() {
     if (!token || !configuration) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/software?program_id=${configuration.pgm_id}`, {
+      const response = await fetch(`/api/software?program_id=${configuration.pgm_id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -466,7 +466,7 @@ export default function ConfigurationDetailPage() {
     setDeleteError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/bom/${itemToDelete.list_id}`, {
+      const response = await fetch(`/api/configurations/${id}/bom/${itemToDelete.list_id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -502,7 +502,7 @@ export default function ConfigurationDetailPage() {
     if (!token || !configuration) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/reference/parts?program_id=${configuration.pgm_id}`, {
+      const response = await fetch(`/api/reference/parts?program_id=${configuration.pgm_id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -559,7 +559,7 @@ export default function ConfigurationDetailPage() {
     setAddError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/bom`, {
+      const response = await fetch(`/api/configurations/${id}/bom`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -652,7 +652,7 @@ export default function ConfigurationDetailPage() {
     setAddSoftwareError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/software`, {
+      const response = await fetch(`/api/configurations/${id}/software`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -706,7 +706,7 @@ export default function ConfigurationDetailPage() {
     setDeleteSoftwareError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/software/${softwareToDelete.cfg_sw_id}`, {
+      const response = await fetch(`/api/configurations/${id}/software/${softwareToDelete.cfg_sw_id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -741,7 +741,7 @@ export default function ConfigurationDetailPage() {
     setAddMeterError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/meters`, {
+      const response = await fetch(`/api/configurations/${id}/meters`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -790,7 +790,7 @@ export default function ConfigurationDetailPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/configurations/${id}/meters/${meterId}`, {
+      const response = await fetch(`/api/configurations/${id}/meters/${meterId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

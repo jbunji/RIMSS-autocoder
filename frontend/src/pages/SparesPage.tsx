@@ -193,7 +193,7 @@ export default function SparesPage() {
 
       try {
         // Fetch locations (admin and custodial)
-        const locRes = await fetch('http://localhost:3001/api/reference/locations', {
+        const locRes = await fetch('/api/reference/locations', {
           headers: { 'Authorization': `Bearer ${token}` },
         })
         if (locRes.ok) {
@@ -203,7 +203,7 @@ export default function SparesPage() {
         }
 
         // Fetch asset statuses
-        const statusRes = await fetch('http://localhost:3001/api/reference/asset-statuses', {
+        const statusRes = await fetch('/api/reference/asset-statuses', {
           headers: { 'Authorization': `Bearer ${token}` },
         })
         if (statusRes.ok) {
@@ -253,7 +253,7 @@ export default function SparesPage() {
         queryParams.append('show_deleted', 'true')
       }
 
-      const response = await fetch(`http://localhost:3001/api/spares?${queryParams}`, {
+      const response = await fetch(`/api/spares?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -379,7 +379,7 @@ export default function SparesPage() {
         queryParams.append('show_deleted', 'true')
       }
 
-      const response = await fetch(`http://localhost:3001/api/spares?${queryParams}`, {
+      const response = await fetch(`/api/spares?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -560,7 +560,7 @@ export default function SparesPage() {
         queryParams.append('show_deleted', 'true')
       }
 
-      const response = await fetch(`http://localhost:3001/api/spares?${queryParams}`, {
+      const response = await fetch(`/api/spares?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -738,7 +738,7 @@ export default function SparesPage() {
     setCreateModalError(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/spares', {
+      const response = await fetch('/api/spares', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -783,7 +783,7 @@ export default function SparesPage() {
     setModalError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${selectedSpare.asset_id}`, {
+      const response = await fetch(`/api/assets/${selectedSpare.asset_id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -823,7 +823,7 @@ export default function SparesPage() {
     setIsDeleting(true)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${selectedSpare.asset_id}/permanent`, {
+      const response = await fetch(`/api/assets/${selectedSpare.asset_id}/permanent`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -854,7 +854,7 @@ export default function SparesPage() {
     if (!token) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/assets/${spare.asset_id}/reactivate`, {
+      const response = await fetch(`/api/assets/${spare.asset_id}/reactivate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -914,7 +914,7 @@ export default function SparesPage() {
     setIsMassUpdating(true)
 
     try {
-      const response = await fetch('http://localhost:3001/api/assets/mass-update', {
+      const response = await fetch('/api/assets/mass-update', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -967,7 +967,7 @@ export default function SparesPage() {
     setIsBulkDeleting(true)
 
     try {
-      const response = await fetch('http://localhost:3001/api/assets/bulk-delete', {
+      const response = await fetch('/api/assets/bulk-delete', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

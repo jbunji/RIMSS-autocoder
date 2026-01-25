@@ -51,7 +51,7 @@ export function TokenRefreshManager({ children }: TokenRefreshManagerProps) {
     console.log('[TokenRefreshManager] Initiating token refresh...')
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/refresh', {
+      const response = await fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

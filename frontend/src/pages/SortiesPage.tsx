@@ -126,7 +126,7 @@ export default function SortiesPage() {
     setError(null)
 
     try {
-      const url = new URL('http://localhost:3001/api/sorties')
+      const url = new URL('/api/sorties')
 
       // Apply program filter
       if (currentProgramId) {
@@ -193,7 +193,7 @@ export default function SortiesPage() {
 
     setAssetsLoading(true)
     try {
-      const url = new URL('http://localhost:3001/api/assets')
+      const url = new URL('/api/assets')
       url.searchParams.append('program_id', currentProgramId.toString())
 
       const response = await fetch(url.toString(), {
@@ -260,7 +260,7 @@ export default function SortiesPage() {
     setSubmitSuccess(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/sorties', {
+      const response = await fetch('/api/sorties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -279,7 +279,7 @@ export default function SortiesPage() {
 
       // Refresh the sorties list
       const refreshResponse = await fetch(
-        `http://localhost:3001/api/sorties?program_id=${currentProgramId}`,
+        `/api/sorties?program_id=${currentProgramId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -350,7 +350,7 @@ export default function SortiesPage() {
     setSubmitSuccess(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/sorties/${editingSortie.sortie_id}`, {
+      const response = await fetch(`/api/sorties/${editingSortie.sortie_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ export default function SortiesPage() {
 
       // Refresh the sorties list
       const refreshResponse = await fetch(
-        `http://localhost:3001/api/sorties?program_id=${currentProgramId}`,
+        `/api/sorties?program_id=${currentProgramId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -419,7 +419,7 @@ export default function SortiesPage() {
     setDeleteError(null)
 
     try {
-      const response = await fetch(`http://localhost:3001/api/sorties/${sortieToDelete.sortie_id}`, {
+      const response = await fetch(`/api/sorties/${sortieToDelete.sortie_id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -433,7 +433,7 @@ export default function SortiesPage() {
 
       // Refresh the sorties list
       const refreshResponse = await fetch(
-        `http://localhost:3001/api/sorties?program_id=${currentProgramId}`,
+        `/api/sorties?program_id=${currentProgramId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -574,7 +574,7 @@ export default function SortiesPage() {
     setImportSuccess(null)
 
     try {
-      const response = await fetch('http://localhost:3001/api/sorties/bulk-import', {
+      const response = await fetch('/api/sorties/bulk-import', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

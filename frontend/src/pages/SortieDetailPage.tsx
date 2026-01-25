@@ -87,7 +87,7 @@ export default function SortieDetailPage() {
       setError(null)
 
       try {
-        const response = await fetch(`http://localhost:3001/api/sorties/${id}`, {
+        const response = await fetch(`/api/sorties/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -123,7 +123,7 @@ export default function SortieDetailPage() {
 
       try {
         // Fetch all maintenance events and filter by sortie_id
-        const response = await fetch(`http://localhost:3001/api/events?sortie_id=${id}&limit=100`, {
+        const response = await fetch(`/api/events?sortie_id=${id}&limit=100`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

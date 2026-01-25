@@ -47,7 +47,7 @@ export default function SearchResultsPage() {
 
       try {
         const response = await fetch(
-          `http://localhost:3001/api/search?q=${encodeURIComponent(query)}`,
+          `/api/search?q=${encodeURIComponent(query)}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
