@@ -6,7 +6,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build Frontend
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS frontend-builder
+FROM node:20-slim AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -28,7 +28,7 @@ RUN pnpm build
 # -----------------------------------------------------------------------------
 # Stage 2: Build Backend
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS backend-builder
+FROM node:20-slim AS backend-builder
 
 WORKDIR /app/backend
 
@@ -53,14 +53,15 @@ RUN pnpm build
 # -----------------------------------------------------------------------------
 # Stage 3: Production Runtime
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init for proper signal handling and wget for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init wget && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -s /bin/bash -m nodejs
 
 WORKDIR /app
 
@@ -71,12 +72,9 @@ RUN corepack enable && corepack prepare pnpm@8.15.6 --activate
 COPY backend/package.json backend/pnpm-lock.yaml* ./
 RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
 
-# Copy Prisma schema
+# Copy Prisma schema and generate client
 COPY backend/prisma ./prisma
-
-# Copy the generated Prisma client from builder (has correct binary targets)
-# This overwrites the default client with one that has linux-musl-openssl-3.0.x binary
-COPY --from=backend-builder /app/backend/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma
+RUN npx prisma generate
 
 # Copy compiled backend from builder
 COPY --from=backend-builder /app/backend/dist ./dist
