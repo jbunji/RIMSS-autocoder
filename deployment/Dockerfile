@@ -71,9 +71,12 @@ RUN corepack enable && corepack prepare pnpm@8.15.6 --activate
 COPY backend/package.json backend/pnpm-lock.yaml* ./
 RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
 
-# Copy Prisma schema and generate client
+# Copy Prisma schema
 COPY backend/prisma ./prisma
-RUN npx prisma generate
+
+# Copy the generated Prisma client from builder (has correct binary targets)
+# This overwrites the default client with one that has linux-musl-openssl-3.0.x binary
+COPY --from=backend-builder /app/backend/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma
 
 # Copy compiled backend from builder
 COPY --from=backend-builder /app/backend/dist ./dist
