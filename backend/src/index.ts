@@ -6126,20 +6126,23 @@ app.get('/api/events', async (req, res) => {
     };
 
     // SECURITY: Filter by location - maintenance events must be at locations the user has access to
+    // ADMIN users are exempt from location filtering and can see all events
     // If a specific location is requested, filter by that location
     // If no location specified and user has location restrictions, show events from all their locations
     if (locationIdFilter) {
       // Filter by the specific requested location (only if user has access to it)
-      if (userLocationIds.includes(locationIdFilter)) {
-        whereClause.loc_id = locationIdFilter;
-      } else {
+      if (user.role !== 'ADMIN' && !userLocationIds.includes(locationIdFilter)) {
         // User doesn't have access to this location - return empty results
         whereClause.loc_id = -1; // Impossible ID to return no results
+      } else {
+        // ADMIN users can access any location, or non-ADMIN users with access to this location
+        whereClause.loc_id = locationIdFilter;
       }
-    } else if (userLocationIds.length > 0) {
-      // No specific location requested - filter by all user's locations
+    } else if (user.role !== 'ADMIN' && userLocationIds.length > 0) {
+      // No specific location requested - filter by all user's locations (unless ADMIN)
       whereClause.loc_id = { in: userLocationIds };
     }
+    // If user is ADMIN or has no location restrictions, don't filter by location
 
     // Apply program filter if specified
     if (programIdFilter && userProgramIds.includes(programIdFilter)) {
