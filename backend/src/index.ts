@@ -7,7 +7,6 @@ import fs from 'fs'
 import { PrismaClient, Prisma } from '@prisma/client'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './trpc'
-import bcrypt from 'bcryptjs'
 
 // Load environment variables
 dotenv.config()
@@ -251,6 +250,105 @@ app.use(
 // DEPOT (D-level): Depot maintenance - can ACKNOWLEDGE, FILL, SHIP parts orders
 type MaintenanceLevel = 'SHOP' | 'DEPOT';
 
+// Mock user data for testing
+const mockUsers = [
+  {
+    user_id: 1,
+    username: 'admin',
+    email: 'admin@example.mil',
+    first_name: 'John',
+    last_name: 'Admin',
+    role: 'ADMIN',
+    programs: [
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+      { pgm_id: 1, pgm_cd: 'CRIIS', pgm_name: 'Common Remotely Operated Integrated Reconnaissance System', is_default: false },
+      { pgm_id: 3, pgm_cd: 'ARDS', pgm_name: 'Airborne Reconnaissance Data System', is_default: false },
+      { pgm_id: 4, pgm_cd: '236', pgm_name: 'Program 236', is_default: false },
+    ],
+    locations: [
+      // ACTS locations (mapped from Oracle IDs via id-mappings-v2.json)
+      { loc_id: 41, display_name: 'Shaw AFB - 20 FW', is_default: true, pgm_id: 2 }, // Oracle 18 -> PG 41
+      { loc_id: 24, display_name: 'Langley AFB - 1 FW', is_default: false, pgm_id: 2 }, // Oracle 1 -> PG 24
+      { loc_id: 46, display_name: 'Hill AFB - 388 FW', is_default: false, pgm_id: 2 }, // Oracle 24 -> PG 46
+      { loc_id: 50, display_name: 'Luke AFB - 56 FW', is_default: false, pgm_id: 2 }, // Oracle 28 -> PG 50
+    ],
+    // Admin has access to both SHOP and DEPOT maintenance levels
+    allowedMaintenanceLevels: ['DEPOT', 'SHOP'] as MaintenanceLevel[],
+  },
+  {
+    user_id: 2,
+    username: 'depot_mgr',
+    email: 'depot@example.mil',
+    first_name: 'Jane',
+    last_name: 'Depot',
+    role: 'DEPOT_MANAGER',
+    programs: [
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+    ],
+    locations: [
+      { loc_id: 41, display_name: 'Shaw AFB - 20 FW', is_default: true, pgm_id: 2 }, // ACTS DEPOT location
+    ],
+    // Depot manager has DEPOT level - can fulfill parts orders
+    allowedMaintenanceLevels: ['DEPOT'] as MaintenanceLevel[],
+  },
+  {
+    user_id: 3,
+    username: 'field_tech',
+    email: 'field@example.mil',
+    first_name: 'Bob',
+    last_name: 'Field',
+    role: 'FIELD_TECHNICIAN',
+    programs: [
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+    ],
+    locations: [
+      { loc_id: 24, display_name: 'Langley AFB - 1 FW', is_default: true, pgm_id: 2 }, // ACTS SHOP location
+    ],
+    // Field technician has SHOP level - can request parts but not fulfill
+    allowedMaintenanceLevels: ['SHOP'] as MaintenanceLevel[],
+  },
+  {
+    user_id: 4,
+    username: 'viewer',
+    email: 'viewer@example.mil',
+    first_name: 'Sam',
+    last_name: 'Viewer',
+    role: 'VIEWER',
+    programs: [
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+    ],
+    locations: [],
+    // Viewer has no maintenance level - read-only access
+    allowedMaintenanceLevels: [] as MaintenanceLevel[],
+  },
+  {
+    user_id: 5,
+    username: 'acts_user',
+    email: 'acts@example.mil',
+    first_name: 'Alice',
+    last_name: 'ACTS',
+    role: 'FIELD_TECHNICIAN',
+    programs: [
+      { pgm_id: 2, pgm_cd: 'ACTS', pgm_name: 'Advanced Targeting Capability System', is_default: true },
+    ],
+    locations: [
+      { loc_id: 41, display_name: 'Shaw AFB - 20 FW', is_default: true, pgm_id: 2 }, // Oracle 18 -> PG 41
+      { loc_id: 46, display_name: 'Hill AFB - 388 FW', is_default: false, pgm_id: 2 }, // Oracle 24 -> PG 46
+    ],
+    // Field technician at ACTS has SHOP level
+    allowedMaintenanceLevels: ['SHOP'] as MaintenanceLevel[],
+  },
+]
+
+// Mock passwords (in real app, these would be hashed)
+const mockPasswords: Record<string, string> = {
+  admin: 'admin123',
+  depot_mgr: 'depot123',
+  field_tech: 'field123',
+  viewer: 'viewer123',
+  acts_user: 'acts123',
+}
+
 // Token blacklist - stores invalidated tokens
 const tokenBlacklist = new Set<string>()
 
@@ -320,85 +418,15 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' })
   }
 
+  const user = mockUsers.find(u => u.username === username)
+  if (!user || mockPasswords[username] !== password) {
+    return res.status(401).json({ error: 'Invalid username or password' })
+  }
+
   try {
-    // Find user in database
-    const dbUser = await prisma.users.findUnique({
-      where: { username: username.toLowerCase() },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      }
-    })
-
-    if (!dbUser) {
-      return res.status(401).json({ error: 'Invalid username or password' })
-    }
-
-    // Check if user is active
-    if (!dbUser.active) {
-      return res.status(403).json({ error: 'User account is inactive' })
-    }
-
-    // Verify password using bcrypt
-    const isPasswordValid = await bcrypt.compare(password, dbUser.password_hash)
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid username or password' })
-    }
-
-    // Update last_login timestamp
-    await prisma.users.update({
-      where: { user_id: dbUser.user_id },
-      data: { last_login: new Date() }
-    })
-
-    // Transform database user to match expected format
-    const programs = dbUser.userPrograms.map(up => ({
-      pgm_id: up.program.pgm_id,
-      pgm_cd: up.program.pgm_cd,
-      pgm_name: up.program.pgm_name,
-      is_default: up.is_default
-    }))
-
-    const locations = dbUser.userLocations.map(ul => ({
-      loc_id: ul.location.loc_id,
-      display_name: ul.location.display_name,
-      is_default: ul.is_default,
-      pgm_id: undefined // Will be resolved if needed
-    }))
-
-    // Determine maintenance levels based on role
-    let allowedMaintenanceLevels: MaintenanceLevel[] = []
-    if (dbUser.role === 'ADMIN') {
-      allowedMaintenanceLevels = ['DEPOT', 'SHOP']
-    } else if (dbUser.role === 'DEPOT_MANAGER') {
-      allowedMaintenanceLevels = ['DEPOT']
-    } else if (dbUser.role === 'FIELD_TECHNICIAN') {
-      allowedMaintenanceLevels = ['SHOP']
-    }
-
-    const user = {
-      user_id: dbUser.user_id,
-      username: dbUser.username,
-      email: dbUser.email,
-      first_name: dbUser.first_name,
-      last_name: dbUser.last_name,
-      role: dbUser.role,
-      programs,
-      locations,
-      allowedMaintenanceLevels
-    }
-
     // Load code cache and resolve location display names
     const codes = await loadCodeCache();
-    const resolvedLocations = await resolveUserLocations(locations, codes);
+    const resolvedLocations = await resolveUserLocations(user.locations, codes);
 
     const userWithResolvedData = {
       ...user,
@@ -410,8 +438,10 @@ app.post('/api/auth/login', async (req, res) => {
     console.log(`[LOGIN] User ${user.username} logged in with maintenance levels: ${user.allowedMaintenanceLevels?.join(', ') || 'none'}`);
     res.json({ token, user: userWithResolvedData })
   } catch (error) {
-    console.error('[LOGIN] Error:', error);
-    res.status(500).json({ error: 'Internal server error during login' })
+    console.error('[LOGIN] Error resolving locations:', error);
+    // Fallback to original user data if resolution fails
+    const token = generateMockToken(user.user_id)
+    res.json({ token, user: { ...user, allowedMaintenanceLevels: user.allowedMaintenanceLevels || [] } })
   }
 })
 
@@ -429,73 +459,15 @@ app.get('/api/auth/me', async (req, res) => {
     return res.status(401).json({ error: 'Invalid or expired token' })
   }
 
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
+  }
+
   try {
-    // Find user in database
-    const dbUser = await prisma.users.findUnique({
-      where: { user_id: payload.userId },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      }
-    })
-
-    if (!dbUser) {
-      return res.status(401).json({ error: 'User not found' })
-    }
-
-    // Check if user is active
-    if (!dbUser.active) {
-      return res.status(403).json({ error: 'User account is inactive' })
-    }
-
-    // Transform database user to match expected format
-    const programs = dbUser.userPrograms.map(up => ({
-      pgm_id: up.program.pgm_id,
-      pgm_cd: up.program.pgm_cd,
-      pgm_name: up.program.pgm_name,
-      is_default: up.is_default
-    }))
-
-    const locations = dbUser.userLocations.map(ul => ({
-      loc_id: ul.location.loc_id,
-      display_name: ul.location.display_name,
-      is_default: ul.is_default,
-      pgm_id: undefined
-    }))
-
-    // Determine maintenance levels based on role
-    let allowedMaintenanceLevels: MaintenanceLevel[] = []
-    if (dbUser.role === 'ADMIN') {
-      allowedMaintenanceLevels = ['DEPOT', 'SHOP']
-    } else if (dbUser.role === 'DEPOT_MANAGER') {
-      allowedMaintenanceLevels = ['DEPOT']
-    } else if (dbUser.role === 'FIELD_TECHNICIAN') {
-      allowedMaintenanceLevels = ['SHOP']
-    }
-
-    const user = {
-      user_id: dbUser.user_id,
-      username: dbUser.username,
-      email: dbUser.email,
-      first_name: dbUser.first_name,
-      last_name: dbUser.last_name,
-      role: dbUser.role,
-      programs,
-      locations,
-      allowedMaintenanceLevels
-    }
-
     // Load code cache and resolve location display names
     const codes = await loadCodeCache();
-    const resolvedLocations = await resolveUserLocations(locations, codes);
+    const resolvedLocations = await resolveUserLocations(user.locations, codes);
 
     const userWithResolvedData = {
       ...user,
@@ -505,13 +477,14 @@ app.get('/api/auth/me', async (req, res) => {
 
     res.json({ user: userWithResolvedData })
   } catch (error) {
-    console.error('[AUTH/ME] Error:', error);
-    res.status(500).json({ error: 'Internal server error' })
+    console.error('[AUTH/ME] Error resolving locations:', error);
+    // Fallback to original user data if resolution fails
+    res.json({ user: { ...user, allowedMaintenanceLevels: user.allowedMaintenanceLevels || [] } })
   }
 })
 
 // Global search endpoint - searches across assets, maintenance events, and configurations
-app.get('/api/search', async (req, res) => {
+app.get('/api/search', (req, res) => {
   const authHeader = req.headers.authorization
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Not authenticated' })
@@ -524,193 +497,173 @@ app.get('/api/search', async (req, res) => {
     return res.status(401).json({ error: 'Invalid or expired token' })
   }
 
-  try {
-    // Find user in database
-    const dbUser = await prisma.users.findUnique({
-      where: { user_id: payload.userId },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      }
-    })
-
-    if (!dbUser) {
-      return res.status(401).json({ error: 'User not found' })
-    }
-
-    // Get user's programs and locations
-    const userProgramIds = dbUser.userPrograms.map(up => up.program.pgm_id)
-    const userLocationIds = dbUser.userLocations.map(ul => ul.location.loc_id)
-
-    // Get search query parameter (required)
-    const query = (req.query.q as string || '').trim().toLowerCase()
-
-    if (!query || query.length < 2) {
-      return res.json({
-        assets: [],
-        events: [],
-        configurations: [],
-        message: 'Search query must be at least 2 characters'
-      })
-    }
-
-    console.log(`[SEARCH] User ${dbUser.username} searching for: "${query}"`)
-    console.log(`[SEARCH] User locations: ${userLocationIds.join(', ')}`)
-    console.log(`[SEARCH] User programs: ${userProgramIds.join(', ')}`)
-
-    // Search assets (filter by program AND location)
-    let matchingAssets = detailedAssets.filter(asset => {
-      // Only include active assets from user's programs
-      if (asset.active === false) return false
-      if (!userProgramIds.includes(asset.pgm_id)) return false
-
-      // Apply location filtering
-      if (userLocationIds.length > 0) {
-        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
-        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
-        if (!matchesAssignedBase && !matchesCurrentBase) {
-          return false
-        }
-      }
-
-      // Search in asset fields
-      const serialMatch = asset.serno?.toLowerCase().includes(query)
-      const partMatch = asset.partno?.toLowerCase().includes(query)
-      const nameMatch = asset.part_name?.toLowerCase().includes(query)
-      const uiiMatch = asset.uii?.toLowerCase().includes(query)
-
-      return serialMatch || partMatch || nameMatch || uiiMatch
-    })
-
-    // Limit asset results to 20
-    matchingAssets = matchingAssets.slice(0, 20)
-
-    console.log(`[SEARCH] Found ${matchingAssets.length} matching assets`)
-
-    // Search maintenance events (filter by program AND location via asset join)
-    let matchingEvents = maintenanceEvents.filter(event => {
-      // Find the associated asset
-      const asset = detailedAssets.find(a => a.asset_id === event.asset_id)
-      if (!asset) return false
-
-      // Only include events from user's programs
-      if (!userProgramIds.includes(event.pgm_id)) return false
-
-      // Apply location filtering via asset
-      if (userLocationIds.length > 0) {
-        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
-        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
-        if (!matchesAssignedBase && !matchesCurrentBase) {
-          return false
-        }
-      }
-
-      // Search in event fields
-      const eventNumMatch = event.event_num?.toLowerCase().includes(query)
-      const descriptionMatch = event.description?.toLowerCase().includes(query)
-      const remarksMatch = event.remarks?.toLowerCase().includes(query)
-
-      return eventNumMatch || descriptionMatch || remarksMatch
-    })
-
-    // Limit event results to 20
-    matchingEvents = matchingEvents.slice(0, 20)
-
-    console.log(`[SEARCH] Found ${matchingEvents.length} matching events`)
-
-    // Search configurations (filter by program AND location via assets in config)
-    let matchingConfigurations = configurations.filter(config => {
-      // Only include configs from user's programs
-      if (!userProgramIds.includes(config.pgm_id)) return false
-
-      // For location filtering, check if any asset in this configuration set belongs to user's locations
-      if (userLocationIds.length > 0) {
-        const configAssets = detailedAssets.filter(a =>
-          a.cfg_set_id === config.cfg_set_id && a.active !== false
-        )
-
-        const hasAccessibleAsset = configAssets.some(asset => {
-          const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
-          const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
-          return matchesAssignedBase || matchesCurrentBase
-        })
-
-        if (!hasAccessibleAsset) {
-          return false
-        }
-      }
-
-      // Search in configuration fields
-      const nameMatch = config.name?.toLowerCase().includes(query)
-      const descriptionMatch = config.description?.toLowerCase().includes(query)
-      const versionMatch = config.version?.toLowerCase().includes(query)
-
-      return nameMatch || descriptionMatch || versionMatch
-    })
-
-    // Limit configuration results to 20
-    matchingConfigurations = matchingConfigurations.slice(0, 20)
-
-    console.log(`[SEARCH] Found ${matchingConfigurations.length} matching configurations`)
-
-    // Format results for frontend
-    const assetResults = matchingAssets.map(asset => ({
-      id: asset.asset_id,
-      type: 'asset' as const,
-      title: `${asset.serno} - ${asset.part_name}`,
-      subtitle: asset.partno,
-      status: asset.status_cd,
-      location: asset.admin_loc_name || asset.cust_loc_name,
-      url: `/assets/${asset.asset_id}`
-    }))
-
-    const eventResults = matchingEvents.map(event => {
-      const asset = detailedAssets.find(a => a.asset_id === event.asset_id)
-      return {
-        id: event.event_id,
-        type: 'event' as const,
-        title: `Event ${event.event_num}`,
-        subtitle: event.description,
-        status: event.status,
-        asset: asset ? `${asset.serno} - ${asset.part_name}` : 'Unknown Asset',
-        url: `/maintenance/${event.event_id}`
-      }
-    })
-
-    const configResults = matchingConfigurations.map(config => ({
-      id: config.cfg_set_id,
-      type: 'configuration' as const,
-      title: config.name,
-      subtitle: config.description,
-      version: config.version,
-      url: `/configurations/${config.cfg_set_id}`
-    }))
-
-    const totalResults = assetResults.length + eventResults.length + configResults.length
-
-    res.json({
-      query,
-      totalResults,
-      assets: assetResults,
-      events: eventResults,
-      configurations: configResults
-    })
-  } catch (error) {
-    console.error('[SEARCH] Error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
   }
+
+  // Get search query parameter (required)
+  const query = (req.query.q as string || '').trim().toLowerCase()
+
+  if (!query || query.length < 2) {
+    return res.json({
+      assets: [],
+      events: [],
+      configurations: [],
+      message: 'Search query must be at least 2 characters'
+    })
+  }
+
+  console.log(`[SEARCH] User ${user.username} searching for: "${query}"`)
+
+  // Get user's location IDs for authorization check
+  const userLocationIds = user.locations?.map(loc => loc.loc_id) || []
+  const userProgramIds = user.programs?.map(p => p.pgm_id) || []
+
+  console.log(`[SEARCH] User locations: ${userLocationIds.join(', ')}`)
+  console.log(`[SEARCH] User programs: ${userProgramIds.join(', ')}`)
+
+  // Search assets (filter by program AND location)
+  let matchingAssets = detailedAssets.filter(asset => {
+    // Only include active assets from user's programs
+    if (asset.active === false) return false
+    if (!userProgramIds.includes(asset.pgm_id)) return false
+
+    // Apply location filtering
+    if (userLocationIds.length > 0) {
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
+      if (!matchesAssignedBase && !matchesCurrentBase) {
+        return false
+      }
+    }
+
+    // Search in asset fields
+    const serialMatch = asset.serno?.toLowerCase().includes(query)
+    const partMatch = asset.partno?.toLowerCase().includes(query)
+    const nameMatch = asset.part_name?.toLowerCase().includes(query)
+    const uiiMatch = asset.uii?.toLowerCase().includes(query)
+
+    return serialMatch || partMatch || nameMatch || uiiMatch
+  })
+
+  // Limit asset results to 20
+  matchingAssets = matchingAssets.slice(0, 20)
+
+  console.log(`[SEARCH] Found ${matchingAssets.length} matching assets`)
+
+  // Search maintenance events (filter by program AND location via asset join)
+  let matchingEvents = maintenanceEvents.filter(event => {
+    // Find the associated asset
+    const asset = detailedAssets.find(a => a.asset_id === event.asset_id)
+    if (!asset) return false
+
+    // Only include events from user's programs
+    if (!userProgramIds.includes(event.pgm_id)) return false
+
+    // Apply location filtering via asset
+    if (userLocationIds.length > 0) {
+      const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
+      const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
+      if (!matchesAssignedBase && !matchesCurrentBase) {
+        return false
+      }
+    }
+
+    // Search in event fields
+    const eventNumMatch = event.event_num?.toLowerCase().includes(query)
+    const descriptionMatch = event.description?.toLowerCase().includes(query)
+    const remarksMatch = event.remarks?.toLowerCase().includes(query)
+
+    return eventNumMatch || descriptionMatch || remarksMatch
+  })
+
+  // Limit event results to 20
+  matchingEvents = matchingEvents.slice(0, 20)
+
+  console.log(`[SEARCH] Found ${matchingEvents.length} matching events`)
+
+  // Search configurations (filter by program AND location via assets in config)
+  let matchingConfigurations = configurations.filter(config => {
+    // Only include configs from user's programs
+    if (!userProgramIds.includes(config.pgm_id)) return false
+
+    // For location filtering, check if any asset in this configuration set belongs to user's locations
+    if (userLocationIds.length > 0) {
+      const configAssets = detailedAssets.filter(a =>
+        a.cfg_set_id === config.cfg_set_id && a.active !== false
+      )
+
+      const hasAccessibleAsset = configAssets.some(asset => {
+        const matchesAssignedBase = asset.loc_ida !== null && userLocationIds.includes(asset.loc_ida)
+        const matchesCurrentBase = asset.loc_idc !== null && userLocationIds.includes(asset.loc_idc)
+        return matchesAssignedBase || matchesCurrentBase
+      })
+
+      if (!hasAccessibleAsset) {
+        return false
+      }
+    }
+
+    // Search in configuration fields
+    const nameMatch = config.name?.toLowerCase().includes(query)
+    const descriptionMatch = config.description?.toLowerCase().includes(query)
+    const versionMatch = config.version?.toLowerCase().includes(query)
+
+    return nameMatch || descriptionMatch || versionMatch
+  })
+
+  // Limit configuration results to 20
+  matchingConfigurations = matchingConfigurations.slice(0, 20)
+
+  console.log(`[SEARCH] Found ${matchingConfigurations.length} matching configurations`)
+
+  // Format results for frontend
+  const assetResults = matchingAssets.map(asset => ({
+    id: asset.asset_id,
+    type: 'asset' as const,
+    title: `${asset.serno} - ${asset.part_name}`,
+    subtitle: asset.partno,
+    status: asset.status_cd,
+    location: asset.admin_loc_name || asset.cust_loc_name,
+    url: `/assets/${asset.asset_id}`
+  }))
+
+  const eventResults = matchingEvents.map(event => {
+    const asset = detailedAssets.find(a => a.asset_id === event.asset_id)
+    return {
+      id: event.event_id,
+      type: 'event' as const,
+      title: `Event ${event.event_num}`,
+      subtitle: event.description,
+      status: event.status,
+      asset: asset ? `${asset.serno} - ${asset.part_name}` : 'Unknown Asset',
+      url: `/maintenance/${event.event_id}`
+    }
+  })
+
+  const configResults = matchingConfigurations.map(config => ({
+    id: config.cfg_set_id,
+    type: 'configuration' as const,
+    title: config.name,
+    subtitle: config.description,
+    version: config.version,
+    url: `/configurations/${config.cfg_set_id}`
+  }))
+
+  const totalResults = assetResults.length + eventResults.length + configResults.length
+
+  res.json({
+    query,
+    totalResults,
+    assets: assetResults,
+    events: eventResults,
+    configurations: configResults
+  })
 })
 
 // Token refresh endpoint
-app.post('/api/auth/refresh', async (req, res) => {
+app.post('/api/auth/refresh', (req, res) => {
   const authHeader = req.headers.authorization
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Not authenticated' })
@@ -723,78 +676,15 @@ app.post('/api/auth/refresh', async (req, res) => {
     return res.status(401).json({ error: 'Invalid or expired token' })
   }
 
-  try {
-    // Find user in database
-    const dbUser = await prisma.users.findUnique({
-      where: { user_id: payload.userId },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      }
-    })
-
-    if (!dbUser) {
-      return res.status(401).json({ error: 'User not found' })
-    }
-
-    // Check if user is active
-    if (!dbUser.active) {
-      return res.status(403).json({ error: 'User account is inactive' })
-    }
-
-    // Transform database user to match expected format
-    const programs = dbUser.userPrograms.map(up => ({
-      pgm_id: up.program.pgm_id,
-      pgm_cd: up.program.pgm_cd,
-      pgm_name: up.program.pgm_name,
-      is_default: up.is_default
-    }))
-
-    const locations = dbUser.userLocations.map(ul => ({
-      loc_id: ul.location.loc_id,
-      display_name: ul.location.display_name,
-      is_default: ul.is_default,
-      pgm_id: undefined
-    }))
-
-    // Determine maintenance levels based on role
-    let allowedMaintenanceLevels: MaintenanceLevel[] = []
-    if (dbUser.role === 'ADMIN') {
-      allowedMaintenanceLevels = ['DEPOT', 'SHOP']
-    } else if (dbUser.role === 'DEPOT_MANAGER') {
-      allowedMaintenanceLevels = ['DEPOT']
-    } else if (dbUser.role === 'FIELD_TECHNICIAN') {
-      allowedMaintenanceLevels = ['SHOP']
-    }
-
-    const user = {
-      user_id: dbUser.user_id,
-      username: dbUser.username,
-      email: dbUser.email,
-      first_name: dbUser.first_name,
-      last_name: dbUser.last_name,
-      role: dbUser.role,
-      programs,
-      locations,
-      allowedMaintenanceLevels
-    }
-
-    // Generate a new token with extended expiration
-    const newToken = generateMockToken(user.user_id)
-    console.log(`[AUTH] Token refreshed for user: ${user.username}`)
-    res.json({ token: newToken, user })
-  } catch (error) {
-    console.error('[AUTH/REFRESH] Error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
   }
+
+  // Generate a new token with extended expiration
+  const newToken = generateMockToken(user.user_id)
+  console.log(`[AUTH] Token refreshed for user: ${user.username}`)
+  res.json({ token: newToken, user })
 })
 
 // Logout endpoint
@@ -810,7 +700,7 @@ app.post('/api/auth/logout', (req, res) => {
 })
 
 // Change password endpoint
-app.post('/api/auth/change-password', async (req, res) => {
+app.post('/api/auth/change-password', (req, res) => {
   const authHeader = req.headers.authorization
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Not authenticated' })
@@ -823,79 +713,60 @@ app.post('/api/auth/change-password', async (req, res) => {
     return res.status(401).json({ error: 'Invalid or expired token' })
   }
 
-  try {
-    // Find user in database
-    const dbUser = await prisma.users.findUnique({
-      where: { user_id: payload.userId }
-    })
-
-    if (!dbUser) {
-      return res.status(401).json({ error: 'User not found' })
-    }
-
-    const { currentPassword, newPassword, confirmPassword } = req.body
-
-    // Validate required fields
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({ error: 'All password fields are required' })
-    }
-
-    // Verify current password using bcrypt
-    const isPasswordValid = await bcrypt.compare(currentPassword, dbUser.password_hash)
-    if (!isPasswordValid) {
-      return res.status(400).json({ error: 'Current password is incorrect' })
-    }
-
-    // Verify new passwords match
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({ error: 'New passwords do not match' })
-    }
-
-    // Validate new password requirements (12+ chars, uppercase, lowercase, number, special char)
-    if (newPassword.length < 12) {
-      return res.status(400).json({ error: 'Password must be at least 12 characters' })
-    }
-    if (!/[A-Z]/.test(newPassword)) {
-      return res.status(400).json({ error: 'Password must contain at least one uppercase letter' })
-    }
-    if (!/[a-z]/.test(newPassword)) {
-      return res.status(400).json({ error: 'Password must contain at least one lowercase letter' })
-    }
-    if (!/[0-9]/.test(newPassword)) {
-      return res.status(400).json({ error: 'Password must contain at least one number' })
-    }
-    if (!/[^A-Za-z0-9]/.test(newPassword)) {
-      return res.status(400).json({ error: 'Password must contain at least one special character' })
-    }
-
-    // Check new password is different from current
-    const isSamePassword = await bcrypt.compare(newPassword, dbUser.password_hash)
-    if (isSamePassword) {
-      return res.status(400).json({ error: 'New password must be different from current password' })
-    }
-
-    // Hash new password and update in database
-    const newPasswordHash = await bcrypt.hash(newPassword, 10)
-    await prisma.users.update({
-      where: { user_id: dbUser.user_id },
-      data: {
-        password_hash: newPasswordHash,
-        chg_by: dbUser.username,
-        chg_date: new Date()
-      }
-    })
-
-    console.log(`[AUTH] Password changed for user: ${dbUser.username}`)
-
-    res.json({ message: 'Password changed successfully' })
-  } catch (error) {
-    console.error('[AUTH/CHANGE-PASSWORD] Error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  const user = mockUsers.find(u => u.user_id === payload.userId)
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' })
   }
+
+  const { currentPassword, newPassword, confirmPassword } = req.body
+
+  // Validate required fields
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({ error: 'All password fields are required' })
+  }
+
+  // Verify current password
+  if (mockPasswords[user.username] !== currentPassword) {
+    return res.status(400).json({ error: 'Current password is incorrect' })
+  }
+
+  // Verify new passwords match
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ error: 'New passwords do not match' })
+  }
+
+  // Validate new password requirements (12+ chars, uppercase, lowercase, number, special char)
+  if (newPassword.length < 12) {
+    return res.status(400).json({ error: 'Password must be at least 12 characters' })
+  }
+  if (!/[A-Z]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one uppercase letter' })
+  }
+  if (!/[a-z]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one lowercase letter' })
+  }
+  if (!/[0-9]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one number' })
+  }
+  if (!/[^A-Za-z0-9]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must contain at least one special character' })
+  }
+
+  // Check new password is different from current
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ error: 'New password must be different from current password' })
+  }
+
+  // Update the password
+  mockPasswords[user.username] = newPassword
+
+  console.log(`[AUTH] Password changed for user: ${user.username}`)
+
+  res.json({ message: 'Password changed successfully' })
 })
 
 // Update own profile endpoint (for any authenticated user)
-app.put('/api/profile', async (req, res) => {
+app.put('/api/profile', (req, res) => {
   const authHeader = req.headers.authorization
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Not authenticated' })
@@ -908,69 +779,45 @@ app.put('/api/profile', async (req, res) => {
     return res.status(401).json({ error: 'Invalid or expired token' })
   }
 
-  try {
-    // Find user in database
-    const existingUser = await prisma.users.findUnique({
-      where: { user_id: payload.userId }
-    })
-
-    if (!existingUser) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    const { email, first_name, last_name } = req.body
-
-    // Validate required fields
-    if (!email || !first_name || !last_name) {
-      return res.status(400).json({ error: 'Email, first name, and last name are required' })
-    }
-
-    // Validate email format
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format' })
-    }
-
-    // Check for duplicate email (excluding current user)
-    const duplicateEmail = await prisma.users.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        NOT: { user_id: payload.userId }
-      }
-    })
-
-    if (duplicateEmail) {
-      return res.status(400).json({ error: 'Email already exists' })
-    }
-
-    // Update the user in database (only email, first_name, last_name - no role/programs/username changes)
-    const updatedUser = await prisma.users.update({
-      where: { user_id: payload.userId },
-      data: {
-        email: email.toLowerCase(),
-        first_name,
-        last_name,
-        chg_by: existingUser.username,
-        chg_date: new Date()
-      }
-    })
-
-    console.log(`[PROFILE] User profile updated: ${existingUser.username} (ID: ${payload.userId})`)
-
-    res.json({
-      message: 'Profile updated successfully',
-      user: {
-        user_id: updatedUser.user_id,
-        username: updatedUser.username,
-        email: updatedUser.email,
-        first_name: updatedUser.first_name,
-        last_name: updatedUser.last_name,
-        role: updatedUser.role
-      }
-    })
-  } catch (error) {
-    console.error('[PROFILE] Error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  const userIndex = mockUsers.findIndex(u => u.user_id === payload.userId)
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' })
   }
+
+  const existingUser = mockUsers[userIndex]
+  const { email, first_name, last_name } = req.body
+
+  // Validate required fields
+  if (!email || !first_name || !last_name) {
+    return res.status(400).json({ error: 'Email, first name, and last name are required' })
+  }
+
+  // Validate email format
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' })
+  }
+
+  // Check for duplicate email (excluding current user)
+  if (mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.user_id !== payload.userId)) {
+    return res.status(400).json({ error: 'Email already exists' })
+  }
+
+  // Update the user (only email, first_name, last_name - no role/programs/username changes)
+  const updatedUser = {
+    ...existingUser,
+    email,
+    first_name,
+    last_name,
+  }
+
+  mockUsers[userIndex] = updatedUser
+
+  console.log(`[PROFILE] User profile updated: ${existingUser.username} (ID: ${payload.userId})`)
+
+  res.json({
+    message: 'Profile updated successfully',
+    user: updatedUser
+  })
 })
 
 // Programs list
@@ -1594,596 +1441,142 @@ async function logAuditAction(
 }
 
 // Get all users (admin only)
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', (req, res) => {
   if (!requireAdmin(req, res)) return
 
-  try {
-    // Fetch all users from database with their programs and locations
-    const dbUsers = await prisma.users.findMany({
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      },
-      orderBy: {
-        user_id: 'asc'
-      }
-    })
+  // Return users without password information
+  const usersWithActive = mockUsers.map(u => ({
+    ...u,
+    active: true,
+  }))
 
-    // Transform database users to match expected format
-    const users = dbUsers.map(dbUser => {
-      const programs = dbUser.userPrograms.map(up => ({
-        pgm_id: up.program.pgm_id,
-        pgm_cd: up.program.pgm_cd,
-        pgm_name: up.program.pgm_name,
-        is_default: up.is_default
-      }))
-
-      const locations = dbUser.userLocations.map(ul => ({
-        loc_id: ul.location.loc_id,
-        display_name: ul.location.display_name,
-        is_default: ul.is_default
-      }))
-
-      // Determine maintenance levels based on role
-      let allowedMaintenanceLevels: MaintenanceLevel[] = []
-      if (dbUser.role === 'ADMIN') {
-        allowedMaintenanceLevels = ['DEPOT', 'SHOP']
-      } else if (dbUser.role === 'DEPOT_MANAGER') {
-        allowedMaintenanceLevels = ['DEPOT']
-      } else if (dbUser.role === 'FIELD_TECHNICIAN') {
-        allowedMaintenanceLevels = ['SHOP']
-      }
-
-      return {
-        user_id: dbUser.user_id,
-        username: dbUser.username,
-        email: dbUser.email,
-        first_name: dbUser.first_name,
-        last_name: dbUser.last_name,
-        role: dbUser.role,
-        active: dbUser.active,
-        programs,
-        locations,
-        allowedMaintenanceLevels,
-        last_login: dbUser.last_login,
-        ins_date: dbUser.ins_date
-      }
-    })
-
-    res.json({ users })
-  } catch (error) {
-    console.error('[USERS] Error fetching users:', error)
-    res.status(500).json({ error: 'Internal server error' })
-  }
+  res.json({ users: usersWithActive })
 })
 
 // Get single user by ID
-app.get('/api/users/:id', async (req, res) => {
+app.get('/api/users/:id', (req, res) => {
   if (!requireAdmin(req, res)) return
 
-  try {
-    const userId = parseInt(req.params.id, 10)
+  const userId = parseInt(req.params.id, 10)
+  const user = mockUsers.find(u => u.user_id === userId)
 
-    const dbUser = await prisma.users.findUnique({
-      where: { user_id: userId },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      }
-    })
-
-    if (!dbUser) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    const programs = dbUser.userPrograms.map(up => ({
-      pgm_id: up.program.pgm_id,
-      pgm_cd: up.program.pgm_cd,
-      pgm_name: up.program.pgm_name,
-      is_default: up.is_default
-    }))
-
-    const locations = dbUser.userLocations.map(ul => ({
-      loc_id: ul.location.loc_id,
-      display_name: ul.location.display_name,
-      is_default: ul.is_default
-    }))
-
-    // Determine maintenance levels based on role
-    let allowedMaintenanceLevels: MaintenanceLevel[] = []
-    if (dbUser.role === 'ADMIN') {
-      allowedMaintenanceLevels = ['DEPOT', 'SHOP']
-    } else if (dbUser.role === 'DEPOT_MANAGER') {
-      allowedMaintenanceLevels = ['DEPOT']
-    } else if (dbUser.role === 'FIELD_TECHNICIAN') {
-      allowedMaintenanceLevels = ['SHOP']
-    }
-
-    const user = {
-      user_id: dbUser.user_id,
-      username: dbUser.username,
-      email: dbUser.email,
-      first_name: dbUser.first_name,
-      last_name: dbUser.last_name,
-      role: dbUser.role,
-      active: dbUser.active,
-      programs,
-      locations,
-      allowedMaintenanceLevels,
-      last_login: dbUser.last_login,
-      ins_date: dbUser.ins_date
-    }
-
-    res.json({ user })
-  } catch (error) {
-    console.error('[USERS] Error fetching user:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' })
   }
+
+  res.json({ user: { ...user, active: true } })
 })
 
 // Update user by ID (admin only)
 app.put('/api/users/:id', async (req, res) => {
   if (!requireAdmin(req, res)) return
 
-  try {
-    const userId = parseInt(req.params.id, 10)
+  const userId = parseInt(req.params.id, 10)
+  const userIndex = mockUsers.findIndex(u => u.user_id === userId)
 
-    // Fetch existing user from database
-    const existingUser = await prisma.users.findUnique({
-      where: { user_id: userId },
-      include: {
-        userPrograms: true,
-        userLocations: true
-      }
-    })
-
-    if (!existingUser) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    const { username, email, first_name, last_name, role, password, program_ids, default_program_id, location_ids, default_location_id, active, admin_password } = req.body
-
-    // Check if role is being changed
-    const roleChanged = existingUser.role !== role
-
-    // If role is being changed, require admin password re-authentication
-    if (roleChanged) {
-      if (!admin_password) {
-        return res.status(403).json({ error: 'Admin password is required when changing user roles' })
-      }
-
-      // Get the admin user's info from the token
-      const token = req.headers.authorization?.replace('Bearer ', '')
-      if (!token) {
-        return res.status(401).json({ error: 'Authentication required' })
-      }
-
-      const tokenData = parseMockToken(token)
-      if (!tokenData) {
-        return res.status(401).json({ error: 'Invalid or expired token' })
-      }
-
-      const adminUser = await prisma.users.findUnique({
-        where: { user_id: tokenData.userId }
-      })
-
-      if (!adminUser) {
-        return res.status(401).json({ error: 'Admin user not found' })
-      }
-
-      // Verify admin password using bcrypt
-      const isAdminPasswordValid = await bcrypt.compare(admin_password, adminUser.password_hash)
-      if (!isAdminPasswordValid) {
-        return res.status(403).json({ error: 'Incorrect admin password' })
-      }
-
-      console.log(`[SECURITY] Admin ${adminUser.username} verified password for role change: ${existingUser.username} from ${existingUser.role} to ${role}`)
-    }
-
-    // Validate required fields
-    if (!username || !email || !first_name || !last_name || !role || !program_ids) {
-      return res.status(400).json({ error: 'All fields are required' })
-    }
-
-    // Validate username format
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' })
-    }
-
-    // Validate username length
-    if (username.length < 3 || username.length > 50) {
-      return res.status(400).json({ error: 'Username must be between 3 and 50 characters' })
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email address' })
-    }
-
-    // Validate name lengths
-    if (first_name.length > 50) {
-      return res.status(400).json({ error: 'First name must be at most 50 characters' })
-    }
-    if (last_name.length > 50) {
-      return res.status(400).json({ error: 'Last name must be at most 50 characters' })
-    }
-
-    // Check for duplicate username (excluding current user)
-    const duplicateUsername = await prisma.users.findFirst({
-      where: {
-        username: username.toLowerCase(),
-        NOT: { user_id: userId }
-      }
-    })
-
-    if (duplicateUsername) {
-      return res.status(400).json({ error: 'Username already exists' })
-    }
-
-    // Check for duplicate email (excluding current user)
-    const duplicateEmail = await prisma.users.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        NOT: { user_id: userId }
-      }
-    })
-
-    if (duplicateEmail) {
-      return res.status(400).json({ error: 'Email already exists' })
-    }
-
-    // Validate role
-    const validRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN', 'VIEWER']
-    if (!validRoles.includes(role)) {
-      return res.status(400).json({ error: 'Invalid role' })
-    }
-
-    // Validate program_ids
-    if (!Array.isArray(program_ids) || program_ids.length === 0) {
-      return res.status(400).json({ error: 'At least one program must be selected' })
-    }
-
-    // Validate location_ids (not required for ADMIN)
-    if (role !== 'ADMIN' && (!Array.isArray(location_ids) || location_ids.length === 0)) {
-      return res.status(400).json({ error: 'At least one location must be assigned' })
-    }
-
-    // Validate password if provided
-    if (password) {
-      if (password.length < 12) {
-        return res.status(400).json({ error: 'Password must be at least 12 characters' })
-      }
-      if (!/[A-Z]/.test(password)) {
-        return res.status(400).json({ error: 'Password must contain at least one uppercase letter' })
-      }
-      if (!/[a-z]/.test(password)) {
-        return res.status(400).json({ error: 'Password must contain at least one lowercase letter' })
-      }
-      if (!/[0-9]/.test(password)) {
-        return res.status(400).json({ error: 'Password must contain at least one number' })
-      }
-      if (!/[^A-Za-z0-9]/.test(password)) {
-        return res.status(400).json({ error: 'Password must contain at least one special character' })
-      }
-    }
-
-    // Use a transaction to update user and their programs/locations
-    await prisma.$transaction(async (tx) => {
-      // Prepare update data
-      const updateData: any = {
-        username: username.toLowerCase(),
-        email: email.toLowerCase(),
-        first_name,
-        last_name,
-        role,
-        active: active !== false,
-        chg_by: existingUser.username,
-        chg_date: new Date()
-      }
-
-      // Add password hash if password is being updated
-      if (password) {
-        updateData.password_hash = await bcrypt.hash(password, 10)
-      }
-
-      // Update user
-      await tx.users.update({
-        where: { user_id: userId },
-        data: updateData
-      })
-
-      // Delete existing program assignments
-      await tx.userProgram.deleteMany({
-        where: { user_id: userId }
-      })
-
-      // Create new program assignments
-      const effectiveDefaultProgramId = default_program_id && program_ids.includes(default_program_id)
-        ? default_program_id
-        : program_ids[0]
-
-      for (const pgmId of program_ids) {
-        await tx.userProgram.create({
-          data: {
-            user_id: userId,
-            pgm_id: pgmId,
-            is_default: pgmId === effectiveDefaultProgramId,
-            ins_by: existingUser.username
-          }
-        })
-      }
-
-      // Delete existing location assignments
-      await tx.userLocation.deleteMany({
-        where: { user_id: userId }
-      })
-
-      // Create new location assignments
-      if (role === 'ADMIN') {
-        // Admin gets all active locations
-        const allLocations = await tx.location.findMany({
-          where: { active: true },
-          select: { loc_id: true }
-        })
-
-        const effectiveDefaultLocationId = default_location_id && allLocations.some(l => l.loc_id === default_location_id)
-          ? default_location_id
-          : allLocations[0]?.loc_id
-
-        for (const loc of allLocations) {
-          await tx.userLocation.create({
-            data: {
-              user_id: userId,
-              loc_id: loc.loc_id,
-              is_default: loc.loc_id === effectiveDefaultLocationId,
-              ins_by: existingUser.username
-            }
-          })
-        }
-      } else {
-        // Non-admin users get specified locations
-        const effectiveDefaultLocationId = default_location_id && location_ids?.includes(default_location_id)
-          ? default_location_id
-          : location_ids?.[0]
-
-        for (const locId of location_ids || []) {
-          await tx.userLocation.create({
-            data: {
-              user_id: userId,
-              loc_id: locId,
-              is_default: locId === effectiveDefaultLocationId,
-              ins_by: existingUser.username
-            }
-          })
-        }
-      }
-    })
-
-    // Fetch updated user with all relationships
-    const updatedUser = await prisma.users.findUnique({
-      where: { user_id: userId },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      }
-    })
-
-    if (!updatedUser) {
-      return res.status(500).json({ error: 'Failed to fetch updated user' })
-    }
-
-    // Transform to response format
-    const programs = updatedUser.userPrograms.map(up => ({
-      pgm_id: up.program.pgm_id,
-      pgm_cd: up.program.pgm_cd,
-      pgm_name: up.program.pgm_name,
-      is_default: up.is_default
-    }))
-
-    const locations = updatedUser.userLocations.map(ul => ({
-      loc_id: ul.location.loc_id,
-      display_name: ul.location.display_name,
-      is_default: ul.is_default
-    }))
-
-    let allowedMaintenanceLevels: MaintenanceLevel[] = []
-    if (updatedUser.role === 'ADMIN') {
-      allowedMaintenanceLevels = ['DEPOT', 'SHOP']
-    } else if (updatedUser.role === 'DEPOT_MANAGER') {
-      allowedMaintenanceLevels = ['DEPOT']
-    } else if (updatedUser.role === 'FIELD_TECHNICIAN') {
-      allowedMaintenanceLevels = ['SHOP']
-    }
-
-    const userResponse = {
-      user_id: updatedUser.user_id,
-      username: updatedUser.username,
-      email: updatedUser.email,
-      first_name: updatedUser.first_name,
-      last_name: updatedUser.last_name,
-      role: updatedUser.role,
-      active: updatedUser.active,
-      programs,
-      locations,
-      allowedMaintenanceLevels,
-      last_login: updatedUser.last_login,
-      ins_date: updatedUser.ins_date
-    }
-
-    const defaultProgramCode = programs.find(p => p.is_default)?.pgm_cd || 'none'
-    console.log(`[USERS] User updated: ${username} (ID: ${userId}, Role: ${role}, Default Program: ${defaultProgramCode})`)
-
-    res.json({
-      message: 'User updated successfully',
-      user: userResponse
-    })
-  } catch (error) {
-    console.error('[USERS] Error updating user:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' })
   }
-})
 
-// Delete user by ID (admin only)
-app.delete('/api/users/:id', async (req, res) => {
-  if (!requireAdmin(req, res)) return
+  const { username, email, first_name, last_name, role, password, program_ids, default_program_id, location_ids, default_location_id, active, admin_password } = req.body
+  const existingUser = mockUsers[userIndex]
 
-  const payload = authenticateRequest(req, res)
-  if (!payload) return
+  // Check if role is being changed
+  const roleChanged = existingUser.role !== role
 
-  try {
-    const userId = parseInt(req.params.id, 10)
-
-    // Fetch user with relationships before deletion
-    const user = await prisma.users.findUnique({
-      where: { user_id: userId },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        }
-      }
-    })
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+  // If role is being changed, require admin password re-authentication
+  if (roleChanged) {
+    if (!admin_password) {
+      return res.status(403).json({ error: 'Admin password is required when changing user roles' })
     }
 
-    // Store user data for audit log before deletion
-    const deletedUserData = {
-      user_id: user.user_id,
-      username: user.username,
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      role: user.role,
-      programs: user.userPrograms.map(up => up.program.pgm_id)
+    // Get the admin user's info from the token
+    const token = req.headers.authorization?.replace('Bearer ', '')
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' })
     }
 
-    // Delete user (cascade will handle user_program and user_location)
-    await prisma.users.delete({
-      where: { user_id: userId }
-    })
+    const tokenData = parseMockToken(token)
+    if (!tokenData) {
+      return res.status(401).json({ error: 'Invalid or expired token' })
+    }
 
-    // Log the deletion to audit log
-    await logAuditAction(
-      payload.userId,
-      'DELETE',
-      'User',
-      userId,
-      deletedUserData, // old_values: the user data that was deleted
-      null, // new_values: null for delete operations
-      req
-    )
+    const adminUser = mockUsers.find(u => u.user_id === tokenData.userId)
+    if (!adminUser) {
+      return res.status(401).json({ error: 'Admin user not found' })
+    }
 
-    console.log(`[USERS] User deleted: ${user.username} (ID: ${userId})`)
+    // Verify admin password
+    const adminStoredPassword = mockPasswords[adminUser.username]
+    if (adminStoredPassword !== admin_password) {
+      return res.status(403).json({ error: 'Incorrect admin password' })
+    }
 
-    res.json({
-      message: 'User deleted successfully',
-      user: { user_id: userId, username: user.username }
-    })
-  } catch (error) {
-    console.error('[USERS] Error deleting user:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.log(`[SECURITY] Admin ${adminUser.username} verified password for role change: ${existingUser.username} from ${existingUser.role} to ${role}`)
   }
-})
 
-// Create new user (admin only)
-app.post('/api/users', async (req, res) => {
-  if (!requireAdmin(req, res)) return
+  // Validate required fields
+  if (!username || !email || !first_name || !last_name || !role || !program_ids) {
+    return res.status(400).json({ error: 'All fields are required' })
+  }
 
-  try {
-    const { username, email, first_name, last_name, role, password, program_ids, location_ids } = req.body
+  // Validate username format
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' })
+  }
 
-    // Validate required fields
-    if (!username || !email || !first_name || !last_name || !role || !password || !program_ids) {
-      return res.status(400).json({ error: 'All fields are required' })
-    }
+  // Validate username length (must match frontend: min 3, max 50)
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Username must be at least 3 characters' })
+  }
+  if (username.length > 50) {
+    return res.status(400).json({ error: 'Username must be at most 50 characters' })
+  }
 
-    // Validate username format
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' })
-    }
+  // Validate email format (must match frontend)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' })
+  }
 
-    // Validate username length
-    if (username.length < 3 || username.length > 50) {
-      return res.status(400).json({ error: 'Username must be between 3 and 50 characters' })
-    }
+  // Validate first_name length (must match frontend: max 50)
+  if (first_name.length > 50) {
+    return res.status(400).json({ error: 'First name must be at most 50 characters' })
+  }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email address' })
-    }
+  // Validate last_name length (must match frontend: max 50)
+  if (last_name.length > 50) {
+    return res.status(400).json({ error: 'Last name must be at most 50 characters' })
+  }
 
-    // Validate name lengths
-    if (first_name.length > 50) {
-      return res.status(400).json({ error: 'First name must be at most 50 characters' })
-    }
-    if (last_name.length > 50) {
-      return res.status(400).json({ error: 'Last name must be at most 50 characters' })
-    }
+  // Check for duplicate username (excluding current user)
+  if (mockUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.user_id !== userId)) {
+    return res.status(400).json({ error: 'Username already exists' })
+  }
 
-    // Check for duplicate username
-    const duplicateUsername = await prisma.users.findUnique({
-      where: { username: username.toLowerCase() }
-    })
+  // Check for duplicate email (excluding current user)
+  if (mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase() && u.user_id !== userId)) {
+    return res.status(400).json({ error: 'Email already exists' })
+  }
 
-    if (duplicateUsername) {
-      return res.status(400).json({ error: 'Username already exists' })
-    }
+  // Validate role
+  const validRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN', 'VIEWER']
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' })
+  }
 
-    // Check for duplicate email
-    const duplicateEmail = await prisma.users.findUnique({
-      where: { email: email.toLowerCase() }
-    })
+  // Validate program_ids
+  if (!Array.isArray(program_ids) || program_ids.length === 0) {
+    return res.status(400).json({ error: 'At least one program must be selected' })
+  }
 
-    if (duplicateEmail) {
-      return res.status(400).json({ error: 'Email already exists' })
-    }
+  // Validate location_ids (not required for ADMIN as they get all locations automatically)
+  if (role !== 'ADMIN' && (!Array.isArray(location_ids) || location_ids.length === 0)) {
+    return res.status(400).json({ error: 'At least one location must be assigned' })
+  }
 
-    // Validate role
-    const validRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN', 'VIEWER']
-    if (!validRoles.includes(role)) {
-      return res.status(400).json({ error: 'Invalid role' })
-    }
-
-    // Validate program_ids
-    if (!Array.isArray(program_ids) || program_ids.length === 0) {
-      return res.status(400).json({ error: 'At least one program must be selected' })
-    }
-
-    // Validate location_ids (not required for ADMIN)
-    if (role !== 'ADMIN' && (!Array.isArray(location_ids) || location_ids.length === 0)) {
-      return res.status(400).json({ error: 'At least one location must be assigned' })
-    }
-
-    // Validate password requirements
+  // If password is provided, validate it
+  if (password) {
     if (password.length < 12) {
       return res.status(400).json({ error: 'Password must be at least 12 characters' })
     }
@@ -2199,143 +1592,324 @@ app.post('/api/users', async (req, res) => {
     if (!/[^A-Za-z0-9]/.test(password)) {
       return res.status(400).json({ error: 'Password must contain at least one special character' })
     }
-
-    // Hash password
-    const password_hash = await bcrypt.hash(password, 10)
-
-    // Use a transaction to create user and their programs/locations
-    const newUser = await prisma.$transaction(async (tx) => {
-      // Create user
-      const user = await tx.users.create({
-        data: {
-          username: username.toLowerCase(),
-          email: email.toLowerCase(),
-          first_name,
-          last_name,
-          role,
-          password_hash,
-          active: true,
-          ins_by: 'admin', // Will be updated to actual admin username in production
-          ins_date: new Date()
-        }
-      })
-
-      // Create program assignments (first program is default)
-      for (let i = 0; i < program_ids.length; i++) {
-        await tx.userProgram.create({
-          data: {
-            user_id: user.user_id,
-            pgm_id: program_ids[i],
-            is_default: i === 0,
-            ins_by: 'admin'
-          }
-        })
-      }
-
-      // Create location assignments
-      if (role === 'ADMIN') {
-        // Admin gets all active locations
-        const allLocations = await tx.location.findMany({
-          where: { active: true },
-          select: { loc_id: true }
-        })
-
-        for (let i = 0; i < allLocations.length; i++) {
-          await tx.userLocation.create({
-            data: {
-              user_id: user.user_id,
-              loc_id: allLocations[i].loc_id,
-              is_default: i === 0,
-              ins_by: 'admin'
-            }
-          })
-        }
-      } else {
-        // Non-admin users get specified locations
-        for (let i = 0; i < location_ids.length; i++) {
-          await tx.userLocation.create({
-            data: {
-              user_id: user.user_id,
-              loc_id: location_ids[i],
-              is_default: i === 0,
-              ins_by: 'admin'
-            }
-          })
-        }
-      }
-
-      return user
-    })
-
-    // Fetch the complete user with relationships
-    const createdUser = await prisma.users.findUnique({
-      where: { user_id: newUser.user_id },
-      include: {
-        userPrograms: {
-          include: {
-            program: true
-          }
-        },
-        userLocations: {
-          include: {
-            location: true
-          }
-        }
-      }
-    })
-
-    if (!createdUser) {
-      return res.status(500).json({ error: 'Failed to fetch created user' })
+    // Update password
+    mockPasswords[username] = password
+    // If username changed, remove old password entry
+    if (existingUser.username !== username) {
+      delete mockPasswords[existingUser.username]
     }
-
-    // Transform to response format
-    const programs = createdUser.userPrograms.map(up => ({
-      pgm_id: up.program.pgm_id,
-      pgm_cd: up.program.pgm_cd,
-      pgm_name: up.program.pgm_name,
-      is_default: up.is_default
-    }))
-
-    const locations = createdUser.userLocations.map(ul => ({
-      loc_id: ul.location.loc_id,
-      display_name: ul.location.display_name,
-      is_default: ul.is_default
-    }))
-
-    let allowedMaintenanceLevels: MaintenanceLevel[] = []
-    if (createdUser.role === 'ADMIN') {
-      allowedMaintenanceLevels = ['DEPOT', 'SHOP']
-    } else if (createdUser.role === 'DEPOT_MANAGER') {
-      allowedMaintenanceLevels = ['DEPOT']
-    } else if (createdUser.role === 'FIELD_TECHNICIAN') {
-      allowedMaintenanceLevels = ['SHOP']
-    }
-
-    const userResponse = {
-      user_id: createdUser.user_id,
-      username: createdUser.username,
-      email: createdUser.email,
-      first_name: createdUser.first_name,
-      last_name: createdUser.last_name,
-      role: createdUser.role,
-      active: createdUser.active,
-      programs,
-      locations,
-      allowedMaintenanceLevels,
-      last_login: createdUser.last_login,
-      ins_date: createdUser.ins_date
-    }
-
-    console.log(`[USERS] New user created: ${username} (ID: ${newUser.user_id}, Role: ${role})`)
-
-    res.status(201).json({
-      message: 'User created successfully',
-      user: userResponse
-    })
-  } catch (error) {
-    console.error('[USERS] Error creating user:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  } else if (existingUser.username !== username) {
+    // If username changed but no new password, move password to new username
+    mockPasswords[username] = mockPasswords[existingUser.username]
+    delete mockPasswords[existingUser.username]
   }
+
+  // Build programs array with is_default flag
+  // Use default_program_id if provided and valid, otherwise use first program
+  const effectiveDefaultId = default_program_id && program_ids.includes(default_program_id)
+    ? default_program_id
+    : program_ids[0]
+
+  const programs = program_ids.map((pgmId: number) => {
+    const program = allPrograms.find(p => p.pgm_id === pgmId)
+    if (!program) {
+      throw new Error(`Invalid program ID: ${pgmId}`)
+    }
+    return {
+      ...program,
+      is_default: pgmId === effectiveDefaultId
+    }
+  })
+
+  // Build locations array with is_default flag
+  // For ADMIN users, automatically assign ALL locations
+  let locations
+  if (role === 'ADMIN') {
+    console.log('[USERS] Admin role detected - assigning all locations')
+    const allLocations = await prisma.location.findMany({
+      where: { active: true },
+      select: {
+        loc_id: true,
+        display_name: true,
+      },
+      orderBy: { display_name: 'asc' },
+    })
+    console.log(`[USERS] Assigned ${allLocations.length} locations to admin user`)
+
+    // Use default_location_id if provided and valid, otherwise use first location
+    const effectiveDefaultLocationId = default_location_id && allLocations.some(l => l.loc_id === default_location_id)
+      ? default_location_id
+      : allLocations[0]?.loc_id
+
+    locations = allLocations.map((loc) => ({
+      ...loc,
+      is_default: loc.loc_id === effectiveDefaultLocationId
+    }))
+  } else {
+    // Use default_location_id if provided and valid, otherwise use first location
+    const effectiveDefaultLocationId = default_location_id && location_ids?.includes(default_location_id)
+      ? default_location_id
+      : location_ids?.[0]
+
+    locations = (location_ids || []).map((locId: number) => {
+      return {
+        loc_id: locId,
+        display_name: `Location ${locId}`, // In real app, fetch from database
+        is_default: locId === effectiveDefaultLocationId
+      }
+    })
+  }
+
+  // Determine allowed maintenance levels based on role
+  // ADMIN: Both DEPOT and SHOP
+  // DEPOT_MANAGER: DEPOT only
+  // FIELD_TECHNICIAN: SHOP only
+  // VIEWER: None
+  let allowedMaintenanceLevels: MaintenanceLevel[] = [];
+  if (role === 'ADMIN') {
+    allowedMaintenanceLevels = ['DEPOT', 'SHOP'];
+  } else if (role === 'DEPOT_MANAGER') {
+    allowedMaintenanceLevels = ['DEPOT'];
+  } else if (role === 'FIELD_TECHNICIAN') {
+    allowedMaintenanceLevels = ['SHOP'];
+  }
+  // VIEWER gets no maintenance levels
+
+  // Update the user
+  const updatedUser = {
+    user_id: userId,
+    username,
+    email,
+    first_name,
+    last_name,
+    role,
+    programs,
+    locations,
+    allowedMaintenanceLevels,
+  }
+
+  mockUsers[userIndex] = updatedUser
+
+  const defaultProgramCode = programs.find(p => p.is_default)?.pgm_cd || 'none'
+  console.log(`[USERS] User updated: ${username} (ID: ${userId}, Role: ${role}, Default Program: ${defaultProgramCode})`)
+
+  res.json({
+    message: 'User updated successfully',
+    user: { ...updatedUser, active: active !== false }
+  })
+})
+
+// Delete user by ID (admin only)
+app.delete('/api/users/:id', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  const payload = authenticateRequest(req, res)
+  if (!payload) return
+
+  const userId = parseInt(req.params.id, 10)
+  const userIndex = mockUsers.findIndex(u => u.user_id === userId)
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' })
+  }
+
+  const user = mockUsers[userIndex]
+
+  // Store user data for audit log before deletion
+  const deletedUserData = {
+    user_id: user.user_id,
+    username: user.username,
+    email: user.email,
+    first_name: user.first_name,
+    last_name: user.last_name,
+    role: user.role,
+    programs: user.programs.map(p => p.pgm_id)
+  }
+
+  // Remove user from mock data
+  mockUsers.splice(userIndex, 1)
+
+  // Remove password entry
+  delete mockPasswords[user.username]
+
+  // Log the deletion to audit log
+  await logAuditAction(
+    payload.userId,
+    'DELETE',
+    'User',
+    userId,
+    deletedUserData, // old_values: the user data that was deleted
+    null, // new_values: null for delete operations
+    req
+  )
+
+  console.log(`[USERS] User deleted: ${user.username} (ID: ${userId})`)
+
+  res.json({
+    message: 'User deleted successfully',
+    user: { user_id: userId, username: user.username }
+  })
+})
+
+// Create new user (admin only)
+app.post('/api/users', async (req, res) => {
+  if (!requireAdmin(req, res)) return
+
+  const { username, email, first_name, last_name, role, password, program_ids, location_ids } = req.body
+
+  // Validate required fields
+  if (!username || !email || !first_name || !last_name || !role || !password || !program_ids) {
+    return res.status(400).json({ error: 'All fields are required' })
+  }
+
+  // Validate username format
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' })
+  }
+
+  // Validate username length (must match frontend: min 3, max 50)
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Username must be at least 3 characters' })
+  }
+  if (username.length > 50) {
+    return res.status(400).json({ error: 'Username must be at most 50 characters' })
+  }
+
+  // Validate email format (must match frontend)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' })
+  }
+
+  // Validate first_name length (must match frontend: max 50)
+  if (first_name.length > 50) {
+    return res.status(400).json({ error: 'First name must be at most 50 characters' })
+  }
+
+  // Validate last_name length (must match frontend: max 50)
+  if (last_name.length > 50) {
+    return res.status(400).json({ error: 'Last name must be at most 50 characters' })
+  }
+
+  // Check for duplicate username
+  if (mockUsers.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+    return res.status(400).json({ error: 'Username already exists' })
+  }
+
+  // Check for duplicate email
+  if (mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+    return res.status(400).json({ error: 'Email already exists' })
+  }
+
+  // Validate role
+  const validRoles = ['ADMIN', 'DEPOT_MANAGER', 'FIELD_TECHNICIAN', 'VIEWER']
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' })
+  }
+
+  // Validate program_ids
+  if (!Array.isArray(program_ids) || program_ids.length === 0) {
+    return res.status(400).json({ error: 'At least one program must be selected' })
+  }
+
+  // Validate location_ids (not required for ADMIN as they get all locations automatically)
+  if (role !== 'ADMIN' && (!Array.isArray(location_ids) || location_ids.length === 0)) {
+    return res.status(400).json({ error: 'At least one location must be assigned' })
+  }
+
+  // Validate password requirements
+  if (password.length < 12) {
+    return res.status(400).json({ error: 'Password must be at least 12 characters' })
+  }
+  if (!/[A-Z]/.test(password)) {
+    return res.status(400).json({ error: 'Password must contain at least one uppercase letter' })
+  }
+  if (!/[a-z]/.test(password)) {
+    return res.status(400).json({ error: 'Password must contain at least one lowercase letter' })
+  }
+  if (!/[0-9]/.test(password)) {
+    return res.status(400).json({ error: 'Password must contain at least one number' })
+  }
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return res.status(400).json({ error: 'Password must contain at least one special character' })
+  }
+
+  // Generate new user ID
+  const newUserId = Math.max(...mockUsers.map(u => u.user_id)) + 1
+
+  // Build programs array with is_default flag
+  const programs = program_ids.map((pgmId: number, index: number) => {
+    const program = allPrograms.find(p => p.pgm_id === pgmId)
+    if (!program) {
+      throw new Error(`Invalid program ID: ${pgmId}`)
+    }
+    return {
+      ...program,
+      is_default: index === 0 // First program is default
+    }
+  })
+
+  // Build locations array with is_default flag
+  // For ADMIN users, automatically assign ALL locations
+  let locations
+  if (role === 'ADMIN') {
+    console.log('[USERS] Admin role detected - assigning all locations')
+    const allLocations = await prisma.location.findMany({
+      where: { active: true },
+      select: {
+        loc_id: true,
+        display_name: true,
+      },
+      orderBy: { display_name: 'asc' },
+    })
+    console.log(`[USERS] Assigned ${allLocations.length} locations to admin user`)
+    locations = allLocations.map((loc, index) => ({
+      ...loc,
+      is_default: index === 0 // First location is default
+    }))
+  } else {
+    locations = (location_ids || []).map((locId: number, index: number) => {
+      return {
+        loc_id: locId,
+        display_name: `Location ${locId}`, // In real app, fetch from database
+        is_default: index === 0 // First location is default
+      }
+    })
+  }
+
+  // Determine allowed maintenance levels based on role
+  let newUserAllowedLevels: MaintenanceLevel[] = [];
+  if (role === 'ADMIN') {
+    newUserAllowedLevels = ['DEPOT', 'SHOP'];
+  } else if (role === 'DEPOT_MANAGER') {
+    newUserAllowedLevels = ['DEPOT'];
+  } else if (role === 'FIELD_TECHNICIAN') {
+    newUserAllowedLevels = ['SHOP'];
+  }
+
+  // Create the new user
+  const newUser = {
+    user_id: newUserId,
+    username,
+    email,
+    first_name,
+    last_name,
+    role,
+    programs,
+    locations,
+    allowedMaintenanceLevels: newUserAllowedLevels,
+  }
+
+  // Add to mock data
+  mockUsers.push(newUser)
+  mockPasswords[username] = password
+
+  console.log(`[USERS] New user created: ${username} (ID: ${newUserId}, Role: ${role})`)
+
+  res.status(201).json({
+    message: 'User created successfully',
+    user: { ...newUser, active: true }
+  })
 })
 
 // Get locations (admin only - for user management)
@@ -5181,49 +4755,250 @@ interface TCTOAssetCompletionData {
   completed_at: string;
 }
 
-// Helper function to build TCTO record from database data
-async function buildTCTORecord(tcto: any, userProgramIds: number[]): Promise<TCTORecord> {
-  // Get all TCTO assets for this TCTO
-  const tctoAssets = await prisma.tctoAsset.findMany({
-    where: {
-      tcto_id: tcto.tcto_id
-    },
-    include: {
-      asset: {
-        include: {
-          part: true
+// Storage for asset completion data (keyed by tcto_id)
+const tctoAssetCompletionData: Map<number, TCTOAssetCompletionData[]> = new Map();
+
+// Persistent storage for TCTO records
+let tctoRecords: TCTORecord[] = [];
+let tctoNextId = 6; // Start after mock data IDs
+
+// Initialize TCTO data - async to query real asset IDs from database
+async function initializeTCTOData(): Promise<void> {
+  try {
+    const today = new Date();
+    const addDays = (days: number): string => {
+      const date = new Date(today);
+      date.setDate(date.getDate() + days);
+      return date.toISOString().split('T')[0];
+    };
+
+    // Query real asset IDs from the database for each program
+    // CRIIS = pgm_id 1, ACTS = pgm_id 2, ARDS = pgm_id 3
+
+    // Get assets for CRIIS (program 1)
+    const criisAssets = await prisma.asset.findMany({
+      where: {
+        part: {
+          pgm_id: 1
         }
+      },
+      select: { asset_id: true },
+      take: 10,
+      orderBy: { asset_id: 'asc' }
+    });
+
+    // Get assets for ACTS (program 2)
+    const actsAssets = await prisma.asset.findMany({
+      where: {
+        part: {
+          pgm_id: 2
+        }
+      },
+      select: { asset_id: true },
+      take: 5,
+      orderBy: { asset_id: 'asc' }
+    });
+
+    // Get assets for ARDS (program 3)
+    const ardsAssets = await prisma.asset.findMany({
+      where: {
+        part: {
+          pgm_id: 3
+        }
+      },
+      select: { asset_id: true },
+      take: 5,
+      orderBy: { asset_id: 'asc' }
+    });
+
+    // Extract asset IDs (use empty arrays if no assets found)
+    const criisIds = criisAssets.map(a => a.asset_id);
+    const actsIds = actsAssets.map(a => a.asset_id);
+    const ardsIds = ardsAssets.map(a => a.asset_id);
+
+    console.log(`[TCTO] Initializing with real asset IDs - CRIIS: ${criisIds.length}, ACTS: ${actsIds.length}, ARDS: ${ardsIds.length}`);
+
+    // Only create TCTO records for programs that have assets
+    const records: TCTORecord[] = [];
+    let nextId = 1;
+
+    // CRIIS program TCTOs (only if CRIIS has assets)
+    if (criisIds.length >= 3) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-001',
+        title: 'Sensor Firmware Update v2.3.1',
+        effective_date: addDays(-30),
+        compliance_deadline: addDays(15),
+        pgm_id: 1,
+        status: 'open',
+        priority: 'Urgent',
+        affected_assets: criisIds.slice(0, 3), // First 3 CRIIS assets
+        compliant_assets: [criisIds[0]], // First asset is compliant
+        description: 'Critical firmware update addressing sensor calibration drift issue. All affected sensor units must be updated before deadline.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-30),
+      });
+    }
+
+    if (criisIds.length >= 6) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-002',
+        title: 'Communication System Software Patch',
+        effective_date: addDays(-45),
+        compliance_deadline: addDays(-5), // Overdue
+        pgm_id: 1,
+        status: 'open',
+        priority: 'Critical',
+        affected_assets: criisIds.slice(3, 6), // Assets 4-6
+        compliant_assets: [], // None compliant yet
+        description: 'Mandatory software patch to address communication security vulnerability CVE-2024-1234.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-45),
+      });
+    }
+
+    if (criisIds.length >= 8) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-003',
+        title: 'Radar Unit Calibration Procedure Update',
+        effective_date: addDays(-60),
+        compliance_deadline: addDays(-30),
+        pgm_id: 1,
+        status: 'closed',
+        priority: 'Routine',
+        affected_assets: criisIds.slice(6, 8), // Assets 7-8
+        compliant_assets: criisIds.slice(6, 8), // All compliant
+        description: 'Updated calibration procedure for improved accuracy in high-altitude operations.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-60),
+      });
+    }
+
+    // ACTS program TCTOs (only if ACTS has assets)
+    if (actsIds.length >= 3) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-004',
+        title: 'Targeting System Optics Alignment',
+        effective_date: addDays(-20),
+        compliance_deadline: addDays(30),
+        pgm_id: 2,
+        status: 'open',
+        priority: 'Urgent',
+        affected_assets: actsIds.slice(0, 3), // First 3 ACTS assets
+        compliant_assets: [actsIds[0]], // First asset compliant
+        description: 'Realignment procedure for targeting optics to correct parallax error identified in field reports.',
+        created_by_id: 2,
+        created_by_name: 'Jane Depot',
+        created_at: addDays(-20),
+      });
+    }
+
+    // ARDS program TCTOs (only if ARDS has assets)
+    if (ardsIds.length >= 3) {
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-005',
+        title: 'Data Processing Unit Memory Upgrade',
+        effective_date: addDays(-10),
+        compliance_deadline: addDays(60),
+        pgm_id: 3,
+        status: 'open',
+        priority: 'Routine',
+        affected_assets: ardsIds.slice(0, 3), // First 3 ARDS assets
+        compliant_assets: [],
+        description: 'Memory module replacement to support new data processing algorithms in software update 3.0.',
+        created_by_id: 2,
+        created_by_name: 'Jane Depot',
+        created_at: addDays(-10),
+      });
+    }
+
+    tctoRecords = records;
+    tctoNextId = nextId;
+
+    // Initialize completion data for TCTOs with real asset IDs
+    // For TCTO-2024-001 (first CRIIS TCTO): mark first 3 assets as compliant
+    if (criisIds.length >= 3 && tctoRecords.length > 0) {
+      const tcto1 = tctoRecords.find(t => t.tcto_no === 'TCTO-2024-001');
+      if (tcto1) {
+        tctoAssetCompletionData.set(tcto1.tcto_id, [
+          {
+            asset_id: criisIds[0],
+            is_compliant: true,
+            completion_date: addDays(-1),
+            linked_repair_id: undefined,
+            completed_by: 'John Admin',
+            completed_at: addDays(-1),
+          },
+          {
+            asset_id: criisIds[1],
+            is_compliant: true,
+            completion_date: addDays(-1),
+            linked_repair_id: undefined,
+            completed_by: 'Bob Field',
+            completed_at: addDays(-1),
+          },
+          {
+            asset_id: criisIds[2],
+            is_compliant: true,
+            completion_date: addDays(-1),
+            linked_repair_id: undefined,
+            completed_by: 'Jane Depot',
+            completed_at: addDays(-1),
+          },
+        ]);
+        // Update compliant_assets to match completion data
+        tcto1.compliant_assets = criisIds.slice(0, 3);
       }
     }
-  });
 
-  const affected_assets = tctoAssets.map(ta => ta.asset_id);
-  const compliant_assets = tctoAssets
-    .filter(ta => ta.complete_date !== null)
-    .map(ta => ta.asset_id);
+    // For TCTO-2024-003 (closed CRIIS TCTO): all assets compliant
+    if (criisIds.length >= 8) {
+      const tcto3 = tctoRecords.find(t => t.tcto_no === 'TCTO-2024-003');
+      if (tcto3) {
+        tctoAssetCompletionData.set(tcto3.tcto_id, [
+          {
+            asset_id: criisIds[6],
+            is_compliant: true,
+            completion_date: addDays(-30),
+            linked_repair_id: undefined,
+            completed_by: 'Jane Depot',
+            completed_at: addDays(-30),
+          },
+          {
+            asset_id: criisIds[7],
+            is_compliant: true,
+            completion_date: addDays(-30),
+            linked_repair_id: undefined,
+            completed_by: 'Jane Depot',
+            completed_at: addDays(-30),
+          },
+        ]);
+      }
+    }
 
-  // Get creator info
-  const creator = await prisma.user.findUnique({
-    where: { user_id: tcto.ins_by ? parseInt(tcto.ins_by) : 1 }
-  });
-
-  return {
-    tcto_id: tcto.tcto_id,
-    tcto_no: tcto.tcto_no,
-    title: tcto.remarks || tcto.tcto_no, // Using remarks as title for now
-    effective_date: tcto.eff_date ? tcto.eff_date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    compliance_deadline: tcto.eff_date ? tcto.eff_date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    pgm_id: tcto.pgm_id,
-    status: tcto.active ? 'open' : 'closed',
-    priority: 'Routine', // Default priority, could be added to schema later
-    affected_assets,
-    compliant_assets,
-    description: tcto.remarks || '',
-    created_by_id: creator?.user_id || 1,
-    created_by_name: creator ? `${creator.first_name} ${creator.last_name}` : 'System',
-    created_at: tcto.ins_date.toISOString().split('T')[0],
-  };
+    console.log(`[TCTO] Initialized ${tctoRecords.length} TCTO records with real asset IDs`);
+  } catch (error) {
+    // Silently fail - server will continue running with empty TCTO data
+    console.log('Failed to init TCTO data');
+    // Fall back to empty records
+    tctoRecords = [];
+  }
 }
+
+// Initialize TCTO data on startup (async - will complete after server starts)
+// This initialization is non-blocking and errors will not crash the server
+initializeTCTOData().catch(err => {
+  console.error('[TCTO] Initialization failed:', err);
+  console.error('[TCTO] Server will continue running with empty TCTO data');
+});
 
 // Mock Maintenance Events data
 interface MaintenanceEvent {
@@ -5537,8 +5312,9 @@ interface Repair {
   created_at: string;
 }
 
-// Repairs are now stored in the database via Prisma
-// No in-memory storage needed - all operations use Prisma queries
+// Persistent storage for repairs
+let repairs: Repair[] = [];
+let repairNextId = 20; // Start after mock data IDs
 
 // Initialize repairs with mock data
 function initializeRepairs(): void {
@@ -6307,8 +6083,7 @@ app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
 });
 
 // List all maintenance events (requires authentication)
-// Now queries the REAL PostgreSQL database instead of mock data
-app.get('/api/events', async (req, res) => {
+app.get('/api/events', (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6317,288 +6092,162 @@ app.get('/api/events', async (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  try {
-    // Load code cache for lookups
-    const codes = await loadCodeCache();
+  // Get user's program IDs
+  const userProgramIds = user.programs.map(p => p.pgm_id);
 
-    // Get user's program IDs
-    const userProgramIds = user.programs.map(p => p.pgm_id);
+  // Get user's location IDs
+  const userLocationIds = user.locations?.map(l => l.loc_id) || [];
 
-    // Get user's location IDs for filtering
-    const userLocationIds = user.locations?.map(l => l.loc_id) || [];
+  // Get query parameters
+  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+  const locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+  const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
+  const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
+  const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
+  const sortieIdFilter = req.query.sortie_id ? parseInt(req.query.sortie_id as string, 10) : null; // Filter by linked sortie
+  const searchQuery = req.query.search as string | undefined;
+  const dateFrom = req.query.date_from as string | undefined; // Filter events starting from this date (YYYY-MM-DD)
+  const dateTo = req.query.date_to as string | undefined; // Filter events up to this date (YYYY-MM-DD)
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    // Get query parameters
-    let programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
-    const locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
-    const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
-    const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
-    const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
-    const sortieIdFilter = req.query.sortie_id ? parseInt(req.query.sortie_id as string, 10) : null; // Filter by linked sortie
-    const searchQuery = req.query.search as string | undefined;
-    const dateFrom = req.query.date_from as string | undefined; // Filter events starting from this date (YYYY-MM-DD)
-    const dateTo = req.query.date_to as string | undefined; // Filter events up to this date (YYYY-MM-DD)
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string, 10) || 10, 100);
+  // Use persistent maintenance events array
+  const allEvents = maintenanceEvents;
 
-    // If no program specified, use user's default program
-    if (!programIdFilter) {
-      const defaultProgram = user.programs.find(p => p.is_default);
-      programIdFilter = defaultProgram?.pgm_id || user.programs[0]?.pgm_id || 1;
+  // Filter by user's accessible programs
+  let filteredEvents = allEvents.filter(event => userProgramIds.includes(event.pgm_id));
+
+  // SECURITY: Filter by location - maintenance events must be at locations the user has access to
+  // If a specific location is requested, filter by that location
+  // If no location specified and user has location restrictions, show events from all their locations
+  if (locationIdFilter) {
+    // Filter by the specific requested location (only if user has access to it)
+    if (userLocationIds.includes(locationIdFilter)) {
+      filteredEvents = filteredEvents.filter(event => event.loc_id === locationIdFilter);
+    } else {
+      // User doesn't have access to this location - return empty results
+      filteredEvents = [];
     }
-
-    // Check if user has access to this program
-    if (!userProgramIds.includes(programIdFilter) && user.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Access denied to this program' });
-    }
-
-    // Build where clause for Prisma query
-    // Events don't have pgm_id directly, so we need to join through asset
-    const whereClause: Prisma.EventWhereInput = {};
-
-    // Build program filter through asset relation
-    if (programIdFilter) {
-      whereClause.asset = {
-        part: {
-          pgm_id: programIdFilter
-        }
-      };
-    }
-
-    // Apply location filtering
-    if (locationIdFilter) {
-      // Filter by specific requested location (only if user has access to it)
-      if (user.role === 'ADMIN' || userLocationIds.includes(locationIdFilter)) {
-        whereClause.loc_id = locationIdFilter;
-      } else {
-        // User doesn't have access to this location - return empty results
-        return res.json({
-          events: [],
-          pagination: { page, limit, total: 0, total_pages: 0 },
-          summary: { open: 0, closed: 0, critical: 0, urgent: 0, routine: 0, pqdr: 0, total: 0 },
-          program: user.programs.find(p => p.pgm_id === programIdFilter),
-        });
-      }
-    } else if (user.role !== 'ADMIN' && userLocationIds.length > 0) {
-      // Non-admin users see only events at their assigned locations
-      whereClause.loc_id = { in: userLocationIds };
-    }
-
-    // Apply status filter if specified (based on stop_job - null means open, not null means closed)
-    if (statusFilter === 'open') {
-      whereClause.stop_job = null;
-    } else if (statusFilter === 'closed') {
-      whereClause.stop_job = { not: null };
-    }
-
-    // Apply event type filter if specified
-    const validEventTypes = ['Standard', 'PMI', 'TCTO', 'BIT/PC'];
-    if (eventTypeFilter && validEventTypes.includes(eventTypeFilter)) {
-      whereClause.event_type = eventTypeFilter;
-    }
-
-    // Apply sortie filter if specified
-    if (sortieIdFilter) {
-      whereClause.sortie_id = sortieIdFilter;
-    }
-
-    // Apply date range filter if specified (based on start_job date)
-    if (dateFrom || dateTo) {
-      whereClause.start_job = {};
-      if (dateFrom) {
-        const fromDate = new Date(dateFrom);
-        fromDate.setHours(0, 0, 0, 0);
-        whereClause.start_job.gte = fromDate;
-      }
-      if (dateTo) {
-        const toDate = new Date(dateTo);
-        toDate.setHours(23, 59, 59, 999);
-        whereClause.start_job.lte = toDate;
-      }
-    }
-
-    // Apply search filter if specified (searches job_no, asset serno, discrepancy)
-    if (searchQuery) {
-      const query = searchQuery.trim();
-      if (query) {
-        whereClause.OR = [
-          { job_no: { contains: query, mode: 'insensitive' as const } },
-          { asset: { serno: { contains: query, mode: 'insensitive' as const } } },
-          { discrepancy: { contains: query, mode: 'insensitive' as const } },
-        ];
-      }
-    }
-
-    // Get total count
-    const total = await prisma.event.count({ where: whereClause });
-
-    // Query events from database with relations
-    const dbEvents = await prisma.event.findMany({
-      where: whereClause,
-      include: {
-        asset: {
-          select: {
-            asset_id: true,
-            serno: true,
-            part: {
-              select: {
-                partno: true,
-                noun: true,
-                pgm_id: true,
-                program: {
-                  select: { pgm_cd: true, pgm_name: true }
-                }
-              }
-            }
-          }
-        },
-        location: {
-          select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
-        },
-        repairs: {
-          select: { repair_id: true, shop_status: true }
-        }
-      },
-      orderBy: [
-        { priority: 'asc' }, // Critical first (assuming priority is stored with order)
-        { start_job: 'desc' } // Then by newest first
-      ],
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    // Helper to format location display - resolve code IDs to actual codes
-    const formatLocation = (loc: { display_name: string; majcom_cd?: string | null; site_cd?: string | null; unit_cd?: string | null } | null) => {
-      if (!loc) return 'Unknown';
-
-      // Resolve the majcom, site, unit IDs to actual codes
-      const majcom = resolveCodeId(loc.majcom_cd, codes);
-      const site = resolveCodeId(loc.site_cd, codes);
-      const unit = resolveCodeId(loc.unit_cd, codes);
-
-      // Build from resolved hierarchy components
-      const parts = [majcom, site, unit].filter(Boolean);
-      if (parts.length > 0) {
-        return parts.join('/');
-      }
-
-      // Fallback to display_name if available
-      if (loc.display_name && !loc.display_name.match(/^\d+\/\d+\/\d+$/)) {
-        return loc.display_name;
-      }
-
-      return 'Unknown';
-    };
-
-    // Transform database results to match frontend expected format
-    const events = dbEvents.map(event => {
-      // Determine status based on stop_job
-      const status = event.stop_job === null ? 'open' : 'closed';
-
-      // Calculate progress from repairs
-      const totalRepairs = event.repairs.length;
-      const closedRepairs = event.repairs.filter(r => r.shop_status === 'closed').length;
-      const progressPercentage = totalRepairs > 0 ? Math.round((closedRepairs / totalRepairs) * 100) : 0;
-
-      // Normalize priority to expected values
-      let normalizedPriority: 'Routine' | 'Urgent' | 'Critical' = 'Routine';
-      if (event.priority?.toLowerCase().includes('crit')) {
-        normalizedPriority = 'Critical';
-      } else if (event.priority?.toLowerCase().includes('urg')) {
-        normalizedPriority = 'Urgent';
-      }
-
-      // Normalize event type
-      let normalizedEventType: 'Standard' | 'PMI' | 'TCTO' | 'BIT/PC' = 'Standard';
-      if (event.event_type) {
-        const et = event.event_type.toUpperCase();
-        if (et.includes('PMI')) normalizedEventType = 'PMI';
-        else if (et.includes('TCTO')) normalizedEventType = 'TCTO';
-        else if (et.includes('BIT') || et.includes('PC')) normalizedEventType = 'BIT/PC';
-      }
-
-      return {
-        event_id: event.event_id,
-        asset_id: event.asset_id,
-        asset_sn: event.asset?.serno || '',
-        asset_name: event.asset?.part?.noun || '',
-        job_no: event.job_no || `MX-${new Date(event.start_job || event.ins_date).getFullYear()}-${String(event.event_id).padStart(3, '0')}`,
-        discrepancy: event.discrepancy || '',
-        start_job: event.start_job?.toISOString() || event.ins_date.toISOString(),
-        stop_job: event.stop_job?.toISOString() || null,
-        event_type: normalizedEventType,
-        priority: normalizedPriority,
-        status: status,
-        pgm_id: event.asset?.part?.pgm_id || programIdFilter,
-        location: formatLocation(event.location) || 'Unknown',
-        loc_id: event.loc_id || 0,
-        etic: event.etic_date?.toISOString().split('T')[0] || null,
-        sortie_id: event.sortie_id || null,
-        pqdr: false, // PQDR flag not in current schema, default to false
-        created_by_id: undefined,
-        created_by_name: event.ins_by || undefined,
-        total_repairs: totalRepairs,
-        closed_repairs: closedRepairs,
-        progress_percentage: progressPercentage,
-        created_at: event.ins_date.toISOString(),
-      };
-    });
-
-    // Calculate summary counts (need to query all matching events for accurate summary)
-    // Get all events without pagination for summary
-    const allDbEvents = await prisma.event.findMany({
-      where: whereClause,
-      include: {
-        repairs: {
-          select: { repair_id: true, shop_status: true }
-        }
-      }
-    });
-
-    // Helper functions for summary
-    const getNormalizedPriority = (priority: string | null): 'Routine' | 'Urgent' | 'Critical' => {
-      if (!priority) return 'Routine';
-      if (priority.toLowerCase().includes('crit')) return 'Critical';
-      if (priority.toLowerCase().includes('urg')) return 'Urgent';
-      return 'Routine';
-    };
-
-    const summary = {
-      open: allDbEvents.filter(e => e.stop_job === null).length,
-      closed: allDbEvents.filter(e => e.stop_job !== null).length,
-      critical: allDbEvents.filter(e => e.stop_job === null && getNormalizedPriority(e.priority) === 'Critical').length,
-      urgent: allDbEvents.filter(e => e.stop_job === null && getNormalizedPriority(e.priority) === 'Urgent').length,
-      routine: allDbEvents.filter(e => e.stop_job === null && getNormalizedPriority(e.priority) === 'Routine').length,
-      pqdr: 0, // PQDR not tracked in current schema
-      total: allDbEvents.length,
-    };
-
-    // Get program info
-    const program = await prisma.program.findUnique({
-      where: { pgm_id: programIdFilter },
-      select: { pgm_id: true, pgm_cd: true, pgm_name: true }
-    });
-
-    console.log(`[EVENTS-DB] List request by ${user.username} (${user.role}) - Program: ${program?.pgm_cd || programIdFilter}, Location filter: ${locationIdFilter || 'none'}, Total: ${total}, Open: ${summary.open}, Closed: ${summary.closed}`);
-
-    res.json({
-      events: events,
-      pagination: {
-        page,
-        limit,
-        total,
-        total_pages: Math.ceil(total / limit),
-      },
-      summary,
-      program: {
-        pgm_id: programIdFilter,
-        pgm_cd: program?.pgm_cd || 'UNKNOWN',
-        pgm_name: program?.pgm_name || 'Unknown Program',
-      },
-    });
-  } catch (error) {
-    console.error('[EVENTS-DB] Error fetching events:', error);
-    res.status(500).json({ error: 'Failed to fetch events from database' });
+  } else if (userLocationIds.length > 0) {
+    // No specific location requested - filter by all user's locations
+    filteredEvents = filteredEvents.filter(event => userLocationIds.includes(event.loc_id));
   }
+
+  // Apply program filter if specified
+  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+    filteredEvents = filteredEvents.filter(event => event.pgm_id === programIdFilter);
+  }
+
+  // Apply status filter if specified
+  if (statusFilter === 'open' || statusFilter === 'closed') {
+    filteredEvents = filteredEvents.filter(event => event.status === statusFilter);
+  }
+
+  // Apply event type filter if specified
+  const validEventTypes = ['Standard', 'PMI', 'TCTO', 'BIT/PC'];
+  if (eventTypeFilter && validEventTypes.includes(eventTypeFilter)) {
+    filteredEvents = filteredEvents.filter(event => event.event_type === eventTypeFilter);
+  }
+
+  // Apply PQDR filter if specified
+  if (pqdrFilter === 'true') {
+    filteredEvents = filteredEvents.filter(event => event.pqdr === true);
+  }
+
+  // Apply sortie filter if specified
+  if (sortieIdFilter) {
+    filteredEvents = filteredEvents.filter(event => event.sortie_id === sortieIdFilter);
+  }
+
+  // Apply search filter if specified
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase().trim();
+    if (query) {
+      filteredEvents = filteredEvents.filter(event =>
+        event.job_no.toLowerCase().includes(query) ||
+        event.asset_sn.toLowerCase().includes(query) ||
+        event.asset_name.toLowerCase().includes(query) ||
+        event.discrepancy.toLowerCase().includes(query) ||
+        event.location.toLowerCase().includes(query)
+      );
+    }
+  }
+
+  // Apply date range filter if specified (based on start_job date)
+  if (dateFrom) {
+    const fromDate = new Date(dateFrom);
+    fromDate.setHours(0, 0, 0, 0); // Start of day
+    filteredEvents = filteredEvents.filter(event => {
+      const eventDate = new Date(event.start_job);
+      return eventDate >= fromDate;
+    });
+  }
+  if (dateTo) {
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59, 999); // End of day
+    filteredEvents = filteredEvents.filter(event => {
+      const eventDate = new Date(event.start_job);
+      return eventDate <= toDate;
+    });
+  }
+
+  // Sort by priority (Critical first, then Urgent, then Routine), then by start date (newest first)
+  const priorityOrder: Record<string, number> = { Critical: 0, Urgent: 1, Routine: 2 };
+  filteredEvents.sort((a, b) => {
+    const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+    if (priorityDiff !== 0) return priorityDiff;
+    return new Date(b.start_job).getTime() - new Date(a.start_job).getTime();
+  });
+
+  // Calculate pagination
+  const total = filteredEvents.length;
+  const totalPages = Math.ceil(total / limit);
+  const offset = (page - 1) * limit;
+  const paginatedEvents = filteredEvents.slice(offset, offset + limit);
+
+  // Calculate progress for each event based on repairs
+  const eventsWithProgress = paginatedEvents.map(event => {
+    const eventRepairs = repairs.filter(r => r.event_id === event.event_id);
+    const totalRepairs = eventRepairs.length;
+    const closedRepairs = eventRepairs.filter(r => r.shop_status === 'closed').length;
+    const progressPercentage = totalRepairs > 0 ? Math.round((closedRepairs / totalRepairs) * 100) : 0;
+
+    return {
+      ...event,
+      total_repairs: totalRepairs,
+      closed_repairs: closedRepairs,
+      progress_percentage: progressPercentage,
+    };
+  });
+
+  // Calculate summary counts
+  const summary = {
+    open: filteredEvents.filter(e => e.status === 'open').length,
+    closed: filteredEvents.filter(e => e.status === 'closed').length,
+    critical: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Critical').length,
+    urgent: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Urgent').length,
+    routine: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Routine').length,
+    pqdr: filteredEvents.filter(e => e.pqdr === true).length, // Count of PQDR flagged events
+    total: filteredEvents.length,
+  };
+
+  // Get program info
+  const currentProgramId = programIdFilter || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id;
+  const programInfo = user.programs.find(p => p.pgm_id === currentProgramId);
+
+  console.log(`[EVENTS] List request by ${user.username} - Total: ${total}, Open: ${summary.open}, Closed: ${summary.closed}`);
+
+  res.json({
+    events: eventsWithProgress,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: totalPages,
+    },
+    summary,
+    program: programInfo,
+  });
 });
 
 // Get single maintenance event by ID
