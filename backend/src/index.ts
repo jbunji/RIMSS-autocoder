@@ -6083,7 +6083,7 @@ app.get('/api/dashboard/open-maintenance-jobs', (req, res) => {
 });
 
 // List all maintenance events (requires authentication)
-app.get('/api/events', (req, res) => {
+app.get('/api/events', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6092,162 +6092,281 @@ app.get('/api/events', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  // Get user's program IDs
-  const userProgramIds = user.programs.map(p => p.pgm_id);
+  try {
+    // Load code cache for lookups
+    const codes = await loadCodeCache();
 
-  // Get user's location IDs
-  const userLocationIds = user.locations?.map(l => l.loc_id) || [];
+    // Get user's program IDs
+    const userProgramIds = user.programs.map(p => p.pgm_id);
 
-  // Get query parameters
-  const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
-  const locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
-  const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
-  const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
-  const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
-  const sortieIdFilter = req.query.sortie_id ? parseInt(req.query.sortie_id as string, 10) : null; // Filter by linked sortie
-  const searchQuery = req.query.search as string | undefined;
-  const dateFrom = req.query.date_from as string | undefined; // Filter events starting from this date (YYYY-MM-DD)
-  const dateTo = req.query.date_to as string | undefined; // Filter events up to this date (YYYY-MM-DD)
-  const page = parseInt(req.query.page as string, 10) || 1;
-  const limit = parseInt(req.query.limit as string, 10) || 10;
+    // Get user's location IDs
+    const userLocationIds = user.locations?.map(l => l.loc_id) || [];
 
-  // Use persistent maintenance events array
-  const allEvents = maintenanceEvents;
+    // Get query parameters
+    const programIdFilter = req.query.program_id ? parseInt(req.query.program_id as string, 10) : null;
+    const locationIdFilter = req.query.location_id ? parseInt(req.query.location_id as string, 10) : null;
+    const statusFilter = req.query.status as string | undefined; // 'open', 'closed', or undefined for all
+    const eventTypeFilter = req.query.event_type as string | undefined; // 'Standard', 'PMI', 'TCTO', 'BIT/PC', or undefined for all
+    const pqdrFilter = req.query.pqdr as string | undefined; // 'true' to filter only PQDR flagged events
+    const sortieIdFilter = req.query.sortie_id ? parseInt(req.query.sortie_id as string, 10) : null; // Filter by linked sortie
+    const searchQuery = req.query.search as string | undefined;
+    const dateFrom = req.query.date_from as string | undefined; // Filter events starting from this date (YYYY-MM-DD)
+    const dateTo = req.query.date_to as string | undefined; // Filter events up to this date (YYYY-MM-DD)
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
 
-  // Filter by user's accessible programs
-  let filteredEvents = allEvents.filter(event => userProgramIds.includes(event.pgm_id));
+    // Build where clause for Prisma query
+    const whereClause: Prisma.EventWhereInput = {};
 
-  // SECURITY: Filter by location - maintenance events must be at locations the user has access to
-  // If a specific location is requested, filter by that location
-  // If no location specified and user has location restrictions, show events from all their locations
-  if (locationIdFilter) {
-    // Filter by the specific requested location (only if user has access to it)
-    if (userLocationIds.includes(locationIdFilter)) {
-      filteredEvents = filteredEvents.filter(event => event.loc_id === locationIdFilter);
-    } else {
-      // User doesn't have access to this location - return empty results
-      filteredEvents = [];
-    }
-  } else if (userLocationIds.length > 0) {
-    // No specific location requested - filter by all user's locations
-    filteredEvents = filteredEvents.filter(event => userLocationIds.includes(event.loc_id));
-  }
-
-  // Apply program filter if specified
-  if (programIdFilter && userProgramIds.includes(programIdFilter)) {
-    filteredEvents = filteredEvents.filter(event => event.pgm_id === programIdFilter);
-  }
-
-  // Apply status filter if specified
-  if (statusFilter === 'open' || statusFilter === 'closed') {
-    filteredEvents = filteredEvents.filter(event => event.status === statusFilter);
-  }
-
-  // Apply event type filter if specified
-  const validEventTypes = ['Standard', 'PMI', 'TCTO', 'BIT/PC'];
-  if (eventTypeFilter && validEventTypes.includes(eventTypeFilter)) {
-    filteredEvents = filteredEvents.filter(event => event.event_type === eventTypeFilter);
-  }
-
-  // Apply PQDR filter if specified
-  if (pqdrFilter === 'true') {
-    filteredEvents = filteredEvents.filter(event => event.pqdr === true);
-  }
-
-  // Apply sortie filter if specified
-  if (sortieIdFilter) {
-    filteredEvents = filteredEvents.filter(event => event.sortie_id === sortieIdFilter);
-  }
-
-  // Apply search filter if specified
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase().trim();
-    if (query) {
-      filteredEvents = filteredEvents.filter(event =>
-        event.job_no.toLowerCase().includes(query) ||
-        event.asset_sn.toLowerCase().includes(query) ||
-        event.asset_name.toLowerCase().includes(query) ||
-        event.discrepancy.toLowerCase().includes(query) ||
-        event.location.toLowerCase().includes(query)
-      );
-    }
-  }
-
-  // Apply date range filter if specified (based on start_job date)
-  if (dateFrom) {
-    const fromDate = new Date(dateFrom);
-    fromDate.setHours(0, 0, 0, 0); // Start of day
-    filteredEvents = filteredEvents.filter(event => {
-      const eventDate = new Date(event.start_job);
-      return eventDate >= fromDate;
-    });
-  }
-  if (dateTo) {
-    const toDate = new Date(dateTo);
-    toDate.setHours(23, 59, 59, 999); // End of day
-    filteredEvents = filteredEvents.filter(event => {
-      const eventDate = new Date(event.start_job);
-      return eventDate <= toDate;
-    });
-  }
-
-  // Sort by priority (Critical first, then Urgent, then Routine), then by start date (newest first)
-  const priorityOrder: Record<string, number> = { Critical: 0, Urgent: 1, Routine: 2 };
-  filteredEvents.sort((a, b) => {
-    const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
-    if (priorityDiff !== 0) return priorityDiff;
-    return new Date(b.start_job).getTime() - new Date(a.start_job).getTime();
-  });
-
-  // Calculate pagination
-  const total = filteredEvents.length;
-  const totalPages = Math.ceil(total / limit);
-  const offset = (page - 1) * limit;
-  const paginatedEvents = filteredEvents.slice(offset, offset + limit);
-
-  // Calculate progress for each event based on repairs
-  const eventsWithProgress = paginatedEvents.map(event => {
-    const eventRepairs = repairs.filter(r => r.event_id === event.event_id);
-    const totalRepairs = eventRepairs.length;
-    const closedRepairs = eventRepairs.filter(r => r.shop_status === 'closed').length;
-    const progressPercentage = totalRepairs > 0 ? Math.round((closedRepairs / totalRepairs) * 100) : 0;
-
-    return {
-      ...event,
-      total_repairs: totalRepairs,
-      closed_repairs: closedRepairs,
-      progress_percentage: progressPercentage,
+    // Filter by user's accessible programs
+    whereClause.asset = {
+      part: {
+        pgm_id: { in: userProgramIds }
+      }
     };
-  });
 
-  // Calculate summary counts
-  const summary = {
-    open: filteredEvents.filter(e => e.status === 'open').length,
-    closed: filteredEvents.filter(e => e.status === 'closed').length,
-    critical: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Critical').length,
-    urgent: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Urgent').length,
-    routine: filteredEvents.filter(e => e.status === 'open' && e.priority === 'Routine').length,
-    pqdr: filteredEvents.filter(e => e.pqdr === true).length, // Count of PQDR flagged events
-    total: filteredEvents.length,
-  };
+    // SECURITY: Filter by location - maintenance events must be at locations the user has access to
+    // If a specific location is requested, filter by that location
+    // If no location specified and user has location restrictions, show events from all their locations
+    if (locationIdFilter) {
+      // Filter by the specific requested location (only if user has access to it)
+      if (userLocationIds.includes(locationIdFilter)) {
+        whereClause.loc_id = locationIdFilter;
+      } else {
+        // User doesn't have access to this location - return empty results
+        whereClause.loc_id = -1; // Impossible ID to return no results
+      }
+    } else if (userLocationIds.length > 0) {
+      // No specific location requested - filter by all user's locations
+      whereClause.loc_id = { in: userLocationIds };
+    }
 
-  // Get program info
-  const currentProgramId = programIdFilter || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id;
-  const programInfo = user.programs.find(p => p.pgm_id === currentProgramId);
+    // Apply program filter if specified
+    if (programIdFilter && userProgramIds.includes(programIdFilter)) {
+      if (whereClause.asset && typeof whereClause.asset === 'object') {
+        (whereClause.asset as Prisma.AssetWhereInput).part = {
+          ...(whereClause.asset as any).part,
+          pgm_id: programIdFilter
+        };
+      }
+    }
 
-  console.log(`[EVENTS] List request by ${user.username} - Total: ${total}, Open: ${summary.open}, Closed: ${summary.closed}`);
+    // Apply status filter if specified
+    if (statusFilter === 'open' || statusFilter === 'closed') {
+      // For events, we need to check if stop_job is null (open) or not null (closed)
+      if (statusFilter === 'open') {
+        whereClause.stop_job = null;
+      } else {
+        whereClause.stop_job = { not: null };
+      }
+    }
 
-  res.json({
-    events: eventsWithProgress,
-    pagination: {
-      page,
-      limit,
-      total,
-      total_pages: totalPages,
-    },
-    summary,
-    program: programInfo,
-  });
+    // Apply event type filter if specified
+    const validEventTypes = ['Standard', 'PMI', 'TCTO', 'BIT/PC'];
+    if (eventTypeFilter && validEventTypes.includes(eventTypeFilter)) {
+      whereClause.event_type = eventTypeFilter;
+    }
+
+    // Apply sortie filter if specified
+    if (sortieIdFilter) {
+      whereClause.sortie_id = sortieIdFilter;
+    }
+
+    // Apply date range filter if specified (based on start_job date)
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0); // Start of day
+      if (whereClause.start_job && typeof whereClause.start_job === 'object') {
+        (whereClause.start_job as any).gte = fromDate;
+      } else {
+        whereClause.start_job = { gte: fromDate };
+      }
+    }
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      if (whereClause.start_job && typeof whereClause.start_job === 'object') {
+        (whereClause.start_job as any).lte = toDate;
+      } else {
+        whereClause.start_job = { lte: toDate };
+      }
+    }
+
+    // Query events from database with relations
+    const dbEvents = await prisma.event.findMany({
+      where: whereClause,
+      include: {
+        asset: {
+          select: {
+            asset_id: true,
+            serno: true,
+            part: {
+              select: {
+                partno: true,
+                noun: true,
+                pgm_id: true,
+                program: {
+                  select: { pgm_cd: true, pgm_name: true }
+                }
+              }
+            }
+          }
+        },
+        location: {
+          select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
+        },
+        repairs: {
+          select: { repair_id: true, shop_status: true }
+        }
+      },
+      orderBy: [
+        { priority: 'asc' },
+        { start_job: 'desc' }
+      ],
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    // Get total count for pagination (apply same filters but without pagination)
+    const total = await prisma.event.count({ where: whereClause });
+
+    // Transform database results to match frontend expected format
+    let allEvents = dbEvents.map(dbEvent => {
+      // Build location display string - resolve code IDs to actual codes
+      const formatLocation = (loc: { display_name: string; majcom_cd?: string | null; site_cd?: string | null; unit_cd?: string | null } | null) => {
+        if (!loc) return 'Unknown';
+
+        // Resolve the majcom, site, unit IDs to actual codes
+        const majcom = resolveCodeId(loc.majcom_cd || null, codes);
+        const site = resolveCodeId(loc.site_cd || null, codes);
+        const unit = resolveCodeId(loc.unit_cd || null, codes);
+
+        // Build from resolved hierarchy components
+        const parts = [majcom, site, unit].filter(Boolean);
+        if (parts.length > 0) {
+          return parts.join('/');
+        }
+
+        // Fallback to display_name if available and not just IDs
+        if (loc.display_name && !loc.display_name.match(/^\d+\/\d+\/\d+$/)) {
+          return loc.display_name;
+        }
+
+        return 'Unknown';
+      };
+
+      const asset = dbEvent.asset;
+      const pgmId = asset?.part?.pgm_id || 1;
+
+      return {
+        event_id: dbEvent.event_id,
+        asset_id: dbEvent.asset_id,
+        asset_sn: asset?.serno || 'Unknown',
+        asset_name: asset?.part?.noun || 'Unknown',
+        job_no: dbEvent.job_no || `JOB-${dbEvent.event_id}`,
+        discrepancy: dbEvent.discrepancy || 'No discrepancy description',
+        start_job: dbEvent.start_job?.toISOString() || new Date().toISOString(),
+        stop_job: dbEvent.stop_job?.toISOString() || null,
+        etic: dbEvent.etic_date?.toISOString().split('T')[0] || null,
+        status: dbEvent.stop_job ? 'closed' : 'open',
+        priority: dbEvent.priority || 'Routine',
+        symbol: dbEvent.symbol || null,
+        event_type: dbEvent.event_type || 'Standard',
+        pgm_id: pgmId,
+        loc_id: dbEvent.loc_id || 0,
+        location: formatLocation(dbEvent.location) || 'Unknown',
+        sortie_id: dbEvent.sortie_id || null,
+        when_discovered: dbEvent.when_disc || null,
+        how_malfunction: dbEvent.how_mal || null,
+        wuc_cd: dbEvent.wuc_cd || null,
+        source: dbEvent.source || null,
+        pqdr: false, // Default to false since PQDR field doesn't exist in database yet
+        total_repairs: 0,
+        closed_repairs: 0,
+        progress_percentage: 0,
+      };
+    });
+
+    // Apply search filter if specified (done in-memory since it searches multiple fields)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase().trim();
+      if (query) {
+        allEvents = allEvents.filter(event =>
+          event.job_no.toLowerCase().includes(query) ||
+          event.asset_sn.toLowerCase().includes(query) ||
+          event.asset_name.toLowerCase().includes(query) ||
+          event.discrepancy.toLowerCase().includes(query) ||
+          event.location.toLowerCase().includes(query)
+        );
+      }
+    }
+
+    // Apply PQDR filter if specified (no PQDR field in database, so this will be empty)
+    if (pqdrFilter === 'true') {
+      allEvents = allEvents.filter(event => event.pqdr === true);
+    }
+
+    // Sort by priority (Critical first, then Urgent, then Routine), then by start date (newest first)
+    const priorityOrder: Record<string, number> = { Critical: 0, Urgent: 1, Routine: 2 };
+    allEvents.sort((a, b) => {
+      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (priorityDiff !== 0) return priorityDiff;
+      return new Date(b.start_job).getTime() - new Date(a.start_job).getTime();
+    });
+
+    // Calculate pagination for filtered events
+    const filteredTotal = allEvents.length;
+    const totalPages = Math.ceil(filteredTotal / limit);
+    const offset = (page - 1) * limit;
+    const paginatedEvents = allEvents.slice(offset, offset + limit);
+
+    // Calculate progress for each event based on repairs from database
+    const eventsWithProgress = paginatedEvents.map(event => {
+      const eventRepairs = dbEvents.find(db => db.event_id === event.event_id)?.repairs || [];
+      const totalRepairs = eventRepairs.length;
+      const closedRepairs = eventRepairs.filter(r => r.shop_status === 'closed').length;
+      const progressPercentage = totalRepairs > 0 ? Math.round((closedRepairs / totalRepairs) * 100) : 0;
+
+      return {
+        ...event,
+        total_repairs: totalRepairs,
+        closed_repairs: closedRepairs,
+        progress_percentage: progressPercentage,
+      };
+    });
+
+    // Calculate summary counts
+    const summary = {
+      open: allEvents.filter(e => e.status === 'open').length,
+      closed: allEvents.filter(e => e.status === 'closed').length,
+      critical: allEvents.filter(e => e.status === 'open' && e.priority === 'Critical').length,
+      urgent: allEvents.filter(e => e.status === 'open' && e.priority === 'Urgent').length,
+      routine: allEvents.filter(e => e.status === 'open' && e.priority === 'Routine').length,
+      pqdr: allEvents.filter(e => e.pqdr === true).length, // Count of PQDR flagged events
+      total: filteredTotal,
+    };
+
+    // Get program info
+    const currentProgramId = programIdFilter || user.programs.find(p => p.is_default)?.pgm_id || user.programs[0]?.pgm_id;
+    const programInfo = user.programs.find(p => p.pgm_id === currentProgramId);
+
+    console.log(`[EVENTS-DB] List request by ${user.username} - Total: ${total}, Open: ${summary.open}, Closed: ${summary.closed}`);
+
+    res.json({
+      events: eventsWithProgress,
+      pagination: {
+        page,
+        limit,
+        total: filteredTotal,
+        total_pages: totalPages,
+      },
+      summary,
+      program: programInfo,
+    });
+  } catch (error) {
+    console.error('[EVENTS-DB] Error fetching events:', error);
+    res.status(500).json({ error: 'Failed to fetch events from database' });
+  }
 });
 
 // Get single maintenance event by ID
@@ -10690,9 +10809,9 @@ app.get('/api/assets', async (req, res) => {
         if (!loc) return 'Unknown';
 
         // Resolve the majcom, site, unit IDs to actual codes
-        const majcom = resolveCodeId(loc.majcom_cd, codes);
-        const site = resolveCodeId(loc.site_cd, codes);
-        const unit = resolveCodeId(loc.unit_cd, codes);
+        const majcom = resolveCodeId(loc.majcom_cd || null, codes);
+        const site = resolveCodeId(loc.site_cd || null, codes);
+        const unit = resolveCodeId(loc.unit_cd || null, codes);
 
         // Build from resolved hierarchy components
         const parts = [majcom, site, unit].filter(Boolean);
