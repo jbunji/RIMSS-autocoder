@@ -10,6 +10,7 @@ export { PartsOrderingService, partsOrderingService } from "./PartsOrderingServi
 export { TctoService, tctoService } from "./TctoService";
 export { PmiService, pmiService } from "./PmiService";
 export { ShippingService, shippingService } from "./ShippingService";
+export { SortieService, sortieService } from "./SortieService";
 
 // CRUD services  
 export { MaintenanceService, maintenanceService } from "./MaintenanceService";
@@ -21,3 +22,4 @@ export { partsOrderingRouter } from "./partsOrderingRoutes";
 export { tctoRouter } from "./tctoRoutes";
 export { pmiRouter } from "./pmiRoutes";
 export { shippingRouter } from "./shippingRoutes";
+export { sortieRouter } from "./sortieRoutes";
