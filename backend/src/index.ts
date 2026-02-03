@@ -136,6 +136,7 @@ app.use("/api/v2/pmi", pmiRouter)
 app.use("/api/v2/shipping", shippingRouter)
 app.use("/api/v2/sorties", sortieRouter)
 app.use("/api/v2/config", configurationRouter)
+app.use("/api/v2/notifications", notificationRouter)
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

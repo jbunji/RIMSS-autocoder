@@ -12,6 +12,7 @@ export { PmiService, pmiService } from "./PmiService";
 export { ShippingService, shippingService } from "./ShippingService";
 export { SortieService, sortieService } from "./SortieService";
 export { ConfigurationService, configurationService } from "./ConfigurationService";
+export { NotificationService, notificationService } from "./NotificationService";
 
 // CRUD services  
 export { MaintenanceService, maintenanceService } from "./MaintenanceService";
@@ -25,3 +26,4 @@ export { pmiRouter } from "./pmiRoutes";
 export { shippingRouter } from "./shippingRoutes";
 export { sortieRouter } from "./sortieRoutes";
 export { configurationRouter } from "./configurationRoutes";
+export { notificationRouter } from "./notificationRoutes";
