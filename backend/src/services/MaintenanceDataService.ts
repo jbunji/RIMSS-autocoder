@@ -8,7 +8,7 @@
  * the same response shapes the frontend expects.
  */
 
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -220,7 +220,7 @@ export class MaintenanceDataService {
     if (!dbEvent) return null;
 
     const totalRepairs = dbEvent.repairs.length;
-    const closedRepairs = dbEvent.repairs.filter(r => r.stop_date !== null || r.shop_status === 'closed').length;
+    const closedRepairs = dbEvent.repairs.filter((r: any) => r.stop_date !== null || r.shop_status === 'closed').length;
 
     return {
       event_id: dbEvent.event_id,
@@ -327,7 +327,7 @@ export class MaintenanceDataService {
     sortie_id?: number | null;
     chg_by?: string;
   }): Promise<MaintenanceEventV1 | null> {
-    const dbEvent = await prisma.event.update({
+    await prisma.event.update({
       where: { event_id: eventId },
       data: {
         ...(updates.discrepancy && { discrepancy: updates.discrepancy }),
@@ -404,7 +404,7 @@ export class MaintenanceDataService {
       orderBy: { repair_seq: 'asc' },
     });
 
-    return dbRepairs.map(r => this.mapRepairToV1(r));
+    return dbRepairs.map((r: any) => this.mapRepairToV1(r));
   }
 
   /**
@@ -470,7 +470,7 @@ export class MaintenanceDataService {
         super_review: params.super_review || false,
         repeat_recur: params.repeat_recur || false,
         eti_in: params.eti_in !== null && params.eti_in !== undefined 
-          ? new Prisma.Decimal(params.eti_in) : null,
+          ? (params.eti_in) : null,
         ins_by: params.ins_by || 'system',
         ins_date: new Date(),
       },
@@ -504,11 +504,11 @@ export class MaintenanceDataService {
     chg_by?: string;
   }): Promise<RepairV1 | null> {
     // Calculate eti_delta if eti_out is being set
-    let etiDelta: Prisma.Decimal | null = null;
+    let etiDelta: number | null = null;
     if (updates.eti_out !== undefined && updates.eti_out !== null) {
       const existing = await prisma.repair.findUnique({ where: { repair_id: repairId } });
       if (existing?.eti_in) {
-        etiDelta = new Prisma.Decimal(updates.eti_out).sub(existing.eti_in);
+        etiDelta = updates.eti_out - Number(existing.eti_in);
       }
     }
 
@@ -526,7 +526,7 @@ export class MaintenanceDataService {
         ...(updates.chief_review !== undefined && { chief_review: updates.chief_review }),
         ...(updates.super_review !== undefined && { super_review: updates.super_review }),
         ...(updates.repeat_recur !== undefined && { repeat_recur: updates.repeat_recur }),
-        ...(updates.eti_out !== undefined && { eti_out: updates.eti_out !== null ? new Prisma.Decimal(updates.eti_out) : null }),
+        ...(updates.eti_out !== undefined && { eti_out: updates.eti_out !== null ? (updates.eti_out) : null }),
         ...(etiDelta && { eti_delta: etiDelta }),
         ...(updates.shop_status && { shop_status: updates.shop_status }),
         ...(updates.stop_date !== undefined && { stop_date: updates.stop_date ? new Date(updates.stop_date) : null }),
@@ -619,7 +619,7 @@ export class MaintenanceDataService {
       orderBy: { labor_seq: 'asc' },
     });
 
-    return dbLabors.map(l => this.mapLaborToV1(l));
+    return dbLabors.map((l: any) => this.mapLaborToV1(l));
   }
 
   /**
@@ -728,7 +728,7 @@ export class MaintenanceDataService {
         ...(updates.type_maint !== undefined && { type_maint: updates.type_maint }),
         ...(updates.cat_labor !== undefined && { cat_labor: updates.cat_labor }),
         ...(updates.stop_date !== undefined && { stop_date: updates.stop_date ? new Date(updates.stop_date) : null }),
-        ...(updates.hours !== undefined && { hours: updates.hours !== null ? new Prisma.Decimal(updates.hours) : null }),
+        ...(updates.hours !== undefined && { hours: updates.hours !== null ? (updates.hours) : null }),
         ...(updates.crew_chief !== undefined && { crew_chief: updates.crew_chief }),
         ...(updates.crew_size !== undefined && { crew_size: updates.crew_size }),
         ...(updates.corrective !== undefined && { corrective: updates.corrective }),
@@ -803,7 +803,7 @@ export class MaintenanceDataService {
       },
     });
 
-    return dbParts.map(p => this.mapLaborPartToV1(p));
+    return dbParts.map((p: any) => this.mapLaborPartToV1(p));
   }
 
   /**
@@ -822,7 +822,7 @@ export class MaintenanceDataService {
       },
     });
 
-    return parts.map(p => ({
+    return parts.map((p: any) => ({
       installed_part_id: p.labor_part_id,
       repair_id: p.labor.repair_id,
       labor_id: p.labor_id,
@@ -855,7 +855,7 @@ export class MaintenanceDataService {
       },
     });
 
-    return parts.map(p => ({
+    return parts.map((p: any) => ({
       removed_part_id: p.labor_part_id,
       repair_id: p.labor.repair_id,
       labor_id: p.labor_id,

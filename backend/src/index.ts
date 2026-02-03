@@ -8,7 +8,7 @@ import { PrismaClient, Prisma } from '@prisma/client'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './trpc'
 
-import { maintenanceRouter, partsOrderingRouter } from "./services"
+import { maintenanceRouter, partsOrderingRouter, maintenanceData } from "./services"
 // Load environment variables
 dotenv.config()
 
@@ -6378,7 +6378,7 @@ app.get('/api/events', async (req, res) => {
 });
 
 // Get single maintenance event by ID
-app.get('/api/events/:id', (req, res) => {
+app.get('/api/events/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6387,20 +6387,31 @@ app.get('/api/events/:id', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  const eventId = parseInt(req.params.id, 10);
-  const event = maintenanceEvents.find(e => e.event_id === eventId);
+  try {
+    const eventId = parseInt(req.params.id, 10);
+    const event = await maintenanceData.getEventById(eventId);
 
-  if (!event) {
-    return res.status(404).json({ error: 'Maintenance event not found' });
+    if (!event) {
+      return res.status(404).json({ error: 'Maintenance event not found' });
+    }
+
+    // Check if user has access to this event's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(event.pgm_id)) {
+      return res.status(403).json({ error: 'Access denied to this maintenance event' });
+    }
+
+    // Check location access (non-ADMIN users)
+    const userLocationIds = user.locations?.map(l => l.loc_id) || [];
+    if (user.role !== 'ADMIN' && event.loc_id && userLocationIds.length > 0 && !userLocationIds.includes(event.loc_id)) {
+      return res.status(403).json({ error: 'Access denied to this maintenance event - location not authorized' });
+    }
+
+    res.json({ event });
+  } catch (error) {
+    console.error('[EVENTS] Error fetching event:', error);
+    res.status(500).json({ error: 'Failed to fetch event' });
   }
-
-  // Check if user has access to this event's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(event.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this maintenance event' });
-  }
-
-  res.json({ event });
 });
 
 // Create new maintenance event (requires authentication)
@@ -6648,9 +6659,8 @@ app.put('/api/events/:id', (req, res) => {
     event: maintenanceEvents[eventIndex],
   });
 });
-
 // Get repairs for a maintenance event
-app.get('/api/events/:eventId/repairs', (req, res) => {
+app.get('/api/events/:eventId/repairs', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6659,77 +6669,82 @@ app.get('/api/events/:eventId/repairs', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  const eventId = parseInt(req.params.eventId, 10);
-  const event = maintenanceEvents.find(e => e.event_id === eventId);
+  try {
+    const eventId = parseInt(req.params.eventId, 10);
+    
+    // Get event from database
+    const event = await maintenanceData.getEventById(eventId);
 
-  if (!event) {
-    return res.status(404).json({ error: 'Maintenance event not found' });
-  }
-
-  // Check if user has access to this event's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(event.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this maintenance event' });
-  }
-
-  // SECURITY: Check if user has access to this event's location
-  // Users must have the event's location in their assigned locations
-  const userLocationIds = user.locations.map(l => l.loc_id);
-  if (!userLocationIds.includes(event.loc_id)) {
-    return res.status(403).json({ error: 'Access denied to this maintenance event - location not authorized' });
-  }
-
-  // Get repairs for this event
-  const eventRepairs = repairs.filter(r => r.event_id === eventId);
-
-  // Build reverse lookup for TCTO links to repairs
-  // For each repair, find if any TCTO completion is linked to it
-  const repairsWithTCTO = eventRepairs.map(repair => {
-    let linkedTCTO = null;
-
-    // Search through all TCTO completion data for any that link to this repair
-    for (const [tctoId, completionDataArray] of tctoAssetCompletionData.entries()) {
-      const linkedCompletion = completionDataArray.find(c => c.linked_repair_id === repair.repair_id);
-      if (linkedCompletion) {
-        // Found a TCTO linked to this repair
-        const tcto = tctoRecords.find(t => t.tcto_id === tctoId);
-        if (tcto) {
-          linkedTCTO = {
-            tcto_id: tcto.tcto_id,
-            tcto_no: tcto.tcto_no,
-            title: tcto.title,
-            status: tcto.status,
-            priority: tcto.priority,
-            completion_date: linkedCompletion.completion_date,
-          };
-          break; // Only one TCTO can be linked per repair
-        }
-      }
+    if (!event) {
+      return res.status(404).json({ error: 'Maintenance event not found' });
     }
 
-    return {
-      ...repair,
-      linked_tcto: linkedTCTO,
+    // Check if user has access to this event's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(event.pgm_id)) {
+      return res.status(403).json({ error: 'Access denied to this maintenance event' });
+    }
+
+    // SECURITY: Check if user has access to this event's location (unless ADMIN)
+    const userLocationIds = user.locations.map(l => l.loc_id);
+    if (user.role !== 'ADMIN' && event.loc_id && userLocationIds.length > 0 && !userLocationIds.includes(event.loc_id)) {
+      return res.status(403).json({ error: 'Access denied to this maintenance event - location not authorized' });
+    }
+
+    // Get repairs from database
+    const eventRepairs = await maintenanceData.getRepairsForEvent(eventId);
+
+    // Build reverse lookup for TCTO links to repairs
+    // For each repair, find if any TCTO completion is linked to it
+    const repairsWithTCTO = eventRepairs.map(repair => {
+      let linkedTCTO = null;
+
+      // Search through all TCTO completion data for any that link to this repair
+      for (const [tctoId, completionDataArray] of tctoAssetCompletionData.entries()) {
+        const linkedCompletion = completionDataArray.find(c => c.linked_repair_id === repair.repair_id);
+        if (linkedCompletion) {
+          // Found a TCTO linked to this repair
+          const tcto = tctoRecords.find(t => t.tcto_id === tctoId);
+          if (tcto) {
+            linkedTCTO = {
+              tcto_id: tcto.tcto_id,
+              tcto_no: tcto.tcto_no,
+              title: tcto.title,
+              status: tcto.status,
+              priority: tcto.priority,
+              completion_date: linkedCompletion.completion_date,
+            };
+            break; // Only one TCTO can be linked per repair
+          }
+        }
+      }
+
+      return {
+        ...repair,
+        linked_tcto: linkedTCTO,
+      };
+    });
+
+    // Calculate summary
+    const summary = {
+      total: eventRepairs.length,
+      open: eventRepairs.filter(r => r.shop_status === 'open').length,
+      closed: eventRepairs.filter(r => r.shop_status === 'closed').length,
     };
-  });
 
-  // Calculate summary
-  const summary = {
-    total: eventRepairs.length,
-    open: eventRepairs.filter(r => r.shop_status === 'open').length,
-    closed: eventRepairs.filter(r => r.shop_status === 'closed').length,
-  };
+    console.log(`[REPAIRS-DB] Fetched ${eventRepairs.length} repairs for event ${event.job_no} by ${user.username}`);
 
-  console.log(`[REPAIRS] Fetched ${eventRepairs.length} repairs for event ${event.job_no} by ${user.username}`);
-
-  res.json({
-    repairs: repairsWithTCTO,
-    summary,
-  });
+    res.json({
+      repairs: repairsWithTCTO,
+      summary,
+    });
+  } catch (error) {
+    console.error('[REPAIRS] Error fetching repairs:', error);
+    res.status(500).json({ error: 'Failed to fetch repairs' });
+  }
 });
-
 // Get single repair by ID
-app.get('/api/repairs/:id', (req, res) => {
+app.get('/api/repairs/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6738,37 +6753,40 @@ app.get('/api/repairs/:id', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  const repairId = parseInt(req.params.id, 10);
-  const repair = repairs.find(r => r.repair_id === repairId);
+  try {
+    const repairId = parseInt(req.params.id, 10);
+    const repair = await maintenanceData.getRepairById(repairId);
 
-  if (!repair) {
-    return res.status(404).json({ error: 'Repair not found' });
+    if (!repair) {
+      return res.status(404).json({ error: 'Repair not found' });
+    }
+
+    // Get associated event to check program and location access
+    const event = await maintenanceData.getEventById(repair.event_id);
+    if (!event) {
+      return res.status(404).json({ error: 'Associated maintenance event not found' });
+    }
+
+    // Check if user has access to this event's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(event.pgm_id)) {
+      return res.status(403).json({ error: 'Access denied to this repair' });
+    }
+
+    // SECURITY: Check if user has access to this event's location (unless ADMIN)
+    const userLocationIds = user.locations.map(l => l.loc_id);
+    if (user.role !== 'ADMIN' && event.loc_id && userLocationIds.length > 0 && !userLocationIds.includes(event.loc_id)) {
+      return res.status(403).json({ error: 'Access denied to this repair - location not authorized' });
+    }
+
+    res.json({ repair });
+  } catch (error) {
+    console.error('[REPAIRS] Error fetching repair:', error);
+    res.status(500).json({ error: 'Failed to fetch repair' });
   }
-
-  // Get associated event to check program and location access
-  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
-  if (!event) {
-    return res.status(404).json({ error: 'Associated maintenance event not found' });
-  }
-
-  // Check if user has access to this event's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(event.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this repair' });
-  }
-
-  // SECURITY: Check if user has access to this event's location
-  // Repairs are filtered based on location through their parent maintenance event
-  const userLocationIds = user.locations.map(l => l.loc_id);
-  if (!userLocationIds.includes(event.loc_id)) {
-    return res.status(403).json({ error: 'Access denied to this repair - location not authorized' });
-  }
-
-  res.json({ repair });
 });
-
 // Create a new repair for an event
-app.post('/api/events/:eventId/repairs', (req, res) => {
+app.post('/api/events/:eventId/repairs', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6783,121 +6801,84 @@ app.post('/api/events/:eventId/repairs', (req, res) => {
     return res.status(403).json({ error: 'Access denied. You do not have permission to create repairs.' });
   }
 
-  const eventId = parseInt(req.params.eventId, 10);
-  const event = maintenanceEvents.find(e => e.event_id === eventId);
+  try {
+    const eventId = parseInt(req.params.eventId, 10);
+    const event = await maintenanceData.getEventById(eventId);
 
-  if (!event) {
-    return res.status(404).json({ error: 'Maintenance event not found' });
-  }
-
-  // Check if user has access to this event's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(event.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this maintenance event' });
-  }
-
-  // Cannot add repairs to closed events
-  if (event.status === 'closed') {
-    return res.status(400).json({ error: 'Cannot add repairs to a closed maintenance event' });
-  }
-
-  const { start_date, type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, micap, chief_review, super_review, repeat_recur, donor_asset_id, eti_in } = req.body;
-
-  // Validate required fields
-  if (!type_maint || !narrative) {
-    return res.status(400).json({ error: 'Maintenance type and narrative are required' });
-  }
-
-  // If action_taken is 'T' (cannibalization), donor_asset_id is required
-  if (action_taken === 'T' && !donor_asset_id) {
-    return res.status(400).json({ error: 'Donor asset is required for cannibalization (Action T)' });
-  }
-
-  // Calculate next repair sequence for this event
-  const eventRepairs = repairs.filter(r => r.event_id === eventId);
-  const nextSeq = eventRepairs.length > 0 ? Math.max(...eventRepairs.map(r => r.repair_seq)) + 1 : 1;
-
-  // Use provided start_date or default to today
-  const repairStartDate = start_date || new Date().toISOString().split('T')[0];
-
-  // Look up donor asset details if cannibalization
-  let donorAssetDetails: { donor_asset_sn: string | null; donor_asset_pn: string | null; donor_asset_name: string | null } = {
-    donor_asset_sn: null,
-    donor_asset_pn: null,
-    donor_asset_name: null,
-  };
-
-  if (action_taken === 'T' && donor_asset_id) {
-    const donorAsset = mockAssets.find(a => a.asset_id === donor_asset_id);
-    if (donorAsset) {
-      donorAssetDetails = {
-        donor_asset_sn: donorAsset.serno,
-        donor_asset_pn: donorAsset.partno,
-        donor_asset_name: donorAsset.name,
-      };
-
-      // Update donor asset status to NMCS (Not Mission Capable - Supply) since a part was cannibalized from it
-      const donorAssetIndex = mockAssets.findIndex(a => a.asset_id === donor_asset_id);
-      if (donorAssetIndex !== -1) {
-        mockAssets[donorAssetIndex].status_cd = 'NMCS';
-        console.log(`[CANNIBALIZATION] Donor asset ${donorAsset.serno} status changed to NMCS`);
-      }
+    if (!event) {
+      return res.status(404).json({ error: 'Maintenance event not found' });
     }
-  }
 
-  const newRepair: Repair = {
-    repair_id: repairNextId++,
-    event_id: eventId,
-    repair_seq: nextSeq,
-    asset_id: event.asset_id,
-    start_date: repairStartDate,
-    stop_date: null,
-    type_maint,
-    how_mal: how_mal || null,
-    when_disc: when_disc || null,
-    action_taken: action_taken || null,
-    shop_status: 'open',
-    narrative,
-    tag_no: tag_no || null,
-    doc_no: doc_no || null,
-    micap: micap === true, // MICAP flag
-    micap_login: micap === true ? user.username : null, // Track who set MICAP
-    chief_review: chief_review === true, // Chief review flag
-    chief_review_by: chief_review === true ? user.username : null, // Track who flagged for chief review
-    super_review: super_review === true, // Supervisor review flag
-    super_review_by: super_review === true ? user.username : null, // Track who flagged for supervisor review
-    repeat_recur: repeat_recur === true, // Repeat/Recur flag
-    repeat_recur_by: repeat_recur === true ? user.username : null, // Track who flagged as repeat/recur
-    donor_asset_id: action_taken === 'T' ? donor_asset_id : null,
-    donor_asset_sn: donorAssetDetails.donor_asset_sn,
-    donor_asset_pn: donorAssetDetails.donor_asset_pn,
-    donor_asset_name: donorAssetDetails.donor_asset_name,
-    // ETI tracking fields
-    eti_in: eti_in !== undefined && eti_in !== null && eti_in !== '' ? parseFloat(eti_in) : null,
-    eti_out: null, // Set when repair is closed
-    eti_delta: null, // Calculated when repair is closed
-    meter_changed: false, // Set to true if physical meter was replaced
-    created_by_name: `${user.first_name} ${user.last_name}`,
-    created_at: new Date().toISOString().split('T')[0],
-  };
-
-  repairs.push(newRepair);
-
-  // Update asset's ETI hours if eti_in is provided
-  if (newRepair.eti_in !== null) {
-    const assetIndex = detailedAssets.findIndex(a => a.asset_id === newRepair.asset_id);
-    if (assetIndex !== -1) {
-      detailedAssets[assetIndex].eti_hours = newRepair.eti_in;
-      console.log(`[REPAIRS] Asset ${newRepair.asset_id} ETI updated to ${newRepair.eti_in} hours (from repair start)`);
+    // Check if user has access to this event's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(event.pgm_id)) {
+      return res.status(403).json({ error: 'Access denied to this maintenance event' });
     }
+
+    // Cannot add repairs to closed events
+    if (event.status === 'closed') {
+      return res.status(400).json({ error: 'Cannot add repairs to a closed maintenance event' });
+    }
+
+    const { start_date, type_maint, how_mal, when_disc, action_taken, narrative, tag_no, doc_no, micap, chief_review, super_review, repeat_recur, donor_asset_id, eti_in } = req.body;
+
+    // Validate required fields
+    if (!type_maint || !narrative) {
+      return res.status(400).json({ error: 'Maintenance type and narrative are required' });
+    }
+
+    // If action_taken is 'T' (cannibalization), donor_asset_id is required
+    if (action_taken === 'T' && !donor_asset_id) {
+      return res.status(400).json({ error: 'Donor asset is required for cannibalization (Action T)' });
+    }
+
+    // Handle cannibalization - update donor asset status in database
+    if (action_taken === 'T' && donor_asset_id) {
+      await prisma.asset.update({
+        where: { asset_id: parseInt(donor_asset_id, 10) },
+        data: { status_cd: 'NMCS' }
+      });
+      console.log(`[CANNIBALIZATION] Donor asset ${donor_asset_id} status changed to NMCS`);
+    }
+
+    // Create repair in database
+    const newRepair = await maintenanceData.createRepair({
+      event_id: eventId,
+      asset_id: event.asset_id,
+      start_date: start_date || new Date().toISOString().split('T')[0],
+      type_maint,
+      how_mal: how_mal || null,
+      when_disc: when_disc || null,
+      narrative,
+      tag_no: tag_no || null,
+      doc_no: doc_no || null,
+      micap: micap === true,
+      chief_review: chief_review === true,
+      super_review: super_review === true,
+      repeat_recur: repeat_recur === true,
+      eti_in: eti_in !== undefined && eti_in !== null && eti_in !== '' ? parseFloat(eti_in) : null,
+      ins_by: user.username,
+    });
+
+    // Update asset's ETI hours if eti_in is provided
+    if (newRepair.eti_in !== null) {
+      await prisma.asset.update({
+        where: { asset_id: event.asset_id },
+        data: { eti: newRepair.eti_in }
+      });
+      console.log(`[REPAIRS-DB] Asset ${event.asset_id} ETI updated to ${newRepair.eti_in} hours`);
+    }
+
+    console.log(`[REPAIRS-DB] Created repair ${newRepair.repair_id} for event ${event.job_no} by ${user.username}`);
+
+    res.status(201).json({
+      message: 'Repair created successfully',
+      repair: newRepair,
+    });
+  } catch (error) {
+    console.error('[REPAIRS] Error creating repair:', error);
+    res.status(500).json({ error: 'Failed to create repair' });
   }
-
-  console.log(`[REPAIRS] Created repair ${newRepair.repair_id} for event ${event.job_no} by ${user.username}`);
-
-  res.status(201).json({
-    message: 'Repair created successfully',
-    repair: newRepair,
-  });
 });
 
 // Update a repair
@@ -7849,9 +7830,8 @@ app.get('/api/events/:eventId/removable-assets', (req, res) => {
 // ============================================
 // LABOR RECORD ENDPOINTS
 // ============================================
-
 // Get labor records for a repair
-app.get('/api/repairs/:repairId/labor', (req, res) => {
+app.get('/api/repairs/:repairId/labor', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -7860,46 +7840,51 @@ app.get('/api/repairs/:repairId/labor', (req, res) => {
     return res.status(401).json({ error: 'User not found' });
   }
 
-  const repairId = parseInt(req.params.repairId, 10);
-  const repair = repairs.find(r => r.repair_id === repairId);
+  try {
+    const repairId = parseInt(req.params.repairId, 10);
+    const repair = await maintenanceData.getRepairById(repairId);
 
-  if (!repair) {
-    return res.status(404).json({ error: 'Repair not found' });
+    if (!repair) {
+      return res.status(404).json({ error: 'Repair not found' });
+    }
+
+    // Get associated event for program access check
+    const event = await maintenanceData.getEventById(repair.event_id);
+    if (!event) {
+      return res.status(404).json({ error: 'Associated maintenance event not found' });
+    }
+
+    // Check if user has access to this event's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(event.pgm_id)) {
+      return res.status(403).json({ error: 'Access denied to this repair' });
+    }
+
+    // Check if user has access to this event's location (unless ADMIN)
+    const userLocationIds = user.locations.map(l => l.loc_id);
+    if (user.role !== 'ADMIN' && event.loc_id && userLocationIds.length > 0 && !userLocationIds.includes(event.loc_id)) {
+      return res.status(403).json({ error: 'Access denied to labor at this location' });
+    }
+
+    // Get labor records from database
+    const repairLabor = await maintenanceData.getLaborForRepair(repairId);
+
+    // Calculate summary
+    const summary = {
+      total: repairLabor.length,
+      total_hours: repairLabor.reduce((sum, l) => sum + (l.hours || 0), 0),
+    };
+
+    console.log(`[LABOR-DB] Fetched ${repairLabor.length} labor records for repair ${repairId} by ${user.username}`);
+
+    res.json({
+      labor: repairLabor,
+      summary,
+    });
+  } catch (error) {
+    console.error('[LABOR] Error fetching labor records:', error);
+    res.status(500).json({ error: 'Failed to fetch labor records' });
   }
-
-  // Get associated event for program access check
-  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
-  if (!event) {
-    return res.status(404).json({ error: 'Associated maintenance event not found' });
-  }
-
-  // Check if user has access to this event's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(event.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this repair' });
-  }
-
-  // Check if user has access to this event's location
-  const userLocationIds = user.locations.map(l => l.loc_id);
-  if (!userLocationIds.includes(event.loc_id)) {
-    return res.status(403).json({ error: 'Access denied to labor at this location' });
-  }
-
-  // Get labor records for this repair
-  const repairLabor = laborRecords.filter(l => l.repair_id === repairId);
-
-  // Calculate summary
-  const summary = {
-    total: repairLabor.length,
-    total_hours: repairLabor.reduce((sum, l) => sum + (l.hours || 0), 0),
-  };
-
-  console.log(`[LABOR] Fetched ${repairLabor.length} labor records for repair ${repairId} by ${user.username}`);
-
-  res.json({
-    labor: repairLabor,
-    summary,
-  });
 });
 
 // Get single labor record by ID
@@ -7943,9 +7928,8 @@ app.get('/api/labor/:id', (req, res) => {
 
   res.json(labor);
 });
-
 // Create a new labor record for a repair
-app.post('/api/repairs/:repairId/labor', (req, res) => {
+app.post('/api/repairs/:repairId/labor', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -7960,111 +7944,113 @@ app.post('/api/repairs/:repairId/labor', (req, res) => {
     return res.status(403).json({ error: 'Access denied. You do not have permission to create labor records.' });
   }
 
-  const repairId = parseInt(req.params.repairId, 10);
-  const repair = repairs.find(r => r.repair_id === repairId);
+  try {
+    const repairId = parseInt(req.params.repairId, 10);
+    const repair = await maintenanceData.getRepairById(repairId);
 
-  if (!repair) {
-    return res.status(404).json({ error: 'Repair not found' });
-  }
-
-  // Get associated event for program access check
-  const event = maintenanceEvents.find(e => e.event_id === repair.event_id);
-  if (!event) {
-    return res.status(404).json({ error: 'Associated maintenance event not found' });
-  }
-
-  // Check if user has access to this event's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(event.pgm_id)) {
-    return res.status(403).json({ error: 'Access denied to this repair' });
-  }
-
-  // Cannot add labor to closed repairs
-  if (repair.shop_status === 'closed') {
-    return res.status(400).json({ error: 'Cannot add labor records to a closed repair' });
-  }
-
-  const {
-    action_taken,
-    how_mal,
-    when_disc,
-    type_maint,
-    cat_labor,
-    start_date,
-    stop_date,
-    hours,
-    crew_chief,
-    crew_size,
-    corrective,
-    discrepancy,
-    remarks,
-    corrected_by,
-    inspected_by,
-    bit_log,
-  } = req.body;
-
-  // Validate required fields
-  if (!crew_chief) {
-    return res.status(400).json({ error: 'Crew chief name is required' });
-  }
-
-  // Corrective action narrative is required
-  if (!corrective || !corrective.trim()) {
-    return res.status(400).json({ error: 'Corrective action narrative is required' });
-  }
-
-  // Calculate next labor sequence for this repair
-  const repairLabor = laborRecords.filter(l => l.repair_id === repairId);
-  const nextSeq = repairLabor.length > 0 ? Math.max(...repairLabor.map(l => l.labor_seq)) + 1 : 1;
-
-  // Use provided start_date or default to today
-  const laborStartDate = start_date || new Date().toISOString().split('T')[0];
-
-  // Validate stop_date if provided
-  if (stop_date) {
-    const startDateObj = new Date(laborStartDate);
-    const stopDateObj = new Date(stop_date);
-    if (stopDateObj < startDateObj) {
-      return res.status(400).json({ error: 'Stop time cannot be before start time' });
+    if (!repair) {
+      return res.status(404).json({ error: 'Repair not found' });
     }
+
+    // Get associated event for program access check
+    const event = await maintenanceData.getEventById(repair.event_id);
+    if (!event) {
+      return res.status(404).json({ error: 'Associated maintenance event not found' });
+    }
+
+    // Check if user has access to this event's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    if (!userProgramIds.includes(event.pgm_id)) {
+      return res.status(403).json({ error: 'Access denied to this repair' });
+    }
+
+    // Cannot add labor to closed repairs
+    if (repair.shop_status === 'closed') {
+      return res.status(400).json({ error: 'Cannot add labor records to a closed repair' });
+    }
+
+    const {
+      action_taken,
+      how_mal,
+      when_disc,
+      type_maint,
+      cat_labor,
+      start_date,
+      stop_date,
+      hours,
+      crew_chief,
+      crew_size,
+      corrective,
+      discrepancy,
+      remarks,
+      corrected_by,
+      inspected_by,
+      bit_log,
+    } = req.body;
+
+    // Validate required fields
+    if (!crew_chief) {
+      return res.status(400).json({ error: 'Crew chief name is required' });
+    }
+
+    // Corrective action narrative is required
+    if (!corrective || !corrective.trim()) {
+      return res.status(400).json({ error: 'Corrective action narrative is required' });
+    }
+
+    // Validate stop_date if provided
+    const laborStartDate = start_date || new Date().toISOString().split('T')[0];
+    if (stop_date) {
+      const startDateObj = new Date(laborStartDate);
+      const stopDateObj = new Date(stop_date);
+      if (stopDateObj < startDateObj) {
+        return res.status(400).json({ error: 'Stop time cannot be before start time' });
+      }
+    }
+
+    // Create labor record in database
+    const newLabor = await maintenanceData.createLabor({
+      repair_id: repairId,
+      asset_id: repair.asset_id,
+      action_taken: action_taken || null,
+      how_mal: how_mal || null,
+      when_disc: when_disc || null,
+      type_maint: type_maint || null,
+      cat_labor: cat_labor || null,
+      start_date: laborStartDate,
+      crew_chief: crew_chief,
+      crew_size: crew_size !== undefined && crew_size !== null && crew_size !== '' ? parseInt(crew_size, 10) : null,
+      corrective: corrective || null,
+      discrepancy: discrepancy || null,
+      remarks: remarks || null,
+      ins_by: user.username,
+    });
+
+    // Update stop_date and hours if provided (separate update since createLabor doesn't handle these)
+    if (stop_date || hours !== undefined) {
+      await maintenanceData.updateLabor(newLabor.labor_id, {
+        stop_date: stop_date || null,
+        hours: hours !== undefined && hours !== null && hours !== '' ? parseFloat(hours) : null,
+        corrected_by: corrected_by || null,
+        inspected_by: inspected_by || null,
+        bit_log: bit_log || null,
+        chg_by: user.username,
+      });
+    }
+
+    // Fetch the final labor record
+    const finalLabor = await maintenanceData.getLaborById(newLabor.labor_id);
+
+    console.log(`[LABOR-DB] Created labor ${newLabor.labor_id} for repair ${repairId} by ${user.username}`);
+
+    res.status(201).json({
+      message: 'Labor record created successfully',
+      labor: finalLabor,
+    });
+  } catch (error) {
+    console.error('[LABOR] Error creating labor record:', error);
+    res.status(500).json({ error: 'Failed to create labor record' });
   }
-
-  const newLabor: Labor = {
-    labor_id: laborNextId++,
-    repair_id: repairId,
-    labor_seq: nextSeq,
-    asset_id: repair.asset_id,
-    action_taken: action_taken || null,
-    how_mal: how_mal || null,
-    when_disc: when_disc || null,
-    type_maint: type_maint || null,
-    cat_labor: cat_labor || null,
-    start_date: laborStartDate,
-    stop_date: stop_date || null,
-    hours: hours !== undefined && hours !== null && hours !== '' ? parseFloat(hours) : null,
-    crew_chief: crew_chief,
-    crew_size: crew_size !== undefined && crew_size !== null && crew_size !== '' ? parseInt(crew_size, 10) : null,
-    corrective: corrective || null,
-    discrepancy: discrepancy || null,
-    remarks: remarks || null,
-    corrected_by: corrected_by || null,
-    inspected_by: inspected_by || null,
-    bit_log: bit_log || null,
-    sent_imds: false,
-    valid: true,
-    created_by: user.user_id,
-    created_by_name: `${user.first_name} ${user.last_name}`,
-    created_at: new Date().toISOString(),
-  };
-
-  laborRecords.push(newLabor);
-
-  console.log(`[LABOR] Created labor ${newLabor.labor_id} (seq ${newLabor.labor_seq}) for repair ${repairId} by ${user.username}`);
-
-  res.status(201).json({
-    message: 'Labor record created successfully',
-    labor: newLabor,
-  });
 });
 
 // Update a labor record

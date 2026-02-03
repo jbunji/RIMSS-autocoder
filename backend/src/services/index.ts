@@ -8,7 +8,8 @@
 export { MaintenanceWorkflowService, maintenanceWorkflow } from "./MaintenanceWorkflowService";
 export { PartsOrderingService, partsOrderingService } from "./PartsOrderingService";
 
-// CRUD services  
+// CRUD services
+export { MaintenanceDataService, maintenanceData } from "./MaintenanceDataService";  
 export { MaintenanceService, maintenanceService } from "./MaintenanceService";
 
 // Routes
