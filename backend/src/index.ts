@@ -8,7 +8,7 @@ import { PrismaClient, Prisma } from '@prisma/client'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './trpc'
 
-import { maintenanceRouter } from "./services"
+import { maintenanceRouter, partsOrderingRouter } from "./services"
 // Load environment variables
 dotenv.config()
 
@@ -130,6 +130,7 @@ app.use(express.static(path.join(__dirname, '../public')))
 
 // V2 Maintenance API - Database-backed with workflow cascade
 app.use("/api/v2/maintenance", maintenanceRouter)
+app.use("/api/v2/parts", partsOrderingRouter)
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
