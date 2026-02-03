@@ -8,6 +8,7 @@ import { PrismaClient, Prisma } from '@prisma/client'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './trpc'
 
+import { maintenanceRouter } from "./services"
 // Load environment variables
 dotenv.config()
 
@@ -126,6 +127,9 @@ app.use('/uploads', express.static(UPLOADS_DIR))
 
 // Serve static frontend files from public directory (frontend build)
 app.use(express.static(path.join(__dirname, '../public')))
+
+// V2 Maintenance API - Database-backed with workflow cascade
+app.use("/api/v2/maintenance", maintenanceRouter)
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
