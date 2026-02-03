@@ -474,6 +474,9 @@ model LaborPart {
   asset_id      Int?
   partno_id     Int?
   part_action   String?   @db.VarChar(20)
+  how_mal       String?   @db.VarChar(10)
+  is_pqdr       Boolean   @default(false)
+  dr_num        String?   @db.VarChar(50)
   qty           Int       @default(1)
   ins_by        String?   @db.VarChar(50)
   ins_date      DateTime  @default(now())
