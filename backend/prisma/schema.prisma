@@ -35,6 +35,8 @@ model Program {
   notifications    Notification[]
   spares           Spare[]
   partsOrders      PartsOrder[] @relation("PartsOrderLocation")
+  shipmentsFrom    Shipment[]     @relation("ShipmentFrom")
+  shipmentsTo      Shipment[]     @relation("ShipmentTo")
   locSets          LocSet[]
   programLocations ProgramLocation[]
 
@@ -180,6 +182,8 @@ model Location {
   notifications    Notification[]
   spares           Spare[]
   partsOrders      PartsOrder[] @relation("PartsOrderLocation")
+  shipmentsFrom    Shipment[]     @relation("ShipmentFrom")
+  shipmentsTo      Shipment[]     @relation("ShipmentTo")
   userLocations    UserLocation[]
   locSets          LocSet[]
   programLocations ProgramLocation[]
@@ -1022,4 +1026,35 @@ model PartsOrderHistory {
 
   @@index([order_id])
   @@map("parts_order_history")
+}
+
+// ============================================================================
+// Shipping Tables
+// ============================================================================
+
+model Shipment {
+  shipment_id   Int       @id @default(autoincrement())
+  tcn           String    @unique @db.VarChar(50) // Transportation Control Number
+  from_loc_id   Int
+  to_loc_id     Int
+  shipper       String?   @db.VarChar(100)
+  ship_date     DateTime
+  expected_date DateTime?
+  recv_date     DateTime?
+  asset_count   Int       @default(0)
+  status        String    @default("IN_TRANSIT") @db.VarChar(20) // IN_TRANSIT, RECEIVED, CANCELLED
+  remarks       String?   @db.Text
+  ins_by        String?   @db.VarChar(50)
+  ins_date      DateTime  @default(now())
+  chg_by        String?   @db.VarChar(50)
+  chg_date      DateTime?
+
+  // Relations
+  fromLocation  Location  @relation("ShipmentFrom", fields: [from_loc_id], references: [loc_id])
+  toLocation    Location  @relation("ShipmentTo", fields: [to_loc_id], references: [loc_id])
+
+  @@index([from_loc_id])
+  @@index([to_loc_id])
+  @@index([status])
+  @@map("shipment")
 }
