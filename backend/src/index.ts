@@ -131,6 +131,8 @@ app.use(express.static(path.join(__dirname, '../public')))
 // V2 Maintenance API - Database-backed with workflow cascade
 app.use("/api/v2/maintenance", maintenanceRouter)
 app.use("/api/v2/parts", partsOrderingRouter)
+app.use("/api/v2/tcto", tctoRouter)
+app.use("/api/v2/pmi", pmiRouter)
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
