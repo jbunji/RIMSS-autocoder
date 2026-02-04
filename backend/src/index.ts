@@ -8,7 +8,7 @@ import { PrismaClient, Prisma } from '@prisma/client'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './trpc'
 
-import { maintenanceRouter, partsOrderingRouter, maintenanceData } from "./services"
+import { maintenanceRouter, partsOrderingRouter, maintenanceData, tctoRouter, pmiRouter, shippingRouter, sortieRouter, configurationRouter, notificationRouter, inventoryRouter, reportsRouter, sparesRouter, bitPcRouter, softwareRouter, meterRouter } from "./services"
 // Load environment variables
 dotenv.config()
 
@@ -100,7 +100,7 @@ app.use(cors({
         'http://127.0.0.1:5177',
         'http://127.0.0.1:5178',
         'http://127.0.0.1:5179',
-        'http://127.0.0.1:5180',
+        'http://127.0.0.1:5180',        'http://192.168.7.59:5173',        'http://192.168.7.59:5174',        'http://192.168.7.90:5173',
       ]
 
       // Allow FRONTEND_URL from env if set
@@ -847,7 +847,7 @@ const allPrograms = [
 
 // Asset status codes (aligned with AFI 21-103)
 const assetStatusCodes = [
-  { status_cd: 'FMC', status_name: 'Full Mission Capable', description: 'Asset is fully operational and mission ready' },
+  { status_cd: 'FMC', status_name: 'Fully Mission Capable', description: 'Asset is fully operational and mission ready' },
   { status_cd: 'PMC', status_name: 'Partially Mission Capable', description: 'Asset can perform some but not all mission types' },
   { status_cd: 'PMCM', status_name: 'Partially Mission Capable Maintenance', description: 'Asset partially capable, limited by maintenance' },
   { status_cd: 'PMCS', status_name: 'Partially Mission Capable Supply', description: 'Asset partially capable, limited by parts/supplies' },
@@ -900,7 +900,7 @@ function isValidStatusTransition(fromStatus: string, toStatus: string): { valid:
 }
 
 // Location options
-const adminLocations = [
+const assignedLocationations = [
   { loc_id: 1, loc_cd: 'DEPOT-A', loc_name: 'Depot Alpha', active: true },
   { loc_id: 2, loc_cd: 'DEPOT-B', loc_name: 'Depot Beta', active: true },
   { loc_id: 3, loc_cd: 'DEPOT-C', loc_name: 'Depot Charlie', active: true },
@@ -909,7 +909,7 @@ const adminLocations = [
   { loc_id: 6, loc_cd: 'HQ', loc_name: 'Headquarters', active: true },
 ]
 
-const custodialLocations = [
+const currentLocationations = [
   { loc_id: 1, loc_cd: 'MAINT-BAY-1', loc_name: 'Maintenance Bay 1', active: true },
   { loc_id: 2, loc_cd: 'MAINT-BAY-2', loc_name: 'Maintenance Bay 2', active: true },
   { loc_id: 3, loc_cd: 'STORAGE-A', loc_name: 'Storage Area A', active: true },
@@ -935,40 +935,8 @@ interface Asset {
 }
 
 // Mock asset data for different programs
-const mockAssets: Asset[] = [
-  // CRIIS program assets (pgm_id: 1)
-  { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: 'Primary sensor unit', active: true, created_date: '2024-01-15' },
-  { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', name: 'Sensor Unit A (Backup)', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'STORAGE-A', notes: 'Backup sensor unit', active: true, created_date: '2024-01-15' },
-  { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', admin_loc: 'FIELD-1', cust_loc: 'AIRCRAFT-1', notes: 'Minor calibration needed', active: true, created_date: '2024-02-01' },
-  { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-2', notes: '', active: true, created_date: '2024-02-10' },
-  { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', name: 'Camera System X-2', pgm_id: 1, status_cd: 'NMCM', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: 'Intermittent power failure', active: true, created_date: '2024-02-10' },
-  { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', admin_loc: 'FIELD-1', cust_loc: 'FIELD-OPS', notes: 'Awaiting power supply module', active: true, created_date: '2024-03-01' },
-  { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', name: 'Radar Unit 02', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-B', cust_loc: 'STORAGE-B', notes: '', active: true, created_date: '2024-03-01' },
-  { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', name: 'Communication System', pgm_id: 1, status_cd: 'PMC', admin_loc: 'FIELD-2', cust_loc: 'AIRCRAFT-2', notes: 'Software update pending', active: true, created_date: '2024-03-15' },
-  { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', name: 'Communication System (Backup)', pgm_id: 1, status_cd: 'CNDM', admin_loc: 'HQ', cust_loc: 'STORAGE-A', notes: 'Status to be determined', active: true, created_date: '2024-03-15' },
-  { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'AIRCRAFT-1', notes: '', active: true, created_date: '2024-04-01' },
-
-  // ACTS program assets (pgm_id: 2)
-  { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', name: 'Targeting System A', pgm_id: 2, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: '', active: true, created_date: '2024-01-20' },
-  { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', name: 'Targeting System A (Secondary)', pgm_id: 2, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'STORAGE-A', notes: '', active: true, created_date: '2024-01-20' },
-  { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', name: 'Targeting System B', pgm_id: 2, status_cd: 'NMCM', admin_loc: 'DEPOT-B', cust_loc: 'MAINT-BAY-2', notes: 'BIT failure - optical alignment issue', active: true, created_date: '2024-02-15' },
-  { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', name: 'Laser System', pgm_id: 2, status_cd: 'PMC', admin_loc: 'FIELD-1', cust_loc: 'AIRCRAFT-1', notes: 'Minor alignment adjustment needed', active: true, created_date: '2024-03-01' },
-  { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', name: 'Laser System (Backup)', pgm_id: 2, status_cd: 'NMCS', admin_loc: 'FIELD-2', cust_loc: 'FIELD-OPS', notes: 'Awaiting laser diode replacement', active: true, created_date: '2024-03-01' },
-  { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', name: 'Optical Assembly', pgm_id: 2, status_cd: 'FMC', admin_loc: 'DEPOT-A', cust_loc: 'MAINT-BAY-1', notes: '', active: true, created_date: '2024-04-15' },
-
-  // ARDS program assets (pgm_id: 3)
-  { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', name: 'Data Processing System', pgm_id: 3, status_cd: 'FMC', admin_loc: 'DEPOT-C', cust_loc: 'MAINT-BAY-1', notes: '', active: true, created_date: '2024-02-01' },
-  { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', name: 'Data Processing System (Backup)', pgm_id: 3, status_cd: 'FMC', admin_loc: 'DEPOT-C', cust_loc: 'STORAGE-B', notes: '', active: true, created_date: '2024-02-01' },
-  { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', name: 'Reconnaissance Camera', pgm_id: 3, status_cd: 'PMC', admin_loc: 'FIELD-1', cust_loc: 'AIRCRAFT-2', notes: 'Lens cleaning needed', active: true, created_date: '2024-03-10' },
-  { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', name: 'Reconnaissance Camera (Secondary)', pgm_id: 3, status_cd: 'NMCM', admin_loc: 'DEPOT-B', cust_loc: 'MAINT-BAY-2', notes: 'Recalibration in progress', active: true, created_date: '2024-03-10' },
-  { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', name: 'Data Link System', pgm_id: 3, status_cd: 'CNDM', admin_loc: 'HQ', cust_loc: 'STORAGE-A', notes: 'Under evaluation', active: true, created_date: '2024-04-01' },
-
-  // Program 236 assets (pgm_id: 4)
-  { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', name: 'Special Unit 001', pgm_id: 4, status_cd: 'FMC', admin_loc: 'HQ', cust_loc: 'STORAGE-A', notes: 'Classified', active: true, created_date: '2024-01-01' },
-  { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', name: 'Special Unit 002', pgm_id: 4, status_cd: 'NMCS', admin_loc: 'HQ', cust_loc: 'MAINT-BAY-1', notes: 'Awaiting classified component', active: true, created_date: '2024-01-01' },
-  { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', name: 'Special Unit 003', pgm_id: 4, status_cd: 'PMC', admin_loc: 'HQ', cust_loc: 'FIELD-OPS', notes: '', active: true, created_date: '2024-02-01' },
-  { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', name: 'Special Unit 004', pgm_id: 4, status_cd: 'FMC', admin_loc: 'HQ', cust_loc: 'STORAGE-B', notes: '', active: true, created_date: '2024-03-01' },
-]
+// Mock assets array - loaded from DB at startup (see initializeAssetsFromDb)
+let mockAssets: Asset[] = [];
 
 // Asset History interface for detailed audit trail
 interface AssetHistoryChange {
@@ -3406,173 +3374,80 @@ function getPMIStatus(daysUntilDue: number): PMIRecord['status'] {
 }
 
 // Generate dynamic PMI data based on current date
+// PMI data cache - loaded from DB
+let cachedPMIRecords: PMIRecord[] = [];
+let pmiCacheLoaded = false;
+
 function generateMockPMIData(): PMIRecord[] {
+  // Return cached DB data instead of hardcoded mock
+  return cachedPMIRecords;
+}
+
+function calculateDaysUntilDueFromDate(dateStr: string): number {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDate = new Date(dateStr);
+  dueDate.setHours(0, 0, 0, 0);
+  return Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
 
-  // Helper to create date strings
-  const addDays = (days: number): string => {
-    const date = new Date(today);
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-  };
+function getPMIStatusFromDays(days: number): 'overdue' | 'due_soon' | 'upcoming' | 'scheduled' | 'completed' {
+  if (days < 0) return 'overdue';
+  if (days <= 7) return 'due_soon';
+  if (days <= 30) return 'upcoming';
+  return 'scheduled';
+}
 
-  const pmiRecords: PMIRecord[] = [
-    // Red items - due within 7 days (including overdue)
-    // Using real asset IDs from mockAssets
-    {
-      pmi_id: 1,
-      asset_id: 1, // CRIIS-001 Sensor Unit A
-      asset_sn: 'CRIIS-001',
-      asset_name: 'Sensor Unit A',
-      pmi_type: '30-Day Inspection',
-      wuc_cd: '14AAA',
-      next_due_date: addDays(-2), // Overdue by 2 days
-      days_until_due: -2,
-      completed_date: null,
-      pgm_id: 1, // CRIIS
-      status: 'overdue',
-      interval_days: 30,
-    },
-    {
-      pmi_id: 2,
-      asset_id: 3, // CRIIS-003 Sensor Unit B
-      asset_sn: 'CRIIS-003',
-      asset_name: 'Sensor Unit B',
-      pmi_type: '90-Day Calibration',
-      wuc_cd: '23BBB',
-      next_due_date: addDays(3), // Due in 3 days
-      days_until_due: 3,
-      completed_date: null,
-      pgm_id: 1, // CRIIS
-      status: 'due_soon',
-      interval_days: 90,
-    },
-    {
-      pmi_id: 3,
-      asset_id: 4, // CRIIS-004 Camera System X
-      asset_sn: 'CRIIS-004',
-      asset_name: 'Camera System X',
-      pmi_type: '60-Day Check',
-      wuc_cd: '41CCC',
-      next_due_date: addDays(7), // Due in 7 days (last red day)
-      days_until_due: 7,
-      completed_date: null,
-      pgm_id: 1, // CRIIS
-      status: 'due_soon',
-      interval_days: 60,
-    },
-    // Yellow items - due in 8-30 days
-    {
-      pmi_id: 4,
-      asset_id: 6, // CRIIS-006 Radar Unit 01
-      asset_sn: 'CRIIS-006',
-      asset_name: 'Radar Unit 01',
-      pmi_type: '180-Day Service',
-      wuc_cd: '74DDD',
-      next_due_date: addDays(12), // Due in 12 days
-      days_until_due: 12,
-      completed_date: null,
-      pgm_id: 1, // CRIIS
-      status: 'upcoming',
-      interval_days: 180,
-    },
-    {
-      pmi_id: 5,
-      asset_id: 8, // CRIIS-008 Communication System
-      asset_sn: 'CRIIS-008',
-      asset_name: 'Communication System',
-      pmi_type: '365-Day Overhaul',
-      wuc_cd: '62EEE',
-      next_due_date: addDays(21), // Due in 21 days
-      days_until_due: 21,
-      completed_date: null,
-      pgm_id: 1, // CRIIS
-      status: 'upcoming',
-      interval_days: 365,
-    },
-    {
-      pmi_id: 6,
-      asset_id: 11, // ACTS-001 Targeting System A
-      asset_sn: 'ACTS-001',
-      asset_name: 'Targeting System A',
-      pmi_type: '30-Day Inspection',
-      wuc_cd: '71FFF',
-      next_due_date: addDays(28), // Due in 28 days
-      days_until_due: 28,
-      completed_date: null,
-      pgm_id: 2, // ACTS
-      status: 'upcoming',
-      interval_days: 30,
-    },
-    // Green items - due after 30 days
-    {
-      pmi_id: 7,
-      asset_id: 4, // CRIIS-004 Camera System X - second PMI for same asset
-      asset_sn: 'CRIIS-004',
-      asset_name: 'Camera System X',
-      pmi_type: '90-Day Calibration',
-      wuc_cd: '13GGG',
-      next_due_date: addDays(45), // Due in 45 days
-      days_until_due: 45,
-      completed_date: null,
-      pgm_id: 1, // CRIIS
-      status: 'upcoming',
-      interval_days: 90,
-    },
-    {
-      pmi_id: 8,
-      asset_id: 17, // ARDS-001 Data Processing System
-      asset_sn: 'ARDS-001',
-      asset_name: 'Data Processing System',
-      pmi_type: '180-Day Service',
-      wuc_cd: '25HHH',
-      next_due_date: addDays(90), // Due in 90 days
-      days_until_due: 90,
-      completed_date: null,
-      pgm_id: 3, // ARDS
-      status: 'upcoming',
-      interval_days: 180,
-    },
-    {
-      pmi_id: 9,
-      asset_id: 10, // CRIIS-010 Navigation Unit
-      asset_sn: 'CRIIS-010',
-      asset_name: 'Navigation Unit',
-      pmi_type: '365-Day Overhaul',
-      wuc_cd: '52III',
-      next_due_date: addDays(120), // Due in 120 days
-      days_until_due: 120,
-      completed_date: null,
-      pgm_id: 1, // CRIIS
-      status: 'upcoming',
-      interval_days: 365,
-    },
-    // Additional items for different programs
-    {
-      pmi_id: 10,
-      asset_id: 14, // ACTS-004 Laser System
-      asset_sn: 'ACTS-004',
-      asset_name: 'Laser System',
-      pmi_type: '60-Day Check',
-      wuc_cd: '33JJJ',
-      next_due_date: addDays(5), // Red - ACTS
-      days_until_due: 5,
-      completed_date: null,
-      pgm_id: 2, // ACTS
-      status: 'due_soon',
-      interval_days: 60,
-    },
-  ];
+async function initializePMIFromDb(): Promise<void> {
+  try {
+    const inspections = await prisma.assetInspection.findMany({
+      where: { complete_date: null }, // Only incomplete/pending PMIs
+      include: {
+        asset: {
+          include: {
+            part: true,
+            assignedLocation: true,
+          },
+        },
+      },
+    });
 
-  // Update days_until_due and status dynamically
-  return pmiRecords.map(pmi => {
-    const daysUntilDue = calculateDaysUntilDue(pmi.next_due_date);
-    return {
-      ...pmi,
-      days_until_due: daysUntilDue,
-      status: getPMIStatus(daysUntilDue),
+    // Map PMI types to interval days
+    const pmiIntervalMap: Record<string, number> = {
+      '30-DAY': 30,
+      '60-DAY': 60,
+      '90-DAY': 90,
+      '180-DAY': 180,
+      '365-DAY': 365,
+      'SPECIAL': 90,
     };
-  });
+
+    cachedPMIRecords = inspections.map(insp => {
+      const nextDueStr = insp.next_due_date ? new Date(insp.next_due_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      const daysUntilDue = calculateDaysUntilDueFromDate(nextDueStr);
+      const pmiType = insp.pmi_type ?? 'SPECIAL';
+      
+      return {
+        pmi_id: insp.hist_id,
+        asset_id: insp.asset_id,
+        asset_sn: insp.asset?.serno ?? '',
+        asset_name: insp.asset?.part?.noun ?? '',
+        pmi_type: pmiType,
+        wuc_cd: insp.wuc_cd ?? '',
+        next_due_date: nextDueStr,
+        days_until_due: daysUntilDue,
+        completed_date: insp.complete_date ? new Date(insp.complete_date).toISOString().split('T')[0] : null,
+        pgm_id: insp.asset?.part?.pgm_id ?? 0,
+        status: getPMIStatusFromDays(daysUntilDue) as any,
+        interval_days: pmiIntervalMap[pmiType] ?? 90,
+      };
+    });
+
+    pmiCacheLoaded = true;
+    console.log(`[PMI] Loaded ${cachedPMIRecords.length} PMI records from database`);
+  } catch (error) {
+    console.error('[PMI] Failed to load from DB:', error);
+  }
 }
 
 // Get PMI due soon endpoint (with optional program filtering)
@@ -3912,7 +3787,8 @@ app.get('/api/tcto', (req, res) => {
 
   // SECURITY: Filter by location - only show TCTOs that have at least one affected asset at user's locations
   // Also filter the affected_assets and compliant_assets arrays to only include assets at user's locations
-  if (locationIdFilter || userLocationIds.length > 0) {
+  // ADMIN users are exempt from location filtering
+  if ((locationIdFilter || userLocationIds.length > 0) && user.role !== 'ADMIN') {
     filteredTCTO = filteredTCTO
       .map(tcto => {
         // Filter affected and compliant assets by location
@@ -4623,7 +4499,7 @@ function initializeSorties(): void {
       serno: 'CRIIS-001',
       ac_tailno: 'AC-001',
       sortie_date: addDays(-5),
-      sortie_effect: 'Full Mission Capable',
+      sortie_effect: 'Fully Mission Capable',
       current_unit: 'Unit Alpha',
       assigned_unit: 'Unit Alpha',
       range: 'Range A',
@@ -4638,7 +4514,7 @@ function initializeSorties(): void {
       serno: 'CRIIS-005',
       ac_tailno: 'AC-005',
       sortie_date: addDays(-3),
-      sortie_effect: 'Partial Mission Capable',
+      sortie_effect: 'Partially Mission Capable',
       current_unit: 'Unit Bravo',
       assigned_unit: 'Unit Alpha',
       range: 'Range B',
@@ -4668,7 +4544,7 @@ function initializeSorties(): void {
       serno: 'CRIIS-003',
       ac_tailno: 'AC-003',
       sortie_date: addDays(-2),
-      sortie_effect: 'Full Mission Capable',
+      sortie_effect: 'Fully Mission Capable',
       current_unit: 'Unit Charlie',
       assigned_unit: 'Unit Charlie',
       range: 'Range C',
@@ -4684,7 +4560,7 @@ function initializeSorties(): void {
       serno: 'ACTS-001',
       ac_tailno: 'AC-101',
       sortie_date: addDays(-4),
-      sortie_effect: 'Partial Mission Capable',
+      sortie_effect: 'Partially Mission Capable',
       current_unit: 'Unit Delta',
       assigned_unit: 'Unit Delta',
       range: 'Range D',
@@ -4699,7 +4575,7 @@ function initializeSorties(): void {
       serno: 'ACTS-002',
       ac_tailno: 'AC-102',
       sortie_date: addDays(-6),
-      sortie_effect: 'Full Mission Capable',
+      sortie_effect: 'Fully Mission Capable',
       current_unit: 'Unit Echo',
       assigned_unit: 'Unit Echo',
       range: 'Range E',
@@ -4731,7 +4607,7 @@ function initializeSorties(): void {
       serno: '236-001',
       ac_tailno: 'AC-301',
       sortie_date: addDays(-4),
-      sortie_effect: 'Full Mission Capable',
+      sortie_effect: 'Fully Mission Capable',
       current_unit: 'Unit Golf',
       assigned_unit: 'Unit Golf',
       range: 'Range G',
@@ -4804,15 +4680,15 @@ async function initializeTCTOData(): Promise<void> {
       orderBy: { asset_id: 'asc' }
     });
 
-    // Get assets for ACTS (program 2)
+    // Get assets for ACTS (program 2) - spread across admin's key locations
+    // Pull assets from Shaw (41), Langley (24), Hill (46), Luke (50) so TCTOs show at each base
     const actsAssets = await prisma.asset.findMany({
       where: {
-        part: {
-          pgm_id: 2
-        }
+        part: { pgm_id: 2 },
+        loc_ida: { in: [41, 24, 46, 50] }
       },
-      select: { asset_id: true },
-      take: 5,
+      select: { asset_id: true, loc_ida: true },
+      take: 20,
       orderBy: { asset_id: 'asc' }
     });
 
@@ -4897,8 +4773,15 @@ async function initializeTCTOData(): Promise<void> {
       });
     }
 
-    // ACTS program TCTOs (only if ACTS has assets)
+    // ACTS program TCTOs - spread across admin's key locations
+    // Group ACTS assets by location for better TCTO coverage
+    const actsAtShaw = actsAssets.filter(a => a.loc_ida === 41).map(a => a.asset_id);
+    const actsAtLangley = actsAssets.filter(a => a.loc_ida === 24).map(a => a.asset_id);
+    const actsAtHill = actsAssets.filter(a => a.loc_ida === 46).map(a => a.asset_id);
+    const actsAtLuke = actsAssets.filter(a => a.loc_ida === 50).map(a => a.asset_id);
+
     if (actsIds.length >= 3) {
+      // TCTO affecting Shaw and Langley
       records.push({
         tcto_id: nextId++,
         tcto_no: 'TCTO-2024-004',
@@ -4908,12 +4791,48 @@ async function initializeTCTOData(): Promise<void> {
         pgm_id: 2,
         status: 'open',
         priority: 'Urgent',
-        affected_assets: actsIds.slice(0, 3), // First 3 ACTS assets
-        compliant_assets: [actsIds[0]], // First asset compliant
+        affected_assets: [...actsAtShaw.slice(0, 3), ...actsAtLangley.slice(0, 3)],
+        compliant_assets: [actsAtShaw[0], actsAtLangley[0]].filter(Boolean),
         description: 'Realignment procedure for targeting optics to correct parallax error identified in field reports.',
         created_by_id: 2,
         created_by_name: 'Jane Depot',
         created_at: addDays(-20),
+      });
+
+      // TCTO affecting Hill and Luke
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-006',
+        title: 'Power Supply Module Retrofit',
+        effective_date: addDays(-45),
+        compliance_deadline: addDays(10),
+        pgm_id: 2,
+        status: 'open',
+        priority: 'Critical',
+        affected_assets: [...actsAtHill.slice(0, 4), ...actsAtLuke.slice(0, 4)],
+        compliant_assets: [actsAtHill[0]].filter(Boolean),
+        description: 'Replace legacy power supply modules with updated units to address thermal runaway risk. Immediate compliance required.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-45),
+      });
+
+      // Closed TCTO affecting all locations
+      records.push({
+        tcto_id: nextId++,
+        tcto_no: 'TCTO-2024-007',
+        title: 'Software Security Patch v4.1.2',
+        effective_date: addDays(-90),
+        compliance_deadline: addDays(-30),
+        pgm_id: 2,
+        status: 'closed',
+        priority: 'Routine',
+        affected_assets: [...actsAtShaw.slice(0, 2), ...actsAtLangley.slice(0, 2), ...actsAtHill.slice(0, 2), ...actsAtLuke.slice(0, 2)],
+        compliant_assets: [...actsAtShaw.slice(0, 2), ...actsAtLangley.slice(0, 2), ...actsAtHill.slice(0, 2), ...actsAtLuke.slice(0, 2)],
+        description: 'Applied security patch to address CVE-2024-3891 vulnerability in targeting system firmware.',
+        created_by_id: 1,
+        created_by_name: 'John Admin',
+        created_at: addDays(-90),
       });
     }
 
@@ -5066,199 +4985,67 @@ const maintenanceLocationNameToId: Record<string, number> = {
 
 // Initialize maintenance events on startup
 function initializeMaintenanceEvents(): void {
-  // Only initialize if array is empty (prevent data loss on hot reload)
-  if (maintenanceEvents.length > 0) {
-    console.log('[MAINTENANCE] Events already initialized, skipping seed data');
-    return;
+  // Stub — will be replaced by async DB load in initializeMaintenanceEventsFromDb
+  console.log('[MAINTENANCE] Skipping sync init — DB init will populate');
+}
+
+// Map DB event_type to MaintenanceEvent event_type
+function mapEventType(dbType: string | null): 'Standard' | 'PMI' | 'TCTO' | 'BIT/PC' {
+  switch (dbType) {
+    case 'PM': return 'PMI';
+    case 'CM': return 'Standard';
+    case 'INS': return 'Standard';
+    default: return 'Standard';
   }
+}
 
-  const today = new Date();
-  const addDays = (days: number): string => {
-    const date = new Date(today);
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-  };
+async function initializeMaintenanceEventsFromDb(): Promise<void> {
+  try {
+    const dbEvents = await prisma.event.findMany({
+      include: {
+        asset: {
+          include: {
+            part: true,
+            assignedLocation: true,
+          },
+        },
+        location: true,
+      },
+      orderBy: { event_id: 'desc' },
+    });
 
-  maintenanceEvents = [
-    // Open events - CRIIS program
-    {
-      event_id: 1,
-      asset_id: 5,
-      asset_sn: 'CRIIS-005',
-      asset_name: 'Camera System X',
-      job_no: 'MX-2024-001',
-      discrepancy: 'Intermittent power failure during operation',
-      start_job: addDays(-5),
-      stop_job: null,
-      event_type: 'Standard',
-      priority: 'Critical',
-      status: 'open',
-      pgm_id: 1,
-      location: 'Depot Alpha',
-      loc_id: maintenanceLocationNameToId['Depot Alpha'],
-      sortie_id: 2, // Linked to CRIIS-SORTIE-002 (Camera system showed intermittent issues)
-      pqdr: true, // Flagged for PQDR - suspected manufacturing defect
-    },
-    {
-      event_id: 2,
-      asset_id: 6,
-      asset_sn: 'CRIIS-006',
-      asset_name: 'Radar Unit 01',
-      job_no: 'MX-2024-002',
-      discrepancy: 'Awaiting replacement parts - power supply module',
-      start_job: addDays(-10),
-      stop_job: null,
-      event_type: 'Standard',
-      priority: 'Urgent',
-      status: 'open',
-      pgm_id: 1,
-      location: 'Field Site Bravo',
-      loc_id: maintenanceLocationNameToId['Field Site Bravo'],
-      sortie_id: 3, // Linked to CRIIS-SORTIE-003 (Power supply failure detected during flight)
+    maintenanceEvents = dbEvents.map(e => ({
+      event_id: e.event_id,
+      asset_id: e.asset_id,
+      asset_sn: e.asset?.serno ?? '',
+      asset_name: e.asset?.part?.noun ?? '',
+      job_no: e.job_no ?? `EVT-${e.event_id}`,
+      discrepancy: e.discrepancy ?? '',
+      start_job: e.start_job ? new Date(e.start_job).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      stop_job: e.stop_job ? new Date(e.stop_job).toISOString().split('T')[0] : null,
+      event_type: mapEventType(e.event_type),
+      priority: (e.priority as 'Critical' | 'Urgent' | 'Routine') ?? 'Routine',
+      status: e.stop_job ? 'closed' as const : 'open' as const,
+      pgm_id: e.asset?.part?.pgm_id ?? 0,
+      location: e.location?.display_name ?? e.asset?.assignedLocation?.display_name ?? 'Unknown',
+      loc_id: e.loc_id ?? e.asset?.loc_ida ?? 0,
+      etic: e.etic_date ? new Date(e.etic_date).toISOString().split('T')[0] : null,
+      sortie_id: e.sortie_id ?? null,
       pqdr: false,
-    },
-    {
-      event_id: 3,
-      asset_id: 3,
-      asset_sn: 'CRIIS-003',
-      asset_name: 'Sensor Unit B',
-      job_no: 'MX-2024-003',
-      discrepancy: 'Scheduled PMI - 90-day calibration',
-      start_job: addDays(-2),
-      stop_job: null,
-      event_type: 'PMI',
-      priority: 'Routine',
-      status: 'open',
-      pgm_id: 1,
-      location: 'Depot Alpha',
-      loc_id: maintenanceLocationNameToId['Depot Alpha'],
-      sortie_id: null, // Not linked to a sortie (routine maintenance)
-      pqdr: false,
-    },
-    {
-      event_id: 4,
-      asset_id: 8,
-      asset_sn: 'CRIIS-008',
-      asset_name: 'Communication System',
-      job_no: 'MX-2024-004',
-      discrepancy: 'Software update required per TCTO 2024-15',
-      start_job: addDays(-1),
-      stop_job: null,
-      event_type: 'TCTO',
-      priority: 'Urgent',
-      status: 'open',
-      pgm_id: 1,
-      location: 'Field Site Charlie',
-      loc_id: maintenanceLocationNameToId['Field Site Charlie'],
-      pqdr: false,
-    },
-    // Open events - ACTS program
-    {
-      event_id: 5,
-      asset_id: 13,
-      asset_sn: 'ACTS-003',
-      asset_name: 'Targeting System B',
-      job_no: 'MX-2024-005',
-      discrepancy: 'BIT failure code 0x4A2 - optical alignment issue',
-      start_job: addDays(-3),
-      stop_job: null,
-      event_type: 'BIT/PC',
-      priority: 'Critical',
-      status: 'open',
-      pgm_id: 2,
-      location: 'Depot Alpha',
-      loc_id: maintenanceLocationNameToId['Depot Alpha'],
-      pqdr: true, // Flagged for PQDR - recurring optical alignment issue
-    },
-    {
-      event_id: 6,
-      asset_id: 15,
-      asset_sn: 'ACTS-005',
-      asset_name: 'Laser System',
-      job_no: 'MX-2024-006',
-      discrepancy: 'NMCS - awaiting laser diode replacement',
-      start_job: addDays(-7),
-      stop_job: null,
-      event_type: 'Standard',
-      priority: 'Urgent',
-      status: 'open',
-      pgm_id: 2,
-      location: 'Field Site Delta',
-      loc_id: maintenanceLocationNameToId['Field Site Delta'],
-      pqdr: false,
-    },
-    // Open events - ARDS program
-    {
-      event_id: 7,
-      asset_id: 20,
-      asset_sn: 'ARDS-004',
-      asset_name: 'Reconnaissance Camera',
-      job_no: 'MX-2024-007',
-      discrepancy: 'Lens cleaning and recalibration required',
-      start_job: addDays(-1),
-      stop_job: null,
-      event_type: 'PMI',
-      priority: 'Routine',
-      status: 'open',
-      pgm_id: 3,
-      location: 'Depot Beta',
-      loc_id: maintenanceLocationNameToId['Depot Beta'],
-      pqdr: false,
-    },
-    // Closed events (for history)
-    {
-      event_id: 8,
-      asset_id: 1,
-      asset_sn: 'CRIIS-001',
-      asset_name: 'Sensor Unit A',
-      job_no: 'MX-2024-008',
-      discrepancy: '30-day inspection completed',
-      start_job: addDays(-15),
-      stop_job: addDays(-12),
-      event_type: 'PMI',
-      priority: 'Routine',
-      status: 'closed',
-      pgm_id: 1,
-      location: 'Depot Alpha',
-      loc_id: maintenanceLocationNameToId['Depot Alpha'],
-      pqdr: false,
-    },
-    {
-      event_id: 9,
-      asset_id: 11,
-      asset_sn: 'ACTS-001',
-      asset_name: 'Targeting System A',
-      job_no: 'MX-2024-009',
-      discrepancy: 'Annual calibration completed',
-      start_job: addDays(-20),
-      stop_job: addDays(-18),
-      event_type: 'PMI',
-      priority: 'Routine',
-      status: 'closed',
-      pgm_id: 2,
-      location: 'Depot Alpha',
-      loc_id: maintenanceLocationNameToId['Depot Alpha'],
-      pqdr: false,
-    },
-    // Program 236 open event
-    {
-      event_id: 10,
-      asset_id: 23,
-      asset_sn: '236-002',
-      asset_name: 'Special Unit 001',
-      job_no: 'MX-2024-010',
-      discrepancy: 'Awaiting parts - classified component',
-      start_job: addDays(-4),
-      stop_job: null,
-      event_type: 'Standard',
-      priority: 'Urgent',
-      status: 'open',
-      pgm_id: 4,
-      location: 'Secure Facility',
-      loc_id: maintenanceLocationNameToId['Secure Facility'],
-      pqdr: false,
-    },
-  ];
+      created_by_id: undefined,
+      created_by_name: e.ins_by ?? undefined,
+      created_at: e.ins_date ? new Date(e.ins_date).toISOString() : undefined,
+    }));
+
+    // Update next IDs
+    if (maintenanceEvents.length > 0) {
+      maintenanceEventNextId = Math.max(...maintenanceEvents.map(e => e.event_id)) + 1;
+    }
+
+    console.log(`[MAINTENANCE] Loaded ${maintenanceEvents.length} events from database (${maintenanceEvents.filter(e => e.status === 'open').length} open)`);
+  } catch (error) {
+    console.error('[MAINTENANCE] Failed to load events from DB:', error);
+  }
 }
 
 // Initialize maintenance events on server start
@@ -6355,15 +6142,42 @@ app.get('/api/events', async (req, res) => {
       };
     });
 
-    // Calculate summary counts
+    // Calculate summary counts - query ALL events for this program/location (ignoring status filter)
+    // This ensures the header shows total open/closed/critical/urgent/routine regardless of which tab is active
+    const summaryWhereClause: Prisma.EventWhereInput = {
+      asset: {
+        part: {
+          pgm_id: programIdFilter || { in: userProgramIds }
+        }
+      }
+    };
+    // Apply same location filter as main query (but NOT status filter)
+    if (locationIdFilter) {
+      if (user.role !== 'ADMIN' && !userLocationIds.includes(locationIdFilter)) {
+        summaryWhereClause.loc_id = -1;
+      } else {
+        summaryWhereClause.loc_id = locationIdFilter;
+      }
+    } else if (user.role !== 'ADMIN' && userLocationIds.length > 0) {
+      summaryWhereClause.loc_id = { in: userLocationIds };
+    }
+
+    const [openCount, closedCount, criticalCount, urgentCount, routineCount] = await Promise.all([
+      prisma.event.count({ where: { ...summaryWhereClause, stop_job: null } }),
+      prisma.event.count({ where: { ...summaryWhereClause, stop_job: { not: null } } }),
+      prisma.event.count({ where: { ...summaryWhereClause, stop_job: null, priority: 'Critical' } }),
+      prisma.event.count({ where: { ...summaryWhereClause, stop_job: null, priority: 'Urgent' } }),
+      prisma.event.count({ where: { ...summaryWhereClause, stop_job: null, priority: 'Routine' } }),
+    ]);
+
     const summary = {
-      open: allEvents.filter(e => e.status === 'open').length,
-      closed: allEvents.filter(e => e.status === 'closed').length,
-      critical: allEvents.filter(e => e.status === 'open' && e.priority === 'Critical').length,
-      urgent: allEvents.filter(e => e.status === 'open' && e.priority === 'Urgent').length,
-      routine: allEvents.filter(e => e.status === 'open' && e.priority === 'Routine').length,
-      pqdr: allEvents.filter(e => e.pqdr === true).length, // Count of PQDR flagged events
-      total: filteredTotal,
+      open: openCount,
+      closed: closedCount,
+      critical: criticalCount,
+      urgent: urgentCount,
+      routine: routineCount,
+      pqdr: 0,
+      total: openCount + closedCount,
     };
 
     // Get program info
@@ -10471,105 +10285,124 @@ interface AssetDetails {
 }
 
 // Generate detailed asset data - initialize once and make mutable
-function initializeDetailedAssets(): AssetDetails[] {
-  const today = new Date();
-  const addDays = (days: number): string => {
-    const date = new Date(today);
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
+// detailedAssets - loaded from DB at startup (see initializeAssetsFromDb)
+let detailedAssets: AssetDetails[] = [];
+
+// ============================================================
+// DATABASE ASSET HELPERS
+// ============================================================
+
+const STATUS_NAMES: Record<string, string> = {
+  'FMC': 'Fully Mission Capable',
+  'PMC': 'Partially Mission Capable',
+  'PMCM': 'Partially Mission Capable Maintenance',
+  'NMCM': 'Not Mission Capable Maintenance',
+  'NMCS': 'Not Mission Capable Supply',
+  'CNDM': 'Condemned',
+};
+
+const ASSET_INCLUDE = {
+  part: true,
+  assignedLocation: true,
+  currentLocation: true,
+} as const;
+
+function toAssetDetails(dbAsset: any): AssetDetails {
+  return {
+    asset_id: dbAsset.asset_id,
+    serno: dbAsset.serno,
+    partno: dbAsset.part?.partno ?? '',
+    part_name: dbAsset.part?.noun ?? '',
+    sys_type: String(dbAsset.part?.sys_type ?? ''),
+    pgm_id: dbAsset.part?.pgm_id ?? 0,
+    status_cd: dbAsset.status_cd,
+    status_name: STATUS_NAMES[dbAsset.status_cd] ?? dbAsset.status_cd,
+    active: dbAsset.active,
+    location: dbAsset.assignedLocation?.display_name ?? 'Unknown',
+    loc_type: 'depot',
+    in_transit: dbAsset.in_transit ?? false,
+    bad_actor: dbAsset.bad_actor ?? false,
+    last_maint_date: null,
+    next_pmi_date: null,
+    next_ndi_date: dbAsset.next_ndi_date ? new Date(dbAsset.next_ndi_date).toISOString().split('T')[0] : null,
+    eti_hours: dbAsset.eti ? Number(dbAsset.eti) : null,
+    remarks: dbAsset.remarks ?? null,
+    uii: dbAsset.uii ?? null,
+    mfg_date: dbAsset.mfg_date ? new Date(dbAsset.mfg_date).toISOString().split('T')[0] : null,
+    acceptance_date: dbAsset.accept_date ? new Date(dbAsset.accept_date).toISOString().split('T')[0] : null,
+    loc_ida: dbAsset.loc_ida,
+    loc_idc: dbAsset.loc_idc,
+    admin_loc: dbAsset.assignedLocation?.site_cd ?? '',
+    admin_loc_name: dbAsset.assignedLocation?.display_name ?? '',
+    cust_loc: dbAsset.currentLocation?.site_cd ?? '',
+    cust_loc_name: dbAsset.currentLocation?.display_name ?? '',
+    nha_asset_id: dbAsset.nha_asset_id,
+    carrier: dbAsset.shipper ?? null,
+    tracking_number: dbAsset.tcn ?? null,
+    ship_date: dbAsset.ship_date ? new Date(dbAsset.ship_date).toISOString().split('T')[0] : null,
+    meter_type: null,
+    cycles_count: null,
+    created_date: dbAsset.ins_date ? new Date(dbAsset.ins_date).toISOString() : new Date().toISOString(),
+    modified_date: dbAsset.chg_date ? new Date(dbAsset.chg_date).toISOString() : null,
   };
-  const subtractDays = (days: number): string => {
-    const date = new Date(today);
-    date.setDate(date.getDate() - days);
-    return date.toISOString().split('T')[0];
-  };
-
-  // Helper to generate UII (Unique Item Identifier)
-  const generateUII = (assetId: number, partno: string): string => {
-    return `W91WSL${assetId.toString().padStart(6, '0')}${partno.slice(0, 10)}`;
-  };
-
-  // Location code to ID mapping (matches database location records)
-  // This maps the string location codes used in mock data to numeric IDs
-  const locationCodeToId: Record<string, number> = {
-    'DEPOT-A': 154,        // 24892/1160/1426
-    'DEPOT-B': 437,        // Depot Beta location
-    'FIELD-B': 394,        // 24892/526/527
-    'FIELD-C': 212,        // 24892/1360/24893
-    'FIELD-D': 663,        // Field Site Delta location
-    'SECURE-FAC': 154,     // Secure Facility - using DEPOT-A as default
-    'MAINT-BAY-1': 154,    // Same as DEPOT-A for custodial location
-    'MAINT-BAY-2': 154,    // Same as DEPOT-A for custodial location
-    'MAINT-BAY-3': 154,    // Same as DEPOT-A for custodial location
-    'OPS-CENTER': 394,     // Same as FIELD-B for custodial location
-    'STORAGE-A': 394,      // Same as FIELD-B for custodial location
-    'FLIGHT-LINE': 212,    // Same as FIELD-C for custodial location
-    'COMM-CENTER': 212,    // Same as FIELD-C for custodial location
-    'IN-TRANSIT': 154,     // Default to DEPOT-A for in-transit assets
-  };
-
-  // Map location display names to location IDs (for maintenance events)
-  const locationNameToId: Record<string, number> = {
-    'Depot Alpha': 154,
-    'Depot Beta': 437,
-    'Field Site Bravo': 394,
-    'Field Site Charlie': 212,
-    'Field Site Delta': 663,
-    'Secure Facility': 154,
-  };
-
-  return [
-    // CRIIS program assets (pgm_id: 1)
-    { asset_id: 1, serno: 'CRIIS-001', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(15), next_pmi_date: addDays(45), eti_hours: 1250, remarks: null, uii: generateUII(1, 'PN-SENSOR-A'), mfg_date: '2020-03-15', acceptance_date: '2020-06-01', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-1'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: 'eti', cycles_count: null },
-    { asset_id: 2, serno: 'CRIIS-002', partno: 'PN-SENSOR-A', part_name: 'Sensor Unit A', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(30), next_pmi_date: addDays(30), eti_hours: 980, remarks: null, uii: generateUII(2, 'PN-SENSOR-A'), mfg_date: '2020-05-22', acceptance_date: '2020-08-10', loc_ida: locationCodeToId['FIELD-B'], loc_idc: locationCodeToId['OPS-CENTER'], admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: 4, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 3, serno: 'CRIIS-003', partno: 'PN-SENSOR-B', part_name: 'Sensor Unit B', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(5), next_pmi_date: addDays(85), eti_hours: 2100, remarks: 'Awaiting software update', uii: generateUII(3, 'PN-SENSOR-B'), mfg_date: '2019-11-08', acceptance_date: '2020-01-15', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-2'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-2', cust_loc_name: 'Maintenance Bay 2', nha_asset_id: 7, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 4, serno: 'CRIIS-004', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(60), next_pmi_date: addDays(120), eti_hours: 450, remarks: null, uii: generateUII(4, 'PN-CAMERA-X'), mfg_date: '2021-07-12', acceptance_date: '2021-10-01', loc_ida: locationCodeToId['FIELD-C'], loc_idc: locationCodeToId['FLIGHT-LINE'], admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'FLIGHT-LINE', cust_loc_name: 'Flight Line', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 5, serno: 'CRIIS-005', partno: 'PN-CAMERA-X', part_name: 'Camera System X', pgm_id: 1, status_cd: 'NMCM', status_name: 'Not Mission Capable Maintenance', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: true, last_maint_date: subtractDays(5), next_pmi_date: null, eti_hours: 3200, remarks: 'Intermittent power failure - MX-2024-001', uii: generateUII(5, 'PN-CAMERA-X'), mfg_date: '2019-02-28', acceptance_date: '2019-05-15', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-1'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-1', cust_loc_name: 'Maintenance Bay 1', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: 'hours', cycles_count: null },
-    { asset_id: 6, serno: 'CRIIS-006', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'NMCS', status_name: 'Not Mission Capable Supply', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(10), next_pmi_date: null, eti_hours: 1800, remarks: 'Awaiting power supply - MX-2024-002', uii: generateUII(6, 'PN-RADAR-01'), mfg_date: '2020-09-05', acceptance_date: '2020-12-01', loc_ida: locationCodeToId['FIELD-B'], loc_idc: locationCodeToId['STORAGE-A'], admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'STORAGE-A', cust_loc_name: 'Storage Area A', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 7, serno: 'CRIIS-007', partno: 'PN-RADAR-01', part_name: 'Radar Unit 01', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Depot Alpha', loc_type: 'depot', in_transit: false, bad_actor: false, last_maint_date: subtractDays(45), next_pmi_date: addDays(15), eti_hours: 2500, remarks: null, uii: generateUII(7, 'PN-RADAR-01'), mfg_date: '2019-06-20', acceptance_date: '2019-09-10', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['MAINT-BAY-3'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'MAINT-BAY-3', cust_loc_name: 'Maintenance Bay 3', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 8, serno: 'CRIIS-008', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'PMC', status_name: 'Partial Mission Capable', active: true, location: 'Field Site Charlie', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(1), next_pmi_date: addDays(60), eti_hours: 890, remarks: 'TCTO-2024-15 pending', uii: generateUII(8, 'PN-COMM-SYS'), mfg_date: '2021-01-18', acceptance_date: '2021-04-05', loc_ida: locationCodeToId['FIELD-C'], loc_idc: locationCodeToId['COMM-CENTER'], admin_loc: 'FIELD-C', admin_loc_name: 'Field Site Charlie', cust_loc: 'COMM-CENTER', cust_loc_name: 'Communications Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: null, cycles_count: null },
-    { asset_id: 9, serno: 'CRIIS-009', partno: 'PN-COMM-SYS', part_name: 'Communication System', pgm_id: 1, status_cd: 'CNDM', status_name: 'Cannot Determine Mission', active: true, location: 'In Transit', loc_type: 'depot', in_transit: true, bad_actor: false, last_maint_date: subtractDays(90), next_pmi_date: null, eti_hours: null, remarks: 'En route from vendor repair', uii: generateUII(9, 'PN-COMM-SYS'), mfg_date: '2018-11-30', acceptance_date: '2019-02-20', loc_ida: locationCodeToId['DEPOT-A'], loc_idc: locationCodeToId['IN-TRANSIT'], admin_loc: 'DEPOT-A', admin_loc_name: 'Depot Alpha', cust_loc: 'IN-TRANSIT', cust_loc_name: 'In Transit', nha_asset_id: null, carrier: 'FedEx', tracking_number: '789456123012', ship_date: subtractDays(3) },
-    { asset_id: 10, serno: 'CRIIS-010', partno: 'PN-NAV-UNIT', part_name: 'Navigation Unit', pgm_id: 1, status_cd: 'FMC', status_name: 'Full Mission Capable', active: true, location: 'Field Site Bravo', loc_type: 'field', in_transit: false, bad_actor: false, last_maint_date: subtractDays(20), next_pmi_date: addDays(70), eti_hours: 1100, remarks: null, uii: generateUII(10, 'PN-NAV-UNIT'), mfg_date: '2020-08-14', acceptance_date: '2020-11-01', loc_ida: locationCodeToId['FIELD-B'], loc_idc: locationCodeToId['OPS-CENTER'], admin_loc: 'FIELD-B', admin_loc_name: 'Field Site Bravo', cust_loc: 'OPS-CENTER', cust_loc_name: 'Operations Center', nha_asset_id: null, carrier: null, tracking_number: null, ship_date: null, next_ndi_date: null, meter_type: null, cycles_count: null },
-
-    // ACTS program assets (pgm_id: 2) - REMOVED FOR FEATURE #369: Empty state shows when no data
-    // Mock data removed to test empty state functionality
-    // { asset_id: 11, serno: 'ACTS-001', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, ... },
-    // { asset_id: 12, serno: 'ACTS-002', partno: 'PN-TARGET-A', part_name: 'Targeting System A', pgm_id: 2, ... },
-    // { asset_id: 13, serno: 'ACTS-003', partno: 'PN-TARGET-B', part_name: 'Targeting System B', pgm_id: 2, ... },
-    // { asset_id: 14, serno: 'ACTS-004', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, ... },
-    // { asset_id: 15, serno: 'ACTS-005', partno: 'PN-LASER-SYS', part_name: 'Laser Designator', pgm_id: 2, ... },
-    // { asset_id: 16, serno: 'ACTS-006', partno: 'PN-OPTICS-01', part_name: 'Optical Sight Unit', pgm_id: 2, ... },
-
-    // ARDS program assets (pgm_id: 3) - REMOVED FOR FEATURE #369: Empty state shows when no data
-    // Mock data removed to test empty state functionality
-    // { asset_id: 17, serno: 'ARDS-001', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, ... },
-    // { asset_id: 18, serno: 'ARDS-002', partno: 'PN-DATA-SYS', part_name: 'Data Processor', pgm_id: 3, ... },
-    // { asset_id: 19, serno: 'ARDS-003', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, ... },
-    // { asset_id: 20, serno: 'ARDS-004', partno: 'PN-RECON-CAM', part_name: 'Reconnaissance Camera', pgm_id: 3, ... },
-    // { asset_id: 21, serno: 'ARDS-005', partno: 'PN-LINK-SYS', part_name: 'Data Link System', pgm_id: 3, ... },
-
-    // Program 236 assets (pgm_id: 4) - REMOVED FOR FEATURE #369: Empty state shows when no data
-    // Mock data removed to test empty state functionality
-    // { asset_id: 22, serno: '236-001', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, ... },
-    // { asset_id: 23, serno: '236-002', partno: 'PN-SPEC-001', part_name: 'Special System Alpha', pgm_id: 4, ... },
-    // { asset_id: 24, serno: '236-003', partno: 'PN-SPEC-002', part_name: 'Special System Beta', pgm_id: 4, ... },
-    // { asset_id: 25, serno: '236-004', partno: 'PN-SPEC-003', part_name: 'Special System Gamma', pgm_id: 4, ... },
-  ].map(asset => {
-    // Add created_date and modified_date to all assets
-    // Use a timestamp from the past to simulate when these assets were created
-    const daysAgo = Math.floor(Math.random() * 365) + 30; // Random date between 30-395 days ago
-    const createdDate = new Date();
-    createdDate.setDate(createdDate.getDate() - daysAgo);
-    return {
-      ...asset,
-      created_date: createdDate.toISOString(),
-      modified_date: asset.last_maint_date ? new Date(asset.last_maint_date).toISOString() : null,
-    };
-  });
 }
 
-// Mutable array of detailed assets - initialized once, persists modifications
-const detailedAssets: AssetDetails[] = initializeDetailedAssets();
+function toBasicAsset(dbAsset: any): Asset {
+  return {
+    asset_id: dbAsset.asset_id,
+    serno: dbAsset.serno,
+    partno: dbAsset.part?.partno ?? '',
+    name: dbAsset.part?.noun ?? '',
+    pgm_id: dbAsset.part?.pgm_id ?? 0,
+    status_cd: dbAsset.status_cd,
+    admin_loc: dbAsset.assignedLocation?.display_name ?? '',
+    cust_loc: dbAsset.currentLocation?.display_name ?? '',
+    notes: dbAsset.remarks ?? '',
+    active: dbAsset.active,
+    created_date: dbAsset.ins_date ? new Date(dbAsset.ins_date).toISOString() : '',
+  };
+}
+
+async function initializeAssetsFromDb(): Promise<void> {
+  try {
+    const dbAssets = await prisma.asset.findMany({
+      where: { active: true },
+      include: ASSET_INCLUDE,
+    });
+    mockAssets = dbAssets.map(toBasicAsset);
+    detailedAssets = dbAssets.map(toAssetDetails);
+    console.log(`[Assets] Loaded ${mockAssets.length} assets from database`);
+  } catch (error) {
+    console.error('[Assets] Failed to load from DB, arrays will be empty:', error);
+  }
+}
+
+// Helper to refresh a single asset in the in-memory arrays after DB mutation
+async function refreshAssetInMemory(assetId: number): Promise<void> {
+  const dbAsset = await prisma.asset.findUnique({
+    where: { asset_id: assetId },
+    include: ASSET_INCLUDE,
+  });
+  if (!dbAsset) {
+    // Remove from arrays if deleted
+    const mi = mockAssets.findIndex(a => a.asset_id === assetId);
+    if (mi !== -1) mockAssets.splice(mi, 1);
+    const di = detailedAssets.findIndex(a => a.asset_id === assetId);
+    if (di !== -1) detailedAssets.splice(di, 1);
+    return;
+  }
+  // Update or add to mockAssets
+  const basicAsset = toBasicAsset(dbAsset);
+  const mi = mockAssets.findIndex(a => a.asset_id === assetId);
+  if (mi !== -1) mockAssets[mi] = basicAsset;
+  else mockAssets.push(basicAsset);
+  // Update or add to detailedAssets
+  const detailedAsset = toAssetDetails(dbAsset);
+  const di = detailedAssets.findIndex(a => a.asset_id === assetId);
+  if (di !== -1) detailedAssets[di] = detailedAsset;
+  else detailedAssets.push(detailedAsset);
+}
+
 
 // Create new PMI record (moved here so detailedAssets is available)
 app.post('/api/pmi', (req, res) => {
@@ -10796,10 +10629,10 @@ app.get('/api/assets', async (req, res) => {
             }
           }
         },
-        adminLoc: {
+        assignedLocation: {
           select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
         },
-        custodialLoc: {
+        currentLocation: {
           select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
         }
       },
@@ -10845,7 +10678,7 @@ app.get('/api/assets', async (req, res) => {
         status_cd: resolvedStatusCd || 'FMC',
         status_name: getStatusName(resolvedStatusCd),
         active: asset.active,
-        location: formatLocation(asset.adminLoc) || formatLocation(asset.custodialLoc) || 'Unknown',
+        location: formatLocation(asset.assignedLocation) || formatLocation(asset.currentLocation) || 'Unknown',
         loc_type: 'depot' as const,
         in_transit: asset.in_transit || false,
         bad_actor: asset.bad_actor || false,
@@ -10858,10 +10691,10 @@ app.get('/api/assets', async (req, res) => {
         acceptance_date: asset.accept_date?.toISOString().split('T')[0] || null,
         loc_ida: asset.loc_ida,
         loc_idc: asset.loc_idc,
-        admin_loc: formatLocation(asset.adminLoc),
-        admin_loc_name: formatLocation(asset.adminLoc),
-        cust_loc: formatLocation(asset.custodialLoc),
-        cust_loc_name: formatLocation(asset.custodialLoc),
+        admin_loc: formatLocation(asset.assignedLocation),
+        admin_loc_name: formatLocation(asset.assignedLocation),
+        cust_loc: formatLocation(asset.currentLocation),
+        cust_loc_name: formatLocation(asset.currentLocation),
         nha_asset_id: asset.nha_asset_id,
         carrier: asset.shipper,
         tracking_number: asset.tcn,
@@ -10910,7 +10743,7 @@ function getStatusName(statusCd: string | null): string {
     'NMCM': 'Not Mission Capable (Maintenance)',
     'NMCS': 'Not Mission Capable (Supply)',
     'NMCB': 'Not Mission Capable (Both)',
-    'CNDM': 'Cannot Determine Mission',
+    'CNDM': 'Condemned',
   };
   return statusMap[statusCd || ''] || statusCd || 'Unknown';
 }
@@ -10979,10 +10812,10 @@ app.get('/api/assets/:id', async (req, res) => {
             }
           }
         },
-        adminLoc: {
+        assignedLocation: {
           select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
         },
-        custodialLoc: {
+        currentLocation: {
           select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true }
         }
       }
@@ -11037,11 +10870,11 @@ app.get('/api/assets/:id', async (req, res) => {
       status_cd: resolvedStatusCd || 'FMC',
       status_name: getStatusName(resolvedStatusCd),
       active: asset.active,
-      admin_loc: formatLocation(asset.adminLoc),
-      admin_loc_name: formatLocation(asset.adminLoc),
-      cust_loc: formatLocation(asset.custodialLoc),
-      cust_loc_name: formatLocation(asset.custodialLoc),
-      location: formatLocation(asset.adminLoc) || formatLocation(asset.custodialLoc) || 'Unknown',
+      admin_loc: formatLocation(asset.assignedLocation),
+      admin_loc_name: formatLocation(asset.assignedLocation),
+      cust_loc: formatLocation(asset.currentLocation),
+      cust_loc_name: formatLocation(asset.currentLocation),
+      location: formatLocation(asset.assignedLocation) || formatLocation(asset.currentLocation) || 'Unknown',
       loc_type: 'depot' as const,
       in_transit: asset.in_transit || false,
       bad_actor: asset.bad_actor || false,
@@ -12048,411 +11881,318 @@ app.put('/api/assets/:id', async (req, res) => {
   }
 
   const assetId = parseInt(req.params.id, 10);
-  const assetIndex = mockAssets.findIndex(a => a.asset_id === assetId);
 
-  // If asset not found in mockAssets, try to update in database
-  if (assetIndex === -1) {
-    try {
-      // Check if asset exists in database
-      const dbAsset = await prisma.asset.findUnique({
-        where: { asset_id: assetId },
-        include: {
-          part: { select: { pgm_id: true } }
-        }
-      });
+  try {
+    // Load code cache for lookups
+    const codes = await loadCodeCache();
 
-      if (!dbAsset || !dbAsset.active) {
-        return res.status(404).json({ error: 'Asset not found' });
+    // Always read from database
+    const dbAsset = await prisma.asset.findUnique({
+      where: { asset_id: assetId },
+      include: {
+        part: { select: { partno: true, noun: true, pgm_id: true, program: { select: { pgm_cd: true, pgm_name: true } } } },
+        assignedLocation: { select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true } },
+        currentLocation: { select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true } },
       }
-
-      // Check if user has access to this asset's program
-      const userProgramIds = user.programs.map(p => p.pgm_id);
-      const assetPgmId = dbAsset.part?.pgm_id;
-      if (assetPgmId && !userProgramIds.includes(assetPgmId) && user.role !== 'ADMIN') {
-        return res.status(403).json({ error: 'Access denied to this asset' });
-      }
-
-      const { uii, next_ndi_date } = req.body;
-
-      // Capture old values for history logging
-      const oldUii = dbAsset.uii || '(not assigned)';
-      const oldNdiDate = dbAsset.next_ndi_date ? dbAsset.next_ndi_date.toISOString().split('T')[0] : '(not assigned)';
-      const newUii = (uii !== undefined) ? (uii || '(not assigned)') : oldUii;
-      const newNdiDate = (next_ndi_date !== undefined) ? (next_ndi_date || '(not assigned)') : oldNdiDate;
-
-      // Build history changes array
-      const historyChanges: AssetHistoryChange[] = [];
-      const changes: string[] = [];
-
-      if (uii !== undefined && uii !== dbAsset.uii) {
-        changes.push(`UII: ${oldUii} → ${newUii}`);
-        historyChanges.push({ field: 'uii', field_label: 'UII (Unique Item Identifier)', old_value: oldUii, new_value: newUii });
-      }
-
-      if (next_ndi_date !== undefined && next_ndi_date !== (dbAsset.next_ndi_date?.toISOString().split('T')[0] || null)) {
-        changes.push(`Next NDI Date: ${oldNdiDate} → ${newNdiDate}`);
-        historyChanges.push({ field: 'next_ndi_date', field_label: 'Next NDI Date', old_value: oldNdiDate, new_value: newNdiDate });
-      }
-
-      // Update the asset in database (UII and next_ndi_date)
-      const updatedAsset = await prisma.asset.update({
-        where: { asset_id: assetId },
-        data: {
-          uii: uii !== undefined ? (uii || null) : undefined,
-          next_ndi_date: next_ndi_date !== undefined ? (next_ndi_date || null) : undefined,
-          chg_date: new Date(),
-          chg_by: user.username
-        }
-      });
-
-      // Log to asset history if there were changes
-      if (historyChanges.length > 0) {
-        addAssetHistory(
-          assetId,
-          user,
-          'update',
-          historyChanges,
-          `Updated asset ${dbAsset.serno}: ${changes.join('; ')}`
-        );
-      }
-
-      console.log(`[ASSETS] Database asset updated by ${user.username}: ID ${assetId}, UII: ${uii}, NDI: ${next_ndi_date}`);
-
-      return res.json({
-        message: 'Asset updated successfully',
-        asset: {
-          asset_id: updatedAsset.asset_id,
-          uii: updatedAsset.uii,
-          next_ndi_date: updatedAsset.next_ndi_date
-        }
-      });
-    } catch (error) {
-      console.error('[ASSETS] Error updating database asset:', error);
-      return res.status(500).json({ error: 'Failed to update asset' });
-    }
-  }
-
-  const asset = mockAssets[assetIndex];
-
-  // Check if user has access to this asset's program
-  const userProgramIds = user.programs.map(p => p.pgm_id);
-  if (!userProgramIds.includes(asset.pgm_id) && user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied to this asset' });
-  }
-
-  // Get detailedAsset for extended fields
-  const detailedAsset = detailedAssets.find(a => a.asset_id === assetId);
-
-  // Capture old values for audit logging (before any changes)
-  const oldValues: any = {
-    partno: asset.partno,
-    serno: asset.serno,
-    name: asset.name,
-    status_cd: asset.status_cd,
-    admin_loc: asset.admin_loc,
-    cust_loc: asset.cust_loc,
-    notes: asset.notes,
-    active: asset.active,
-  };
-
-  if (detailedAsset) {
-    oldValues.bad_actor = detailedAsset.bad_actor;
-    oldValues.in_transit = detailedAsset.in_transit;
-    oldValues.carrier = detailedAsset.carrier;
-    oldValues.tracking_number = detailedAsset.tracking_number;
-    oldValues.ship_date = detailedAsset.ship_date;
-  }
-
-  const { partno, serno, name, uii, status_cd, status_reason, admin_loc, cust_loc, notes, active, bad_actor, in_transit, carrier, tracking_number, ship_date, next_ndi_date } = req.body;
-
-  // Track changes for audit log
-  const changes: string[] = [];
-  const historyChanges: AssetHistoryChange[] = [];
-
-  // Validate and apply changes
-  if (partno !== undefined && partno !== asset.partno) {
-    if (!partno) {
-      return res.status(400).json({ error: 'Part number cannot be empty' });
-    }
-    changes.push(`Part Number: ${asset.partno} → ${partno}`);
-    historyChanges.push({ field: 'partno', field_label: 'Part Number', old_value: asset.partno, new_value: partno });
-    asset.partno = partno;
-  }
-
-  if (serno !== undefined && serno !== asset.serno) {
-    if (!serno) {
-      return res.status(400).json({ error: 'Serial number cannot be empty' });
-    }
-    // Check for duplicate serial number (within same program)
-    const existingAsset = mockAssets.find(a => a.serno.toLowerCase() === serno.toLowerCase() && a.pgm_id === asset.pgm_id && a.asset_id !== assetId);
-    if (existingAsset) {
-      return res.status(400).json({ error: 'An asset with this serial number already exists in this program' });
-    }
-    changes.push(`Serial Number: ${asset.serno} → ${serno}`);
-    historyChanges.push({ field: 'serno', field_label: 'Serial Number', old_value: asset.serno, new_value: serno });
-    asset.serno = serno;
-  }
-
-  if (name !== undefined && name !== asset.name) {
-    changes.push(`Name: ${asset.name} → ${name}`);
-    historyChanges.push({ field: 'name', field_label: 'Name', old_value: asset.name, new_value: name || `${asset.partno} - ${asset.serno}` });
-    asset.name = name || `${asset.partno} - ${asset.serno}`;
-  }
-
-  // Handle UII (Unique Item Identifier) field
-  if (uii !== undefined && detailedAsset && uii !== detailedAsset.uii) {
-    const oldUii = detailedAsset.uii || '(not assigned)';
-    const newUii = uii || '(not assigned)';
-    changes.push(`UII: ${oldUii} → ${newUii}`);
-    historyChanges.push({ field: 'uii', field_label: 'UII (Unique Item Identifier)', old_value: oldUii, new_value: newUii });
-    detailedAsset.uii = uii || null;
-  }
-
-  if (status_cd !== undefined && status_cd !== asset.status_cd) {
-    const validStatuses = assetStatusCodes.map(s => s.status_cd);
-    if (!validStatuses.includes(status_cd)) {
-      return res.status(400).json({ error: 'Invalid status code' });
-    }
-
-    // Validate status transition using business rules
-    const transitionResult = isValidStatusTransition(asset.status_cd, status_cd);
-    if (!transitionResult.valid) {
-      return res.status(400).json({ error: transitionResult.message });
-    }
-
-    // Require reason when transitioning to non-mission-capable statuses
-    const nmcStatuses = ['NMCM', 'NMCS', 'NMCB'];
-    if (nmcStatuses.includes(status_cd) && !status_reason) {
-      return res.status(400).json({
-        error: 'Status change reason is required when changing to a non-mission-capable status. Please provide a reason for this status change.'
-      });
-    }
-
-    // Validate reason is not empty if provided
-    if (status_reason && typeof status_reason === 'string' && status_reason.trim().length === 0) {
-      return res.status(400).json({
-        error: 'Status change reason cannot be empty. Please provide a meaningful reason for this status change.'
-      });
-    }
-
-    const oldStatus = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
-    const newStatus = assetStatusCodes.find(s => s.status_cd === status_cd);
-    const statusChangeMsg = `Status: ${oldStatus?.status_name || asset.status_cd} → ${newStatus?.status_name || status_cd}`;
-    const statusChangeWithReason = status_reason ? `${statusChangeMsg} (Reason: ${status_reason})` : statusChangeMsg;
-    changes.push(statusChangeWithReason);
-    historyChanges.push({
-      field: 'status_cd',
-      field_label: 'Status',
-      old_value: oldStatus?.status_name || asset.status_cd,
-      new_value: status_reason ? `${newStatus?.status_name || status_cd} (Reason: ${status_reason})` : (newStatus?.status_name || status_cd)
     });
-    asset.status_cd = status_cd;
-  }
 
-  if (admin_loc !== undefined && admin_loc !== asset.admin_loc) {
-    const validAdminLocs = adminLocations.map(l => l.loc_cd);
-    if (!validAdminLocs.includes(admin_loc)) {
-      return res.status(400).json({ error: 'Invalid administrative location' });
+    if (!dbAsset || !dbAsset.active) {
+      return res.status(404).json({ error: 'Asset not found' });
     }
-    const oldLoc = adminLocations.find(l => l.loc_cd === asset.admin_loc);
-    const newLoc = adminLocations.find(l => l.loc_cd === admin_loc);
-    changes.push(`Admin Location: ${oldLoc?.loc_name || asset.admin_loc} → ${newLoc?.loc_name || admin_loc}`);
-    historyChanges.push({ field: 'admin_loc', field_label: 'Admin Location', old_value: oldLoc?.loc_name || asset.admin_loc, new_value: newLoc?.loc_name || admin_loc });
-    asset.admin_loc = admin_loc;
-  }
 
-  if (cust_loc !== undefined && cust_loc !== asset.cust_loc) {
-    const validCustLocs = custodialLocations.map(l => l.loc_cd);
-    if (!validCustLocs.includes(cust_loc)) {
-      return res.status(400).json({ error: 'Invalid custodial location' });
+    // Check if user has access to this asset's program
+    const userProgramIds = user.programs.map(p => p.pgm_id);
+    const assetPgmId = dbAsset.part?.pgm_id;
+    if (assetPgmId && !userProgramIds.includes(assetPgmId) && user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied to this asset' });
     }
-    const oldLoc = custodialLocations.find(l => l.loc_cd === asset.cust_loc);
-    const newLoc = custodialLocations.find(l => l.loc_cd === cust_loc);
-    changes.push(`Custodial Location: ${oldLoc?.loc_name || asset.cust_loc} → ${newLoc?.loc_name || cust_loc}`);
-    historyChanges.push({ field: 'cust_loc', field_label: 'Custodial Location', old_value: oldLoc?.loc_name || asset.cust_loc, new_value: newLoc?.loc_name || cust_loc });
-    asset.cust_loc = cust_loc;
-  }
 
-  if (notes !== undefined && notes !== asset.notes) {
-    changes.push(`Notes: "${asset.notes || '(empty)'}" → "${notes || '(empty)'}"`);
-    historyChanges.push({ field: 'notes', field_label: 'Notes', old_value: asset.notes || '(empty)', new_value: notes || '(empty)' });
-    asset.notes = notes;
-  }
+    const { status_cd, status_reason, uii, next_ndi_date, remarks, notes, bad_actor, in_transit, carrier, tracking_number, ship_date, active, admin_loc, cust_loc, loc_ida, loc_idc } = req.body;
 
-  if (active !== undefined && active !== asset.active) {
-    changes.push(`Active: ${asset.active ? 'Yes' : 'No'} → ${active ? 'Yes' : 'No'}`);
-    historyChanges.push({ field: 'active', field_label: 'Active', old_value: asset.active ? 'Yes' : 'No', new_value: active ? 'Yes' : 'No' });
-    asset.active = active;
-  }
+    // Track changes for audit log
+    const changes: string[] = [];
+    const historyChanges: AssetHistoryChange[] = [];
+    const updateData: any = {
+      chg_date: new Date(),
+      chg_by: user.username
+    };
 
-  // Handle bad_actor field (already have detailedAsset from line 9091)
-  if (bad_actor !== undefined && detailedAsset && bad_actor !== detailedAsset.bad_actor) {
-    changes.push(`Bad Actor: ${detailedAsset.bad_actor ? 'Yes' : 'No'} → ${bad_actor ? 'Yes' : 'No'}`);
-    historyChanges.push({ field: 'bad_actor', field_label: 'Bad Actor', old_value: detailedAsset.bad_actor ? 'Yes' : 'No', new_value: bad_actor ? 'Yes' : 'No' });
-    detailedAsset.bad_actor = bad_actor;
-  }
+    // Resolve current status for display
+    const currentStatusCd = resolveCodeId(dbAsset.status_cd, codes) || dbAsset.status_cd;
 
-  // Handle in-transit fields (only on detailedAssets)
-  if (in_transit !== undefined && detailedAsset && in_transit !== detailedAsset.in_transit) {
-    changes.push(`In Transit: ${detailedAsset.in_transit ? 'Yes' : 'No'} → ${in_transit ? 'Yes' : 'No'}`);
-    historyChanges.push({ field: 'in_transit', field_label: 'In Transit', old_value: detailedAsset.in_transit ? 'Yes' : 'No', new_value: in_transit ? 'Yes' : 'No' });
-    detailedAsset.in_transit = in_transit;
-
-    // If setting in_transit to false, clear shipping info
-    if (!in_transit) {
-      if (detailedAsset.carrier || detailedAsset.tracking_number || detailedAsset.ship_date) {
-        changes.push('Cleared shipping information');
-        historyChanges.push({ field: 'carrier', field_label: 'Carrier', old_value: detailedAsset.carrier, new_value: null });
-        historyChanges.push({ field: 'tracking_number', field_label: 'Tracking Number', old_value: detailedAsset.tracking_number, new_value: null });
-        historyChanges.push({ field: 'ship_date', field_label: 'Ship Date', old_value: detailedAsset.ship_date, new_value: null });
+    // --- Status change ---
+    if (status_cd !== undefined && status_cd !== currentStatusCd) {
+      const validStatuses = assetStatusCodes.map(s => s.status_cd);
+      if (!validStatuses.includes(status_cd)) {
+        return res.status(400).json({ error: 'Invalid status code' });
       }
-      detailedAsset.carrier = null;
-      detailedAsset.tracking_number = null;
-      detailedAsset.ship_date = null;
+
+      const transitionResult = isValidStatusTransition(currentStatusCd, status_cd);
+      if (!transitionResult.valid) {
+        return res.status(400).json({ error: transitionResult.message });
+      }
+
+      // Require reason for NMC statuses
+      const nmcStatuses = ['NMCM', 'NMCS', 'NMCB'];
+      if (nmcStatuses.includes(status_cd) && !status_reason) {
+        return res.status(400).json({ error: 'Status change reason is required when changing to a non-mission-capable status.' });
+      }
+
+      const oldName = getStatusName(currentStatusCd);
+      const newName = getStatusName(status_cd);
+      const changeMsg = status_reason ? `Status: ${oldName} → ${newName} (Reason: ${status_reason})` : `Status: ${oldName} → ${newName}`;
+      changes.push(changeMsg);
+      historyChanges.push({ field: 'status_cd', field_label: 'Status', old_value: oldName, new_value: status_reason ? `${newName} (Reason: ${status_reason})` : newName });
+      updateData.status_cd = status_cd;
     }
-  }
 
-  if (carrier !== undefined && detailedAsset && carrier !== detailedAsset.carrier) {
-    changes.push(`Carrier: ${detailedAsset.carrier || '(none)'} → ${carrier || '(none)'}`);
-    historyChanges.push({ field: 'carrier', field_label: 'Carrier', old_value: detailedAsset.carrier || '(none)', new_value: carrier || '(none)' });
-    detailedAsset.carrier = carrier || null;
-  }
-
-  if (tracking_number !== undefined && detailedAsset && tracking_number !== detailedAsset.tracking_number) {
-    changes.push(`Tracking Number: ${detailedAsset.tracking_number || '(none)'} → ${tracking_number || '(none)'}`);
-    historyChanges.push({ field: 'tracking_number', field_label: 'Tracking Number', old_value: detailedAsset.tracking_number || '(none)', new_value: tracking_number || '(none)' });
-    detailedAsset.tracking_number = tracking_number || null;
-  }
-
-  if (ship_date !== undefined && detailedAsset && ship_date !== detailedAsset.ship_date) {
-    changes.push(`Ship Date: ${detailedAsset.ship_date || '(none)'} → ${ship_date || '(none)'}`);
-    historyChanges.push({ field: 'ship_date', field_label: 'Ship Date', old_value: detailedAsset.ship_date || '(none)', new_value: ship_date || '(none)' });
-    detailedAsset.ship_date = ship_date || null;
-  }
-
-  if (req.body.next_ndi_date !== undefined && detailedAsset && req.body.next_ndi_date !== detailedAsset.next_ndi_date) {
-    changes.push(`Next NDI Date: ${detailedAsset.next_ndi_date || '(none)'} → ${req.body.next_ndi_date || '(none)'}`);
-    historyChanges.push({ field: 'next_ndi_date', field_label: 'Next NDI Date', old_value: detailedAsset.next_ndi_date || '(none)', new_value: req.body.next_ndi_date || '(none)' });
-    detailedAsset.next_ndi_date = req.body.next_ndi_date || null;
-  }
-
-  // Sync other changes to detailedAssets if present
-  if (detailedAsset) {
-    if (serno !== undefined) detailedAsset.serno = asset.serno;
-    if (partno !== undefined) detailedAsset.partno = asset.partno;
-    if (name !== undefined) detailedAsset.part_name = asset.name;
-    if (status_cd !== undefined) {
-      detailedAsset.status_cd = asset.status_cd;
-      const statusInfo = assetStatusCodes.find(s => s.status_cd === status_cd);
-      detailedAsset.status_name = statusInfo?.status_name || status_cd;
+    // --- UII ---
+    if (uii !== undefined && uii !== (dbAsset.uii || '')) {
+      const oldUii = dbAsset.uii || '(not assigned)';
+      const newUii = uii || '(not assigned)';
+      changes.push(`UII: ${oldUii} → ${newUii}`);
+      historyChanges.push({ field: 'uii', field_label: 'UII (Unique Item Identifier)', old_value: oldUii, new_value: newUii });
+      updateData.uii = uii || null;
     }
-    if (admin_loc !== undefined) {
-      detailedAsset.admin_loc = asset.admin_loc;
-      const locInfo = adminLocations.find(l => l.loc_cd === admin_loc);
-      detailedAsset.admin_loc_name = locInfo?.loc_name || admin_loc;
+
+    // --- Next NDI Date ---
+    if (next_ndi_date !== undefined) {
+      const oldNdi = dbAsset.next_ndi_date ? dbAsset.next_ndi_date.toISOString().split('T')[0] : '(not assigned)';
+      const newNdi = next_ndi_date || '(not assigned)';
+      if (oldNdi !== newNdi) {
+        changes.push(`Next NDI Date: ${oldNdi} → ${newNdi}`);
+        historyChanges.push({ field: 'next_ndi_date', field_label: 'Next NDI Date', old_value: oldNdi, new_value: newNdi });
+        updateData.next_ndi_date = next_ndi_date ? new Date(next_ndi_date) : null;
+      }
     }
-    if (cust_loc !== undefined) {
-      detailedAsset.cust_loc = asset.cust_loc;
-      const locInfo = custodialLocations.find(l => l.loc_cd === cust_loc);
-      detailedAsset.cust_loc_name = locInfo?.loc_name || cust_loc;
+
+    // --- Remarks/Notes ---
+    const newRemarks = remarks !== undefined ? remarks : notes;
+    if (newRemarks !== undefined && newRemarks !== (dbAsset.remarks || '')) {
+      const oldRemarks = dbAsset.remarks || '(empty)';
+      changes.push(`Notes: "${oldRemarks}" → "${newRemarks || '(empty)'}"`);
+      historyChanges.push({ field: 'remarks', field_label: 'Notes', old_value: oldRemarks, new_value: newRemarks || '(empty)' });
+      updateData.remarks = newRemarks || null;
     }
-    if (notes !== undefined) detailedAsset.remarks = notes;
-    if (active !== undefined) detailedAsset.active = active;
-    // Update modified_date timestamp when any field changes
-    detailedAsset.modified_date = new Date().toISOString();
+
+    // --- Bad Actor ---
+    if (bad_actor !== undefined && bad_actor !== dbAsset.bad_actor) {
+      changes.push(`Bad Actor: ${dbAsset.bad_actor ? 'Yes' : 'No'} → ${bad_actor ? 'Yes' : 'No'}`);
+      historyChanges.push({ field: 'bad_actor', field_label: 'Bad Actor', old_value: dbAsset.bad_actor ? 'Yes' : 'No', new_value: bad_actor ? 'Yes' : 'No' });
+      updateData.bad_actor = bad_actor;
+    }
+
+    // --- In Transit ---
+    if (in_transit !== undefined && in_transit !== dbAsset.in_transit) {
+      changes.push(`In Transit: ${dbAsset.in_transit ? 'Yes' : 'No'} → ${in_transit ? 'Yes' : 'No'}`);
+      historyChanges.push({ field: 'in_transit', field_label: 'In Transit', old_value: dbAsset.in_transit ? 'Yes' : 'No', new_value: in_transit ? 'Yes' : 'No' });
+      updateData.in_transit = in_transit;
+      // If setting in_transit to false, clear shipping info
+      if (!in_transit) {
+        updateData.shipper = null;
+        updateData.tcn = null;
+        updateData.ship_date = null;
+      }
+    }
+
+    // --- Carrier/Shipper ---
+    if (carrier !== undefined && carrier !== (dbAsset.shipper || '')) {
+      changes.push(`Carrier: ${dbAsset.shipper || '(none)'} → ${carrier || '(none)'}`);
+      historyChanges.push({ field: 'carrier', field_label: 'Carrier', old_value: dbAsset.shipper || '(none)', new_value: carrier || '(none)' });
+      updateData.shipper = carrier || null;
+    }
+
+    // --- Tracking Number (TCN) ---
+    if (tracking_number !== undefined && tracking_number !== (dbAsset.tcn || '')) {
+      changes.push(`Tracking Number: ${dbAsset.tcn || '(none)'} → ${tracking_number || '(none)'}`);
+      historyChanges.push({ field: 'tracking_number', field_label: 'Tracking Number', old_value: dbAsset.tcn || '(none)', new_value: tracking_number || '(none)' });
+      updateData.tcn = tracking_number || null;
+    }
+
+    // --- Ship Date ---
+    if (ship_date !== undefined) {
+      const oldShip = dbAsset.ship_date ? dbAsset.ship_date.toISOString().split('T')[0] : '(none)';
+      const newShip = ship_date || '(none)';
+      if (oldShip !== newShip) {
+        changes.push(`Ship Date: ${oldShip} → ${newShip}`);
+        historyChanges.push({ field: 'ship_date', field_label: 'Ship Date', old_value: oldShip, new_value: newShip });
+        updateData.ship_date = ship_date ? new Date(ship_date) : null;
+      }
+    }
+
+    // --- Active ---
+    if (active !== undefined && active !== dbAsset.active) {
+      changes.push(`Active: ${dbAsset.active ? 'Yes' : 'No'} → ${active ? 'Yes' : 'No'}`);
+      historyChanges.push({ field: 'active', field_label: 'Active', old_value: dbAsset.active ? 'Yes' : 'No', new_value: active ? 'Yes' : 'No' });
+      updateData.active = active;
+    }
+
+    // --- Assigned Location (loc_ida) ---
+    const newLocIda = loc_ida !== undefined ? loc_ida : (admin_loc !== undefined ? admin_loc : undefined);
+    if (newLocIda !== undefined) {
+      const locId = typeof newLocIda === 'number' ? newLocIda : parseInt(newLocIda, 10);
+      if (!isNaN(locId) && locId !== dbAsset.loc_ida) {
+        const newLoc = await prisma.location.findUnique({ where: { loc_id: locId }, select: { display_name: true } });
+        if (!newLoc) {
+          return res.status(400).json({ error: 'Invalid assigned location' });
+        }
+        const oldLocName = dbAsset.assignedLocation?.display_name || '(none)';
+        changes.push(`Assigned Location: ${oldLocName} → ${newLoc.display_name}`);
+        historyChanges.push({ field: 'loc_ida', field_label: 'Assigned Location', old_value: oldLocName, new_value: newLoc.display_name || String(locId) });
+        updateData.loc_ida = locId;
+      }
+    }
+
+    // --- Current Location (loc_idc) ---
+    const newLocIdc = loc_idc !== undefined ? loc_idc : (cust_loc !== undefined ? cust_loc : undefined);
+    if (newLocIdc !== undefined) {
+      const locId = typeof newLocIdc === 'number' ? newLocIdc : parseInt(newLocIdc, 10);
+      if (!isNaN(locId) && locId !== dbAsset.loc_idc) {
+        const newLoc = await prisma.location.findUnique({ where: { loc_id: locId }, select: { display_name: true } });
+        if (!newLoc) {
+          return res.status(400).json({ error: 'Invalid current location' });
+        }
+        const oldLocName = dbAsset.currentLocation?.display_name || '(none)';
+        changes.push(`Current Location: ${oldLocName} → ${newLoc.display_name}`);
+        historyChanges.push({ field: 'loc_idc', field_label: 'Current Location', old_value: oldLocName, new_value: newLoc.display_name || String(locId) });
+        updateData.loc_idc = locId;
+      }
+    }
+
+    // No changes detected
+    if (changes.length === 0) {
+      return res.status(400).json({ error: 'No changes provided' });
+    }
+
+    // Persist to database
+    const updatedAsset = await prisma.asset.update({
+      where: { asset_id: assetId },
+      data: updateData,
+      include: {
+        part: { select: { partno: true, noun: true, pgm_id: true, program: { select: { pgm_cd: true, pgm_name: true } } } },
+        assignedLocation: { select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true } },
+        currentLocation: { select: { loc_id: true, display_name: true, majcom_cd: true, site_cd: true, unit_cd: true } },
+      }
+    });
+
+    // Log to asset history
+    if (historyChanges.length > 0) {
+      addAssetHistory(
+        assetId,
+        user,
+        'update',
+        historyChanges,
+        `Updated asset ${dbAsset.serno}: ${changes.join('; ')}`
+      );
+    }
+
+    // Helper to format location display
+    const formatLocation = (loc: { display_name: string; majcom_cd?: string | null; site_cd?: string | null; unit_cd?: string | null } | null) => {
+      if (!loc) return 'Unknown';
+      const majcom = resolveCodeId(loc.majcom_cd, codes);
+      const site = resolveCodeId(loc.site_cd, codes);
+      const unit = resolveCodeId(loc.unit_cd, codes);
+      const parts = [majcom, site, unit].filter(Boolean);
+      if (parts.length > 0) return parts.join('/');
+      if (loc.display_name && !loc.display_name.match(/^\d+\/\d+\/\d+$/)) return loc.display_name;
+      return 'Unknown';
+    };
+
+    const resolvedStatusCd = resolveCodeId(updatedAsset.status_cd, codes) || updatedAsset.status_cd;
+
+    // Build audit log
+    const now = new Date();
+    const newActivity: ActivityLogEntry = {
+      activity_id: 1000 + dynamicActivityLog.length + 1,
+      timestamp: now.toISOString(),
+      user_id: user.user_id,
+      username: user.username,
+      user_full_name: `${user.first_name} ${user.last_name}`,
+      action_type: 'update',
+      entity_type: 'asset',
+      entity_id: assetId,
+      entity_name: dbAsset.serno,
+      description: `Updated asset ${dbAsset.serno}: ${changes.join('; ')}`,
+      pgm_id: dbAsset.part?.pgm_id || 1,
+    };
+    dynamicActivityLog.push(newActivity);
+
+    // Log the audit to database
+    const oldValues: any = {
+      status_cd: currentStatusCd,
+      uii: dbAsset.uii,
+      next_ndi_date: dbAsset.next_ndi_date,
+      remarks: dbAsset.remarks,
+      bad_actor: dbAsset.bad_actor,
+      in_transit: dbAsset.in_transit,
+      shipper: dbAsset.shipper,
+      tcn: dbAsset.tcn,
+      ship_date: dbAsset.ship_date,
+      active: dbAsset.active,
+      loc_ida: dbAsset.loc_ida,
+      loc_idc: dbAsset.loc_idc,
+    };
+    const newValues: any = { ...oldValues, ...updateData };
+    delete newValues.chg_date;
+    delete newValues.chg_by;
+
+    await logAuditAction(
+      user.user_id,
+      'UPDATE',
+      'asset',
+      assetId,
+      oldValues,
+      newValues,
+      req
+    );
+
+    console.log(`[ASSETS-DB] Asset updated by ${user.username}: ${dbAsset.serno} (ID: ${assetId})`);
+    console.log(`[ASSETS-DB] Changes: ${changes.join(', ')}`);
+
+    // Return updated asset in frontend-expected format
+    res.json({
+      message: 'Asset updated successfully',
+      asset: {
+        asset_id: updatedAsset.asset_id,
+        serno: updatedAsset.serno,
+        partno: updatedAsset.part?.partno || '',
+        part_name: updatedAsset.part?.noun || '',
+        name: updatedAsset.part?.noun || '',
+        pgm_id: updatedAsset.part?.pgm_id || 1,
+        status_cd: resolvedStatusCd || 'FMC',
+        status_name: getStatusName(resolvedStatusCd),
+        active: updatedAsset.active,
+        admin_loc: formatLocation(updatedAsset.assignedLocation),
+        admin_loc_name: formatLocation(updatedAsset.assignedLocation),
+        cust_loc: formatLocation(updatedAsset.currentLocation),
+        cust_loc_name: formatLocation(updatedAsset.currentLocation),
+        location: formatLocation(updatedAsset.assignedLocation) || formatLocation(updatedAsset.currentLocation) || 'Unknown',
+        loc_type: 'depot' as const,
+        in_transit: updatedAsset.in_transit || false,
+        bad_actor: updatedAsset.bad_actor || false,
+        eti_hours: updatedAsset.eti ? Number(updatedAsset.eti) : null,
+        remarks: updatedAsset.remarks,
+        notes: updatedAsset.remarks || '',
+        uii: updatedAsset.uii,
+        mfg_date: updatedAsset.mfg_date?.toISOString().split('T')[0] || null,
+        acceptance_date: updatedAsset.accept_date?.toISOString().split('T')[0] || null,
+        next_ndi_date: updatedAsset.next_ndi_date?.toISOString().split('T')[0] || null,
+        nha_asset_id: updatedAsset.nha_asset_id,
+        carrier: updatedAsset.shipper,
+        tracking_number: updatedAsset.tcn,
+        ship_date: updatedAsset.ship_date?.toISOString().split('T')[0] || null,
+        created_date: updatedAsset.ins_date?.toISOString() || new Date().toISOString(),
+        modified_date: updatedAsset.chg_date?.toISOString() || null,
+        program_cd: updatedAsset.part?.program?.pgm_cd || 'UNKNOWN',
+        program_name: updatedAsset.part?.program?.pgm_name || 'Unknown Program',
+      },
+      changes,
+      audit: newActivity,
+    });
+  } catch (error) {
+    console.error('[ASSETS-DB] Error updating asset:', error);
+    res.status(500).json({ error: 'Failed to update asset' });
   }
-
-  if (changes.length === 0) {
-    return res.status(400).json({ error: 'No changes provided' });
-  }
-
-  // Add to asset history
-  addAssetHistory(
-    assetId,
-    user,
-    'update',
-    historyChanges,
-    `Updated asset ${asset.serno}: ${changes.join('; ')}`
-  );
-
-  // Get program and location info for response
-  const program = allPrograms.find(p => p.pgm_id === asset.pgm_id);
-  const adminLocInfo = adminLocations.find(l => l.loc_cd === asset.admin_loc);
-  const custLocInfo = custodialLocations.find(l => l.loc_cd === asset.cust_loc);
-  const statusInfo = assetStatusCodes.find(s => s.status_cd === asset.status_cd);
-
-  // Log the update
-  console.log(`[ASSETS] Asset updated by ${user.username}: ${asset.serno} (ID: ${assetId})`);
-  console.log(`[ASSETS] Changes: ${changes.join(', ')}`);
-
-  // Add to activity log (audit trail)
-  const now = new Date();
-  const newActivity: ActivityLogEntry = {
-    activity_id: 1000 + dynamicActivityLog.length + 1,
-    timestamp: now.toISOString(),
-    user_id: user.user_id,
-    username: user.username,
-    user_full_name: `${user.first_name} ${user.last_name}`,
-    action_type: 'update',
-    entity_type: 'asset',
-    entity_id: assetId,
-    entity_name: asset.serno,
-    description: `Updated asset ${asset.serno}: ${changes.join('; ')}`,
-    pgm_id: asset.pgm_id,
-  };
-  dynamicActivityLog.push(newActivity);
-
-  // Capture new values for audit logging (after all changes)
-  const newValues: any = {
-    partno: asset.partno,
-    serno: asset.serno,
-    name: asset.name,
-    status_cd: asset.status_cd,
-    admin_loc: asset.admin_loc,
-    cust_loc: asset.cust_loc,
-    notes: asset.notes,
-    active: asset.active,
-  };
-
-  if (detailedAsset) {
-    newValues.bad_actor = detailedAsset.bad_actor;
-    newValues.in_transit = detailedAsset.in_transit;
-    newValues.carrier = detailedAsset.carrier;
-    newValues.tracking_number = detailedAsset.tracking_number;
-    newValues.ship_date = detailedAsset.ship_date;
-    newValues.next_ndi_date = detailedAsset.next_ndi_date;
-  }
-
-  // Log to audit table in database
-  await logAuditAction(
-    user.user_id,
-    'UPDATE',
-    'asset',
-    assetId,
-    oldValues,
-    newValues,
-    req
-  );
-
-  res.json({
-    message: 'Asset updated successfully',
-    asset: {
-      ...asset,
-      program_cd: program?.pgm_cd || 'UNKNOWN',
-      program_name: program?.pgm_name || 'Unknown Program',
-      admin_loc_name: adminLocInfo?.loc_name || asset.admin_loc,
-      cust_loc_name: custLocInfo?.loc_name || asset.cust_loc,
-      status_name: statusInfo?.status_name || asset.status_cd,
-      bad_actor: detailedAsset?.bad_actor || false,
-      in_transit: detailedAsset?.in_transit || false,
-      carrier: detailedAsset?.carrier || null,
-      tracking_number: detailedAsset?.tracking_number || null,
-      ship_date: detailedAsset?.ship_date || null,
-      next_ndi_date: detailedAsset?.next_ndi_date || null,
-    },
-    changes,
-    audit: newActivity,
-  });
 });
 
 // POST /api/assets/mass-update - Mass update multiple assets (requires authentication and depot_manager/admin role)
@@ -12494,12 +12234,12 @@ app.post('/api/assets/mass-update', (req, res) => {
       return res.status(400).json({ error: 'Invalid status code' });
     }
   } else if (field === 'admin_loc') {
-    const validAdminLocs = adminLocations.map(l => l.loc_cd);
+    const validAdminLocs = assignedLocationations.map(l => l.loc_cd);
     if (!validAdminLocs.includes(value)) {
       return res.status(400).json({ error: 'Invalid administrative location' });
     }
   } else if (field === 'cust_loc') {
-    const validCustLocs = custodialLocations.map(l => l.loc_cd);
+    const validCustLocs = currentLocationations.map(l => l.loc_cd);
     if (!validCustLocs.includes(value)) {
       return res.status(400).json({ error: 'Invalid custodial location' });
     }
@@ -12557,8 +12297,8 @@ app.post('/api/assets/mass-update', (req, res) => {
         detailedAsset.status_name = newStatus?.status_name || value;
       }
     } else if (field === 'admin_loc') {
-      const oldLoc = adminLocations.find(l => l.loc_cd === asset.admin_loc);
-      const newLoc = adminLocations.find(l => l.loc_cd === value);
+      const oldLoc = assignedLocationations.find(l => l.loc_cd === asset.admin_loc);
+      const newLoc = assignedLocationations.find(l => l.loc_cd === value);
       fieldLabel = 'Admin Location';
       oldValueDisplay = oldLoc?.loc_name || asset.admin_loc;
       newValueDisplay = newLoc?.loc_name || value;
@@ -12571,8 +12311,8 @@ app.post('/api/assets/mass-update', (req, res) => {
         detailedAsset.admin_loc_name = newLoc?.loc_name || value;
       }
     } else if (field === 'cust_loc') {
-      const oldLoc = custodialLocations.find(l => l.loc_cd === asset.cust_loc);
-      const newLoc = custodialLocations.find(l => l.loc_cd === value);
+      const oldLoc = currentLocationations.find(l => l.loc_cd === asset.cust_loc);
+      const newLoc = currentLocationations.find(l => l.loc_cd === value);
       fieldLabel = 'Custodial Location';
       oldValueDisplay = oldLoc?.loc_name || asset.cust_loc;
       newValueDisplay = newLoc?.loc_name || value;
@@ -12774,13 +12514,13 @@ app.post('/api/assets', async (req, res) => {
   }
 
   // Validate admin location
-  const validAdminLocs = adminLocations.map(l => l.loc_cd);
+  const validAdminLocs = assignedLocationations.map(l => l.loc_cd);
   if (!validAdminLocs.includes(admin_loc)) {
     return res.status(400).json({ error: 'Invalid administrative location' });
   }
 
   // Validate custodial location
-  const validCustLocs = custodialLocations.map(l => l.loc_cd);
+  const validCustLocs = currentLocationations.map(l => l.loc_cd);
   if (!validCustLocs.includes(cust_loc)) {
     return res.status(400).json({ error: 'Invalid custodial location' });
   }
@@ -12801,17 +12541,17 @@ app.post('/api/assets', async (req, res) => {
     const validLocationIds = new Set(programLocations.map(pl => pl.loc_id));
 
     // Get location IDs for admin_loc and cust_loc
-    const adminLocInfo = adminLocations.find(l => l.loc_cd === admin_loc);
-    const custLocInfo = custodialLocations.find(l => l.loc_cd === cust_loc);
+    const assignedLocationInfo = assignedLocationations.find(l => l.loc_cd === admin_loc);
+    const custLocInfo = currentLocationations.find(l => l.loc_cd === cust_loc);
 
-    if (!adminLocInfo || !custLocInfo) {
+    if (!assignedLocationInfo || !custLocInfo) {
       return res.status(400).json({ error: 'Invalid location code provided' });
     }
 
     // Validate admin location is valid for this program
-    if (!validLocationIds.has(adminLocInfo.loc_id)) {
+    if (!validLocationIds.has(assignedLocationInfo.loc_id)) {
       return res.status(400).json({
-        error: `Administrative location '${adminLocInfo.loc_name}' is not valid for the selected program. Please select a location that is assigned to this program.`
+        error: `Administrative location '${assignedLocationInfo.loc_name}' is not valid for the selected program. Please select a location that is assigned to this program.`
       });
     }
 
@@ -12861,8 +12601,8 @@ app.post('/api/assets', async (req, res) => {
 
   // Get program and location info for response
   const program = allPrograms.find(p => p.pgm_id === pgm_id);
-  const adminLocInfo = adminLocations.find(l => l.loc_cd === admin_loc);
-  const custLocInfo = custodialLocations.find(l => l.loc_cd === cust_loc);
+  const assignedLocationInfo = assignedLocationations.find(l => l.loc_cd === admin_loc);
+  const custLocInfo = currentLocationations.find(l => l.loc_cd === cust_loc);
   const statusInfo = assetStatusCodes.find(s => s.status_cd === status_cd);
 
   // Also add to detailedAssets for GET endpoint to show the new asset
@@ -12876,8 +12616,8 @@ app.post('/api/assets', async (req, res) => {
     status_cd,
     status_name: statusInfo?.status_name || status_cd,
     active: true,
-    location: adminLocInfo?.loc_name || admin_loc,
-    loc_type: adminLocInfo?.loc_type as 'depot' | 'field' || 'depot',
+    location: assignedLocationInfo?.loc_name || admin_loc,
+    loc_type: assignedLocationInfo?.loc_type as 'depot' | 'field' || 'depot',
     in_transit: false,
     bad_actor: false,
     last_maint_date: null,
@@ -12888,7 +12628,7 @@ app.post('/api/assets', async (req, res) => {
     mfg_date: null,
     acceptance_date: null,
     admin_loc: admin_loc,
-    admin_loc_name: adminLocInfo?.loc_name || admin_loc,
+    admin_loc_name: assignedLocationInfo?.loc_name || admin_loc,
     cust_loc: cust_loc,
     cust_loc_name: custLocInfo?.loc_name || cust_loc,
     nha_asset_id: null,
@@ -12908,7 +12648,7 @@ app.post('/api/assets', async (req, res) => {
     { field: 'partno', field_label: 'Part Number', old_value: null, new_value: partno },
     { field: 'name', field_label: 'Name', old_value: null, new_value: name || `${partno} - ${serno}` },
     { field: 'status_cd', field_label: 'Status', old_value: null, new_value: statusInfo?.status_name || status_cd },
-    { field: 'admin_loc', field_label: 'Admin Location', old_value: null, new_value: adminLocInfo?.loc_name || admin_loc },
+    { field: 'admin_loc', field_label: 'Admin Location', old_value: null, new_value: assignedLocationInfo?.loc_name || admin_loc },
     { field: 'cust_loc', field_label: 'Custodial Location', old_value: null, new_value: custLocInfo?.loc_name || cust_loc },
   ];
   if (notes) {
@@ -12951,7 +12691,7 @@ app.post('/api/assets', async (req, res) => {
       ...newAsset,
       program_cd: program?.pgm_cd || 'UNKNOWN',
       program_name: program?.pgm_name || 'Unknown Program',
-      admin_loc_name: adminLocInfo?.loc_name || admin_loc,
+      admin_loc_name: assignedLocationInfo?.loc_name || admin_loc,
       cust_loc_name: custLocInfo?.loc_name || cust_loc,
       status_name: statusInfo?.status_name || status_cd,
     }
@@ -13285,7 +13025,7 @@ app.post('/api/reference/locations', (req, res) => {
     return res.status(400).json({ error: 'Type must be "admin" or "custodial"' });
   }
 
-  const targetArray = type === 'admin' ? adminLocations : custodialLocations;
+  const targetArray = type === 'admin' ? assignedLocationations : currentLocationations;
 
   // Check if location code already exists
   if (targetArray.find(l => l.loc_cd === loc_cd)) {
@@ -13325,7 +13065,7 @@ app.delete('/api/reference/locations/:type/:loc_cd', (req, res) => {
     return res.status(400).json({ error: 'Type must be "admin" or "custodial"' });
   }
 
-  const targetArray = type === 'admin' ? adminLocations : custodialLocations;
+  const targetArray = type === 'admin' ? assignedLocationations : currentLocationations;
   const location = targetArray.find(l => l.loc_cd === loc_cd);
 
   if (!location) {
@@ -17587,7 +17327,7 @@ app.post('/api/spares', async (req, res) => {
   const newAssetId = Math.max(...mockAssets.map(a => a.asset_id), ...detailedAssets.map(a => a.asset_id)) + 1;
 
   // Get location details
-  const location = adminLocations.find(l => l.loc_id === parseInt(loc_id || '0'));
+  const location = assignedLocationations.find(l => l.loc_id === parseInt(loc_id || '0'));
   const program = allPrograms.find(p => p.pgm_id === programId);
 
   // Create new asset in mockAssets
@@ -17620,7 +17360,7 @@ app.post('/api/spares', async (req, res) => {
     pgm_cd: program?.pgm_cd || 'UNKNOWN',
     pgm_name: program?.pgm_name || 'Unknown Program',
     status_cd: status || 'FMC',
-    status_name: status === 'PMC' ? 'Partial Mission Capable' : status === 'NMCM' ? 'Not Mission Capable Maintenance' : status === 'NMCS' ? 'Not Mission Capable Supply' : status === 'CNDM' ? 'Cannot Determine Mission' : 'Full Mission Capable',
+    status_name: status === 'PMC' ? 'Partially Mission Capable' : status === 'NMCM' ? 'Not Mission Capable Maintenance' : status === 'NMCS' ? 'Not Mission Capable Supply' : status === 'CNDM' ? 'Condemned' : 'Fully Mission Capable',
     active: true,
     location: location?.display_name || 'No Location',
     loc_type: 'depot' as 'depot' | 'field',
@@ -18186,7 +17926,9 @@ app.get('*', (_req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+// Initialize assets from database before starting server
+initializeAssetsFromDb().then(() => initializeMaintenanceEventsFromDb()).then(() => initializePMIFromDb()).then(() => {
+  app.listen(PORT, () => {
   console.log(`
   ============================================
   RIMSS Backend Server
@@ -18197,5 +17939,9 @@ app.listen(PORT, () => {
   `)
 })
 
+}).catch(err => {
+  console.error('[Startup] Failed to initialize assets:', err);
+  process.exit(1);
+});
 export default app
 

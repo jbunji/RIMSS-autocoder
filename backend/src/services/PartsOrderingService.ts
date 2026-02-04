@@ -50,7 +50,7 @@ export class PartsOrderingService {
    */
   async createOrder(data: PartsOrderData): Promise<any> {
     // Get the part info
-    const part = await prisma.part.findUnique({
+    const part = await prisma.partList.findUnique({
       where: { partno_id: data.partnoId },
     });
 
@@ -285,55 +285,11 @@ export class PartsOrderingService {
 
   /**
    * Check stock levels and create auto-reorder if below minimum
+   * NOTE: Disabled - PartList doesn't have min_stock/max_stock fields
    */
-  async checkAndAutoReorder(partnoId: number, locationId: number, userId: string): Promise<any | null> {
-    const part = await prisma.part.findUnique({
-      where: { partno_id: partnoId },
-    });
-
-    if (!part || !part.min_stock) return null;
-
-    // Count FMC assets at this location
-    const currentStock = await prisma.asset.count({
-      where: {
-        partno_id: partnoId,
-        loc_idc: locationId,
-        status_cd: "FMC",
-        active: true,
-      },
-    });
-
-    if (currentStock >= part.min_stock) return null;
-
-    // Check if there's already a pending order
-    const pendingOrder = await prisma.partsOrder.findFirst({
-      where: {
-        partno_id: partnoId,
-        loc_id: locationId,
-        status: { in: ["REQUESTED", "APPROVED", "ORDERED"] },
-      },
-    });
-
-    if (pendingOrder) {
-      console.log(`[PARTS_ORDER] Pending order ${pendingOrder.order_no} exists for part ${partnoId}`);
-      return null;
-    }
-
-    // Create auto-reorder
-    const reorderQty = (part.max_stock || part.min_stock * 2) - currentStock;
-    
-    const order = await this.createOrder({
-      partnoId,
-      quantity: reorderQty,
-      locationId,
-      requestedBy: "SYSTEM",
-      priority: "ROUTINE",
-      notes: `Auto-reorder: Stock ${currentStock} below minimum ${part.min_stock}`,
-    });
-
-    console.log(`[PARTS_ORDER] Auto-reorder created: ${order.order_no} for ${reorderQty} x ${part.partno}`);
-
-    return order;
+  async checkAndAutoReorder(_partnoId: number, _locationId: number, _userId: string): Promise<any | null> {
+    console.log('[PARTS_ORDER] checkAndAutoReorder not implemented - no stock level config in schema');
+    return null;
   }
 
   // ============================================================================

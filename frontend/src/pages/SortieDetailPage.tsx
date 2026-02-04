@@ -38,13 +38,13 @@ interface MaintenanceEvent {
 function getSortieEffectBadge(effect: string | null): { bgClass: string; textClass: string } {
   switch (effect) {
     case 'FMC':
-    case 'Full Mission Capable':
+    case 'Fully Mission Capable':
       return { bgClass: 'bg-green-100', textClass: 'text-green-800' }
     case 'PMC':
     case 'PMCM':
     case 'PMCS':
     case 'PMCB':
-    case 'Partial Mission Capable':
+    case 'Partially Mission Capable':
       return { bgClass: 'bg-yellow-100', textClass: 'text-yellow-800' }
     case 'NMCM':
     case 'NMCS':

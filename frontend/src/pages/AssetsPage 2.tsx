@@ -164,7 +164,7 @@ export default function AssetsPage() {
       partno: '',
       serno: '',
       name: '',
-      status_cd: 'FMC', // Default to Full Mission Capable
+      status_cd: 'FMC', // Default to Fully Mission Capable
       admin_loc: 'DEPOT-A', // Default to first depot location (Depot Alpha)
       cust_loc: 'MAINT-BAY-1', // Default to first maintenance location (Maintenance Bay 1)
       notes: '',
@@ -903,7 +903,7 @@ export default function AssetsPage() {
               onChange={(e) => handleStatusChange(e.target.value)}
             >
               <option value="">All Statuses</option>
-              <option value="FMC">FMC - Full Mission Capable</option>
+              <option value="FMC">FMC - Fully Mission Capable</option>
               <option value="PMC">PMC - Partially Mission Capable</option>
               <option value="PMCM">PMCM - Partially Mission Capable (Maintenance)</option>
               <option value="PMCS">PMCS - Partially Mission Capable (Supply)</option>
@@ -1158,12 +1158,12 @@ export default function AssetsPage() {
         <h3 className="text-sm font-medium text-gray-900 mb-3">Status Legend</h3>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center">
-            <StatusBadge status="FMC" statusName="Full Mission Capable" />
-            <span className="ml-2 text-xs text-gray-500">Full Mission Capable</span>
+            <StatusBadge status="FMC" statusName="Fully Mission Capable" />
+            <span className="ml-2 text-xs text-gray-500">Fully Mission Capable</span>
           </div>
           <div className="flex items-center">
-            <StatusBadge status="PMC" statusName="Partial Mission Capable" />
-            <span className="ml-2 text-xs text-gray-500">Partial Mission Capable</span>
+            <StatusBadge status="PMC" statusName="Partially Mission Capable" />
+            <span className="ml-2 text-xs text-gray-500">Partially Mission Capable</span>
           </div>
           <div className="flex items-center">
             <StatusBadge status="NMCM" statusName="Not Mission Capable Maintenance" />
@@ -1174,8 +1174,8 @@ export default function AssetsPage() {
             <span className="ml-2 text-xs text-gray-500">Not Mission Capable (Supply)</span>
           </div>
           <div className="flex items-center">
-            <StatusBadge status="CNDM" statusName="Cannot Determine Mission" />
-            <span className="ml-2 text-xs text-gray-500">Cannot Determine Mission</span>
+            <StatusBadge status="CNDM" statusName="Condemned" />
+            <span className="ml-2 text-xs text-gray-500">Condemned</span>
           </div>
         </div>
         <div className="mt-3 flex gap-4 text-xs text-gray-500">

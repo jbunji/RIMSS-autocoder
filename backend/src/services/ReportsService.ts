@@ -65,8 +65,9 @@ export class ReportsService {
     const statusBreakdown: Record<string, number> = {};
     let totalAssets = 0;
     for (const row of assetStats) {
-      statusBreakdown[row.status_cd || "UNKNOWN"] = row._count.asset_id;
-      totalAssets += row._count.asset_id;
+      const count = row._count?.asset_id || 0;
+      statusBreakdown[row.status_cd || "UNKNOWN"] = count;
+      totalAssets += count;
     }
 
     return {
@@ -84,13 +85,13 @@ export class ReportsService {
     const [assets, events, locations] = await Promise.all([
       prisma.asset.groupBy({
         by: ["status_cd"],
-        where: { pgm_id: pgmId, active: true },
+        where: { part: { pgm_id: pgmId }, active: true },
         _count: { asset_id: true },
       }),
       prisma.event.groupBy({
         by: ["loc_id"],
         where: { 
-          asset: { pgm_id: pgmId },
+          asset: { part: { pgm_id: pgmId } },
           stop_job: null,
         },
         _count: { event_id: true },
@@ -104,11 +105,14 @@ export class ReportsService {
     const locMap = new Map(locations.map(l => [l.loc_id, l.display_name]));
 
     return {
-      assetStatus: assets.map(a => ({ status: a.status_cd, count: a._count.asset_id })),
+      assetStatus: assets.map(a => ({ 
+        status: a.status_cd, 
+        count: a._count?.asset_id || 0 
+      })),
       openEventsByLocation: events.map(e => ({
         locationId: e.loc_id,
         locationName: locMap.get(e.loc_id!) || "Unknown",
-        openEvents: e._count.event_id,
+        openEvents: e._count?.event_id || 0,
       })),
     };
   }
@@ -125,7 +129,7 @@ export class ReportsService {
     const whereClause: any = { stop_job: null };
     
     if (params.locationId) whereClause.loc_id = params.locationId;
-    if (params.pgmId) whereClause.asset = { pgm_id: params.pgmId };
+    if (params.pgmId) whereClause.asset = { part: { pgm_id: params.pgmId } };
     if (params.fromDate || params.toDate) {
       whereClause.start_job = {};
       if (params.fromDate) whereClause.start_job.gte = params.fromDate;
@@ -200,8 +204,8 @@ export class ReportsService {
 
     return tctos.map(tcto => {
       const total = tcto.tctoAssets.length;
-      const completed = tcto.tctoAssets.filter(a => a.complete_date).length;
-      const validated = tcto.tctoAssets.filter(a => a.valid).length;
+      const completed = tcto.tctoAssets.filter((a: any) => a.complete_date).length;
+      const validated = tcto.tctoAssets.filter((a: any) => a.valid).length;
 
       return {
         tctoId: tcto.tcto_id,
@@ -215,8 +219,8 @@ export class ReportsService {
           percentComplete: total > 0 ? Math.round((completed / total) * 100) : 100,
         },
         pendingAssets: tcto.tctoAssets
-          .filter(a => !a.complete_date)
-          .map(a => ({
+          .filter((a: any) => !a.complete_date)
+          .map((a: any) => ({
             assetId: a.asset_id,
             serno: a.asset.serno,
             location: a.asset.currentLocation?.display_name,
@@ -237,7 +241,7 @@ export class ReportsService {
 
     const statusCounts: Record<string, number> = {};
     for (const row of orders) {
-      statusCounts[row.status] = row._count.order_id;
+      statusCounts[row.status] = row._count?.order_id || 0;
     }
 
     const micapOrders = await prisma.partsOrder.findMany({
@@ -246,7 +250,7 @@ export class ReportsService {
     });
 
     return {
-      bystatus: statusCounts,
+      byStatus: statusCounts,
       micapPending: micapOrders,
     };
   }

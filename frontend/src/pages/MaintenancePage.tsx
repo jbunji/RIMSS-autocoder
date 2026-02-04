@@ -205,7 +205,7 @@ function ProgressBar({ percentage, totalRepairs, closedRepairs }: ProgressBarPro
 
 export default function MaintenancePage() {
   const navigate = useNavigate()
-  const { token, currentProgramId } = useAuthStore()
+  const { token, currentProgramId, currentLocationId } = useAuthStore()
 
   // State
   const [events, setEvents] = useState<MaintenanceEvent[]>([])
@@ -463,6 +463,10 @@ export default function MaintenancePage() {
         params.append('program_id', currentProgramId.toString())
       }
 
+      if (currentLocationId && currentLocationId !== 0) {
+        params.append('location_id', currentLocationId.toString())
+      }
+
       if (status) {
         params.append('status', status)
       }
@@ -507,7 +511,7 @@ export default function MaintenancePage() {
     } finally {
       setLoading(false)
     }
-  }, [token, currentProgramId, debouncedSearch, eventTypeFilter, pqdrFilter, dateFromFilter, dateToFilter])
+  }, [token, currentProgramId, currentLocationId, debouncedSearch, eventTypeFilter, pqdrFilter, dateFromFilter, dateToFilter])
 
   // Fetch events when tab changes, search changes, or event type filter changes
   useEffect(() => {
@@ -609,6 +613,10 @@ export default function MaintenancePage() {
         params.append('program_id', currentProgramId.toString())
       }
 
+      if (currentLocationId && currentLocationId !== 0) {
+        params.append('location_id', currentLocationId.toString())
+      }
+
       // Add interval filter if specified
       if (pmiIntervalFilter) {
         params.append('interval_days', pmiIntervalFilter)
@@ -643,7 +651,7 @@ export default function MaintenancePage() {
     } finally {
       setPmiLoading(false)
     }
-  }, [token, currentProgramId, pmiIntervalFilter, debouncedPmiSearch, pmiOverdueOnly])
+  }, [token, currentProgramId, currentLocationId, pmiIntervalFilter, debouncedPmiSearch, pmiOverdueOnly])
 
   // Fetch PMI when tab changes to PMI or when program/interval/search/overdue filter changes
   useEffect(() => {
@@ -663,6 +671,10 @@ export default function MaintenancePage() {
 
       if (currentProgramId) {
         params.append('program_id', currentProgramId.toString())
+      }
+
+      if (currentLocationId && currentLocationId !== 0) {
+        params.append('location_id', currentLocationId.toString())
       }
 
       // Add search parameter
@@ -708,7 +720,7 @@ export default function MaintenancePage() {
     if (activeTab === 3) {
       fetchTCTO()
     }
-  }, [activeTab, fetchTCTO, currentProgramId])
+  }, [activeTab, fetchTCTO, currentProgramId, currentLocationId])
 
   // Open Edit TCTO modal
   const openEditTCTOModal = (tcto: TCTORecord, e?: React.MouseEvent) => {

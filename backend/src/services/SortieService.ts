@@ -69,7 +69,7 @@ export class SortieService {
     let assetId = data.assetId;
     if (!assetId && data.serno) {
       const asset = await prisma.asset.findFirst({
-        where: { serno: data.serno, pgm_id: data.pgmId, active: true },
+        where: { serno: data.serno, part: { pgm_id: data.pgmId }, active: true },
       });
       assetId = asset?.asset_id;
     }

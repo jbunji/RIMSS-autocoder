@@ -346,14 +346,14 @@ export class ConfigurationService {
 
     // Get configured parts for this asset's part number
     const configuredParts = asset.cfgSet?.cfgLists
-      .filter(cl => cl.partno_p === asset.part_id)
+      .filter(cl => cl.partno_p === asset.partno_id)
       .map(cl => cl.childPart) || [];
 
-    const actualPartIds = new Set(actualChildren.map(a => a.part_id));
+    const actualPartIds = new Set(actualChildren.map(a => a.partno_id));
     const configuredPartIds = new Set(configuredParts.map(p => p.partno_id));
 
     const missing = configuredParts.filter(p => !actualPartIds.has(p.partno_id));
-    const extra = actualChildren.filter(a => !configuredPartIds.has(a.part_id));
+    const extra = actualChildren.filter(a => !configuredPartIds.has(a.partno_id));
 
     return {
       configured: configuredParts,

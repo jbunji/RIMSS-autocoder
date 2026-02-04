@@ -1,6 +1,3 @@
-// RIMSS Database Schema
-// RAMPOD Inventory & Maintenance System Software
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
@@ -11,66 +8,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================================
-// Core Tables
-// ============================================================================
-
 model Program {
-  pgm_id      Int       @id @default(autoincrement())
-  pgm_cd      String    @unique @db.VarChar(10)
-  pgm_name    String    @db.VarChar(100)
-  pgm_desc    String?   @db.Text
-  active      Boolean   @default(true)
-  ins_by      String?   @db.VarChar(50)
-  ins_date    DateTime  @default(now())
-  chg_by      String?   @db.VarChar(50)
-  chg_date    DateTime?
-
-  // Relations
-  userPrograms     UserProgram[]
-  partLists        PartList[]
+  pgm_id           Int               @id @default(autoincrement())
+  pgm_cd           String            @unique @db.VarChar(10)
+  pgm_name         String            @db.VarChar(100)
+  pgm_desc         String?
+  active           Boolean           @default(true)
+  ins_by           String?           @db.VarChar(50)
+  ins_date         DateTime          @default(now())
+  chg_by           String?           @db.VarChar(50)
+  chg_date         DateTime?
   cfgSets          CfgSet[]
-  sorties          Sortie[]
-  tctos            Tcto[]
-  notifications    Notification[]
-  spares           Spare[]
-  partsOrders      PartsOrder[] @relation("PartsOrderLocation")
-  shipmentsFrom    Shipment[]     @relation("ShipmentFrom")
-  shipmentsTo      Shipment[]     @relation("ShipmentTo")
   locSets          LocSet[]
+  notifications    Notification[]
+  partLists        PartList[]
   programLocations ProgramLocation[]
+  sorties          Sortie[]
+  spares           Spare[]
+  tctos            Tcto[]
+  userPrograms     UserProgram[]
 
   @@map("program")
 }
 
 model User {
-  user_id       Int       @id @default(autoincrement())
-  username      String    @unique @db.VarChar(50)
-  password_hash String    @db.VarChar(255)
-  email         String    @unique @db.VarChar(100)
-  first_name    String    @db.VarChar(50)
-  last_name     String    @db.VarChar(50)
-  role          UserRole  @default(VIEWER)
-  active        Boolean   @default(true)
+  user_id       Int            @id @default(autoincrement())
+  username      String         @unique @db.VarChar(50)
+  password_hash String         @db.VarChar(255)
+  email         String         @unique @db.VarChar(100)
+  first_name    String         @db.VarChar(50)
+  last_name     String         @db.VarChar(50)
+  role          UserRole       @default(VIEWER)
+  active        Boolean        @default(true)
   last_login    DateTime?
-  ins_by        String?   @db.VarChar(50)
-  ins_date      DateTime  @default(now())
-  chg_by        String?   @db.VarChar(50)
+  ins_by        String?        @db.VarChar(50)
+  ins_date      DateTime       @default(now())
+  chg_by        String?        @db.VarChar(50)
   chg_date      DateTime?
-
-  // Relations
-  userPrograms  UserProgram[]
-  userLocations UserLocation[]
   auditLogs     AuditLog[]
+  userLocations UserLocation[]
+  userPrograms  UserProgram[]
 
   @@map("users")
-}
-
-enum UserRole {
-  ADMIN
-  DEPOT_MANAGER
-  FIELD_TECHNICIAN
-  VIEWER
 }
 
 model UserProgram {
@@ -80,10 +59,8 @@ model UserProgram {
   is_default      Boolean  @default(false)
   ins_by          String?  @db.VarChar(50)
   ins_date        DateTime @default(now())
-
-  // Relations
-  user    User    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  program Program @relation(fields: [pgm_id], references: [pgm_id])
+  program         Program  @relation(fields: [pgm_id], references: [pgm_id])
+  user            User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([user_id, pgm_id])
   @@map("user_program")
@@ -96,10 +73,8 @@ model UserLocation {
   is_default       Boolean  @default(false)
   ins_by           String?  @db.VarChar(50)
   ins_date         DateTime @default(now())
-
-  // Relations
-  user     User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  location Location @relation(fields: [loc_id], references: [loc_id])
+  location         Location @relation(fields: [loc_id], references: [loc_id])
+  user             User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([user_id, loc_id])
   @@map("user_location")
@@ -114,29 +89,25 @@ model ProgramLocation {
   ins_date            DateTime  @default(now())
   chg_by              String?   @db.VarChar(50)
   chg_date            DateTime?
-
-  // Relations
-  program  Program  @relation(fields: [pgm_id], references: [pgm_id], onDelete: Cascade)
-  location Location @relation(fields: [loc_id], references: [loc_id], onDelete: Cascade)
+  location            Location  @relation(fields: [loc_id], references: [loc_id], onDelete: Cascade)
+  program             Program   @relation(fields: [pgm_id], references: [pgm_id], onDelete: Cascade)
 
   @@unique([pgm_id, loc_id])
   @@map("program_location")
 }
 
 model Code {
-  code_id     Int       @id @default(autoincrement())
-  code_type   String    @db.VarChar(50)
-  code_value  String    @db.VarChar(50)
-  description String?   @db.VarChar(255)
-  active      Boolean   @default(true)
-  sort_order  Int       @default(0)
-  ins_by      String?   @db.VarChar(50)
-  ins_date    DateTime  @default(now())
-  chg_by      String?   @db.VarChar(50)
+  code_id     Int         @id @default(autoincrement())
+  code_type   String      @db.VarChar(50)
+  code_value  String      @db.VarChar(50)
+  description String?     @db.VarChar(255)
+  active      Boolean     @default(true)
+  sort_order  Int         @default(0)
+  ins_by      String?     @db.VarChar(50)
+  ins_date    DateTime    @default(now())
+  chg_by      String?     @db.VarChar(50)
   chg_date    DateTime?
-
-  // Relations
-  codeGroups CodeGroup[]
+  codeGroups  CodeGroup[]
 
   @@unique([code_type, code_value])
   @@map("code")
@@ -150,177 +121,159 @@ model CodeGroup {
   description String?  @db.VarChar(255)
   ins_by      String?  @db.VarChar(50)
   ins_date    DateTime @default(now())
-
-  // Relations
-  code Code @relation(fields: [code_id], references: [code_id])
+  code        Code     @relation(fields: [code_id], references: [code_id])
 
   @@map("code_group")
 }
 
 model Location {
-  loc_id       Int       @id @default(autoincrement())
-  majcom_cd    String?   @db.VarChar(10)
-  site_cd      String?   @db.VarChar(20)
-  unit_cd      String?   @db.VarChar(20)
-  squad_cd     String?   @db.VarChar(20)
-  description  String?   @db.VarChar(255)
-  geoloc       String?   @db.VarChar(100)
-  display_name String    @db.VarChar(100)
-  old_loc_id   Int?
-  active       Boolean   @default(true)
-  ins_by       String?   @db.VarChar(50)
-  ins_date     DateTime  @default(now())
-  chg_by       String?   @db.VarChar(50)
-  chg_date     DateTime?
-
-  // Relations
+  loc_id           Int               @id @default(autoincrement())
+  majcom_cd        String?           @db.VarChar(50)
+  site_cd          String?           @db.VarChar(100)
+  unit_cd          String?           @db.VarChar(100)
+  squad_cd         String?           @db.VarChar(100)
+  description      String?           @db.VarChar(255)
+  geoloc           String?           @db.VarChar(100)
+  display_name     String            @db.VarChar(100)
+  active           Boolean           @default(true)
+  ins_by           String?           @db.VarChar(50)
+  ins_date         DateTime          @default(now())
+  chg_by           String?           @db.VarChar(50)
+  chg_date         DateTime?
+  old_loc_id       Int?
   assetsAdmin      Asset[]           @relation("AdminLocation")
   assetsCustodial  Asset[]           @relation("CustodialLocation")
-  events           Event[]
-  sruOrders        SruOrder[]
   badActors        BadActor[]
-  notifications    Notification[]
-  spares           Spare[]
-  partsOrders      PartsOrder[] @relation("PartsOrderLocation")
-  shipmentsFrom    Shipment[]     @relation("ShipmentFrom")
-  shipmentsTo      Shipment[]     @relation("ShipmentTo")
-  userLocations    UserLocation[]
+  events           Event[]
   locSets          LocSet[]
+  notifications    Notification[]
+  partsOrders      PartsOrder[]      @relation("PartsOrderLocation")
   programLocations ProgramLocation[]
+  shipmentsFrom    Shipment[]        @relation("ShipmentFrom")
+  shipmentsTo      Shipment[]        @relation("ShipmentTo")
+  spares           Spare[]
+  sruOrders        SruOrder[]
+  userLocations    UserLocation[]
 
   @@map("location")
 }
 
-// ============================================================================
-// Part & Asset Tables
-// ============================================================================
-
 model PartList {
-  partno_id  Int       @id @default(autoincrement())
-  partno     String    @db.VarChar(50)
-  pgm_id     Int
-  sys_type   String?   @db.VarChar(20)
-  noun       String?   @db.VarChar(100)
-  nsn        String?   @db.VarChar(20)
-  cage       String?   @db.VarChar(10)
-  nha_id     Int?
-  config     String?   @db.VarChar(50)
-  unit_price Decimal?  @db.Decimal(12, 2)
-  sn_tracked Boolean   @default(true)
-  wuc_cd     String?   @db.VarChar(10)
-  mds_cd     String?   @db.VarChar(10)
-  version    String?   @db.VarChar(20)
-  errc       String?   @db.VarChar(10)
-  lsru_flag  Boolean   @default(false)
-  loc_idr    Int?
-  active     Boolean   @default(true)
-  valid      Boolean   @default(false)
-  val_by     String?   @db.VarChar(50)
-  val_date   DateTime?
-  ins_by     String?   @db.VarChar(50)
-  ins_date   DateTime  @default(now())
-  chg_by     String?   @db.VarChar(50)
-  chg_date   DateTime?
-
-  // Relations
-  program    Program      @relation(fields: [pgm_id], references: [pgm_id])
-  nha        PartList?    @relation("NhaRelation", fields: [nha_id], references: [partno_id])
-  children   PartList[]   @relation("NhaRelation")
-  assets     Asset[]
-  cfgSets    CfgSet[]
-  cfgListsP  CfgList[]    @relation("ParentPart")
-  cfgListsC  CfgList[]    @relation("ChildPart")
-  sruOrders  SruOrder[]
-  laborParts LaborPart[]
-  partsOrders PartsOrder[]
+  partno_id        Int          @id @default(autoincrement())
+  partno           String       @db.VarChar(50)
+  pgm_id           Int
+  sys_type         String?      @db.VarChar(20)
+  noun             String?      @db.VarChar(100)
+  nsn              String?      @db.VarChar(20)
+  cage             String?      @db.VarChar(10)
+  nha_id           Int?
+  config           String?      @db.VarChar(50)
+  unit_price       Decimal?     @db.Decimal(12, 2)
+  sn_tracked       Boolean      @default(true)
+  wuc_cd           String?      @db.VarChar(10)
+  mds_cd           String?      @db.VarChar(10)
+  version          String?      @db.VarChar(20)
+  errc             String?      @db.VarChar(10)
+  lsru_flag        Boolean      @default(false)
+  loc_idr          Int?
+  active           Boolean      @default(true)
+  valid            Boolean      @default(false)
+  val_by           String?      @db.VarChar(50)
+  val_date         DateTime?
+  ins_by           String?      @db.VarChar(50)
+  ins_date         DateTime     @default(now())
+  chg_by           String?      @db.VarChar(50)
+  chg_date         DateTime?
+  assets           Asset[]
+  cfgListsC        CfgList[]    @relation("ChildPart")
+  cfgListsP        CfgList[]    @relation("ParentPart")
+  cfgSets          CfgSet[]
+  laborParts       LaborPart[]
+  nha              PartList?    @relation("NhaRelation", fields: [nha_id], references: [partno_id])
+  children         PartList[]   @relation("NhaRelation")
+  program          Program      @relation(fields: [pgm_id], references: [pgm_id])
+  partsOrders      PartsOrder[]
   substituteOrders PartsOrder[] @relation("SubstitutePart")
+  sruOrders        SruOrder[]
 
   @@unique([partno, pgm_id])
   @@map("part_list")
 }
 
 model Asset {
-  asset_id      Int       @id @default(autoincrement())
-  partno_id     Int
-  serno         String    @db.VarChar(50)
-  status_cd     String    @default("FMC") @db.VarChar(10)
-  loc_ida       Int?
-  loc_idc       Int?
-  nha_asset_id  Int?
-  cfg_set_id    Int?
-  active        Boolean   @default(true)
-  reportable    Boolean   @default(true)
-  cfo_tracked   Boolean   @default(false)
-  bad_actor     Boolean   @default(false)
-  valid         Boolean   @default(false)
-  val_by        String?   @db.VarChar(50)
-  val_date      DateTime?
-  uii           String?   @db.VarChar(50)
-  etic          DateTime?
-  lotno         String?   @db.VarChar(50)
-  mfg_date      DateTime?
-  accept_date   DateTime?
-  next_ndi_date DateTime?
-  deployed_date DateTime?
-  tcn           String?   @db.VarChar(50)
-  shipper       String?   @db.VarChar(50)
-  ship_date     DateTime?
-  recv_date     DateTime?
-  eti           Decimal?  @db.Decimal(10, 2)
-  eti_liate     Decimal?  @db.Decimal(10, 2)
-  in_transit    Boolean   @default(false)
-  tail_no       String?   @db.VarChar(20)
-  remarks       String?   @db.Text
-  ins_by        String?   @db.VarChar(50)
-  ins_date      DateTime  @default(now())
-  chg_by        String?   @db.VarChar(50)
-  chg_date      DateTime?
-
-  // Relations
-  part         PartList         @relation(fields: [partno_id], references: [partno_id])
-  adminLoc     Location?        @relation("AdminLocation", fields: [loc_ida], references: [loc_id])
-  custodialLoc Location?        @relation("CustodialLocation", fields: [loc_idc], references: [loc_id])
-  nhaAsset     Asset?           @relation("AssetNha", fields: [nha_asset_id], references: [asset_id])
-  sraAssets    Asset[]          @relation("AssetNha")
-  cfgSet       CfgSet?          @relation(fields: [cfg_set_id], references: [cfg_set_id])
-  events       Event[]
-  repairs      Repair[]
-  labors       Labor[]
-  laborParts   LaborPart[]
-  inspections  AssetInspection[]
-  meters       MeterHist[]
-  softwareAssets SoftwareAsset[]
-  sorties      Sortie[]
-  tctoAssets   TctoAsset[]
-  sruOrders    SruOrder[]
+  asset_id         Int               @id @default(autoincrement())
+  partno_id        Int
+  serno            String            @db.VarChar(50)
+  status_cd        String            @default("FMC") @db.VarChar(10)
+  loc_ida          Int?
+  loc_idc          Int?
+  nha_asset_id     Int?
+  cfg_set_id       Int?
+  active           Boolean           @default(true)
+  reportable       Boolean           @default(true)
+  cfo_tracked      Boolean           @default(false)
+  bad_actor        Boolean           @default(false)
+  valid            Boolean           @default(false)
+  val_by           String?           @db.VarChar(50)
+  val_date         DateTime?
+  uii              String?           @db.VarChar(50)
+  etic             DateTime?
+  lotno            String?           @db.VarChar(50)
+  mfg_date         DateTime?
+  accept_date      DateTime?
+  next_ndi_date    DateTime?
+  deployed_date    DateTime?
+  tcn              String?           @db.VarChar(50)
+  shipper          String?           @db.VarChar(50)
+  ship_date        DateTime?
+  recv_date        DateTime?
+  eti              Decimal?          @db.Decimal(10, 2)
+  eti_liate        Decimal?          @db.Decimal(10, 2)
+  in_transit       Boolean           @default(false)
+  tail_no          String?           @db.VarChar(20)
+  remarks          String?
+  ins_by           String?           @db.VarChar(50)
+  ins_date         DateTime          @default(now())
+  chg_by           String?           @db.VarChar(50)
+  chg_date         DateTime?
+  cfgSet           CfgSet?           @relation(fields: [cfg_set_id], references: [cfg_set_id])
+  assignedLocation Location?         @relation("AdminLocation", fields: [loc_ida], references: [loc_id])
+  currentLocation  Location?         @relation("CustodialLocation", fields: [loc_idc], references: [loc_id])
+  nhaAsset         Asset?            @relation("AssetNha", fields: [nha_asset_id], references: [asset_id])
+  sraAssets        Asset[]           @relation("AssetNha")
+  part             PartList          @relation(fields: [partno_id], references: [partno_id])
+  inspections      AssetInspection[]
+  events           Event[]
+  labors           Labor[]
+  laborParts       LaborPart[]
+  meters           MeterHist[]
+  repairs          Repair[]
+  softwareAssets   SoftwareAsset[]
+  sorties          Sortie[]
+  sruOrders        SruOrder[]
+  tctoAssets       TctoAsset[]
 
   @@unique([partno_id, serno])
   @@map("asset")
 }
 
-// ============================================================================
-// Configuration Tables
-// ============================================================================
-
 model CfgSet {
-  cfg_set_id  Int       @id @default(autoincrement())
-  cfg_name    String    @db.VarChar(100)
-  cfg_type    String?   @db.VarChar(20)
+  cfg_set_id  Int        @id @default(autoincrement())
+  cfg_name    String     @db.VarChar(100)
+  cfg_type    String?    @db.VarChar(20)
   pgm_id      Int
   partno_id   Int?
-  description String?   @db.Text
-  active      Boolean   @default(true)
-  ins_by      String?   @db.VarChar(50)
-  ins_date    DateTime  @default(now())
-  chg_by      String?   @db.VarChar(50)
+  description String?
+  active      Boolean    @default(true)
+  ins_by      String?    @db.VarChar(50)
+  ins_date    DateTime   @default(now())
+  chg_by      String?    @db.VarChar(50)
   chg_date    DateTime?
-
-  // Relations
-  program   Program     @relation(fields: [pgm_id], references: [pgm_id])
-  part      PartList?   @relation(fields: [partno_id], references: [partno_id])
-  cfgLists  CfgList[]
-  assets    Asset[]
-  cfgMeters CfgMeter[]
+  assets      Asset[]
+  cfgLists    CfgList[]
+  cfgMeters   CfgMeter[]
+  part        PartList?  @relation(fields: [partno_id], references: [partno_id])
+  program     Program    @relation(fields: [pgm_id], references: [pgm_id])
 
   @@map("cfg_set")
 }
@@ -337,145 +290,131 @@ model CfgList {
   ins_date   DateTime  @default(now())
   chg_by     String?   @db.VarChar(50)
   chg_date   DateTime?
-
-  // Relations
-  cfgSet     CfgSet   @relation(fields: [cfg_set_id], references: [cfg_set_id], onDelete: Cascade)
-  parentPart PartList @relation("ParentPart", fields: [partno_p], references: [partno_id])
-  childPart  PartList @relation("ChildPart", fields: [partno_c], references: [partno_id])
+  cfgSet     CfgSet    @relation(fields: [cfg_set_id], references: [cfg_set_id], onDelete: Cascade)
+  childPart  PartList  @relation("ChildPart", fields: [partno_c], references: [partno_id])
+  parentPart PartList  @relation("ParentPart", fields: [partno_p], references: [partno_id])
 
   @@map("cfg_list")
 }
 
-// ============================================================================
-// Maintenance Tables
-// ============================================================================
-
 model Event {
-  event_id    Int       @id @default(autoincrement())
+  event_id    Int          @id @default(autoincrement())
   asset_id    Int
   loc_id      Int?
-  job_no      String?   @db.VarChar(20)
-  discrepancy String?   @db.Text
+  job_no      String?      @db.VarChar(20)
+  discrepancy String?
   start_job   DateTime?
   stop_job    DateTime?
-  when_disc   String?   @db.VarChar(10)
-  how_mal     String?   @db.VarChar(10)
-  wuc_cd      String?   @db.VarChar(10)
-  priority    String?   @db.VarChar(10)
-  symbol      String?   @db.VarChar(10)
-  event_type  String?   @db.VarChar(20)
+  when_disc   String?      @db.VarChar(10)
+  how_mal     String?      @db.VarChar(10)
+  wuc_cd      String?      @db.VarChar(10)
+  priority    String?      @db.VarChar(10)
+  symbol      String?      @db.VarChar(10)
+  event_type  String?      @db.VarChar(20)
   sortie_id   Int?
-  source      String?   @db.VarChar(20)
-  source_cat  String?   @db.VarChar(20)
-  sent_imds   Boolean   @default(false)
-  non_imds    Boolean   @default(false)
-  valid       Boolean   @default(false)
-  val_by      String?   @db.VarChar(50)
+  source      String?      @db.VarChar(20)
+  source_cat  String?      @db.VarChar(20)
+  sent_imds   Boolean      @default(false)
+  non_imds    Boolean      @default(false)
+  valid       Boolean      @default(false)
+  val_by      String?      @db.VarChar(50)
   val_date    DateTime?
   etic_date   DateTime?
-  ins_by      String?   @db.VarChar(50)
-  ins_date    DateTime  @default(now())
-  chg_by      String?   @db.VarChar(50)
+  ins_by      String?      @db.VarChar(50)
+  ins_date    DateTime     @default(now())
+  chg_by      String?      @db.VarChar(50)
   chg_date    DateTime?
-
-  // Relations
-  asset       Asset       @relation(fields: [asset_id], references: [asset_id])
-  location    Location?   @relation(fields: [loc_id], references: [loc_id])
-  sortie      Sortie?     @relation(fields: [sortie_id], references: [sortie_id])
-  repairs     Repair[]
-  partsOrders PartsOrder[]
-  meters      MeterHist[]
-  sruOrders   SruOrder[]
   attachments Attachment[]
+  asset       Asset        @relation(fields: [asset_id], references: [asset_id])
+  location    Location?    @relation(fields: [loc_id], references: [loc_id])
+  sortie      Sortie?      @relation(fields: [sortie_id], references: [sortie_id])
+  meters      MeterHist[]
+  partsOrders PartsOrder[]
+  repairs     Repair[]
+  sruOrders   SruOrder[]
 
   @@map("event")
 }
 
 model Repair {
-  repair_id     Int       @id @default(autoincrement())
-  event_id      Int
-  repair_seq    Int       @default(1)
-  asset_id      Int?
-  start_date    DateTime?
-  stop_date     DateTime?
-  type_maint    String?   @db.VarChar(10)
-  how_mal       String?   @db.VarChar(10)
-  when_disc     String?   @db.VarChar(10)
-  shop_status   String?   @db.VarChar(20)
-  narrative     String?   @db.Text
-  tag_no        String?   @db.VarChar(50)
-  doc_no        String?   @db.VarChar(50)
-  eti_in        Decimal?  @db.Decimal(10, 2)
-  eti_out       Decimal?  @db.Decimal(10, 2)
-  eti_delta     Decimal?  @db.Decimal(10, 2)
-  micap         Boolean   @default(false)
-  micap_login   String?   @db.VarChar(50)
-  damage        String?   @db.VarChar(100)
-  chief_review  Boolean   @default(false)
-  super_review  Boolean   @default(false)
-  eti_change    Boolean   @default(false)
-  repeat_recur  Boolean   @default(false)
-  sent_imds     Boolean   @default(false)
-  valid         Boolean   @default(false)
-  val_by        String?   @db.VarChar(50)
-  val_date      DateTime?
-  ins_by        String?   @db.VarChar(50)
-  ins_date      DateTime  @default(now())
-  chg_by        String?   @db.VarChar(50)
-  chg_date      DateTime?
-
-  // Relations
-  event       Event             @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
-  asset       Asset?            @relation(fields: [asset_id], references: [asset_id])
-  labors      Labor[]
-  partsOrders PartsOrder[]
-  meters      MeterHist[]
-  inspections AssetInspection[]
-  tctoAssets  TctoAsset[]
-  sruOrders   SruOrder[]
-  attachments Attachment[]
+  repair_id    Int               @id @default(autoincrement())
+  event_id     Int
+  repair_seq   Int               @default(1)
+  asset_id     Int?
+  start_date   DateTime?
+  stop_date    DateTime?
+  type_maint   String?           @db.VarChar(10)
+  how_mal      String?           @db.VarChar(10)
+  when_disc    String?           @db.VarChar(10)
+  shop_status  String?           @db.VarChar(20)
+  narrative    String?
+  tag_no       String?           @db.VarChar(50)
+  doc_no       String?           @db.VarChar(50)
+  eti_in       Decimal?          @db.Decimal(10, 2)
+  eti_out      Decimal?          @db.Decimal(10, 2)
+  eti_delta    Decimal?          @db.Decimal(10, 2)
+  micap        Boolean           @default(false)
+  micap_login  String?           @db.VarChar(50)
+  damage       String?           @db.VarChar(100)
+  chief_review Boolean           @default(false)
+  super_review Boolean           @default(false)
+  eti_change   Boolean           @default(false)
+  repeat_recur Boolean           @default(false)
+  sent_imds    Boolean           @default(false)
+  valid        Boolean           @default(false)
+  val_by       String?           @db.VarChar(50)
+  val_date     DateTime?
+  ins_by       String?           @db.VarChar(50)
+  ins_date     DateTime          @default(now())
+  chg_by       String?           @db.VarChar(50)
+  chg_date     DateTime?
+  inspections  AssetInspection[]
+  attachments  Attachment[]
+  labors       Labor[]
+  meters       MeterHist[]
+  partsOrders  PartsOrder[]
+  asset        Asset?            @relation(fields: [asset_id], references: [asset_id])
+  event        Event             @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  sruOrders    SruOrder[]
+  tctoAssets   TctoAsset[]
 
   @@map("repair")
 }
 
 model Labor {
-  labor_id     Int       @id @default(autoincrement())
+  labor_id     Int          @id @default(autoincrement())
   repair_id    Int
-  labor_seq    Int       @default(1)
+  labor_seq    Int          @default(1)
   asset_id     Int?
-  action_taken String?   @db.VarChar(10)
-  how_mal      String?   @db.VarChar(10)
-  when_disc    String?   @db.VarChar(10)
-  type_maint   String?   @db.VarChar(10)
-  cat_labor    String?   @db.VarChar(10)
+  action_taken String?      @db.VarChar(10)
+  how_mal      String?      @db.VarChar(10)
+  when_disc    String?      @db.VarChar(10)
+  type_maint   String?      @db.VarChar(10)
+  cat_labor    String?      @db.VarChar(10)
   start_date   DateTime?
   stop_date    DateTime?
-  hours        Decimal?  @db.Decimal(5, 2)
-  crew_chief   String?   @db.VarChar(50)
+  hours        Decimal?     @db.Decimal(5, 2)
+  crew_chief   String?      @db.VarChar(50)
   crew_size    Int?
-  corrective   String?   @db.Text
-  discrepancy  String?   @db.Text
-  remarks      String?   @db.Text
-  corrected_by String?   @db.VarChar(50)
-  inspected_by String?   @db.VarChar(50)
-  bit_log      String?   @db.Text
-  sent_imds    Boolean   @default(false)
-  valid        Boolean   @default(false)
-  val_by       String?   @db.VarChar(50)
+  corrective   String?
+  discrepancy  String?
+  remarks      String?
+  corrected_by String?      @db.VarChar(50)
+  inspected_by String?      @db.VarChar(50)
+  bit_log      String?
+  sent_imds    Boolean      @default(false)
+  valid        Boolean      @default(false)
+  val_by       String?      @db.VarChar(50)
   val_date     DateTime?
-  ins_by       String?   @db.VarChar(50)
-  ins_date     DateTime  @default(now())
-  chg_by       String?   @db.VarChar(50)
+  ins_by       String?      @db.VarChar(50)
+  ins_date     DateTime     @default(now())
+  chg_by       String?      @db.VarChar(50)
   chg_date     DateTime?
-
-  // Relations
-  repair     Repair       @relation(fields: [repair_id], references: [repair_id], onDelete: Cascade)
-  asset      Asset?       @relation(fields: [asset_id], references: [asset_id])
-  laborParts LaborPart[]
-  partsOrders PartsOrder[]
-  substituteOrders PartsOrder[] @relation("SubstitutePart")
-  laborBitPc LaborBitPc[]
-  meters     MeterHist[]
+  asset        Asset?       @relation(fields: [asset_id], references: [asset_id])
+  repair       Repair       @relation(fields: [repair_id], references: [repair_id], onDelete: Cascade)
+  laborBitPc   LaborBitPc[]
+  laborParts   LaborPart[]
+  meters       MeterHist[]
 
   @@map("labor")
 }
@@ -486,19 +425,17 @@ model LaborPart {
   asset_id      Int?
   partno_id     Int?
   part_action   String?   @db.VarChar(20)
-  how_mal       String?   @db.VarChar(10)
-  is_pqdr       Boolean   @default(false)
-  dr_num        String?   @db.VarChar(50)
   qty           Int       @default(1)
   ins_by        String?   @db.VarChar(50)
   ins_date      DateTime  @default(now())
   chg_by        String?   @db.VarChar(50)
   chg_date      DateTime?
-
-  // Relations
-  labor Labor     @relation(fields: [labor_id], references: [labor_id], onDelete: Cascade)
-  asset Asset?    @relation(fields: [asset_id], references: [asset_id])
-  part  PartList? @relation(fields: [partno_id], references: [partno_id])
+  dr_num        String?   @db.VarChar(50)
+  how_mal       String?   @db.VarChar(10)
+  is_pqdr       Boolean   @default(false)
+  asset         Asset?    @relation(fields: [asset_id], references: [asset_id])
+  labor         Labor     @relation(fields: [labor_id], references: [labor_id], onDelete: Cascade)
+  part          PartList? @relation(fields: [partno_id], references: [partno_id])
 
   @@map("labor_part")
 }
@@ -519,16 +456,10 @@ model LaborBitPc {
   val_date     DateTime?
   ins_by       String?   @db.VarChar(50)
   ins_date     DateTime  @default(now())
-
-  // Relations
-  labor Labor @relation(fields: [labor_id], references: [labor_id], onDelete: Cascade)
+  labor        Labor     @relation(fields: [labor_id], references: [labor_id], onDelete: Cascade)
 
   @@map("labor_bit_pc")
 }
-
-// ============================================================================
-// Inspection & Meter Tables
-// ============================================================================
 
 model AssetInspection {
   hist_id       Int       @id @default(autoincrement())
@@ -548,10 +479,8 @@ model AssetInspection {
   ins_date      DateTime  @default(now())
   chg_by        String?   @db.VarChar(50)
   chg_date      DateTime?
-
-  // Relations
-  asset  Asset   @relation(fields: [asset_id], references: [asset_id])
-  repair Repair? @relation(fields: [repair_id], references: [repair_id])
+  asset         Asset     @relation(fields: [asset_id], references: [asset_id])
+  repair        Repair?   @relation(fields: [repair_id], references: [repair_id])
 
   @@map("asset_inspection")
 }
@@ -569,18 +498,16 @@ model MeterHist {
   changed      Boolean   @default(false)
   failure      Boolean   @default(false)
   seq_num      Int?
-  remarks      String?   @db.Text
+  remarks      String?
   valid        Boolean   @default(false)
   ins_by       String?   @db.VarChar(50)
   ins_date     DateTime  @default(now())
   chg_by       String?   @db.VarChar(50)
   chg_date     DateTime?
-
-  // Relations
-  asset  Asset   @relation(fields: [asset_id], references: [asset_id])
-  repair Repair? @relation(fields: [repair_id], references: [repair_id])
-  labor  Labor?  @relation(fields: [labor_id], references: [labor_id])
-  event  Event?  @relation(fields: [event_id], references: [event_id])
+  asset        Asset     @relation(fields: [asset_id], references: [asset_id])
+  event        Event?    @relation(fields: [event_id], references: [event_id])
+  labor        Labor?    @relation(fields: [labor_id], references: [labor_id])
+  repair       Repair?   @relation(fields: [repair_id], references: [repair_id])
 
   @@map("meter_hist")
 }
@@ -594,62 +521,48 @@ model CfgMeter {
   ins_date    DateTime  @default(now())
   chg_by      String?   @db.VarChar(50)
   chg_date    DateTime?
-
-  // Relations
-  cfgSet CfgSet @relation(fields: [cfg_set_id], references: [cfg_set_id], onDelete: Cascade)
+  cfgSet      CfgSet    @relation(fields: [cfg_set_id], references: [cfg_set_id], onDelete: Cascade)
 
   @@map("cfg_meters")
 }
 
-// ============================================================================
-// Software Tables
-// ============================================================================
-
 model Software {
-  sw_id         Int       @id @default(autoincrement())
-  sw_number     String    @db.VarChar(50)
-  sw_type       String?   @db.VarChar(20)
-  sys_id        Int?
-  revision      String?   @db.VarChar(20)
-  revision_date DateTime?
-  sw_title      String?   @db.VarChar(100)
-  sw_desc       String?   @db.Text
-  eff_date      DateTime?
-  cpin_flag     Boolean   @default(false)
-  active        Boolean   @default(true)
-  valid         Boolean   @default(false)
-  val_by        String?   @db.VarChar(50)
-  val_date      DateTime?
-  ins_by        String?   @db.VarChar(50)
-  ins_date      DateTime  @default(now())
-  chg_by        String?   @db.VarChar(50)
-  chg_date      DateTime?
-
-  // Relations
+  sw_id          Int             @id @default(autoincrement())
+  sw_number      String          @db.VarChar(50)
+  sw_type        String?         @db.VarChar(20)
+  sys_id         Int?
+  revision       String?         @db.VarChar(20)
+  revision_date  DateTime?
+  sw_title       String?         @db.VarChar(100)
+  sw_desc        String?
+  eff_date       DateTime?
+  cpin_flag      Boolean         @default(false)
+  active         Boolean         @default(true)
+  valid          Boolean         @default(false)
+  val_by         String?         @db.VarChar(50)
+  val_date       DateTime?
+  ins_by         String?         @db.VarChar(50)
+  ins_date       DateTime        @default(now())
+  chg_by         String?         @db.VarChar(50)
+  chg_date       DateTime?
   softwareAssets SoftwareAsset[]
 
   @@map("software")
 }
 
 model SoftwareAsset {
-  sw_asset_id Int      @id @default(autoincrement())
+  sw_asset_id Int       @id @default(autoincrement())
   asset_id    Int
   sw_id       Int
   eff_date    DateTime?
-  ins_by      String?  @db.VarChar(50)
-  ins_date    DateTime @default(now())
-
-  // Relations
-  asset    Asset    @relation(fields: [asset_id], references: [asset_id], onDelete: Cascade)
-  software Software @relation(fields: [sw_id], references: [sw_id])
+  ins_by      String?   @db.VarChar(50)
+  ins_date    DateTime  @default(now())
+  asset       Asset     @relation(fields: [asset_id], references: [asset_id], onDelete: Cascade)
+  software    Software  @relation(fields: [sw_id], references: [sw_id])
 
   @@unique([asset_id, sw_id])
   @@map("software_asset")
 }
-
-// ============================================================================
-// Sortie Tables
-// ============================================================================
 
 model Sortie {
   sortie_id       Int       @id @default(autoincrement())
@@ -666,7 +579,7 @@ model Sortie {
   assigned_unit   String?   @db.VarChar(20)
   range           String?   @db.VarChar(20)
   reason          String?   @db.VarChar(100)
-  remarks         String?   @db.Text
+  remarks         String?
   source_data     String?   @db.VarChar(50)
   is_non_podded   Boolean   @default(false)
   is_debrief      Boolean   @default(false)
@@ -678,41 +591,33 @@ model Sortie {
   ins_date        DateTime  @default(now())
   chg_by          String?   @db.VarChar(50)
   chg_date        DateTime?
-
-  // Relations
-  program Program @relation(fields: [pgm_id], references: [pgm_id])
-  asset   Asset?  @relation(fields: [asset_id], references: [asset_id])
-  events  Event[]
+  events          Event[]
+  asset           Asset?    @relation(fields: [asset_id], references: [asset_id])
+  program         Program   @relation(fields: [pgm_id], references: [pgm_id])
 
   @@map("sorties")
 }
 
-// ============================================================================
-// TCTO Tables
-// ============================================================================
-
 model Tcto {
-  tcto_id       Int       @id @default(autoincrement())
+  tcto_id       Int         @id @default(autoincrement())
   pgm_id        Int
-  tcto_no       String    @db.VarChar(50)
-  tcto_type     String?   @db.VarChar(20)
-  tcto_code     String?   @db.VarChar(20)
-  wuc_cd        String?   @db.VarChar(10)
-  sys_type      String?   @db.VarChar(20)
-  station_type  String?   @db.VarChar(20)
+  tcto_no       String      @db.VarChar(50)
+  tcto_type     String?     @db.VarChar(20)
+  tcto_code     String?     @db.VarChar(20)
+  wuc_cd        String?     @db.VarChar(10)
+  sys_type      String?     @db.VarChar(20)
+  station_type  String?     @db.VarChar(20)
   old_partno_id Int?
   new_partno_id Int?
   eff_date      DateTime?
-  remarks       String?   @db.Text
-  active        Boolean   @default(true)
-  ins_by        String?   @db.VarChar(50)
-  ins_date      DateTime  @default(now())
-  chg_by        String?   @db.VarChar(50)
+  remarks       String?
+  active        Boolean     @default(true)
+  ins_by        String?     @db.VarChar(50)
+  ins_date      DateTime    @default(now())
+  chg_by        String?     @db.VarChar(50)
   chg_date      DateTime?
-
-  // Relations
-  program    Program     @relation(fields: [pgm_id], references: [pgm_id])
-  tctoAssets TctoAsset[]
+  program       Program     @relation(fields: [pgm_id], references: [pgm_id])
+  tctoAssets    TctoAsset[]
 
   @@unique([tcto_no, pgm_id])
   @@map("tcto")
@@ -724,7 +629,7 @@ model TctoAsset {
   asset_id      Int
   repair_id     Int?
   complete_date DateTime?
-  remarks       String?   @db.Text
+  remarks       String?
   valid         Boolean   @default(false)
   val_by        String?   @db.VarChar(50)
   val_date      DateTime?
@@ -732,63 +637,55 @@ model TctoAsset {
   ins_date      DateTime  @default(now())
   chg_by        String?   @db.VarChar(50)
   chg_date      DateTime?
-
-  // Relations
-  tcto   Tcto    @relation(fields: [tcto_id], references: [tcto_id], onDelete: Cascade)
-  asset  Asset   @relation(fields: [asset_id], references: [asset_id])
-  repair Repair? @relation(fields: [repair_id], references: [repair_id])
+  asset         Asset     @relation(fields: [asset_id], references: [asset_id])
+  repair        Repair?   @relation(fields: [repair_id], references: [repair_id])
+  tcto          Tcto      @relation(fields: [tcto_id], references: [tcto_id], onDelete: Cascade)
 
   @@unique([tcto_id, asset_id])
   @@map("tcto_asset")
 }
 
-// ============================================================================
-// Parts Ordering Tables
-// ============================================================================
-
 model SruOrder {
-  order_id          Int       @id @default(autoincrement())
-  event_id          Int?
-  repair_id         Int?
-  partno_id         Int?
-  asset_id          Int?
-  loc_id            Int?
-  sru_id            String?   @db.VarChar(50)
-  doc_no            String?   @db.VarChar(50)
-  order_date        DateTime?
-  order_qty         Int       @default(1)
-  status            String    @default("REQUEST") @db.VarChar(20)
-  micap             Boolean   @default(false)
-  delivery_dest     String?   @db.VarChar(100)
-  delivery_priority String?   @db.VarChar(20)
-  ujc               String?   @db.VarChar(20)
-  acknowledge_date  DateTime?
-  fill_date         DateTime?
+  order_id           Int       @id @default(autoincrement())
+  event_id           Int?
+  repair_id          Int?
+  partno_id          Int?
+  asset_id           Int?
+  loc_id             Int?
+  sru_id             String?   @db.VarChar(50)
+  doc_no             String?   @db.VarChar(50)
+  order_date         DateTime?
+  order_qty          Int       @default(1)
+  status             String    @default("REQUEST") @db.VarChar(20)
+  micap              Boolean   @default(false)
+  delivery_dest      String?   @db.VarChar(100)
+  delivery_priority  String?   @db.VarChar(20)
+  ujc                String?   @db.VarChar(20)
+  acknowledge_date   DateTime?
+  fill_date          DateTime?
   repl_sru_ship_date DateTime?
   repl_sru_recv_date DateTime?
-  shipper           String?   @db.VarChar(50)
-  tcn               String?   @db.VarChar(50)
-  rem_shipper       String?   @db.VarChar(50)
-  rem_tcn           String?   @db.VarChar(50)
-  rem_sru_ship_date DateTime?
-  receiver          String?   @db.VarChar(50)
-  receive_qty       Int?
-  receive_date      DateTime?
-  esd               DateTime?
-  wuc_cd            String?   @db.VarChar(10)
-  remarks           String?   @db.Text
-  active            Boolean   @default(true)
-  ins_by            String?   @db.VarChar(50)
-  ins_date          DateTime  @default(now())
-  chg_by            String?   @db.VarChar(50)
-  chg_date          DateTime?
-
-  // Relations
-  event    Event?    @relation(fields: [event_id], references: [event_id])
-  repair   Repair?   @relation(fields: [repair_id], references: [repair_id])
-  part     PartList? @relation(fields: [partno_id], references: [partno_id])
-  asset    Asset?    @relation(fields: [asset_id], references: [asset_id])
-  location Location? @relation(fields: [loc_id], references: [loc_id])
+  shipper            String?   @db.VarChar(50)
+  tcn                String?   @db.VarChar(50)
+  rem_shipper        String?   @db.VarChar(50)
+  rem_tcn            String?   @db.VarChar(50)
+  rem_sru_ship_date  DateTime?
+  receiver           String?   @db.VarChar(50)
+  receive_qty        Int?
+  receive_date       DateTime?
+  esd                DateTime?
+  wuc_cd             String?   @db.VarChar(10)
+  remarks            String?
+  active             Boolean   @default(true)
+  ins_by             String?   @db.VarChar(50)
+  ins_date           DateTime  @default(now())
+  chg_by             String?   @db.VarChar(50)
+  chg_date           DateTime?
+  asset              Asset?    @relation(fields: [asset_id], references: [asset_id])
+  event              Event?    @relation(fields: [event_id], references: [event_id])
+  location           Location? @relation(fields: [loc_id], references: [loc_id])
+  part               PartList? @relation(fields: [partno_id], references: [partno_id])
+  repair             Repair?   @relation(fields: [repair_id], references: [repair_id])
 
   @@map("sru_order")
 }
@@ -807,16 +704,10 @@ model BadActor {
   ins_date           DateTime  @default(now())
   chg_by             String?   @db.VarChar(50)
   chg_date           DateTime?
-
-  // Relations
-  location Location? @relation(fields: [loc_id], references: [loc_id])
+  location           Location? @relation(fields: [loc_id], references: [loc_id])
 
   @@map("bad_actor")
 }
-
-// ============================================================================
-// Attachment Tables
-// ============================================================================
 
 model Attachment {
   attachment_id   Int      @id @default(autoincrement())
@@ -829,23 +720,17 @@ model Attachment {
   mime_type       String?  @db.VarChar(100)
   ins_by          String?  @db.VarChar(50)
   ins_date        DateTime @default(now())
-
-  // Relations
-  event  Event?  @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
-  repair Repair? @relation(fields: [repair_id], references: [repair_id], onDelete: Cascade)
+  event           Event?   @relation(fields: [event_id], references: [event_id], onDelete: Cascade)
+  repair          Repair?  @relation(fields: [repair_id], references: [repair_id], onDelete: Cascade)
 
   @@map("attachments")
 }
-
-// ============================================================================
-// Notification & System Tables
-// ============================================================================
 
 model Notification {
   msg_id       Int       @id @default(autoincrement())
   pgm_id       Int?
   loc_id       Int?
-  msg_text     String    @db.Text
+  msg_text     String
   priority     String?   @db.VarChar(20)
   start_date   DateTime?
   stop_date    DateTime?
@@ -857,10 +742,8 @@ model Notification {
   active       Boolean   @default(true)
   ins_by       String?   @db.VarChar(50)
   ins_date     DateTime  @default(now())
-
-  // Relations
-  program  Program?  @relation(fields: [pgm_id], references: [pgm_id])
-  location Location? @relation(fields: [loc_id], references: [loc_id])
+  location     Location? @relation(fields: [loc_id], references: [loc_id])
+  program      Program?  @relation(fields: [pgm_id], references: [pgm_id])
 
   @@map("notification")
 }
@@ -875,9 +758,7 @@ model AuditLog {
   new_values Json?
   ip_address String?  @db.VarChar(45)
   created_at DateTime @default(now())
-
-  // Relations
-  user User? @relation(fields: [user_id], references: [user_id])
+  user       User?    @relation(fields: [user_id], references: [user_id])
 
   @@map("audit_log")
 }
@@ -885,7 +766,7 @@ model AuditLog {
 model AdmVariable {
   var_id    Int       @id @default(autoincrement())
   var_name  String    @unique @db.VarChar(50)
-  var_value String?   @db.Text
+  var_value String?
   var_desc  String?   @db.VarChar(255)
   active    Boolean   @default(true)
   ins_by    String?   @db.VarChar(50)
@@ -895,10 +776,6 @@ model AdmVariable {
 
   @@map("adm_variable")
 }
-
-// ============================================================================
-// Spares Inventory Tables
-// ============================================================================
 
 model Spare {
   spare_id     Int       @id @default(autoincrement())
@@ -910,24 +787,18 @@ model Spare {
   warranty_exp DateTime?
   mfg_date     DateTime?
   unit_price   Decimal?  @db.Decimal(12, 2)
-  remarks      String?   @db.Text
+  remarks      String?
   active       Boolean   @default(true)
   ins_by       String?   @db.VarChar(50)
   ins_date     DateTime  @default(now())
   chg_by       String?   @db.VarChar(50)
   chg_date     DateTime?
-
-  // Relations
-  program  Program   @relation(fields: [pgm_id], references: [pgm_id])
-  location Location? @relation(fields: [loc_id], references: [loc_id])
+  location     Location? @relation(fields: [loc_id], references: [loc_id])
+  program      Program   @relation(fields: [pgm_id], references: [pgm_id])
 
   @@unique([partno, serno])
   @@map("spares")
 }
-
-// ============================================================================
-// Location Set Tables
-// ============================================================================
 
 model LocSet {
   set_id       Int       @id @default(autoincrement())
@@ -940,72 +811,56 @@ model LocSet {
   ins_date     DateTime  @default(now())
   chg_by       String?   @db.VarChar(50)
   chg_date     DateTime?
-
-  // Relations
-  program  Program  @relation(fields: [pgm_id], references: [pgm_id])
-  location Location @relation(fields: [loc_id], references: [loc_id])
+  location     Location  @relation(fields: [loc_id], references: [loc_id])
+  program      Program   @relation(fields: [pgm_id], references: [pgm_id])
 
   @@unique([set_name, loc_id])
   @@map("loc_set")
 }
 
-// ============================================================================
-// Parts Ordering Tables
-// ============================================================================
-
 model PartsOrder {
-  order_id          Int       @id @default(autoincrement())
-  order_no          String    @unique @db.VarChar(50)
-  partno_id         Int
-  quantity          Int
-  quantity_received Int?
-  status            String    @default("REQUESTED") @db.VarChar(20) // REQUESTED, APPROVED, ORDERED, RECEIVED, ISSUED, CANCELLED
-  priority          String    @default("ROUTINE") @db.VarChar(20)   // ROUTINE, URGENT, MICAP
-  
-  // Associations
-  event_id          Int?
-  repair_id         Int?
-  loc_id            Int
+  order_id             Int                 @id @default(autoincrement())
+  order_no             String              @unique @db.VarChar(50)
+  partno_id            Int
+  quantity             Int
+  quantity_received    Int?
+  status               String              @default("REQUESTED") @db.VarChar(20)
+  priority             String              @default("ROUTINE") @db.VarChar(20)
+  event_id             Int?
+  repair_id            Int?
+  loc_id               Int
   substitute_partno_id Int?
-  
-  // Workflow tracking
-  requested_by      String    @db.VarChar(50)
-  requested_date    DateTime  @default(now())
-  approved_by       String?   @db.VarChar(50)
-  approved_date     DateTime?
-  ordered_by        String?   @db.VarChar(50)
-  ordered_date      DateTime?
-  received_by       String?   @db.VarChar(50)
-  received_date     DateTime?
-  issued_to         String?   @db.VarChar(50)
-  issued_by         String?   @db.VarChar(50)
-  issued_date       DateTime?
-  cancelled_by      String?   @db.VarChar(50)
-  cancelled_date    DateTime?
-  cancel_reason     String?   @db.Text
-  
-  // Vendor info
-  vendor_name       String?   @db.VarChar(100)
-  vendor_order_no   String?   @db.VarChar(50)
-  expected_date     DateTime?
-  unit_cost         Decimal?  @db.Decimal(12, 2)
-  tcn               String?   @db.VarChar(50) // Transportation Control Number
-  
-  // Metadata
-  current_stock     Int?      // Stock level at time of request
-  notes             String?   @db.Text
-  ins_by            String?   @db.VarChar(50)
-  ins_date          DateTime  @default(now())
-  chg_by            String?   @db.VarChar(50)
-  chg_date          DateTime?
-
-  // Relations
-  part              PartList  @relation(fields: [partno_id], references: [partno_id])
-  location          Location  @relation("PartsOrderLocation", fields: [loc_id], references: [loc_id])
-  event             Event?    @relation(fields: [event_id], references: [event_id])
-  repair            Repair?   @relation(fields: [repair_id], references: [repair_id])
-  substitutePart    PartList? @relation("SubstitutePart", fields: [substitute_partno_id], references: [partno_id])
-  history           PartsOrderHistory[]
+  requested_by         String              @db.VarChar(50)
+  requested_date       DateTime            @default(now())
+  approved_by          String?             @db.VarChar(50)
+  approved_date        DateTime?
+  ordered_by           String?             @db.VarChar(50)
+  ordered_date         DateTime?
+  received_by          String?             @db.VarChar(50)
+  received_date        DateTime?
+  issued_to            String?             @db.VarChar(50)
+  issued_by            String?             @db.VarChar(50)
+  issued_date          DateTime?
+  cancelled_by         String?             @db.VarChar(50)
+  cancelled_date       DateTime?
+  cancel_reason        String?
+  vendor_name          String?             @db.VarChar(100)
+  vendor_order_no      String?             @db.VarChar(50)
+  expected_date        DateTime?
+  unit_cost            Decimal?            @db.Decimal(12, 2)
+  tcn                  String?             @db.VarChar(50)
+  current_stock        Int?
+  notes                String?
+  ins_by               String?             @db.VarChar(50)
+  ins_date             DateTime            @default(now())
+  chg_by               String?             @db.VarChar(50)
+  chg_date             DateTime?
+  event                Event?              @relation(fields: [event_id], references: [event_id])
+  location             Location            @relation("PartsOrderLocation", fields: [loc_id], references: [loc_id])
+  part                 PartList            @relation(fields: [partno_id], references: [partno_id])
+  repair               Repair?             @relation(fields: [repair_id], references: [repair_id])
+  substitutePart       PartList?           @relation("SubstitutePart", fields: [substitute_partno_id], references: [partno_id])
+  history              PartsOrderHistory[]
 
   @@index([loc_id, status])
   @@index([repair_id])
@@ -1014,27 +869,21 @@ model PartsOrder {
 }
 
 model PartsOrderHistory {
-  history_id   Int       @id @default(autoincrement())
-  order_id     Int
-  status       String    @db.VarChar(20)
-  changed_by   String    @db.VarChar(50)
-  notes        String?   @db.Text
-  created_at   DateTime  @default(now())
-
-  // Relations
-  order        PartsOrder @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
+  history_id Int        @id @default(autoincrement())
+  order_id   Int
+  status     String     @db.VarChar(20)
+  changed_by String     @db.VarChar(50)
+  notes      String?
+  created_at DateTime   @default(now())
+  order      PartsOrder @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
 
   @@index([order_id])
   @@map("parts_order_history")
 }
 
-// ============================================================================
-// Shipping Tables
-// ============================================================================
-
 model Shipment {
   shipment_id   Int       @id @default(autoincrement())
-  tcn           String    @unique @db.VarChar(50) // Transportation Control Number
+  tcn           String    @unique @db.VarChar(50)
   from_loc_id   Int
   to_loc_id     Int
   shipper       String?   @db.VarChar(100)
@@ -1042,14 +891,12 @@ model Shipment {
   expected_date DateTime?
   recv_date     DateTime?
   asset_count   Int       @default(0)
-  status        String    @default("IN_TRANSIT") @db.VarChar(20) // IN_TRANSIT, RECEIVED, CANCELLED
-  remarks       String?   @db.Text
+  status        String    @default("IN_TRANSIT") @db.VarChar(20)
+  remarks       String?
   ins_by        String?   @db.VarChar(50)
   ins_date      DateTime  @default(now())
   chg_by        String?   @db.VarChar(50)
   chg_date      DateTime?
-
-  // Relations
   fromLocation  Location  @relation("ShipmentFrom", fields: [from_loc_id], references: [loc_id])
   toLocation    Location  @relation("ShipmentTo", fields: [to_loc_id], references: [loc_id])
 
@@ -1057,4 +904,11 @@ model Shipment {
   @@index([to_loc_id])
   @@index([status])
   @@map("shipment")
+}
+
+enum UserRole {
+  ADMIN
+  DEPOT_MANAGER
+  FIELD_TECHNICIAN
+  VIEWER
 }

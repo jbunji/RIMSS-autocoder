@@ -1996,11 +1996,11 @@ export default function AssetDetailPage() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          sortie.sortie_effect === 'FMC' || sortie.sortie_effect === 'Full Mission Capable'
+                          sortie.sortie_effect === 'FMC' || sortie.sortie_effect === 'Fully Mission Capable'
                             ? 'bg-green-100 text-green-800'
                             : sortie.sortie_effect === 'PMC' || sortie.sortie_effect === 'PMCM' ||
                               sortie.sortie_effect === 'PMCS' || sortie.sortie_effect === 'PMCB' ||
-                              sortie.sortie_effect === 'Partial Mission Capable'
+                              sortie.sortie_effect === 'Partially Mission Capable'
                             ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-red-100 text-red-800'
                         }`}>

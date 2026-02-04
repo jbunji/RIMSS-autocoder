@@ -33,14 +33,14 @@ export class InventoryService {
   }> {
     const whereClause: any = {};
 
-    if (params.pgmId) whereClause.pgm_id = params.pgmId;
+    if (params.pgmId) whereClause.part = { pgm_id: params.pgmId };
     if (params.locationId) {
       whereClause.OR = [
         { loc_ida: params.locationId },
         { loc_idc: params.locationId },
       ];
     }
-    if (params.partnoId) whereClause.part_id = params.partnoId;
+    if (params.partnoId) whereClause.partno_id = params.partnoId;
     if (params.nhaAssetId) whereClause.nha_asset_id = params.nhaAssetId;
     if (params.statusCd) whereClause.status_cd = params.statusCd;
     if (params.inTransit !== undefined) whereClause.in_transit = params.inTransit;
@@ -51,7 +51,7 @@ export class InventoryService {
       whereClause.serno = { contains: params.serno, mode: "insensitive" };
     }
     if (params.partno) {
-      whereClause.part = { partno: { contains: params.partno, mode: "insensitive" } };
+      whereClause.part = { ...whereClause.part, partno: { contains: params.partno, mode: "insensitive" } };
     }
 
     const orderBy: any = {};
@@ -88,7 +88,7 @@ export class InventoryService {
   async exportInventory(params: InventorySearchParams): Promise<string> {
     const { assets } = await this.searchInventory({ ...params, limit: 10000, offset: 0 });
 
-    const fields = ["serno", "partno", "noun", "status_cd", "location", "nha_serno", "in_transit", "eti_hours"];
+    const fields = ["serno", "partno", "noun", "status_cd", "location", "nha_serno", "in_transit", "eti"];
     const header = fields.join(",");
 
     const rows = assets.map(asset => {
@@ -122,7 +122,7 @@ export class InventoryService {
         currentLocation: true,
         nhaAsset: { include: { part: true } },
         cfgSet: true,
-        childAssets: { include: { part: true } },
+        sraAssets: { include: { part: true } },
         events: { take: 10, orderBy: { ins_date: "desc" }, include: { repairs: true } },
         sorties: { take: 10, orderBy: { sortie_date: "desc" } },
         inspections: { where: { complete_date: null } },
@@ -163,30 +163,30 @@ export class InventoryService {
       active: true,
       OR: [{ loc_ida: locationId }, { loc_idc: locationId }],
     };
-    if (pgmId) whereClause.pgm_id = pgmId;
+    if (pgmId) whereClause.part = { pgm_id: pgmId };
 
     const stockByPart = await prisma.asset.groupBy({
-      by: ["part_id", "status_cd"],
+      by: ["partno_id", "status_cd"],
       where: whereClause,
       _count: { asset_id: true },
     });
 
-    const partIds = [...new Set(stockByPart.map(s => s.part_id))];
+    const partIds = [...new Set(stockByPart.map(s => s.partno_id))];
     const parts = await prisma.partList.findMany({ where: { partno_id: { in: partIds } } });
     const partMap = new Map(parts.map(p => [p.partno_id, p]));
 
     const stockMap = new Map<number, any>();
     for (const row of stockByPart) {
-      if (!stockMap.has(row.part_id)) {
-        const part = partMap.get(row.part_id);
-        stockMap.set(row.part_id, {
-          partId: row.part_id,
+      if (!stockMap.has(row.partno_id)) {
+        const part = partMap.get(row.partno_id);
+        stockMap.set(row.partno_id, {
+          partnoId: row.partno_id,
           partno: part?.partno,
           noun: part?.noun,
           total: 0, fmc: 0, nmcm: 0, nmcs: 0,
         });
       }
-      const stock = stockMap.get(row.part_id);
+      const stock = stockMap.get(row.partno_id);
       stock.total += row._count.asset_id;
       if (row.status_cd === "FMC") stock.fmc = row._count.asset_id;
       if (row.status_cd === "NMCM") stock.nmcm = row._count.asset_id;
@@ -214,7 +214,7 @@ export class InventoryService {
   async getChildAssets(assetId: number): Promise<any[]> {
     return prisma.asset.findMany({
       where: { nha_asset_id: assetId, active: true },
-      include: { part: true, childAssets: { include: { part: true } } },
+      include: { part: true, sraAssets: { include: { part: true } } },
       orderBy: { serno: "asc" },
     });
   }

@@ -103,12 +103,12 @@ export default function SortieReportPage() {
       const summary: SortieSummary = {
         total_sorties: sortieList.length,
         fmc_count: sortieList.filter((s: Sortie) =>
-          s.sortie_effect === 'FMC' || s.sortie_effect === 'Full Mission Capable'
+          s.sortie_effect === 'FMC' || s.sortie_effect === 'Fully Mission Capable'
         ).length,
         pmc_count: sortieList.filter((s: Sortie) =>
           s.sortie_effect === 'PMC' || s.sortie_effect === 'PMCM' ||
           s.sortie_effect === 'PMCS' || s.sortie_effect === 'PMCB' ||
-          s.sortie_effect === 'Partially Mission Capable' || s.sortie_effect === 'Partial Mission Capable'
+          s.sortie_effect === 'Partially Mission Capable' || s.sortie_effect === 'Partially Mission Capable'
         ).length,
         nmcm_count: sortieList.filter((s: Sortie) =>
           s.sortie_effect === 'NMCM' || s.sortie_effect === 'NMCB' ||
@@ -402,11 +402,11 @@ export default function SortieReportPage() {
   const getEffectBadgeColor = (effect: string | null) => {
     if (!effect) return 'bg-gray-100 text-gray-800'
 
-    if (effect === 'FMC' || effect === 'Full Mission Capable') {
+    if (effect === 'FMC' || effect === 'Fully Mission Capable') {
       return 'bg-green-100 text-green-800'
     }
     if (effect === 'PMC' || effect === 'PMCM' || effect === 'PMCS' || effect === 'PMCB' ||
-        effect === 'Partially Mission Capable' || effect === 'Partial Mission Capable') {
+        effect === 'Partially Mission Capable' || effect === 'Partially Mission Capable') {
       return 'bg-yellow-100 text-yellow-800'
     }
     if (effect === 'NMCM' || effect === 'NMCB' || effect.includes('Non-Mission Capable')) {

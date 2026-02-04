@@ -113,7 +113,7 @@ export class ShippingService {
     // Get destination from shipment record
     const shipment = await prisma.shipment.findFirst({
       where: {
-        tcn: asset.tcn,
+        tcn: asset.tcn || undefined,
         status: "IN_TRANSIT",
       },
     });

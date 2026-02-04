@@ -105,8 +105,8 @@ export class SparesService {
     if (!part) {
       part = await prisma.partList.create({
         data: {
-          partno: spare.partno,
-          pgm_id: spare.pgm_id,
+          partno: spare.partno, pgm_id: spare.pgm_id,
+          
           ins_by: assetData.userId,
           ins_date: new Date(),
         },
@@ -116,8 +116,8 @@ export class SparesService {
     // Create asset from spare
     const asset = await prisma.asset.create({
       data: {
-        pgm_id: spare.pgm_id,
-        part_id: part.partno_id,
+        
+        partno_id: part.partno_id,
         serno: spare.serno,
         status_cd: "FMC",
         nha_asset_id: assetData.nhaAssetId,

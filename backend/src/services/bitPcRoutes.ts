@@ -1,7 +1,7 @@
 /**
  * BIT/PC API Routes
  * =================
- * Built-in Test and Power Check tracking.
+ * Built-in Test / Part Change tracking.
  */
 
 import { Router, Request, Response } from "express";
@@ -10,135 +10,142 @@ import { bitPcService } from "./BitPcService";
 export const bitPcRouter = Router();
 
 /**
- * POST /tests - Record a test result
+ * POST /entries - Record a BIT/PC entry
  */
-bitPcRouter.post("/tests", async (req: Request, res: Response) => {
+bitPcRouter.post("/entries", async (req: Request, res: Response) => {
   try {
-    const { labor_id, asset_id, test_type, test_name, result, reading, min_spec, max_spec, remarks } = req.body;
+    const { labor_id, bit_partno, bit_name, bit_seq, bit_wuc, how_mal, bit_qty, fsc } = req.body;
     const userId = (req as any).user?.username || "system";
 
-    if (!labor_id || !test_type || !test_name || !result) {
-      return res.status(400).json({ error: "labor_id, test_type, test_name, and result required" });
+    if (!labor_id) {
+      return res.status(400).json({ error: "labor_id required" });
     }
 
-    const test = await bitPcService.recordTest({
+    const entry = await bitPcService.recordBitPc({
       laborId: parseInt(labor_id),
-      assetId: asset_id ? parseInt(asset_id) : undefined,
-      testType: test_type,
-      testName: test_name,
-      result,
-      reading,
-      minSpec: min_spec,
-      maxSpec: max_spec,
-      remarks,
+      bitPartno: bit_partno,
+      bitName: bit_name,
+      bitSeq: bit_seq ? parseInt(bit_seq) : undefined,
+      bitWuc: bit_wuc,
+      howMal: how_mal,
+      bitQty: bit_qty ? parseInt(bit_qty) : undefined,
+      fsc,
       userId,
     });
 
-    res.status(201).json({ message: "Test recorded", test });
+    res.status(201).json({ message: "Entry recorded", entry });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * PUT /tests/:id - Update a test result
+ * PUT /entries/:id - Update a BIT/PC entry
  */
-bitPcRouter.put("/tests/:id", async (req: Request, res: Response) => {
+bitPcRouter.put("/entries/:id", async (req: Request, res: Response) => {
   try {
-    const bitPcId = parseInt(req.params.id);
+    const laborBitId = parseInt(req.params.id);
+    const { bit_partno, bit_name, bit_wuc, how_mal, bit_qty, fsc } = req.body;
+
+    const entry = await bitPcService.updateBitPc(laborBitId, {
+      bitPartno: bit_partno,
+      bitName: bit_name,
+      bitWuc: bit_wuc,
+      howMal: how_mal,
+      bitQty: bit_qty ? parseInt(bit_qty) : undefined,
+      fsc,
+      userId: (req as any).user?.username || "system",
+    });
+    res.json({ message: "Entry updated", entry });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * DELETE /entries/:id - Delete a BIT/PC entry (soft delete)
+ */
+bitPcRouter.delete("/entries/:id", async (req: Request, res: Response) => {
+  try {
+    const laborBitId = parseInt(req.params.id);
+    await bitPcService.deleteBitPc(laborBitId);
+    res.json({ message: "Entry deleted" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /entries/:id/validate - Validate a BIT/PC entry
+ */
+bitPcRouter.post("/entries/:id/validate", async (req: Request, res: Response) => {
+  try {
+    const laborBitId = parseInt(req.params.id);
     const userId = (req as any).user?.username || "system";
-
-    const test = await bitPcService.updateTest(bitPcId, { ...req.body, userId });
-    res.json({ message: "Test updated", test });
+    const entry = await bitPcService.validateBitPc(laborBitId, userId);
+    res.json({ message: "Entry validated", entry });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * DELETE /tests/:id - Delete a test
+ * GET /labor/:laborId/entries - Get entries for a labor record
  */
-bitPcRouter.delete("/tests/:id", async (req: Request, res: Response) => {
-  try {
-    const bitPcId = parseInt(req.params.id);
-    await bitPcService.deleteTest(bitPcId);
-    res.json({ message: "Test deleted" });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * GET /labor/:laborId/tests - Get tests for a labor record
- */
-bitPcRouter.get("/labor/:laborId/tests", async (req: Request, res: Response) => {
+bitPcRouter.get("/labor/:laborId/entries", async (req: Request, res: Response) => {
   try {
     const laborId = parseInt(req.params.laborId);
-    const tests = await bitPcService.getTestsForLabor(laborId);
-    res.json({ tests, count: tests.length });
+    const entries = await bitPcService.getEntriesForLabor(laborId);
+    res.json({ entries, count: entries.length });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * GET /asset/:assetId/tests - Get tests for an asset
+ * GET /repair/:repairId/unvalidated - Get unvalidated entries for a repair
  */
-bitPcRouter.get("/asset/:assetId/tests", async (req: Request, res: Response) => {
-  try {
-    const assetId = parseInt(req.params.assetId);
-    const limit = parseInt(req.query.limit as string) || 50;
-    const tests = await bitPcService.getTestsForAsset(assetId, limit);
-    res.json({ tests, count: tests.length });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * GET /repair/:repairId/failures - Get failed tests for a repair
- */
-bitPcRouter.get("/repair/:repairId/failures", async (req: Request, res: Response) => {
+bitPcRouter.get("/repair/:repairId/unvalidated", async (req: Request, res: Response) => {
   try {
     const repairId = parseInt(req.params.repairId);
-    const failures = await bitPcService.getFailedTestsForRepair(repairId);
-    res.json({ failures, count: failures.length });
+    const entries = await bitPcService.getUnvalidatedForRepair(repairId);
+    res.json({ entries, count: entries.length });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * GET /event/:eventId/stats - Get test stats for an event
+ * GET /event/:eventId/entries - Get entries for an event
  */
-bitPcRouter.get("/event/:eventId/stats", async (req: Request, res: Response) => {
+bitPcRouter.get("/event/:eventId/entries", async (req: Request, res: Response) => {
   try {
     const eventId = parseInt(req.params.eventId);
-    const stats = await bitPcService.getTestStatsForEvent(eventId);
-    res.json({ stats });
+    const entries = await bitPcService.getEntriesForEvent(eventId);
+    res.json({ entries, count: entries.length });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * GET /location/:locationId/failures - Get recent failures
+ * GET /usage/:pgmId - Get part usage summary
  */
-bitPcRouter.get("/location/:locationId/failures", async (req: Request, res: Response) => {
+bitPcRouter.get("/usage/:pgmId", async (req: Request, res: Response) => {
   try {
-    const locationId = parseInt(req.params.locationId);
-    const days = parseInt(req.query.days as string) || 30;
-    const failures = await bitPcService.getRecentFailures(locationId, days);
-    res.json({ failures, count: failures.length });
+    const pgmId = parseInt(req.params.pgmId);
+    const days = parseInt(req.query.days as string) || 90;
+    const usage = await bitPcService.getPartUsageSummary(pgmId, days);
+    res.json({ usage, count: usage.length });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * POST /labor/:laborId/copy-tests - Copy tests for retest
+ * POST /labor/:laborId/copy - Copy entries to another labor
  */
-bitPcRouter.post("/labor/:laborId/copy-tests", async (req: Request, res: Response) => {
+bitPcRouter.post("/labor/:laborId/copy", async (req: Request, res: Response) => {
   try {
     const fromLaborId = parseInt(req.params.laborId);
     const { to_labor_id } = req.body;
@@ -148,22 +155,8 @@ bitPcRouter.post("/labor/:laborId/copy-tests", async (req: Request, res: Respons
       return res.status(400).json({ error: "to_labor_id required" });
     }
 
-    const copied = await bitPcService.copyTestsForRetest(fromLaborId, parseInt(to_labor_id), userId);
-    res.json({ message: `Copied ${copied} tests`, copied });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * GET /failure-rate/:pgmId - Get failure rate by part
- */
-bitPcRouter.get("/failure-rate/:pgmId", async (req: Request, res: Response) => {
-  try {
-    const pgmId = parseInt(req.params.pgmId);
-    const days = parseInt(req.query.days as string) || 90;
-    const rates = await bitPcService.getFailureRateByPart(pgmId, days);
-    res.json({ rates });
+    const copied = await bitPcService.copyEntries(fromLaborId, parseInt(to_labor_id), userId);
+    res.json({ message: `Copied ${copied} entries`, copied });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
