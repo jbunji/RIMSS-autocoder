@@ -27,3 +27,5 @@ export { shippingRouter } from "./shippingRoutes";
 export { sortieRouter } from "./sortieRoutes";
 export { configurationRouter } from "./configurationRoutes";
 export { notificationRouter } from "./notificationRoutes";
+export { InventoryService, inventoryService } from "./InventoryService";
+export { inventoryRouter } from "./inventoryRoutes";
