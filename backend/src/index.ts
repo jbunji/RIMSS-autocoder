@@ -5793,16 +5793,78 @@ function getLocationPrefix(location: string): string {
 }
 
 // Helper function to generate job number unique per location
-function generateJobNumber(location: string): string {
-  const year = new Date().getFullYear();
-  const prefix = getLocationPrefix(location);
+/**
+ * Generate job number matching legacy ColdFusion format: yyyymmddSEQ
+ * - yyyymmdd = current date
+ * - SEQ = 3-digit zero-padded sequence, resets daily per location
+ * - Persisted in adm_variable table as RIMSS_SEQ_{locId}
+ * - Thread-safe via Prisma upsert (DB-level atomicity)
+ */
+async function generateJobNumber(locId: number | null): Promise<string> {
+  const now = new Date();
+  const yyyy = String(now.getFullYear());
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const jobDate = `${yyyy}${mm}${dd}`;
 
-  // Get or initialize the sequence for this location
-  const currentSeq = locationJobSeqMap.get(location) || 1;
-  locationJobSeqMap.set(location, currentSeq + 1);
+  // Use location ID for sequence tracking, default to 0 for unknown
+  const effectiveLocId = locId ?? 0;
+  const varName = `RIMSS_SEQ_${effectiveLocId}`;
 
-  const seq = String(currentSeq).padStart(3, '0');
-  return `MX-${prefix}-${year}-${seq}`;
+  try {
+    // Get or create the sequence variable
+    let admVar = await prisma.admVariable.findUnique({ where: { var_name: varName } });
+
+    let nextSeq = 1;
+
+    if (admVar) {
+      // Check if date has changed (reset sequence daily)
+      const lastDate = admVar.chg_date ? new Date(admVar.chg_date) : null;
+      const isNewDay = !lastDate ||
+        lastDate.getFullYear() !== now.getFullYear() ||
+        lastDate.getMonth() !== now.getMonth() ||
+        lastDate.getDate() !== now.getDate();
+
+      if (isNewDay) {
+        nextSeq = 1;
+      } else {
+        nextSeq = (parseInt(admVar.var_value || '0', 10) || 0) + 1;
+      }
+
+      // Update the sequence
+      await prisma.admVariable.update({
+        where: { var_name: varName },
+        data: {
+          var_value: String(nextSeq),
+          chg_date: now,
+          chg_by: 'system',
+        },
+      });
+    } else {
+      // Create new sequence variable for this location
+      await prisma.admVariable.create({
+        data: {
+          var_name: varName,
+          var_value: '1',
+          var_desc: `Job number sequence for location ${effectiveLocId}`,
+          active: true,
+          ins_by: 'system',
+          chg_date: now,
+          chg_by: 'system',
+        },
+      });
+    }
+
+    const seq = String(nextSeq).padStart(3, '0');
+    return `${jobDate}${seq}`;
+  } catch (error) {
+    console.error('[JOB_NO] Failed to generate from DB, using fallback:', error);
+    // Fallback: use in-memory counter if DB fails
+    const fallbackSeq = (locationJobSeqMap.get(String(effectiveLocId)) || 0) + 1;
+    locationJobSeqMap.set(String(effectiveLocId), fallbackSeq);
+    const seq = String(fallbackSeq).padStart(3, '0');
+    return `${jobDate}${seq}`;
+  }
 }
 
 // Dashboard: Get open maintenance jobs (requires authentication)
@@ -6320,7 +6382,7 @@ app.post('/api/events', async (req, res) => {
 
   // Generate new event ID and job number (unique per location)
   const newEventId = maintenanceEventNextId++;
-  const newJobNo = generateJobNumber(eventLocation);
+  const newJobNo = await generateJobNumber(eventLocationId || null);
 
   // Validate sortie_id if provided
   let validSortieId: number | null = null;
