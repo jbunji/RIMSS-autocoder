@@ -6364,6 +6364,20 @@ app.post('/api/events', async (req, res) => {
 
   // Add to the persistent array
   maintenanceEvents.push(newEvent);
+    // Also persist to DB
+    await prisma.event.create({
+      data: {
+        asset_id: newEvent.asset_id,
+        loc_id: newEvent.loc_id || null,
+        job_no: newEvent.job_no,
+        discrepancy: newEvent.discrepancy,
+        start_job: newEvent.start_job ? new Date(newEvent.start_job) : new Date(),
+        stop_job: newEvent.stop_job ? new Date(newEvent.stop_job) : null,
+        event_type: newEvent.event_type === 'PMI' ? 'PM' : newEvent.event_type === 'Standard' ? 'CM' : 'CM',
+        priority: newEvent.priority,
+        ins_by: newEvent.created_by_name || 'system',
+      },
+    }).catch(e => console.error('[EVENT] DB create failed:', e));
 
   console.log(`[EVENTS] Created maintenance event ${newJobNo} by ${user.username} for asset ${asset.serno}`);
 
@@ -6708,7 +6722,7 @@ app.post('/api/events/:eventId/repairs', async (req, res) => {
 });
 
 // Update a repair
-app.put('/api/repairs/:id', (req, res) => {
+app.put('/api/repairs/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -6800,10 +6814,12 @@ app.put('/api/repairs/:id', (req, res) => {
         repairs[repairIndex].donor_asset_pn = donorAsset.partno;
         repairs[repairIndex].donor_asset_name = donorAsset.name;
 
-        // Update donor asset status to NMCS
+        // Update donor asset status to NMCS - DB + cache
         const donorAssetIndex = mockAssets.findIndex(a => a.asset_id === donor_asset_id);
         if (donorAssetIndex !== -1) {
           mockAssets[donorAssetIndex].status_cd = 'NMCS';
+          await prisma.asset.update({ where: { asset_id: donor_asset_id }, data: { status_cd: 'NMCS', chg_by: user.username, chg_date: new Date() } }).catch(e => console.error('[CANNIBALIZATION] DB update failed:', e));
+          await refreshAssetInMemory(donor_asset_id).catch(() => {});
           console.log(`[CANNIBALIZATION] Donor asset ${donorAsset.serno} status changed to NMCS`);
         }
       } else {
@@ -6941,8 +6957,9 @@ app.put('/api/repairs/:id', (req, res) => {
       // Update the asset's ETI hours if we have a valid delta
       const assetIndex = detailedAssets.findIndex(a => a.asset_id === repairs[repairIndex].asset_id);
       if (assetIndex !== -1 && detailedAssets[assetIndex].eti_hours !== null) {
-        // Update asset ETI to the new eti_out value (current meter reading)
+        // Update ETI in cache and DB
         detailedAssets[assetIndex].eti_hours = parsedEtiOut;
+        await prisma.asset.update({ where: { asset_id: repairs[repairIndex].asset_id }, data: { eti: parsedEtiOut } }).catch(e => console.error('[ETI] DB update failed:', e));
         console.log(`[REPAIRS] Asset ${repairs[repairIndex].asset_id} ETI updated to ${parsedEtiOut} hours`);
       }
     } else if (parsedEtiOut === null) {
@@ -7355,7 +7372,7 @@ app.get('/api/repairs/:repairId/removed-parts', (req, res) => {
 });
 
 // Add a removed part to a repair
-app.post('/api/repairs/:repairId/removed-parts', (req, res) => {
+app.post('/api/repairs/:repairId/removed-parts', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -7451,6 +7468,8 @@ app.post('/api/repairs/:repairId/removed-parts', (req, res) => {
     if (assetIndex !== -1) {
       const oldStatus = mockAssets[assetIndex].status_cd;
       mockAssets[assetIndex].status_cd = new_status;
+      await prisma.asset.update({ where: { asset_id: asset_id }, data: { status_cd: new_status, chg_by: user.username, chg_date: new Date() } }).catch(e => console.error('[REMOVED_PARTS] DB update failed:', e));
+      await refreshAssetInMemory(asset_id).catch(() => {});
       console.log(`[REMOVED_PARTS] Updated removed asset ${asset.serno} status from ${oldStatus} to ${new_status}`);
     }
   }
@@ -8771,7 +8790,7 @@ app.post('/api/events/:id/close', (req, res) => {
 });
 
 // Delete a maintenance event (ADMIN only)
-app.delete('/api/events/:id', (req, res) => {
+app.delete('/api/events/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -8817,6 +8836,8 @@ app.delete('/api/events/:id', (req, res) => {
 
   // Remove the event
   const deletedEvent = maintenanceEvents.splice(eventIndex, 1)[0];
+    // Also delete from DB
+    await prisma.event.delete({ where: { event_id: deletedEvent.event_id } }).catch(e => console.error('[EVENT] DB delete failed:', e));
 
   console.log(`[EVENTS] Deleted maintenance event ${event.job_no} by ${user.username}`);
 
@@ -12578,8 +12599,37 @@ app.post('/api/assets', async (req, res) => {
     return res.status(400).json({ error: `An asset with serial number '${serno}' and part number '${partno}' already exists in this program` });
   }
 
-  // Generate new asset ID
-  const newAssetId = Math.max(...mockAssets.map(a => a.asset_id)) + 1;
+  // Create asset in DB first to get real ID
+  let newAssetId: number;
+  try {
+    // Find partno_id for the given partno + pgm_id
+    const partRecord = await prisma.partList.findFirst({ where: { partno, pgm_id } });
+    if (!partRecord) {
+      return res.status(400).json({ error: `Part number '${partno}' not found for this program` });
+    }
+    // Resolve location IDs
+    const adminLocRecord = await prisma.location.findFirst({ where: { display_name: { contains: admin_loc } } });
+    const custLocRecord = await prisma.location.findFirst({ where: { display_name: { contains: cust_loc } } });
+    
+    const dbAsset = await prisma.asset.create({
+      data: {
+        partno_id: partRecord.partno_id,
+        serno,
+        status_cd,
+        loc_ida: adminLocRecord?.loc_id || null,
+        loc_idc: custLocRecord?.loc_id || null,
+        active: true,
+        remarks: notes || null,
+        ins_by: user.username,
+      },
+    });
+    newAssetId = dbAsset.asset_id;
+    console.log(`[ASSET-CREATE] Created in DB with ID ${newAssetId}`);
+  } catch (dbError) {
+    console.error('[ASSET-CREATE] DB create failed:', dbError);
+    // Fallback to in-memory ID
+    newAssetId = Math.max(...mockAssets.map(a => a.asset_id), 0) + 1;
+  }
 
   // Create the new asset
   const newAsset: Asset = {
@@ -12641,6 +12691,8 @@ app.post('/api/assets', async (req, res) => {
     modified_date: null,
   };
   detailedAssets.push(newDetailedAsset);
+  // Refresh from DB to ensure cache matches
+  await refreshAssetInMemory(newAssetId).catch(() => {});
 
   // Add creation to asset history
   const createChanges: AssetHistoryChange[] = [
@@ -12699,7 +12751,7 @@ app.post('/api/assets', async (req, res) => {
 });
 
 // DELETE /api/assets/:id - Delete an asset (requires authentication and admin role)
-app.delete('/api/assets/:id', (req, res) => {
+app.delete('/api/assets/:id', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -12744,6 +12796,7 @@ app.delete('/api/assets/:id', (req, res) => {
 
   // Soft delete: set active = false (allows recovery)
   detailedAssets[assetIndex].active = false;
+  await prisma.asset.update({ where: { asset_id: assetId }, data: { active: false, chg_date: new Date() } }).catch(e => console.error('[ASSET] DB deactivate failed:', e));
 
   // Log the deletion
   console.log(`[ASSETS] Asset soft deleted by ${user.username}: ${deletedAssetInfo.serno} (ID: ${assetId})`);
@@ -12773,7 +12826,7 @@ app.delete('/api/assets/:id', (req, res) => {
 });
 
 // POST /api/assets/:id/reactivate - Reactivate a soft-deleted asset (requires authentication and admin role)
-app.post('/api/assets/:id/reactivate', (req, res) => {
+app.post('/api/assets/:id/reactivate', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -12809,6 +12862,7 @@ app.post('/api/assets/:id/reactivate', (req, res) => {
 
   // Reactivate: set active = true
   detailedAssets[assetIndex].active = true;
+    await prisma.asset.update({ where: { asset_id: assetId }, data: { active: true, chg_date: new Date() } }).catch(e => console.error('[ASSET] DB reactivate failed:', e));
 
   // Log the reactivation
   console.log(`[ASSETS] Asset reactivated by ${user.username}: ${asset.serno} (ID: ${assetId})`);
@@ -12844,7 +12898,7 @@ app.post('/api/assets/:id/reactivate', (req, res) => {
 });
 
 // DELETE /api/assets/:id/permanent - Permanently delete an asset (hard delete, requires authentication and admin role)
-app.delete('/api/assets/:id/permanent', (req, res) => {
+app.delete('/api/assets/:id/permanent', async (req, res) => {
   const payload = authenticateRequest(req, res);
   if (!payload) return;
 
@@ -12884,6 +12938,7 @@ app.delete('/api/assets/:id/permanent', (req, res) => {
 
   // Hard delete: completely remove from array
   detailedAssets.splice(assetIndex, 1);
+    await prisma.asset.delete({ where: { asset_id: assetId } }).catch(e => console.error('[ASSET] DB delete failed:', e));
 
   // Log the permanent deletion
   console.log(`[ASSETS] Asset PERMANENTLY deleted by ${user.username}: ${deletedAssetInfo.serno} (ID: ${assetId})`);
@@ -17374,9 +17429,34 @@ app.post('/api/spares', async (req, res) => {
     remarks: remarks || null,
   };
 
-  // Add to mock arrays
+  // Create in DB
+  try {
+    const partRecord = await prisma.partList.findFirst({ where: { partno, pgm_id: programId } });
+    if (partRecord) {
+      const dbAsset = await prisma.asset.create({
+        data: {
+          partno_id: partRecord.partno_id,
+          serno,
+          status_cd: status || 'FMC',
+          loc_ida: loc_id ? parseInt(loc_id) : null,
+          loc_idc: loc_id ? parseInt(loc_id) : null,
+          active: true,
+          remarks: remarks || null,
+          ins_by: user.username,
+        },
+      });
+      newAssetId = dbAsset.asset_id;
+      newAsset.asset_id = newAssetId;
+      newDetailedAsset.asset_id = newAssetId;
+    }
+  } catch (dbError) {
+    console.error('[SPARES] DB create failed, using in-memory ID:', dbError);
+  }
+
+  // Add to in-memory arrays
   mockAssets.push(newAsset);
   detailedAssets.push(newDetailedAsset);
+  await refreshAssetInMemory(newAssetId).catch(() => {});
 
   console.log(`[SPARES] Created spare ${newAssetId} (${partno}/${serno}) by ${user.username}`);
 
