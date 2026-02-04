@@ -35,3 +35,5 @@ export { SparesService, sparesService } from "./SparesService";
 export { sparesRouter } from "./sparesRoutes";
 export { BitPcService, bitPcService } from "./BitPcService";
 export { bitPcRouter } from "./bitPcRoutes";
+export { SoftwareService, softwareService } from "./SoftwareService";
+export { softwareRouter } from "./softwareRoutes";
