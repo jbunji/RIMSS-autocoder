@@ -142,6 +142,7 @@ app.use("/api/v2/reports", reportsRouter)
 app.use("/api/v2/spares", sparesRouter)
 app.use("/api/v2/bitpc", bitPcRouter)
 app.use("/api/v2/software", softwareRouter)
+app.use("/api/v2/meters", meterRouter)
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
